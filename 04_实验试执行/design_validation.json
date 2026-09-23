@@ -1,0 +1,28 @@
+{
+  "check": "PASS_DESIGN_STRUCTURE_ONLY",
+  "runs": 260,
+  "conditions": 52,
+  "assigned_liuxinyue": 160,
+  "assigned_fengzonglin": 100,
+  "traffic_hours_all": 13,
+  "real_experiments_executed": 0,
+  "formal_run_ready": false,
+  "checks": [
+    "unique_ids",
+    "counts_and_ownership",
+    "five_repeats_per_condition",
+    "bdp_arithmetic",
+    "protocol_pairing",
+    "analysis_window",
+    "E3_prediction_pairing"
+  ],
+  "blockers": [
+    "no_installed_WSL_distribution_observed",
+    "Linux_host_and_permissions_unconfirmed",
+    "implementation_commits_unconfirmed",
+    "queue_realization_unconfirmed",
+    "preflight_tolerances_unfrozen",
+    "scripts_not_implemented",
+    "E3_predictions_not_supplied"
+  ]
+}
