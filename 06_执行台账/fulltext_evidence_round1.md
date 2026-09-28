@@ -29,3 +29,20 @@
 | Piotrowska 2024 | 已找到MDPI页面和Semantic Scholar PDF入口 | 记录2×BDP、50×BDP、多RTT和Jain结果 |
 | BDP-Veno | 已找到DOI和公开摘要；ScienceDirect全文访问受限 | 获取合法全文后核对ns-2配置和BBR比较 |
 | OVeno | 仅有索引摘要和DOI候选线索 | 先补完整书目信息，再决定全文来源 |
+
+## 定量字段补充（公开全文定位）
+
+| 研究 | 平台/配置 | 关键结果 | 定位 |
+|---|---|---|---|
+| Hock et al. 2017 | Linux kernel 4.9 BBR；瓶颈10 Gbit/s与1 Gbit/s；六流图中RTT min=20 ms，并含20/40/80 ms多RTT图 | 结论明确覆盖单流、多流、不同RTT及BBR/CUBIC竞争；作者报告高带宽下多流行为偏离公平目标 | 作者PDF p.1实验概述；Fig. 7 p.6；Fig. 14 p.8；结论 p.10 |
+| Jaeger et al. 2019 | Mininet作为网络仿真后端，Linux network namespaces；BBR与CUBIC/Reno/Vegas/Illinois交互 | 不同瓶颈buffer下：约1.5 BDP以内BBR持续丢包并压制CUBIC；到约3 BDP两者接近公平；更大buffer时CUBIC份额增加。作者也指出改变两流共同RTT影响较小，固定一流50 ms并改变另一流时大buffer下RTT影响明显 | 公开PDF p.8 Fig. 10及正文；Mininet说明 p.13 |
+| Cao et al. 2019 | Mininet：1 Gbps、20 ms RTT，buffer从10 KB到100 MB；另有100 Mbps、25 ms RTT、10 MB buffer的loss实验 | 与CUBIC共存时，100 KB buffer下BBR重传305,029、CUBIC 1,398；10 MB时BBR 204、CUBIC 794；loss实验中BBR在约20% loss附近goodput出现cliff；论文明确区分Mininet与WAN结果 | 作者PDF p.5 Table 1；p.4 Fig. 7/8及正文 |
+| Ma et al. 2017 | 100 Mbps瓶颈、两流10 ms/50 ms RTT；另扫10 Mbps到1 Gbps带宽；改变竞争流数 | 50 ms流加入后10 ms流稳定goodput约6.3 Mbps；论文将偏差与较长RTT流的探测inflight和队列占用联系起来；还指出流数会改变长RTT优势 | arXiv HTML，Fig. 1及相关段落；全文字段仍需归档PDF页码 |
+| Piotrowska 2024 | 多RTT、BBRv1/v2/v3、吞吐/丢包/公平性；公开页面摘要可见 | 摘要明确报告2×BDP缓冲时BBRv3保持稳定低队列；具体Jain值和50×BDP结果需PDF逐页核对 | MDPI/公开摘要；正式定量引用前待PDF核验 |
+
+## 对正文的直接影响
+
+1. Jaeger的公开全文支持“buffer depth、AQM和RTT组合影响公平性”，不支持把RTT恒等式单独写成带宽分配证明。
+2. Cao的实验条件可用于说明 `suitable` 必须分吞吐、重传、队列和公平性；其Mininet与WAN结果不同，正文要保留平台边界。
+3. Ma的10/50 ms、100 Mbps案例可作为RTT公平性机制证据，但应写成特定实验条件下的观测；其结果不能替代多版本、多个队列的独立验证。
+4. Hock的高带宽实验不能直接作为本文100 Mbps候选实验的数值基准，只能用于跨研究条件比较。
