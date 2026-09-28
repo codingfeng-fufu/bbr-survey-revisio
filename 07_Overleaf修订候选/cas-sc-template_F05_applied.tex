@@ -465,7 +465,7 @@ challenges (\S\ref{sec:deployment}).
 
 Paper organization: \S\ref{sec:algo} introduces BBR's algorithm design
 principles and core version differences; \S\ref{sec:framework} proposes the
-three-dimensional applicability framework and its independent validation;
+three-dimensional applicability framework and its external consistency check;
 \S\ref{sec:comparison} systematically evaluates performance boundaries across
 six scenarios; \S\ref{sec:fairness} analyzes the structural roots of two types
 of fairness contradictions; \S\ref{sec:deployment} assesses engineering obstacles
@@ -808,7 +808,7 @@ summaries, not guarantees for an arbitrary deployment.
   \end{tablenotes}
 \end{table}
 
-\subsection{Independent Validation of the Framework}
+\subsection{External Consistency Check of the Framework}
 \label{sec:framework_valid}
 
 To assess external consistency, we derive \textbf{testable propositions} from
@@ -817,7 +817,7 @@ This is a qualitative consistency check, not an independent predictive
 validation, because the external data were not held out when the working bins
 and propositions were formulated.
 
-Three propositions: P1---when BDP magnitude is high ($>10$\,MB) and loss source
+Three propositions are used as external consistency checks. P1---when BDP magnitude is high ($>10$\,MB) and loss source
 is congestion-induced, BBR single-flow throughput should be no less than $2\times$
 CUBIC and this multiple should increase with BDP; when BDP is low ($<0.1$\,MB),
 the gap should be negligible ($<20\%$). P2---when buffer depth exceeds
@@ -1465,8 +1465,9 @@ deep-buffer, and multi-flow coexistence scenarios.
 \textbf{First}, the three-dimensional framework transforms scattered evaluations
 into actionable selection criteria. High BDP magnitude combined with
 congestion-induced loss is BBR's preferred scenario; random loss and WiFi frame
-aggregation are its nemeses; deep buffers cause fairness reversals.
-\citet{scholz2018deeper}'s independent data is qualitatively consistent with the
+aggregation create conditions that require separate checks; deep buffers can
+change fairness outcomes.
+\citet{scholz2018deeper}'s external data is qualitatively consistent with the
 framework, but flow count, AQM deployment, and path dynamics remain dimensions to
 be extended.
 
