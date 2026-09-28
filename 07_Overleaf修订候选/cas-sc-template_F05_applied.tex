@@ -105,10 +105,9 @@ networks---a fundamental tension that motivated Google to propose BBR in
 2016, followed by BBRv2 (2019) and BBRv3 (2023). Despite three
 iterations, a unified framework for BBR's applicability boundaries,
 cross-version performance, and fairness mechanisms remains absent.
-We conduct a systematic review of 165 peer-reviewed papers, RFC standards,
-and technical documents retrieved from IEEE Xplore, ACM DL, Google Scholar,
-CNKI, and arXiv (1979--2026), with 60 items from 2023--2026, classified
-by evidence quality. We propose a three-dimensional applicability framework
+We conduct a systematic review of peer-reviewed papers, RFC standards, and
+technical documents retrieved from the documented search sources (1979--2026),
+with records classified by evidence quality. We propose a three-dimensional applicability framework
 (buffer depth $\times$ BDP magnitude $\times$ loss source) and synthesize
 evidence across six representative scenarios: high-BDP WAN, shallow-buffer
 wired, broadband multi-flow, high-loss wireless, high-dynamic routing, and
@@ -131,7 +130,7 @@ robustness, and deployable AI-assisted congestion control.
 
 \begin{highlights}
 \item Three-dimensional BBR applicability framework: buffer depth $\times$ BDP $\times$ loss source.
-\item 165-reference systematic review covering BBRv1--v3, wireless, and LEO scenarios.
+\item Evidence-based systematic review covering BBRv1--v3, wireless, and LEO scenarios.
 \item BBRv3 fairness remains configuration-dependent across buffer and RTT conditions.
 \item Structured six-scenario evaluation with quantified throughput and fairness metrics.
 \item Four open problems: modeling, fairness, robustness, and deployable AI.
@@ -287,9 +286,10 @@ modifiers including ``fairness,'' ``wireless,'' ``satellite,'' ``WiFi,'' ``LEO,'
 ``5G,'' ``reinforcement learning,'' ``QUIC,'' ``L4S,'' ``ECN,'' and ``high BDP.''
 To avoid reporting search engine hit counts as verifiable sample sizes, we do not
 report raw hit numbers; instead, we use the evidence base actually cited in the
-body text as the statistical unit: the reference list contains 165 entries, all
-genuinely cited in the text; 60 of these are from 2023--2026, and gray literature
-is held to fewer than 10 items, used only for version facts, draft evolution, or
+body text as the statistical unit: the reference list is reported only after each
+entry is verified as genuinely cited; the recent-year count is recorded in the
+execution ledger, and gray literature is held to fewer than 10 items, used only
+for version facts, draft evolution, or
 supporting background---never as the sole source for a core quantitative claim.
 Inclusion criteria: genuinely cited in the text and directly relevant to BBR
 applicability boundaries, congestion control fairness, transmission protocol
@@ -311,7 +311,7 @@ and deployment status in subsequent sections must correspond to specific papers,
 tables, figures, or standard documents; strong claims that cannot be verified are
 deleted, softened, or bounded by experimental conditions.
 
-The 165 references are grouped thematically, serving five areas: BBR model
+The verified references are grouped thematically, serving five areas: BBR model
 boundary foundations~\citep{postel1981tcp,allman2009rfc5681,paxson2011rfc6298,rfc8312,rfc8257,brakmo1994vegas,floyd1993red,nichols2012codel,pan2013pie,gettys2011bufferbloat,kelly1998rate,padhye1998modeling,appenzeller2004sizing,dhamdhere2006buffer,wischik2005buffers,blanton2002reorder,jaiswal2007oos,paxson1999dynamics,medina2004transport,barakat2000tcp,zhang2001constancy,jain2002bandwidth,prasad2003bandwidth,dukkipati2006fct,tan2006compound,liu2008illinois,grieco2004westwood,handley2003tfrc,kuzmanovic2006tcplp},
 data center and programmable scheduling
 boundaries~\citep{alizadeh2010dctcp,alizadeh2013pfabric,bai2015pias,mittal2015timely,zhu2015dcqcn,handley2017ndp,cho2017credit,li2019hpcc,kumar2020swift,liu2021onramp,goyal2022bfc,wang2023poseidon,arslan2023bolt,dhamija2024dctcp,zhang2024lossless,wang2024pudica,zhang2024tecc,addanki2024credence,addanki2024reverie,agarwal2024provably,kumar2024chisel,wydrowski2024prequal,agarwal2024harmony,wang2024smuff,zhou2024augur,zhang2024habitus,du2025pred,liu2025pyrrha,chen2025etran,zhao2025whiteboxing,prasopoulos2025sird,ji2025mtp,zeng2025alibaba,chen2025clubheap,sharafzadeh2025scrr,alcoz2025scheduling,gao2024sifter},
@@ -353,8 +353,8 @@ platforms~\citep{dong2015pcc,yang2019adaptivebbr,yan2018pantheon,arun2018copa,na
    directly relevant to six scenario types or mechanism analysis};
 
 \node[box, fill=green!10, below=of fulltext] (final)
-  {\textbf{Final Inclusion: 165 verifiable references}\\
-   Of which 2023--2026: 60\quad Gray literature: $\leq$10
+  {\textbf{Final inclusion: count determined after full-text verification}\\
+   Recent-year and gray-literature counts are reported from the execution ledger
    (used only for version facts or supporting background)};
 
 \node[excl, right=0.8cm of screen] (excl1)
@@ -377,8 +377,8 @@ platforms~\citep{dong2015pcc,yang2019adaptivebbr,yan2018pantheon,arun2018copa,na
 
 \node[font=\scriptsize, text=gray, below=0.15cm of final, text width=10cm, align=left]
   {Note: Raw hit counts are not reported due to database configuration variability;
-   the 165 body-text citations serve as the verifiable statistical unit
-   (see Section~\ref{sec:method}).};
+   the verified body-text citations serve as the statistical unit, with the final
+   count updated after full-text review (see Section~\ref{sec:method}).};
 \end{tikzpicture}
 \caption{Systematic literature search and screening process (PRISMA-style description).}
 \label{fig:prisma}
@@ -1454,7 +1454,7 @@ not alternatives.
 
 Using the three-dimensional applicability boundary framework (buffer depth
 $\times$ BDP magnitude $\times$ loss source) as the main thread, and based on
-165 genuinely cited references (1979--2026, of which 60 are from 2023--2026),
+the verified evidence set recorded in the execution ledger,
 this paper systematically surveys BBRv1 to v3's version evolution, multi-scenario
 performance boundaries, fairness roots, and AI-enhanced directions. The core
 conclusion can be summarized in one sentence: BBR's advantages and failures come
