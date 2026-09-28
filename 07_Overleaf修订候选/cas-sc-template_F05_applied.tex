@@ -132,7 +132,7 @@ robustness, and deployable AI-assisted congestion control.
 \begin{highlights}
 \item Three-dimensional BBR applicability framework: buffer depth $\times$ BDP $\times$ loss source.
 \item 165-reference systematic review covering BBRv1--v3, wireless, and LEO scenarios.
-\item BBRv3 fairness index (JFI$\approx$0.71) regresses vs.\ BBRv2 ($\approx$0.78) in deep-buffer tests.
+\item BBRv3 fairness remains configuration-dependent across buffer and RTT conditions.
 \item Structured six-scenario evaluation with quantified throughput and fairness metrics.
 \item Four open problems: modeling, fairness, robustness, and deployable AI.
 \end{highlights}
@@ -756,9 +756,20 @@ paper to the three-dimensional coordinate system.
 \subsection{Decision Rules and Known Limitations}
 \label{sec:framework_rules}
 
-Based on threshold values across three dimensions, Table~\ref{tab:decision_rules}
-provides decision rules directly applicable to deployment selection, together with
-known counter-examples under current evidence.
+The framework is used as a conditional screening procedure rather than an
+automatic protocol selector. Its inputs are bottleneck capacity, the reference
+RTT used for BDP, absolute buffer size, loss source, BBR version, queue
+management, and flow count. For heterogeneous flows, the reference RTT and each
+flow's RTT are reported separately. Its outputs are four separate assessments:
+throughput, delay, bandwidth fairness, and retransmission cost. A missing input
+or insufficient evidence produces ``undetermined'' rather than a forced rating.
+The working buffer bins are shallow $<1.5\times$BDP, medium
+$1.5$--$10\times$BDP, and deep $>10\times$BDP; these bins organize the reviewed
+evidence and are not universal physical thresholds.
+
+Based on these conditional rules, Table~\ref{tab:decision_rules} summarizes
+scenario-level expectations and known counter-examples. The entries are evidence
+summaries, not guarantees for an arbitrary deployment.
 
 \begin{table}[pos=tbp]
   \caption{Three-dimensional framework decision rules and known counter-examples.}
@@ -767,22 +778,22 @@ known counter-examples under current evidence.
   \begin{tabularx}{\tblwidth}{@{}p{3.8cm}p{1.0cm}p{1.3cm}p{1.6cm}Xp{1.3cm}@{}}
     \toprule
     \textbf{Typical condition} & \textbf{Buf.} & \textbf{BDP} & \makecell[l]{\textbf{Loss}\\\textbf{source}}
-      & \textbf{Framework prediction} & \makecell[l]{\textbf{Evidence}\\\textbf{tier}} \\
+      & \textbf{Conditional expectation} & \makecell[l]{\textbf{Evidence}\\\textbf{tier}} \\
     \midrule
     High-BDP backbone (recv.\ buf.\ $\geq$BDP) & Med & $>$10\,MB & Cong.
-      & BBR significantly outperforms CUBIC (median $\approx\!5\times$, up to $\approx\!133\times$) & Tier~1 \\
+      & Throughput advantage is plausible when receive buffer $\geq$BDP; delay, fairness, and retransmission require separate checks & Tier~1 \\
     \midrule
     Wired multi-flow (1--$10\times$BDP buf.) & Med & Med & Cong.
-      & BBRv3 throughput $+$48\%; fairness good & Tier~1 \\
+      & Throughput may improve; fairness remains conditional on RTT, queue, version, and flow count & Tier~1 \\
     \midrule
     Deep-buffer wired ($>10\times$BDP) & Deep & Any & Cong.
-      & BBR loses competition (Jain index $\approx\!0.53$) & Tier~2 \\
+      & Deep buffers can change the BBR/CUBIC share and increase queueing delay; exact fairness is configuration-dependent & Tier~2 \\
     \midrule
     WiFi 802.11n/ac (standard BBR) & Med & Low--Med & Random
       & BBR $\approx\!83\%$ of CUBIC; \textbf{prediction fails} (frame aggregation beyond 3 dims) & Tier~1 \\
     \midrule
     LEO satellite (Starlink-class) & M--D & High & Mixed
-      & ``Medium'': high-BDP benefit offset by RTT spikes and random loss & Tier~2 \\
+      & High-BDP benefit may be offset by RTT variation, random loss, and path dynamics; evidence is insufficient for a fixed rating & Tier~2 \\
     \midrule
     Shallow-buf.\ wired ($<1.5\times$BDP) & Shal & Low & Cong.
       & BBR share up to 94\%, retx cost $\approx\!143\times$ CUBIC & Tier~2 \\
@@ -800,9 +811,11 @@ known counter-examples under current evidence.
 \subsection{Independent Validation of the Framework}
 \label{sec:framework_valid}
 
-To strengthen the framework's falsifiability, we derive \textbf{testable
-propositions} from the coordinate system and cross-validate them against
-independent datasets outside the main analysis.
+To assess external consistency, we derive \textbf{testable propositions} from
+the coordinate system and compare them with datasets outside the main analysis.
+This is a qualitative consistency check, not an independent predictive
+validation, because the external data were not held out when the working bins
+and propositions were formulated.
 
 Three propositions: P1---when BDP magnitude is high ($>10$\,MB) and loss source
 is congestion-induced, BBR single-flow throughput should be no less than $2\times$
@@ -813,7 +826,7 @@ fall below 40\%; beyond $20\times$BDP, CUBIC should dominate ($>60\%$ bandwidth)
 P3---from low to high BDP, the BBR/CUBIC throughput ratio should be
 monotonically increasing with no non-monotonic jumps.
 
-Using \citet{scholz2018deeper} as the independent validation dataset---a study
+Using \citet{scholz2018deeper} as an external comparison dataset---a study
 that systematically measured BBR and CUBIC behavior under different bottleneck
 bandwidths (10--1000\,Mbps) and RTTs (1--100\,ms) in a controlled physical
 testbed---the external data is broadly consistent with all three propositions: on
@@ -824,7 +837,7 @@ bandwidth share continuously decreases, qualitatively consistent with P2; and th
 BBR/CUBIC throughput ratio generally increases with the BW$\times$RTT product,
 with no non-monotonic jump sufficient to refute P3.
 
-Independent validation also reveals several limitations worth acknowledging: the
+This external comparison also reveals several limitations worth acknowledging: the
 three dimensions are not strictly orthogonal (high-BDP paths often co-occur with
 deep buffers in practice); treating loss source as a static attribute is imprecise
 near boundaries; and the framework does not currently include flow count as a
@@ -1284,12 +1297,12 @@ signals to decouple delay measurement are the two structural paths that remain o
       Squeezes CUBIC in shallow buffers; overtaken in deep buffers & --- &
       No ECN support; no inflight constraint \\
     \midrule
-    BBRv2 & Limited improvement on ECN paths (JFI $\approx$0.78) &
-      Clearly improved on ECN paths &
+    BBRv2 & Conditional improvement under the reported configurations &
+      Improved under some ECN-enabled configurations &
       ECN triggers $\mathrm{inflight\_hi}$ constraint &
-      Degrades to near v1 on non-ECN paths \\
+      ECN-derived feedback is unavailable on non-ECN paths; loss-driven logic remains \\
     \midrule
-    BBRv3 & \textbf{Regresses vs.\ v2 in large-buffer} (JFI $\approx$0.71) &
+    BBRv3 & \textbf{Fairness remains configuration-dependent in large buffers} &
       Slightly better than v2 (Startup exits earlier) &
       Startup exit tightened (8$\to$6 pkts) &
       RTprop bias not eliminated; low-BW flow starvation worsens in deep buffers \\
