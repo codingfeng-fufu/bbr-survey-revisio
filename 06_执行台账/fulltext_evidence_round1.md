@@ -7,9 +7,9 @@
 | Hock, Bless & Zitterbart, 2017, *Experimental evaluation of BBR congestion control*, DOI `10.1109/ICNP.2017.8117540` | 作者版本/公开页面明确讨论 BBR 的吞吐、队列、丢包和公平性；公开作者版本可获取 | RTT公平性、队列和竞争机制的原始证据 | 不能从摘要 alone 得出所有缓冲区阈值；需正文核查参数和图表 |
 | Jaeger et al., 2019, *Reproducible measurements of TCP BBR congestion control*, DOI `10.1016/j.comcom.2019.05.011` | 公开PDF与摘要说明：使用 Mininet/Linux network namespaces，提供自动化、可重复的TCP拥塞控制测量框架；分析BBR与CUBIC/Reno/Vegas/Illinois竞争及BBR流公平/同步 | R3-4复现方法；R1-M5综述比较；跨协议公平性证据 | 不能把其仿真配置直接当作本文实验配置；具体数值仍需逐页提取 |
 | Cao et al., 2019, *When to use and when not to use BBR*, DOI `10.1145/3355369.3355579` | 作者公开稿摘要明确覆盖 Mininet和真实网络，改变带宽、RTT和瓶颈缓冲区；报告浅缓冲、高重传、深缓冲竞争、队列和随机丢包 cliff point | R1-M3/M4适用性边界；Table 1/框架证据 | 不能把“适合”压缩成单一吞吐指标；需记录其每个场景的具体条件 |
-| Piotrowska, 2024, *Performance Evaluation of TCP BBRv3 in Networks with Multiple Round Trip Times*, DOI `10.3390/app14125053` | 公开页面摘要明确覆盖全部BBR版本、多RTT、吞吐、丢包、同协议与跨协议公平性；摘要称2×BDP缓冲时队列稳定且较低 | R1-M1 RTT公平性、R2-2框架外部证据 | 具体Jain值、50×BDP条件及版本参数须从正文/图表核验，不能只依摘要 |
-| BDP-Veno, *A bandwidth delay product based modified Veno for high-speed networks*, DOI `10.1016/j.jnca.2024.103983` | 公开索引摘要显示：在Veno基础上引入瓶颈BDP信息，使用ns-2并与多种TCP及BBR比较 | R3-2补充相关BDP型TCP | 不能把其仿真吞吐直接与本文BBR证据合并；实现、队列、RTT和统计需全文核对 |
-| OVeno, *Optimization of Veno parameter based on stochastic approximation* | 公开索引显示：针对Veno参数和乘性下降阶段做随机近似优化 | R3-2补充相关Veno方向 | 书目信息、完整实现和实验条件仍待核实，暂不加入正式refs.bib |
+| Piotrowska, 2024, *Performance Evaluation of TCP BBRv3 in Networks with Multiple Round Trip Times*, DOI `10.3390/app14125053` | 多RTT仿真；接入链路9条路径、100 Mbps、RTT约8–204 ms；BBRv1/v2/v3，buffer=0.5/1/2/10×BDP；表8给出BBRv3整体Jain=0.70/0.62/0.81/0.86；2×BDP时最短RTT流占25%带宽 | R1-M1 RTT公平性、R2-2框架外部证据 | 这是单篇仿真研究的条件化结果；不能把2×BDP推广成普适最优，也不能将Jain值当作本文实验结果 |
+| BDP-Veno, *A bandwidth delay product based modified Veno for high-speed networks*, DOI `10.1016/j.jnca.2024.103983` | 2024 JNCA 231；公开摘要/二级开放页面显示ns-2实现，比较Reno/NewReno/BIC/CUBIC/Vegas/Veno/Compound，另用ns-3与BBR比较；Scenario 1报告相对Veno吞吐提升57% | R3-2补充相关BDP型TCP | 当前未取得出版社全文；场景带宽、RTT、队列、重复和统计不能写入正式证据表 |
+| OVeno, *Optimization of Veno parameter based on stochastic approximation* | Biswal & Patel, Simulation Modelling Practice and Theory 142 (2025) 103121, DOI `10.1016/j.simpat.2025.103121`；修改Veno的乘性下降阶段，以随机近似优化参数；摘要报告相对Reno/Compound/CUBIC/Veno吞吐提升143%/131%/66%/42%，并测试无线环境 | R3-2补充相关Veno方向 | 性能数字来自摘要，不能与BBR结果横向合并；需全文核对拓扑、参数和统计设计 |
 
 ## 证据使用规则
 
@@ -19,6 +19,10 @@
 4. Piotrowska的多RTT结果可作为外部证据，但不能用来证明 `BDP = BtlBw × RTprop` 单独决定带宽分配。
 5. BDP-Veno与OVeno先作为相关算法背景，待全文审查通过后再决定是否进入最终证据集。
 
+## Piotrowska定量核查结论
+
+原稿中“BBRv3在50×BDP时Jain约0.71、BBRv2约0.78”的表述不能由目前核对到的Piotrowska表3/表8直接支持：表3是不同buffer和RTT ratio下各版本Jain值，表8是接入链路场景BBRv3的0.70/0.62/0.81/0.86序列；50×BDP与0.71/0.78的对应关系需要回到原稿所引用的具体来源，不能继续不核对来源就归给Piotrowska。
+
 ## 第一批全文核验状态
 
 | report | 状态 | 下一步 |
@@ -26,9 +30,9 @@
 | Hock 2017 | 已找到作者版本入口，待下载/逐页提取 | 记录实验带宽、RTT、buffer、flow count和公平性结果 |
 | Jaeger 2019 | 已找到TUM公开PDF | 记录Mininet拓扑、指标、重复方式和竞争结果 |
 | Cao 2019 | 已找到作者公开PDF | 记录浅/深buffer、loss cliff和适用性指标 |
-| Piotrowska 2024 | 已找到MDPI页面和Semantic Scholar PDF入口 | 记录2×BDP、50×BDP、多RTT和Jain结果 |
-| BDP-Veno | 已找到DOI和公开摘要；ScienceDirect全文访问受限 | 获取合法全文后核对ns-2配置和BBR比较 |
-| OVeno | 仅有索引摘要和DOI候选线索 | 先补完整书目信息，再决定全文来源 |
+| Piotrowska 2024 | 已核对MDPI页面和公开PDF片段 | 已记录2×BDP、RTT表和BBRv3 Jain序列；50×BDP归属待回溯 |
+| BDP-Veno | DOI和候选书目信息核实；ScienceDirect全文访问受限 | 取得合法全文后核对ns-2配置和BBR比较 |
+| OVeno | 卷、期、文章号和DOI已核实；全文仍不可得 | 取得全文后核对仿真配置和性能数字 |
 
 ## 定量字段补充（公开全文定位）
 
