@@ -1,0 +1,20 @@
+{
+  "run_id": "pilot_20261009T232438+0800",
+  "purpose": "short environment pilot; not a paper experiment",
+  "topology": "h1,h2 -> s1 -> s2 -> h3",
+  "unique_bottleneck": "s1-s2",
+  "capacity_mbps": 100,
+  "rtt_target_ms": 20,
+  "one_way_delay": "10ms",
+  "queue": "tbf + netem, netem limit; ECN disabled",
+  "bdp_bytes": 250000.0,
+  "buffer_target_ratio": 0.5,
+  "queue_limit_packets": 83,
+  "iperf_seconds": 10,
+  "flow_count": 2,
+  "version": "BBR selected in each Mininet host namespace; kernel implementation recorded outside this script",
+  "bottleneck_interfaces": [
+    "s1-eth3",
+    "s2-eth1"
+  ]
+}

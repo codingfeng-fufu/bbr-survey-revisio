@@ -1,0 +1,37 @@
+# Environment verification commands
+uname -a
+id
+systemd-detect-virt
+uname -r
+lsb_release -a || cat /etc/os-release
+nproc
+free -h
+df -h
+which python3
+which tc
+which ss
+which mn
+which iperf3
+mn --version
+iperf3 --version
+tc -V
+ss -V
+sudo -n true
+sudo -n modprobe tcp_bbr
+sudo -n modprobe sch_netem
+sudo -n modprobe sch_fq
+sysctl net.ipv4.tcp_available_congestion_control
+sysctl net.ipv4.tcp_allowed_congestion_control
+lsmod | grep -E 'tcp_bbr|sch_netem|sch_fq'
+tc qdisc show
+ip netns list
+
+# Dependency installation
+sudo -n env DEBIAN_FRONTEND=noninteractive apt-get install -y mininet iperf3
+
+# Pilot execution
+sudo -n python3 06_执行台账/pilot_20261009/run_mininet_pilot.py
+
+# Repository checks
+git diff --check
+git status --short --branch

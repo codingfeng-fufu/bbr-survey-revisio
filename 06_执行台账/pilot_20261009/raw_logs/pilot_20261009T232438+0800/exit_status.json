@@ -1,0 +1,11 @@
+{
+  "cleanup_rc": 0,
+  "start_rc": 0,
+  "flow_exit": {
+    "h1": "wait_error:Command '['mnexec', '-da', '44596', 'iperf3', '-c', '10.0.0.3', '-p', '5201', '-t', '10', '-i', '1', '-J']' timed out after 5 seconds",
+    "h2": "wait_error:Command '['mnexec', '-da', '44598', 'iperf3', '-c', '10.0.0.3', '-p', '5202', '-t', '10', '-i', '1', '-J']' timed out after 5 seconds",
+    "server_5201": "wait_error:Command '['mnexec', '-da', '44600', 'iperf3', '-s', '-1', '-p', '5201', '--json']' timed out after 5 seconds",
+    "server_5202": "wait_error:Command '['mnexec', '-da', '44600', 'iperf3', '-s', '-1', '-p', '5202', '--json']' timed out after 5 seconds"
+  },
+  "mn_cleanup_rc": 0
+}
