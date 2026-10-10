@@ -1,0 +1,20 @@
+{
+  "manifest_id": "ubuntu-in-tree-bbr-baseline-20261010",
+  "implementation": "Ubuntu 5.15.0-181.191 in-tree tcp_bbr",
+  "registered_cc": "bbr",
+  "kernel": "5.15.0-181-generic",
+  "kernel_package": "5.15.0-181.191",
+  "bbr_upstream_git_commit": "not_available_from_running Ubuntu package",
+  "tool_versions": {"mininet": "2.3.0", "iperf3": "3.9", "iproute2": "5.15.0"},
+  "duration_s": 180,
+  "warmup_s": 30,
+  "analysis_window_s": "30-180",
+  "repeats_per_condition": 5,
+  "capacity_mbps": 100,
+  "queue": "s1-s2 tbf rate 100Mbit with child netem delay 0 and FIFO packet limit",
+  "ecn": "off",
+  "random_loss": 0,
+  "mtu_bytes": 1500,
+  "status": "frozen_for_baseline_only",
+  "scope_note": "This baseline is not labeled BBRv1/v2/v3 and is not a cross-version result."
+}

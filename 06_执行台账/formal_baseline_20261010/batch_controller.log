@@ -1,0 +1,1674 @@
+2026-10-10T01:26:57+08:00 BATCH_START pid=75409
+2026-10-10T01:26:57+08:00 SKIP existing /home/ubuntu/bbr-survey-revisio/06_执行台账/formal_baseline_20261010/runs/BBRBASE_BBRBASE_BBRBASE_C100_R20-20_Q0p5_rep01
+2026-10-10T01:26:57+08:00 SKIP existing /home/ubuntu/bbr-survey-revisio/06_执行台账/formal_baseline_20261010/runs/BBRBASE_BBRBASE_BBRBASE_C100_R20-20_Q0p5_rep02
+2026-10-10T01:26:57+08:00 SKIP existing /home/ubuntu/bbr-survey-revisio/06_执行台账/formal_baseline_20261010/runs/BBRBASE_BBRBASE_BBRBASE_C100_R20-20_Q0p5_rep03
+2026-10-10T01:26:57+08:00 SKIP existing /home/ubuntu/bbr-survey-revisio/06_执行台账/formal_baseline_20261010/runs/BBRBASE_BBRBASE_BBRBASE_C100_R20-20_Q0p5_rep04
+2026-10-10T01:26:57+08:00 SKIP existing /home/ubuntu/bbr-survey-revisio/06_执行台账/formal_baseline_20261010/runs/BBRBASE_BBRBASE_BBRBASE_C100_R20-20_Q0p5_rep05
+2026-10-10T01:26:57+08:00 START a1=BBRBASE a2=BBRBASE rtt2=20 q=2 rep=1
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T03:51:10+08:00 BATCH_START pid=109049
+2026-10-10T03:51:10+08:00 SKIP existing /home/ubuntu/bbr-survey-revisio/06_执行台账/formal_baseline_20261010/runs/BBRBASE_BBRBASE_BBRBASE_C100_R20-20_Q0p5_rep01
+2026-10-10T03:51:10+08:00 SKIP existing /home/ubuntu/bbr-survey-revisio/06_执行台账/formal_baseline_20261010/runs/BBRBASE_BBRBASE_BBRBASE_C100_R20-20_Q0p5_rep02
+2026-10-10T03:51:10+08:00 SKIP existing /home/ubuntu/bbr-survey-revisio/06_执行台账/formal_baseline_20261010/runs/BBRBASE_BBRBASE_BBRBASE_C100_R20-20_Q0p5_rep03
+2026-10-10T03:51:10+08:00 SKIP existing /home/ubuntu/bbr-survey-revisio/06_执行台账/formal_baseline_20261010/runs/BBRBASE_BBRBASE_BBRBASE_C100_R20-20_Q0p5_rep04
+2026-10-10T03:51:10+08:00 SKIP existing /home/ubuntu/bbr-survey-revisio/06_执行台账/formal_baseline_20261010/runs/BBRBASE_BBRBASE_BBRBASE_C100_R20-20_Q0p5_rep05
+2026-10-10T03:51:10+08:00 START a1=BBRBASE a2=BBRBASE rtt2=20 q=2 rep=1
+Traceback (most recent call last):
+  File "/home/ubuntu/bbr-survey-revisio/06_执行台账/formal_baseline_20261010/run_formal_baseline.py", line 143, in <module>
+    main()
+  File "/home/ubuntu/bbr-survey-revisio/06_执行台账/formal_baseline_20261010/run_formal_baseline.py", line 139, in main
+    print(run_one(args.algorithm1, args.algorithm2, args.rtt2, args.queue, args.repeat), flush=True)
+  File "/home/ubuntu/bbr-survey-revisio/06_执行台账/formal_baseline_20261010/run_formal_baseline.py", line 59, in run_one
+    out.mkdir(parents=False, exist_ok=False)
+  File "/usr/lib/python3.10/pathlib.py", line 1175, in mkdir
+    self._accessor.mkdir(self, mode)
+FileExistsError: [Errno 17] File exists: '/home/ubuntu/bbr-survey-revisio/06_执行台账/formal_baseline_20261010/runs/BBRBASE_BBRBASE_BBRBASE_C100_R20-20_Q2p0_rep01'
+2026-10-10T03:51:10+08:00 END rc=1 a1=BBRBASE a2=BBRBASE rtt2=20 q=2 rep=1
+2026-10-10T03:51:10+08:00 START a1=BBRBASE a2=BBRBASE rtt2=20 q=2 rep=2
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T03:54:14+08:00 END rc=0 a1=BBRBASE a2=BBRBASE rtt2=20 q=2 rep=2
+2026-10-10T03:54:14+08:00 START a1=BBRBASE a2=BBRBASE rtt2=20 q=2 rep=3
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T03:57:18+08:00 END rc=0 a1=BBRBASE a2=BBRBASE rtt2=20 q=2 rep=3
+2026-10-10T03:57:18+08:00 START a1=BBRBASE a2=BBRBASE rtt2=20 q=2 rep=4
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T04:00:22+08:00 END rc=0 a1=BBRBASE a2=BBRBASE rtt2=20 q=2 rep=4
+2026-10-10T04:00:22+08:00 START a1=BBRBASE a2=BBRBASE rtt2=20 q=2 rep=5
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T04:03:27+08:00 END rc=0 a1=BBRBASE a2=BBRBASE rtt2=20 q=2 rep=5
+2026-10-10T04:03:27+08:00 START a1=BBRBASE a2=BBRBASE rtt2=20 q=10 rep=1
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T04:06:31+08:00 END rc=0 a1=BBRBASE a2=BBRBASE rtt2=20 q=10 rep=1
+2026-10-10T04:06:31+08:00 START a1=BBRBASE a2=BBRBASE rtt2=20 q=10 rep=2
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T04:09:35+08:00 END rc=0 a1=BBRBASE a2=BBRBASE rtt2=20 q=10 rep=2
+2026-10-10T04:09:35+08:00 START a1=BBRBASE a2=BBRBASE rtt2=20 q=10 rep=3
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T04:12:39+08:00 END rc=0 a1=BBRBASE a2=BBRBASE rtt2=20 q=10 rep=3
+2026-10-10T04:12:39+08:00 START a1=BBRBASE a2=BBRBASE rtt2=20 q=10 rep=4
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T04:15:43+08:00 END rc=0 a1=BBRBASE a2=BBRBASE rtt2=20 q=10 rep=4
+2026-10-10T04:15:43+08:00 START a1=BBRBASE a2=BBRBASE rtt2=20 q=10 rep=5
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T04:18:47+08:00 END rc=0 a1=BBRBASE a2=BBRBASE rtt2=20 q=10 rep=5
+2026-10-10T04:18:47+08:00 START a1=BBRBASE a2=BBRBASE rtt2=40 q=0.5 rep=1
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (10.000ms delay) (10.000ms delay) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(10.000ms delay) (100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T04:21:52+08:00 END rc=0 a1=BBRBASE a2=BBRBASE rtt2=40 q=0.5 rep=1
+2026-10-10T04:21:52+08:00 START a1=BBRBASE a2=BBRBASE rtt2=40 q=0.5 rep=2
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (10.000ms delay) (10.000ms delay) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(10.000ms delay) (100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T04:24:56+08:00 END rc=0 a1=BBRBASE a2=BBRBASE rtt2=40 q=0.5 rep=2
+2026-10-10T04:24:56+08:00 START a1=BBRBASE a2=BBRBASE rtt2=40 q=0.5 rep=3
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (10.000ms delay) (10.000ms delay) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(10.000ms delay) (100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T04:28:01+08:00 END rc=0 a1=BBRBASE a2=BBRBASE rtt2=40 q=0.5 rep=3
+2026-10-10T04:28:01+08:00 START a1=BBRBASE a2=BBRBASE rtt2=40 q=0.5 rep=4
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (10.000ms delay) (10.000ms delay) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(10.000ms delay) (100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T04:31:05+08:00 END rc=0 a1=BBRBASE a2=BBRBASE rtt2=40 q=0.5 rep=4
+2026-10-10T04:31:05+08:00 START a1=BBRBASE a2=BBRBASE rtt2=40 q=0.5 rep=5
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (10.000ms delay) (10.000ms delay) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(10.000ms delay) (100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T04:34:10+08:00 END rc=0 a1=BBRBASE a2=BBRBASE rtt2=40 q=0.5 rep=5
+2026-10-10T04:34:10+08:00 START a1=BBRBASE a2=BBRBASE rtt2=40 q=2 rep=1
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (10.000ms delay) (10.000ms delay) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(10.000ms delay) (100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T04:37:14+08:00 END rc=0 a1=BBRBASE a2=BBRBASE rtt2=40 q=2 rep=1
+2026-10-10T04:37:14+08:00 START a1=BBRBASE a2=BBRBASE rtt2=40 q=2 rep=2
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (10.000ms delay) (10.000ms delay) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(10.000ms delay) (100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T04:40:19+08:00 END rc=0 a1=BBRBASE a2=BBRBASE rtt2=40 q=2 rep=2
+2026-10-10T04:40:19+08:00 START a1=BBRBASE a2=BBRBASE rtt2=40 q=2 rep=3
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (10.000ms delay) (10.000ms delay) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(10.000ms delay) (100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T04:43:23+08:00 END rc=0 a1=BBRBASE a2=BBRBASE rtt2=40 q=2 rep=3
+2026-10-10T04:43:23+08:00 START a1=BBRBASE a2=BBRBASE rtt2=40 q=2 rep=4
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (10.000ms delay) (10.000ms delay) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(10.000ms delay) (100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T04:46:28+08:00 END rc=0 a1=BBRBASE a2=BBRBASE rtt2=40 q=2 rep=4
+2026-10-10T04:46:28+08:00 START a1=BBRBASE a2=BBRBASE rtt2=40 q=2 rep=5
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (10.000ms delay) (10.000ms delay) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(10.000ms delay) (100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T04:49:32+08:00 END rc=0 a1=BBRBASE a2=BBRBASE rtt2=40 q=2 rep=5
+2026-10-10T04:49:32+08:00 START a1=BBRBASE a2=BBRBASE rtt2=40 q=10 rep=1
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (10.000ms delay) (10.000ms delay) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(10.000ms delay) (100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T04:52:37+08:00 END rc=0 a1=BBRBASE a2=BBRBASE rtt2=40 q=10 rep=1
+2026-10-10T04:52:37+08:00 START a1=BBRBASE a2=BBRBASE rtt2=40 q=10 rep=2
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (10.000ms delay) (10.000ms delay) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(10.000ms delay) (100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T04:55:41+08:00 END rc=0 a1=BBRBASE a2=BBRBASE rtt2=40 q=10 rep=2
+2026-10-10T04:55:41+08:00 START a1=BBRBASE a2=BBRBASE rtt2=40 q=10 rep=3
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (10.000ms delay) (10.000ms delay) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(10.000ms delay) (100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T04:58:46+08:00 END rc=0 a1=BBRBASE a2=BBRBASE rtt2=40 q=10 rep=3
+2026-10-10T04:58:46+08:00 START a1=BBRBASE a2=BBRBASE rtt2=40 q=10 rep=4
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (10.000ms delay) (10.000ms delay) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(10.000ms delay) (100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T05:01:50+08:00 END rc=0 a1=BBRBASE a2=BBRBASE rtt2=40 q=10 rep=4
+2026-10-10T05:01:50+08:00 START a1=BBRBASE a2=BBRBASE rtt2=40 q=10 rep=5
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (10.000ms delay) (10.000ms delay) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(10.000ms delay) (100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T05:04:55+08:00 END rc=0 a1=BBRBASE a2=BBRBASE rtt2=40 q=10 rep=5
+2026-10-10T05:04:55+08:00 START a1=BBRBASE a2=BBRBASE rtt2=80 q=0.5 rep=1
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (30.000ms delay) (30.000ms delay) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(30.000ms delay) (100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T05:08:00+08:00 END rc=0 a1=BBRBASE a2=BBRBASE rtt2=80 q=0.5 rep=1
+2026-10-10T05:08:00+08:00 START a1=BBRBASE a2=BBRBASE rtt2=80 q=0.5 rep=2
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (30.000ms delay) (30.000ms delay) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(30.000ms delay) (100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T05:11:05+08:00 END rc=0 a1=BBRBASE a2=BBRBASE rtt2=80 q=0.5 rep=2
+2026-10-10T05:11:05+08:00 START a1=BBRBASE a2=BBRBASE rtt2=80 q=0.5 rep=3
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (30.000ms delay) (30.000ms delay) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(30.000ms delay) (100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T05:14:10+08:00 END rc=0 a1=BBRBASE a2=BBRBASE rtt2=80 q=0.5 rep=3
+2026-10-10T05:14:10+08:00 START a1=BBRBASE a2=BBRBASE rtt2=80 q=0.5 rep=4
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (30.000ms delay) (30.000ms delay) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(30.000ms delay) (100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T05:17:15+08:00 END rc=0 a1=BBRBASE a2=BBRBASE rtt2=80 q=0.5 rep=4
+2026-10-10T05:17:15+08:00 START a1=BBRBASE a2=BBRBASE rtt2=80 q=0.5 rep=5
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (30.000ms delay) (30.000ms delay) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(30.000ms delay) (100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T05:20:20+08:00 END rc=0 a1=BBRBASE a2=BBRBASE rtt2=80 q=0.5 rep=5
+2026-10-10T05:20:20+08:00 START a1=BBRBASE a2=BBRBASE rtt2=80 q=2 rep=1
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (30.000ms delay) (30.000ms delay) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(30.000ms delay) (100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T05:23:26+08:00 END rc=0 a1=BBRBASE a2=BBRBASE rtt2=80 q=2 rep=1
+2026-10-10T05:23:26+08:00 START a1=BBRBASE a2=BBRBASE rtt2=80 q=2 rep=2
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (30.000ms delay) (30.000ms delay) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(30.000ms delay) (100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T05:26:31+08:00 END rc=0 a1=BBRBASE a2=BBRBASE rtt2=80 q=2 rep=2
+2026-10-10T05:26:31+08:00 START a1=BBRBASE a2=BBRBASE rtt2=80 q=2 rep=3
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (30.000ms delay) (30.000ms delay) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(30.000ms delay) (100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T05:29:36+08:00 END rc=0 a1=BBRBASE a2=BBRBASE rtt2=80 q=2 rep=3
+2026-10-10T05:29:36+08:00 START a1=BBRBASE a2=BBRBASE rtt2=80 q=2 rep=4
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (30.000ms delay) (30.000ms delay) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(30.000ms delay) (100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T05:32:41+08:00 END rc=0 a1=BBRBASE a2=BBRBASE rtt2=80 q=2 rep=4
+2026-10-10T05:32:41+08:00 START a1=BBRBASE a2=BBRBASE rtt2=80 q=2 rep=5
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (30.000ms delay) (30.000ms delay) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(30.000ms delay) (100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T05:35:46+08:00 END rc=0 a1=BBRBASE a2=BBRBASE rtt2=80 q=2 rep=5
+2026-10-10T05:35:46+08:00 START a1=BBRBASE a2=BBRBASE rtt2=80 q=10 rep=1
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (30.000ms delay) (30.000ms delay) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(30.000ms delay) (100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T05:38:51+08:00 END rc=0 a1=BBRBASE a2=BBRBASE rtt2=80 q=10 rep=1
+2026-10-10T05:38:51+08:00 START a1=BBRBASE a2=BBRBASE rtt2=80 q=10 rep=2
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (30.000ms delay) (30.000ms delay) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(30.000ms delay) (100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T05:41:56+08:00 END rc=0 a1=BBRBASE a2=BBRBASE rtt2=80 q=10 rep=2
+2026-10-10T05:41:56+08:00 START a1=BBRBASE a2=BBRBASE rtt2=80 q=10 rep=3
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (30.000ms delay) (30.000ms delay) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(30.000ms delay) (100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T05:45:02+08:00 END rc=0 a1=BBRBASE a2=BBRBASE rtt2=80 q=10 rep=3
+2026-10-10T05:45:02+08:00 START a1=BBRBASE a2=BBRBASE rtt2=80 q=10 rep=4
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (30.000ms delay) (30.000ms delay) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(30.000ms delay) (100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T05:48:07+08:00 END rc=0 a1=BBRBASE a2=BBRBASE rtt2=80 q=10 rep=4
+2026-10-10T05:48:07+08:00 START a1=BBRBASE a2=BBRBASE rtt2=80 q=10 rep=5
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (30.000ms delay) (30.000ms delay) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(30.000ms delay) (100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T05:51:12+08:00 END rc=0 a1=BBRBASE a2=BBRBASE rtt2=80 q=10 rep=5
+2026-10-10T05:51:12+08:00 START a1=BBRBASE a2=CUBIC rtt2=20 q=0.5 rep=1
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T05:54:16+08:00 END rc=0 a1=BBRBASE a2=CUBIC rtt2=20 q=0.5 rep=1
+2026-10-10T05:54:16+08:00 START a1=BBRBASE a2=CUBIC rtt2=20 q=0.5 rep=2
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T05:57:20+08:00 END rc=0 a1=BBRBASE a2=CUBIC rtt2=20 q=0.5 rep=2
+2026-10-10T05:57:20+08:00 START a1=BBRBASE a2=CUBIC rtt2=20 q=0.5 rep=3
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T06:00:25+08:00 END rc=0 a1=BBRBASE a2=CUBIC rtt2=20 q=0.5 rep=3
+2026-10-10T06:00:25+08:00 START a1=BBRBASE a2=CUBIC rtt2=20 q=0.5 rep=4
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T06:03:29+08:00 END rc=0 a1=BBRBASE a2=CUBIC rtt2=20 q=0.5 rep=4
+2026-10-10T06:03:29+08:00 START a1=BBRBASE a2=CUBIC rtt2=20 q=0.5 rep=5
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T06:06:33+08:00 END rc=0 a1=BBRBASE a2=CUBIC rtt2=20 q=0.5 rep=5
+2026-10-10T06:06:33+08:00 START a1=BBRBASE a2=CUBIC rtt2=20 q=2 rep=1
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T06:09:37+08:00 END rc=0 a1=BBRBASE a2=CUBIC rtt2=20 q=2 rep=1
+2026-10-10T06:09:37+08:00 START a1=BBRBASE a2=CUBIC rtt2=20 q=2 rep=2
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T06:12:41+08:00 END rc=0 a1=BBRBASE a2=CUBIC rtt2=20 q=2 rep=2
+2026-10-10T06:12:41+08:00 START a1=BBRBASE a2=CUBIC rtt2=20 q=2 rep=3
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T06:15:46+08:00 END rc=0 a1=BBRBASE a2=CUBIC rtt2=20 q=2 rep=3
+2026-10-10T06:15:46+08:00 START a1=BBRBASE a2=CUBIC rtt2=20 q=2 rep=4
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T06:18:50+08:00 END rc=0 a1=BBRBASE a2=CUBIC rtt2=20 q=2 rep=4
+2026-10-10T06:18:50+08:00 START a1=BBRBASE a2=CUBIC rtt2=20 q=2 rep=5
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T06:21:54+08:00 END rc=0 a1=BBRBASE a2=CUBIC rtt2=20 q=2 rep=5
+2026-10-10T06:21:54+08:00 START a1=BBRBASE a2=CUBIC rtt2=20 q=10 rep=1
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T06:24:58+08:00 END rc=0 a1=BBRBASE a2=CUBIC rtt2=20 q=10 rep=1
+2026-10-10T06:24:58+08:00 START a1=BBRBASE a2=CUBIC rtt2=20 q=10 rep=2
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T06:28:02+08:00 END rc=0 a1=BBRBASE a2=CUBIC rtt2=20 q=10 rep=2
+2026-10-10T06:28:02+08:00 START a1=BBRBASE a2=CUBIC rtt2=20 q=10 rep=3
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T06:31:06+08:00 END rc=0 a1=BBRBASE a2=CUBIC rtt2=20 q=10 rep=3
+2026-10-10T06:31:06+08:00 START a1=BBRBASE a2=CUBIC rtt2=20 q=10 rep=4
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T06:34:11+08:00 END rc=0 a1=BBRBASE a2=CUBIC rtt2=20 q=10 rep=4
+2026-10-10T06:34:11+08:00 START a1=BBRBASE a2=CUBIC rtt2=20 q=10 rep=5
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-10T06:37:15+08:00 END rc=0 a1=BBRBASE a2=CUBIC rtt2=20 q=10 rep=5
+2026-10-10T06:37:15+08:00 BATCH_END
