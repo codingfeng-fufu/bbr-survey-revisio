@@ -1,0 +1,30 @@
+{
+  "manifest_id": "bbr2-kernel-formal-20261010",
+  "scope": "BBR2 formal E1/E2 batch; not BBRv3 and not E3",
+  "source_archive": "/home/ubuntu/bbr-2alpha.tar.gz",
+  "source_archive_sha256": "4fa330df0933459bc34f3d5ab586e8a3ecf4b2765637d62c35f84d266f2337a6",
+  "source_commit": "unavailable: uploaded archive did not contain .git metadata",
+  "kernel_source_release": "5.13.12",
+  "kernel_runtime": "5.13.12-bbr2alpha",
+  "kernel_package": "5.13.12-bbr2alpha-1",
+  "config_tcp_cong_bbr2": "y",
+  "runtime_registered_algorithms": ["reno", "bbr2", "cubic"],
+  "capacity_mbps": 100,
+  "rtt_ms": [20, 40, 80],
+  "queue_bdp_multiplier": [0.5, 2, 10],
+  "ecn": "off",
+  "random_loss": 0,
+  "duration_s": 180,
+  "warmup_s": 30,
+  "repeats": 5,
+  "topology": "h1,h2 -> s1 -> s2 -> h3; s1-s2 is the 100 Mbps bottleneck",
+  "qdisc": "tbf rate 100Mbit with child netem and FIFO packet limit",
+  "experiments": {
+    "E1": "two BBR2 flows; RTT2 20/40/80 ms; queue 0.5/2/10 BDP",
+    "E2": "BBR2 versus CUBIC; RTT2 20 ms; queue 0.5/2/10 BDP"
+  },
+  "formal_runs": 60,
+  "valid_runs": 60,
+  "invalid_runs": 0,
+  "overleaf_modified": false
+}
