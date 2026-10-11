@@ -1,0 +1,6 @@
+qdisc tbf 5: root refcnt 3 rate 100Mbit burst 15000b lat 1.2ms 
+ Sent 723639256 bytes 478091 pkt (dropped 0, overlimits 950642 requeues 0) 
+ backlog 42392b 26p requeues 0
+qdisc netem 10: parent 5:1 limit 1667
+ Sent 723640770 bytes 478092 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 42392b 26p requeues 0

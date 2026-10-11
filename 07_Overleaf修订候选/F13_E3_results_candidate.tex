@@ -1,0 +1,36 @@
+% Candidate fragment generated from E3 artifacts on 2026-10-12.
+% Do not merge into Overleaf until authors verify section numbering, citations, and figure format.
+% Evidence: 06_执行台账/formal_e3_20261011/condition_summary.csv
+\subsection{Held-out validation under equal RTT}
+The frozen F07-v1 hold-out matrix contained eight network cases at 50 or
+200~Mbps, 10 or 60~ms RTT, and two buffer settings. We ran two BBRv3 flows
+and two CUBIC flows separately for five independent repetitions per case
+(80 runs in total). All runs completed with the configured ECN setting off;
+the bottleneck queue recorded no drops in this matrix.
+
+Table~\ref{tab:e3_candidate} reports mean total goodput and Jain fairness.
+The values are condition-specific observations rather than universal
+version rankings. The BBRv3 fairness values were close to one in these equal
+RTT cases, while CUBIC showed more variation. Because the queue did not
+drop packets, this experiment does not validate loss-response or
+retransmission predictions.
+
+\begin{table}[htbp]
+\centering
+\caption{Candidate E3 held-out results. Each cell reports BBRv3/CUBIC.}
+\label{tab:e3_candidate}
+\begin{tabular}{lrrrrrr}
+\toprule
+Case & C (Mbps) & RTT (ms) & Q/BDP & Goodput (Mbps) & Jain \\
+\midrule
+E3_001 & 50 & 10 & 1.0 & 47.1 / 47.8 & 1.000 / 0.969 \\
+E3_002 & 50 & 10 & 4.0 & 47.2 / 47.8 & 1.000 / 0.917 \\
+E3_003 & 50 & 60 & 1.0 & 46.9 / 47.7 & 1.000 / 0.928 \\
+E3_004 & 50 & 60 & 4.0 & 46.8 / 47.7 & 1.000 / 0.987 \\
+E3_005 & 200 & 10 & 1.0 & 188.2 / 191.2 & 0.995 / 0.963 \\
+E3_006 & 200 & 10 & 4.0 & 188.0 / 191.2 & 0.999 / 0.955 \\
+E3_007 & 200 & 60 & 1.0 & 187.0 / 190.8 & 0.997 / 0.963 \\
+E3_008 & 200 & 60 & 4.0 & 187.1 / 190.8 & 0.996 / 0.938 \\
+\bottomrule
+\end{tabular}
+\end{table}

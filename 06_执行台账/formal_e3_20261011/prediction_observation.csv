@@ -1,0 +1,17 @@
+prediction_case_id,algorithm,capacity_mbps,rtt_ms,queue_bdp_multiplier,queue_target_bytes,n_runs,n_valid,throughput_observation_mbps,delay_observation_rtt1_ms,delay_observation_rtt2_ms,fairness_observation_jain,retransmission_observation_flow1,retransmission_observation_flow2,prediction_judgement,judgement_note
+E3_001,BBR3,50,10,1.0,250000,5,5,47.12929082521761,11.4098,11.5506,0.9998659927639816,0.0,0.0,pending_manual_review,Do not classify before checking F07-v1 direction and tolerance.
+E3_001,CUBIC,50,10,1.0,250000,5,5,47.80819048057566,14.1106,14.388,0.9692635967125326,0.0,0.0,pending_manual_review,Do not classify before checking F07-v1 direction and tolerance.
+E3_002,BBR3,50,10,4.0,1000000,5,5,47.208398416954886,11.5244,11.5932,0.9998494258784738,0.0,0.0,pending_manual_review,Do not classify before checking F07-v1 direction and tolerance.
+E3_002,CUBIC,50,10,4.0,1000000,5,5,47.808119178792865,14.362,14.6476,0.9171715388421887,0.0,0.0,pending_manual_review,Do not classify before checking F07-v1 direction and tolerance.
+E3_003,BBR3,50,60,1.0,1500000,5,5,46.87170453570852,61.3774,61.578,0.9999229354557125,0.0,0.0,pending_manual_review,Do not classify before checking F07-v1 direction and tolerance.
+E3_003,CUBIC,50,60,1.0,1500000,5,5,47.7436804318765,63.3554,63.2982,0.9280685040055014,0.0,0.0,pending_manual_review,Do not classify before checking F07-v1 direction and tolerance.
+E3_004,BBR3,50,60,4.0,6000000,5,5,46.848134145000884,61.461,61.558,0.9999628755942108,0.0,0.0,pending_manual_review,Do not classify before checking F07-v1 direction and tolerance.
+E3_004,CUBIC,50,60,4.0,6000000,5,5,47.744186557797896,63.1238,63.1068,0.9865861463340126,0.0,0.0,pending_manual_review,Do not classify before checking F07-v1 direction and tolerance.
+E3_005,BBR3,200,10,1.0,250000,5,5,188.2001786639061,11.8084,11.8352,0.9950836886143855,0.0,0.0,pending_manual_review,Do not classify before checking F07-v1 direction and tolerance.
+E3_005,CUBIC,200,10,1.0,250000,5,5,191.16374873599128,14.305,14.3884,0.9630172911259363,0.0,0.0,pending_manual_review,Do not classify before checking F07-v1 direction and tolerance.
+E3_006,BBR3,200,10,4.0,1000000,5,5,188.01231208735254,11.799,11.8038,0.9989146730155947,0.0,0.0,pending_manual_review,Do not classify before checking F07-v1 direction and tolerance.
+E3_006,CUBIC,200,10,4.0,1000000,5,5,191.16923557754353,14.2514,14.3992,0.9552091457781245,0.0,0.0,pending_manual_review,Do not classify before checking F07-v1 direction and tolerance.
+E3_007,BBR3,200,60,1.0,1500000,5,5,187.03520661750747,61.7176,61.7514,0.997391964981351,0.0,0.0,pending_manual_review,Do not classify before checking F07-v1 direction and tolerance.
+E3_007,CUBIC,200,60,1.0,1500000,5,5,190.8024668180197,63.5054,63.6614,0.9628416970628294,0.0,0.0,pending_manual_review,Do not classify before checking F07-v1 direction and tolerance.
+E3_008,BBR3,200,60,4.0,6000000,5,5,187.0663931890973,61.7552,61.7888,0.9958128475200738,1.6,0.0,pending_manual_review,Do not classify before checking F07-v1 direction and tolerance.
+E3_008,CUBIC,200,60,4.0,6000000,5,5,190.78741636557984,63.7856,63.906,0.9381393796221467,0.0,0.0,pending_manual_review,Do not classify before checking F07-v1 direction and tolerance.

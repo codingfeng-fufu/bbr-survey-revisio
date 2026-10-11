@@ -1,0 +1,23 @@
+# BBRv3 Runtime Record
+
+- Runtime kernel: `6.13.7-bbr3`
+- Kernel configuration: `CONFIG_TCP_CONG_BBR=y`
+- Source marker: `net/ipv4/tcp_bbr.c` contains `BBR_VERSION 3`
+- Registered algorithm name: `bbr` (the runtime name is not `bbr3`)
+- Registered algorithms: `reno bbr cubic`
+- Source archive: `/home/ubuntu/bbr-3.tar.gz`
+- Source archive SHA256: `03008d20a9908d9087ed34fcf3d89cda267e4d88864b282bad61aa1025c025c4`
+- Mininet: `2.3.0`
+- iperf3: `3.9`
+- tc: `iproute2-5.15.0`
+- Formal batch directory: `06_执行台账/formal_bbr3_20261011/runs/`
+- Batch command: `sudo -n bash 06_执行台账/formal_bbr3_20261011/run_formal_bbr3.sh`
+- Controller log: `06_执行台账/formal_bbr3_20261011/batch_controller_20261011.log`
+- Batch started: `2026-10-11T14:07:48+08:00`
+- Detached launcher PID: `13167` (PPID 1 at verification)
+- Scope: 60 runs, E1/E2 only; this is not E3 and not a claim about BBRv1/v2.
+- Batch ended: `2026-10-11T17:12:16+08:00`
+- Status: completed; 60/60 runs completed, 0 invalid, all topology cleanups reported `ok`.
+- Analysis: `run_metrics.csv`, `condition_summary.csv`, `bbr3_acceptance_20261011.md`.
+- Results are condition-specific BBRv3 observations; they do not by themselves constitute E3 validation and have not been written to Overleaf.
+- Overleaf modified: no.
