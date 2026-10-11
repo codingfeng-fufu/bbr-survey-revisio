@@ -165,7 +165,8 @@ def main():
 
     latex_rows = []
     for row in reviewed:
-        latex_rows.append(f"{row['case_id']} & {row['capacity_mbps']} & {row['rtt_ms']} & {row['queue_ratio']} & {float(row['bbr3_total_mbps']):.1f} / {float(row['cubic_total_mbps']):.1f} & {float(row['bbr3_jain']):.3f} / {float(row['cubic_jain']):.3f} \\\\")
+        latex_case = row["case_id"].replace("_", r"\_")
+        latex_rows.append(f"{latex_case} & {row['capacity_mbps']} & {row['rtt_ms']} & {row['queue_ratio']} & {float(row['bbr3_total_mbps']):.1f} / {float(row['cubic_total_mbps']):.1f} & {float(row['bbr3_jain']):.3f} / {float(row['cubic_jain']):.3f} \\\\")
     latex_text = """% Candidate fragment generated from E3 artifacts on 2026-10-12.
 % Do not merge into Overleaf until authors verify section numbering, citations, and figure format.
 % Evidence: 06_执行台账/formal_e3_20261011/condition_summary.csv

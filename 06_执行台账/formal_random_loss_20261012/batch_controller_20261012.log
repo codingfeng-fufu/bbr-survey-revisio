@@ -1,0 +1,602 @@
+2026-10-12T01:00:38+08:00 LOSS_BATCH_START pid=202996
+2026-10-12T01:00:38+08:00 START algorithm=BBR3 loss=0 rep=1
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay 0.00000% loss) (10ms delay 0.00000% loss) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay 0.00000% loss) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-12T01:03:42+08:00 END rc=0 algorithm=BBR3 loss=0 rep=1
+2026-10-12T01:03:42+08:00 START algorithm=BBR3 loss=0 rep=2
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay 0.00000% loss) (10ms delay 0.00000% loss) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay 0.00000% loss) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-12T01:06:46+08:00 END rc=0 algorithm=BBR3 loss=0 rep=2
+2026-10-12T01:06:46+08:00 START algorithm=BBR3 loss=0 rep=3
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay 0.00000% loss) (10ms delay 0.00000% loss) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay 0.00000% loss) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-12T01:09:50+08:00 END rc=0 algorithm=BBR3 loss=0 rep=3
+2026-10-12T01:09:50+08:00 START algorithm=BBR3 loss=0 rep=4
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay 0.00000% loss) (10ms delay 0.00000% loss) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay 0.00000% loss) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-12T01:12:54+08:00 END rc=0 algorithm=BBR3 loss=0 rep=4
+2026-10-12T01:12:54+08:00 START algorithm=BBR3 loss=0 rep=5
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay 0.00000% loss) (10ms delay 0.00000% loss) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay 0.00000% loss) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-12T01:15:59+08:00 END rc=0 algorithm=BBR3 loss=0 rep=5
+2026-10-12T01:15:59+08:00 START algorithm=BBR3 loss=0.1 rep=1
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay 0.10000% loss) (10ms delay 0.10000% loss) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay 0.10000% loss) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-12T01:19:03+08:00 END rc=0 algorithm=BBR3 loss=0.1 rep=1
+2026-10-12T01:19:03+08:00 START algorithm=BBR3 loss=0.1 rep=2
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay 0.10000% loss) (10ms delay 0.10000% loss) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay 0.10000% loss) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-12T01:22:07+08:00 END rc=0 algorithm=BBR3 loss=0.1 rep=2
+2026-10-12T01:22:07+08:00 START algorithm=BBR3 loss=0.1 rep=3
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay 0.10000% loss) (10ms delay 0.10000% loss) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay 0.10000% loss) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-12T01:25:11+08:00 END rc=0 algorithm=BBR3 loss=0.1 rep=3
+2026-10-12T01:25:11+08:00 START algorithm=BBR3 loss=0.1 rep=4
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay 0.10000% loss) (10ms delay 0.10000% loss) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay 0.10000% loss) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-12T01:28:15+08:00 END rc=0 algorithm=BBR3 loss=0.1 rep=4
+2026-10-12T01:28:15+08:00 START algorithm=BBR3 loss=0.1 rep=5
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay 0.10000% loss) (10ms delay 0.10000% loss) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay 0.10000% loss) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-12T01:31:19+08:00 END rc=0 algorithm=BBR3 loss=0.1 rep=5
+2026-10-12T01:31:19+08:00 START algorithm=CUBIC loss=0 rep=1
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay 0.00000% loss) (10ms delay 0.00000% loss) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay 0.00000% loss) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-12T01:34:24+08:00 END rc=0 algorithm=CUBIC loss=0 rep=1
+2026-10-12T01:34:24+08:00 START algorithm=CUBIC loss=0 rep=2
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay 0.00000% loss) (10ms delay 0.00000% loss) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay 0.00000% loss) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-12T01:37:28+08:00 END rc=0 algorithm=CUBIC loss=0 rep=2
+2026-10-12T01:37:28+08:00 START algorithm=CUBIC loss=0 rep=3
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay 0.00000% loss) (10ms delay 0.00000% loss) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay 0.00000% loss) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-12T01:40:32+08:00 END rc=0 algorithm=CUBIC loss=0 rep=3
+2026-10-12T01:40:32+08:00 START algorithm=CUBIC loss=0 rep=4
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay 0.00000% loss) (10ms delay 0.00000% loss) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay 0.00000% loss) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-12T01:43:36+08:00 END rc=0 algorithm=CUBIC loss=0 rep=4
+2026-10-12T01:43:36+08:00 START algorithm=CUBIC loss=0 rep=5
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay 0.00000% loss) (10ms delay 0.00000% loss) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay 0.00000% loss) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-12T01:46:40+08:00 END rc=0 algorithm=CUBIC loss=0 rep=5
+2026-10-12T01:46:40+08:00 START algorithm=CUBIC loss=0.1 rep=1
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay 0.10000% loss) (10ms delay 0.10000% loss) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay 0.10000% loss) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-12T01:49:44+08:00 END rc=0 algorithm=CUBIC loss=0.1 rep=1
+2026-10-12T01:49:44+08:00 START algorithm=CUBIC loss=0.1 rep=2
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay 0.10000% loss) (10ms delay 0.10000% loss) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay 0.10000% loss) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-12T01:52:49+08:00 END rc=0 algorithm=CUBIC loss=0.1 rep=2
+2026-10-12T01:52:49+08:00 START algorithm=CUBIC loss=0.1 rep=3
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay 0.10000% loss) (10ms delay 0.10000% loss) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay 0.10000% loss) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-12T01:55:53+08:00 END rc=0 algorithm=CUBIC loss=0.1 rep=3
+2026-10-12T01:55:53+08:00 START algorithm=CUBIC loss=0.1 rep=4
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay 0.10000% loss) (10ms delay 0.10000% loss) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay 0.10000% loss) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-12T01:58:57+08:00 END rc=0 algorithm=CUBIC loss=0.1 rep=4
+2026-10-12T01:58:57+08:00 START algorithm=CUBIC loss=0.1 rep=5
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay 0.10000% loss) (10ms delay 0.10000% loss) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay 0.10000% loss) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed
+2026-10-12T02:02:01+08:00 END rc=0 algorithm=CUBIC loss=0.1 rep=5
+2026-10-12T02:02:01+08:00 LOSS_BATCH_END

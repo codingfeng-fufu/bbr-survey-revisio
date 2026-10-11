@@ -1,0 +1,43 @@
+Rc files read:
+  /etc/LatexMk
+Latexmk: This is Latexmk, John Collins, 20 November 2021, version: 4.76.
+Rule 'pdflatex': File changes, etc:
+   Changed files, or newly in use since previous run(s):
+      'cas-sc-template_F05_applied.tex'
+------------
+Run number 1 of rule 'pdflatex'
+------------
+------------
+Running 'pdflatex  -interaction=nonstopmode -halt-on-error -recorder  "cas-sc-template_F05_applied.tex"'
+------------
+Latexmk: applying rule 'pdflatex'...
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex)
+ restricted \write18 enabled.
+entering extended mode
+(./cas-sc-template_F05_applied.tex
+LaTeX2e <2021-11-15> patch level 1
+L3 programming layer <2022-01-21>
+
+! LaTeX Error: File `cas-sc.cls' not found.
+
+Type X to quit or <RETURN> to proceed,
+or enter new name. (Default extension: cls)
+
+Enter file name: 
+! Emergency stop.
+<read *> 
+         
+l.8 ^^M
+       
+!  ==> Fatal error occurred, no output PDF file produced!
+Transcript written on cas-sc-template_F05_applied.log.
+Latexmk: Missing input file 'cas-sc.cls' (or dependence on it) from following:
+  '! LaTeX Error: File `cas-sc.cls' not found.'
+Collected error summary (may duplicate other messages):
+  pdflatex: Command for 'pdflatex' gave return code 1
+      Refer to 'cas-sc-template_F05_applied.log' for details
+Latexmk: Use the -f option to force complete processing,
+ unless error was exceeding maximum runs, or warnings treated as errors.
+Latexmk: Examining 'cas-sc-template_F05_applied.log'
+=== TeX engine is 'pdfTeX'
+Latexmk: Errors, so I did not complete making targets

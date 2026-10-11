@@ -14,7 +14,7 @@
 - 图中区分 BBRv3 与 CUBIC，并标出容量、RTT 和冻结队列比。
 - 单位分别为 Mbps、Jain 指数和 ms。
 - 图表只覆盖 E3 等 RTT 留出条件，不表示所有网络场景。
-- SVG 可审阅；当前主机未安装 `pdflatex`/`latexmk`，尚未完成 PDF 编译验收。
+- SVG 可审阅；TeX Live/`latexmk` 已安装，候选片段已完成 PDF 编译检查；完整 CAS 稿件仍缺 `cas-sc.cls`、图片和 `refs.bib`。
 - 候选图尚未复制到 Overleaf 主版本。
 
 ## 待复核

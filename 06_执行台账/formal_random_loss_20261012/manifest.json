@@ -1,0 +1,22 @@
+{
+  "manifest_id": "random-loss-bbr3-cubic-20261012",
+  "scope": "F07 third-dimension extension: congestion loss versus 0.1% artificial access-link loss",
+  "runtime_kernel": "6.13.7-bbr3",
+  "source_bbr_version": 3,
+  "runtime_bbr_algorithm_name": "bbr",
+  "capacity_mbps": 100,
+  "rtt_ms": 20,
+  "queue_bdp_multiplier": 2,
+  "queue_target_bytes": 500000,
+  "ecn": "off",
+  "algorithms": ["BBRv3", "CUBIC"],
+  "artificial_loss_pct": [0, 0.1],
+  "artificial_loss_point": "s2-eth1 (h3 access link), independent of s1-eth3 bottleneck",
+  "repeats": 5,
+  "duration_s": 180,
+  "formal_runs": 20,
+  "valid_runs": 20,
+  "invalid_runs": 0,
+  "random_loss_seed": null,
+  "overleaf_modified": false
+}

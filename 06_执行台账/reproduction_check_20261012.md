@@ -11,4 +11,8 @@
 - 候选图输出：`formal_e3_20261011/figures/`
 - 复跑结果：分析脚本和制图脚本均返回 0；行数分别为 81、17、17、9（含表头）。
 - 独立第二台机器复跑：尚未完成。
-- PDF 编译复跑：尚未完成，当前主机没有 `pdflatex`/`latexmk`。
+- 完整 PDF 编译复跑：未完成，候选主版本缺少 `cas-sc.cls`、图片和 `refs.bib`；候选片段已独立编译。
+- 随机丢包扩展：`formal_random_loss_20261012/analyze_random_loss.py` 返回 0；20/20 有效，4 个条件汇总完成。
+- 跨版本汇总：`cross_version_20261012/analyze_cross_version.py` 返回 0；36 条输入条件统一为 12 条三实现对照。
+- 候选片段编译：F13 E3 与 F15 跨版本片段由 `latexmk` 成功生成 1 页 PDF；最终轮无新的 Overfull/Underfull 警告。
+- 完整 CAS 稿件编译：仍被缺少 `cas-sc.cls`、图片和 `refs.bib` 阻塞，详见 `latex_compile_check_20261012.md`。
