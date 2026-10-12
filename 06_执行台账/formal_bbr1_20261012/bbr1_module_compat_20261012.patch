@@ -1,0 +1,20 @@
+--- a/net/ipv4/tcp_bbr1.c
++++ b/net/ipv4/tcp_bbr1.c
+@@
+ __bpf_kfunc static u32 bbr1_tso_segs(struct sock *sk, unsigned int mss_now)
+ {
+-	u32 min_tso, tso_segs;
+-
+-	min_tso = bbr_min_tso_segs(sk);
+-	tso_segs = tcp_tso_autosize(sk, mss_now, min_tso);
+-	return min_t(u32, tso_segs, sk->sk_gso_max_segs);
++	u32 segs;
++	u64 bytes;
++
++	/* tcp_tso_autosize() is not exported to loadable modules on 6.13. */
++	bytes = min_t(unsigned long,
++		      sk->sk_pacing_rate >> READ_ONCE(sk->sk_pacing_shift),
++		      GSO_LEGACY_MAX_SIZE - 1 - MAX_TCP_HEADER);
++	segs = max_t(u32, bytes / mss_now, bbr_min_tso_segs(sk));
++	return min_t(u32, segs, sk->sk_gso_max_segs);
+ }

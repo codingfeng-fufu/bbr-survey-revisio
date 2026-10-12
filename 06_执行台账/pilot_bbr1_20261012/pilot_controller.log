@@ -1,0 +1,28 @@
+*** Creating network
+*** Adding hosts:
+h1 h2 h3 
+*** Adding switches:
+s1 s2 
+*** Adding links:
+(h1, s1) (h2, s1) (10ms delay) (10ms delay) (h3, s2) (100.00Mbit) (100.00Mbit) (s1, s2) 
+*** Configuring hosts
+h1 h2 h3 
+*** Starting controller
+
+*** Starting 2 switches
+s1 s2 ...(100.00Mbit) (10ms delay) (100.00Mbit) 
+*** Ping: testing ping reachability
+h1 -> h2 h3 
+h2 -> h1 h3 
+h3 -> h1 h2 
+*** Results: 0% dropped (6/6 received)
+*** Stopping 0 controllers
+
+*** Stopping 4 links
+....
+*** Stopping 2 switches
+s1 s2 
+*** Stopping 3 hosts
+h1 h2 h3 
+*** Done
+completed

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Unify the three E1/E2 condition summaries and make SVG comparison figures."""
+"""Unify the four E1/E2 condition summaries and make SVG comparison figures."""
 
 import csv
 import html
@@ -11,6 +11,7 @@ OUT = REPO / "06_执行台账" / "cross_version_20261012"
 FIGURES = OUT / "figures"
 SOURCES = {
     "in_tree_baseline": REPO / "06_执行台账/formal_baseline_20261010/condition_summary.csv",
+    "BBRv1_module": REPO / "06_执行台账/formal_bbr1_20261012/condition_summary.csv",
     "BBR2": REPO / "06_执行台账/formal_bbr2_20261010/condition_summary.csv",
     "BBRv3": REPO / "06_执行台账/formal_bbr3_20261011/condition_summary.csv",
 }
@@ -36,7 +37,7 @@ def bars(path, title, ylabel, groups, metrics, ymin, ymax, fmt="{:.1f}"):
     pw, ph = width - left - right, height - top - bottom
     group_w = pw / len(groups)
     bar_w = min(22, group_w / 5)
-    colors = {"in_tree_baseline": "#777777", "BBR2": "#2f6f9f", "BBRv3": "#c0517e"}
+    colors = {"in_tree_baseline": "#777777", "BBRv1_module": "#4c956c", "BBR2": "#2f6f9f", "BBRv3": "#c0517e"}
     yspan = ymax - ymin
 
     def y(v):
@@ -58,7 +59,7 @@ def bars(path, title, ylabel, groups, metrics, ymin, ymax, fmt="{:.1f}"):
     out.append(f'<line x1="{left}" y1="{top}" x2="{left}" y2="{top+ph}" stroke="#333"/>')
     for i, group in enumerate(groups):
         cx = left + group_w * (i + 0.5)
-        for j, implementation in enumerate(("in_tree_baseline", "BBR2", "BBRv3")):
+        for j, implementation in enumerate(("in_tree_baseline", "BBRv1_module", "BBR2", "BBRv3")):
             row = group[implementation]
             value = float(row[metrics])
             xx = cx + (j - 1) * (bar_w + 5) - bar_w / 2
@@ -66,8 +67,8 @@ def bars(path, title, ylabel, groups, metrics, ymin, ymax, fmt="{:.1f}"):
             out.append(f'<rect x="{xx:.1f}" y="{yy:.1f}" width="{bar_w:.1f}" height="{max(0, top+ph-yy):.1f}" fill="{colors[implementation]}"/>')
             out.append(f'<text x="{xx+bar_w/2:.1f}" y="{max(top+12,yy-4):.1f}" text-anchor="middle" class="small">{fmt.format(value)}</text>')
         out.append(f'<text x="{cx:.1f}" y="{top+ph+24}" text-anchor="middle" class="small">{esc(group["label"])}</text>')
-    for i, implementation in enumerate(("in_tree_baseline", "BBR2", "BBRv3")):
-        xx = width - 360 + i * 110
+    for i, implementation in enumerate(("in_tree_baseline", "BBRv1_module", "BBR2", "BBRv3")):
+        xx = width - 470 + i * 115
         out.append(f'<rect x="{xx}" y="48" width="14" height="14" fill="{colors[implementation]}"/>')
         out.append(f'<text x="{xx+19}" y="60" class="small">{esc(implementation)}</text>')
     out.append("</svg>")
@@ -90,16 +91,16 @@ def main():
         key = (row["experiment"], pair, row["rtt2_ms"], row["queue_bdp_multiplier"])
         keyed.setdefault(key, {})[row["implementation"]] = row
     comparison_fields = ["scenario_id", "experiment", "algorithm_pair", "rtt2_ms", "queue_bdp_multiplier"]
-    for implementation in ("in_tree_baseline", "BBR2", "BBRv3"):
+    for implementation in ("in_tree_baseline", "BBRv1_module", "BBR2", "BBRv3"):
         for metric in ("total_mean_mbps", "flow2_share_mean", "jain_mean", "rtt1_mean_ms", "rtt2_mean_ms", "queue_drops_mean", "retrans_flow1_mean", "retrans_flow2_mean"):
             comparison_fields.append(f"{implementation}_{metric}")
     comparisons = []
     for index, (key, values) in enumerate(sorted(keyed.items(), key=lambda item: (item[0][0], item[0][2], item[0][3], item[0][1])) , 1):
-        if len(values) != 3:
+        if len(values) != 4:
             continue
         experiment, pair, rtt, ratio = key
         row = {"scenario_id": f"{experiment}_{index:02d}", "experiment": experiment, "algorithm_pair": pair, "rtt2_ms": rtt, "queue_bdp_multiplier": ratio}
-        for implementation in ("in_tree_baseline", "BBR2", "BBRv3"):
+        for implementation in ("in_tree_baseline", "BBRv1_module", "BBR2", "BBRv3"):
             source = values[implementation]
             for metric in comparison_fields[5:]:
                 if metric.startswith(implementation + "_"):
@@ -116,7 +117,7 @@ def main():
             if row["experiment"] != experiment:
                 continue
             group = {"label": f"R{row['rtt2_ms']}/Q{row['queue_bdp_multiplier']}"}
-            for implementation in ("in_tree_baseline", "BBR2", "BBRv3"):
+            for implementation in ("in_tree_baseline", "BBRv1_module", "BBR2", "BBRv3"):
                 group[implementation] = {"total_mean_mbps": row[f"{implementation}_total_mean_mbps"], "jain_mean": row[f"{implementation}_jain_mean"]}
             groups.append(group)
         if groups:
@@ -129,6 +130,7 @@ def main():
         "统一读取当前 Ubuntu in-tree baseline、独立 BBR2 内核和 Linux 6.13.7-bbr3 的条件汇总表。每个实现的 E1/E2 条件均为五次有效重复。", "",
         "## 实现身份", "",
         "- `in_tree_baseline`：Ubuntu in-tree `bbr`，不能直接标为 BBRv1。",
+        "- `BBRv1_module`：Linux 6.13.7-bbr3 上独立加载的 `tcp_bbr1.ko`，运行时注册名 `bbr1`；这是本项目单独构建的 BBRv1 module，不是 Ubuntu baseline。",
         "- `BBR2`：`5.13.12-bbr2alpha`，运行时注册名 `bbr2`。",
         "- `BBRv3`：`6.13.7-bbr3`，源码 `BBR_VERSION=3`，运行时注册名 `bbr`。", "",
         "## 结果边界", "",

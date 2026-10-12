@@ -7,6 +7,7 @@
 ## 实现身份
 
 - `in_tree_baseline`：Ubuntu in-tree `bbr`，不能直接标为 BBRv1。
+- `BBRv1_module`：Linux 6.13.7-bbr3 上独立加载的 `tcp_bbr1.ko`，运行时注册名 `bbr1`；这是本项目单独构建的 BBRv1 module，不是 Ubuntu baseline。
 - `BBR2`：`5.13.12-bbr2alpha`，运行时注册名 `bbr2`。
 - `BBRv3`：`6.13.7-bbr3`，源码 `BBR_VERSION=3`，运行时注册名 `bbr`。
 
