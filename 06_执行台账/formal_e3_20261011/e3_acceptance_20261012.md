@@ -21,4 +21,4 @@ E3 使用 F07-v1 冻结预测，在 Linux 6.13.7-bbr3 内核下分别运行双 B
 ## 后续
 
 - 由冯宗林按 F07-v1 逐案例填写 support、contradict、undetermined 或 not_applicable。
-- 检查第三维丢包来源：本批次只覆盖 congestion loss，未完成独立随机丢包配对测试。
+- 第三维随机丢包配对测试已另批次完成，见 `formal_random_loss_20261012/random_loss_acceptance_20261012.md`；该结果只支持当前人工接入链路条件，不等同真实无线信道。

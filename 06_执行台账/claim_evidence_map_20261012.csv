@@ -1,0 +1,9 @@
+claim_id,claim_scope,source_type,evidence_path,condition_or_location,current_decision,verification_owner,next_action
+C001,RTT与吞吐份额不能由BDP恒等式单独推出,analysis+experiment,06_执行台账/cross_version_20261012/cross_version_comparison.csv;07_Overleaf修订候选/F15_results_method_limitations_candidate.md,E1 RTT/queue conditions,conditional wording,冯宗林,final Overleaf section/line mapping
+C002,BBR版本身份必须与ECN配置分开,source+runtime,06_执行台账/formal_bbr1_20261012/manifest.json;06_执行台账/formal_bbr2_20261010/manifest.json;06_执行台账/formal_bbr3_20261011/manifest.json,E2 no-ECN,retain version-specific wording,冯宗林,verify Table 3 against candidate main
+C003,E3预测先于观测冻结,protocol+experiment,07_Overleaf修订候选/F07_predictions_TO_FILL.csv;06_执行台账/formal_e3_20261011/prediction_observation_reviewed.csv,F07-v1 E3,reviewed with support/undetermined/not_applicable,冯宗林,insert final table/figure references
+C004,BBRv3 equal-RTT fairness is conditional,experiment,06_执行台账/formal_e3_20261011/condition_summary.csv;06_执行台账/formal_e3_20261011/figures/e3_jain_fairness.svg,E3 eight cases,report as tested-matrix observation,冯宗林,confirm wording in Section 6
+C005,Artificial and bottleneck loss are separable,experiment,06_执行台账/formal_random_loss_20261012/condition_summary.csv,100Mbps/20ms/Q2,report limited artificial-link result,冯宗林,add limitation on seed and channel realism
+C006,BBRv1 identity,source+runtime,06_执行台账/formal_bbr1_20261012/manifest.json;06_执行台账/formal_bbr1_20261012/bbr1_module_compat_20261012.patch,6.13.7-bbr3 bbr1 module,call BBRv1 module with patch,冯宗林,avoid calling Ubuntu baseline BBRv1
+C007,Review search provenance,search log,06_执行台账/search_protocol_M02_v1_FROZEN.md;06_执行台账/raw_search_20260928;06_执行台账/search_log_M03.csv,2026-09-28 search round,provisional until full-text review,马若涵,close M04/M07
+C008,Final submission claims,author/system,待确认,Overleaf/system,not yet asserted,徐守正,author and platform confirmation

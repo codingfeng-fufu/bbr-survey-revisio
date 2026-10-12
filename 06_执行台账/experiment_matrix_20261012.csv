@@ -1,0 +1,5 @@
+experiment,implementation,capacity_mbps,rtt2_ms,queue_bdp_multiplier,repeats,duration_s,warmup_s,ecn,loss_source,runs,evidence_path
+E1,in_tree_baseline/BBRv1_module/BBR2/BBRv3,100,20|40|80,0.5|2|10,5,180,30,off,congestion,45 per implementation,formal_*_20261010-20261012
+E2,in_tree_baseline/BBRv1_module/BBR2/BBRv3,100,20,0.5|2|10,5,180,30,off,congestion,15 per implementation,formal_*_20261010-20261012
+E3,BBRv3/CUBIC,50|200,10|60,1|4,5,180,30,off,congestion,80,formal_e3_20261011
+LOSS_EXTENSION,BBRv3/CUBIC,100,20,2,5,180,30,off,artificial access loss 0|0.1 percent,20,formal_random_loss_20261012

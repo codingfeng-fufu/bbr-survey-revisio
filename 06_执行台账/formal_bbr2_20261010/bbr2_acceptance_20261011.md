@@ -19,8 +19,7 @@
 - `iperf3` 接收端 JSON、加载 RTT、qdisc 计数和连接状态均保留。
 - 这些是 BBR2 内核下的正式条件化结果，不替代 BBRv3 或 E3 跨版本结论。
 
-## 未完成
+## 后续
 
-- BBRv3 尚未注册和验证。
-- E3 跨版本实验尚未运行。
-- 尚未将任何实测数字写入 Overleaf 或候选 LaTeX。
+- BBRv3、BBRv1 module 和 E3 已在后续独立批次完成。
+- 实测数字尚未合入 Overleaf 主版本。
