@@ -1,0 +1,87 @@
+{
+  "doi": "10.1016/j.comcom.2024.04.037",
+  "source": "literature_sources_20261012/gomez_bbrv3_author_20261013.pdf",
+  "review_status": "partial core methods extraction; final eligibility pending",
+  "OS": "Ubuntu22.04 customBBRv3kernel; exactversion/buildhashnotverified",
+  "emulation": "Mininet native Linux stack/OVS; NetEm delay/loss at R1; TBF rate limiting at R2; Tail Drop unless specified, FQ-CoDel in AQM experiment",
+  "default_test": {
+    "duration_s": 120,
+    "repetitions": 10,
+    "statistics": "average",
+    "send_receive_buffers": "10*BDP",
+    "reported_default_propagation": "20ms;one-way/RTTdefinition mustmatchscenario"
+  },
+  "interprotocol_matrix": {
+    "capacity_Gbps": 1,
+    "flows": [
+      2,
+      100
+    ],
+    "buffer_range_BDP": [
+      0.1,
+      100
+    ],
+    "loss_case_pct": 0.025
+  },
+  "fairness": "Jain displayed aspercent,notunit0..1withoutconversion",
+  "ECN_actual_configuration": "NRininspectedmethods;supportingalgorithmmechanismtextnotproofECNenabled",
+  "limits": [
+    "Default120s has explicitexceptions480s,etc;do notapplydurationtoallcases",
+    "Mininetvs100Gbpshardwareexperimentsmustremainseparate",
+    "Bufferfairnessintervalsconditionalonflowcount/RTT/loss",
+    "VM/sourcecodeidentifiedbyexternalrepositorybutactualsourcehashnotyetverified",
+    "PublicauthorPDFnotpublisherbyteidentityverified",
+    "Correction 2026-10-13: earlier extraction incorrectly named HFSC; Section 4 explicitly names TBF. No HFSC occurrence in extracted author PDF.",
+    "Source terminology varies: Section 4 default propagation 20 ms; Section 5.1 calls RTT 20 ms; Figure 5 caption calls 20/100 ms propagation while Section 5.2 calls RTT. Do not silently equate these."
+  ],
+  "additional_sections_read": {
+    "5.6": {
+      "capacity_Gbps": 1,
+      "RTT_ms": 20,
+      "queue": "BDP",
+      "duration_s": 480,
+      "design": "One CUBIC starts first; five BBR flows join at 60 s intervals; each BBR version evaluated separately",
+      "limit": "Intragroup BBR sharing must be distinguished from all-flow Jain and CUBIC share"
+    },
+    "5.7": {
+      "capacity_Gbps": 1,
+      "reported_delay_ms": 20,
+      "duration_s": 120,
+      "repetitions": 10,
+      "BBRv3_flow_counts": [
+        1,
+        2,
+        3,
+        5,
+        10
+      ],
+      "CUBIC_flow_counts": "1\u201310",
+      "limit": "Flow-count dependent coexistence; no universal fair-share conclusion"
+    },
+    "5.8": {
+      "capacity_Gbps": 1,
+      "propagation_delay_ms": "10\u2013100",
+      "measurement": "ss -tin samples every 100 ms",
+      "limit": "Controller bandwidth estimate is not receiver goodput"
+    },
+    "5.9": {
+      "capacity_Gbps": 1,
+      "propagation_delay_ms": 20,
+      "HTTP_requests": 5000,
+      "background": "one long TCP flow",
+      "buffer_BDP": [
+        0.1,
+        0.5,
+        1,
+        10,
+        100
+      ],
+      "limit": "Figure 12 means and sigma visually verified in gomez_fct_figure_verified_20261013.json; file-size/repetition details unresolved"
+    },
+    "5.2": {
+      "comparison": "two flows, reported 20/100 ms delays; buffer sweep; Tail Drop across versions and FQ-CoDel for BBRv3",
+      "source_observation": "Section 5.2 describes FQ-CoDel as mitigating RTT unfairness, combining per-flow scheduling and CoDel",
+      "limits": "Figure 5 numeric curves not yet visually extracted; cannot attribute effect to CoDel alone or infer a universal buffer threshold"
+    }
+  }
+}

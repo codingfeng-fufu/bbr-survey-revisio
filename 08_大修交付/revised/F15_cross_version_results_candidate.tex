@@ -1,0 +1,35 @@
+\subsection{Conditioned cross-version comparison}
+Across the tested 100-Mbps matrix, equal-RTT total goodput remains close to
+the bottleneck for all four implementations, while flow shares and Jain
+fairness vary with RTT asymmetry, queue setting, and implementation. Under
+the 40- and 80-ms second-flow conditions, the observed long-RTT share differs across implementations. E1 quantifies allocation under RTT asymmetry; E2 evaluates coexistence
+with CUBIC at equal RTTs in the documented implementation environments.
+
+For the no-ECN BBR/CUBIC comparison, total goodput is similar across the
+four implementation environments, while the BBR/CUBIC share and Jain
+index remain condition dependent. The experimental supplement contains the per-run rates, condition
+summaries and plotting scripts.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{e1_results.pdf}
+\caption{E1 two-flow comparison at 100 Mbps, with first-flow RTT 20 ms and ECN disabled. Curves show means of five run-level Jain indices and second-flow shares, not indices computed from averaged rates. Queue targets use the reference BDP.}
+\label{fig:e1_results}
+\end{figure}
+
+\input{E2_results_table.tex}
+
+Table~\ref{tab:e2_results} shows that similar total goodput does not imply
+similar bandwidth allocation. Total rates are 95.58--95.59 Mbps in this
+matrix, while the BBR share is 0.143--0.327. BBR2 obtains shares of
+0.274--0.327 and Jain indices of 0.828--0.886; the BBRv1 module and
+BBRv3 obtain smaller shares in these particular runs. The implementation environments and no-ECN configuration identify the
+scope of these comparisons.
+
+For unequal-RTT E1 cases, the second flow receives substantially more than
+half the goodput in the tested matrix (Figure~\ref{fig:e1_results}). The
+size of the imbalance varies with implementation and queue setting: across
+the 24 unequal-RTT conditions, the mean long-RTT share ranges from
+0.769 to 0.969, and mean Jain fairness from 0.532 to 0.776.
+These measured shares make allocation an explicit assessment outcome,
+alongside the aggregate rate and the reported path conditions.

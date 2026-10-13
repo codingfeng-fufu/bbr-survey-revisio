@@ -1,0 +1,61 @@
+{
+  "report_id": "RPT_UCHIDA_2024_QUIC_ECN_ADVANCE",
+  "study_id": "ST_UCHIDA_2024_QUIC_ECN",
+  "doi": "10.23919/comex.2024XBL0014",
+  "title": "Fairness improvement method using Explicit Congestion Notification for QUIC",
+  "authors": [
+    "Nobuhiro Uchida",
+    "Daiki Nobayashi",
+    "Dirceu Cavendish",
+    "Takeshi Ikenaga"
+  ],
+  "decision": "include",
+  "eligibility_reason": "Primary transport-control and ECN fairness study within M02 scope",
+  "version": "Acquired advance-publication PDF; finalized publication metadata not asserted",
+  "implementation": "PICOQUIC; exact commit and BBR implementation version NR; BBRv2 explicitly future work",
+  "platform": "Debian10 desktop physical testbed and Fujitsu NXS7000F network emulator",
+  "configuration": {
+    "bottleneck_mbps": 50,
+    "reported_rtt_ms_approx": 40,
+    "flow_counts": [
+      2,
+      4
+    ],
+    "file_size_MB": 400,
+    "trials_per_point": 5,
+    "fairness_window_s": [
+      20,
+      70
+    ],
+    "RED": "ECN-only marking at50%buffer; configured not to drop",
+    "reported_1_bdp_Mbit": 1,
+    "two_flow_buffer_labels": [
+      1,
+      3,
+      6
+    ],
+    "four_flow_buffer_labels": [
+      1,
+      6,
+      10
+    ]
+  },
+  "mechanism": "Proposed CUBIC/BBR changes depend on RTT relative to minimum and ECN; not a stock BBRv3 comparison",
+  "metrics": [
+    "time-varying throughput",
+    "Jain index over stated20–70swindow"
+  ],
+  "limitations": [
+    "Reported BDP=1Mbit differs from50Mbps*40ms=2Mbit; retain reported units and flag reference definition",
+    "No heterogeneous RTT matrix or BBRv3 source identity established",
+    "Existing/proposed combined control changes cannot isolate one algorithm version effect",
+    "Numerical Jain bar values not digitized or reproduced",
+    "Related ICNP2023poster is an earlier report; study-level linkage requires checking it before independent-count aggregation",
+    "Final PDF version and publisher metadata pending"
+  ],
+  "source_locations": [
+    "p.2 Sections3–4",
+    "p.4 Section6/Fig7/Conclusion"
+  ],
+  "review": "Four-page source read; no author-code or packet-level reproduction"
+}

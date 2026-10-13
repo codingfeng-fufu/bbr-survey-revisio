@@ -1,0 +1,441 @@
+                               This advance publication article will be replaced by the finalized version
+                               after proofreading.
+                                                                                                    IEICE Communications Express, Vol.12, No.1, 1–4
+
+
+
+
+LETTER
+Fairness improvement method using Explicit Congestion Notification for
+QUIC
+Nobuhiro Uchida1, a) , Daiki Nobayashi A2, b) , Dirceu Cavendish2, c) , and Takeshi Ikenaga A2, d)
+
+
+
+Abstract QUIC is a transport protocol that adds congestion control, re-      compete within QUIC communication through actual exper-
+transmission control, and TLS to UDP. QUIC can use the same congestion       iments [5]. In this paper, We examine whether our proposed
+control algorithms as TCP. In previous work, we have shown that com-         method is effective in cases where it conflicts with existing
+munication performance becomes unfair concerning the buffer size of the
+shared bottleneck link of two flows, one using CUBIC and the other BBR       methods and in environments with more than two flow.
+congestion control algorithms within QUIC. In this study, we improve           The remainder of this paper is as follows. Section 2
+the communication fairness performance at different bottleneck link buffer   includes related works. Section 3 and Section 4 presents
+sizes by using Round Trip Time (RTT) and Explicit Congestion Notifica-       our proposed method and experimental environment, re-
+tion (ECN) to regulate congestion control aggressiveness when CUBIC and      spectively. In Section 5, the results of the evaluation are
+BBR compete within QUIC through actual experiments.
+Keywords: QUIC, Congestion Control, BBR, CUBIC, ECN                          presented and discussed. In Section 6, we discuss the fair-
+Classification: Network                                                      ness between CUBIC and BBR. Finally, we conclude the
+                                                                             paper in Section 7.
+1.     Introduction
+                                                                             2.   Related works
+QUIC is a new transport protocol standardized by the Inter-
+net Engineering Task Force (IETF) in 2021 [1]. QUIC, un-                     Various studies have been conducted on congestion control
+like TCP, doesn’t require support from an operating system                   competition in the transport layer. Y. Han et al. [6] focus
+or kernel and introduces congestion control, retransmission                  on fairness in the same congestion control in QUIC. When
+control, and TLS over UDP to transfer data.                                  multiple BBR share a bottleneck link, excessive packet loss
+   On the other hand, researchers have been improving con-                   occurs, which will cause a loss of fairness. In that study,
+gestion control algorithms used in transport protocols to im-                packet loss and queuing status are added to the determinants
+prove communication performance. BBR is a new conges-                        of BBR inflight packets to improve fairness.
+tion control algorithm developed by Google in 2016. BBR                         Fairness is low when CUBIC and BBR share a bottleneck
+operates with inflight packets close to the optimal point pro-               link in TCP. Katumata et al. [7] measure RTT using ICMP
+posed by Leonard Kleinrock [2].                                              in user space, and improve fairness by passing accurate RTT
+   QUIC can use the same congestion control algorithms as                    values to BBR. Y.-J. Song et al. [4] [8] propose a method of
+TCP. In previous work, communication performance was                         decreasing 𝑐𝑤𝑛𝑑 to improve the congestion situation.
+evaluated by the actual environment when both CUBIC and                         Ranysha Ware et al. [9] note that when TCP BBR com-
+BBR flows compete within QUIC. Our results showed that                       petes with loss-based TCP, TCP BBR occupies the band-
+communication performance became unfair with the buffer                      width regardless of the number of loss-based flows. In this
+size of the shared bottleneck link [3], similar to TCP fairness              study, one flow of TCP BBR competes with 16 flows of CU-
+behavior [4]. In other previous work, we improved com-                       BIC TCP, indicating that TCP BBR occupies the bandwidth.
+munication performance at different bottleneck link buffer                      Satoshi Utsumi et al. [10] devised a model for estimating
+sizes using ECN and measured RTT when CUBIC and BBR                          the average packet transmission rate of CUBIC when CU-
+                                                                             BIC and BBR compete on a bottleneck link and improved
+  1   Graduate School of Engineering, Kyushu Institute of Tech-              fairness.
+      nology 1–1 Sensui-cho, Tobata-ku, Kitakyushushi, Fukuoka,
+      804–8550 Japan                                                         3.   Proposed method
+  2   Faculty of Engineering, Kyushu Institute of Technology 1–1
+      Sensui-cho, Tobata-ku, Kitakyushushi, Fukuoka, 804–8550                When CUBIC and BBR compete in QUIC, the communica-
+      Japan
+ a)                                                                          tion performance of CUBIC is low when the buffer size of
+      uchida.nobuhiro682@mail.kyutech.jp
+ b)   nova@ecs.kyutech.ac.jp
+                                                                             the bottleneck link is small, and the performance of BBR is
+ c)   cavendish@net.ecs.kyutech.ac.jp                                        low when that of the bottleneck link is large. In this study,
+ d)   ike@ecs.kyutech.ac.jp                                                  we aim to improve the fairness of CUBIC and BBR in QUIC
+                                                                             by judging the approximate size of the buffer size from the
+DOI: 10.1587/comex.XX.XXXXXXXX                                               amount of increase in RTT during congestion, in addition to
+© IEICE 2024
+Received  March 1, 2023
+DOI: 10.23919/comex.2024XBL0014                                              detecting the congestion condition by ECN. As a premise, a
+Accepted  March 1, 2023
+Received January 18, 2024                                                    router marks packets with ECN when detecting congestion.
+Publicized
+Accepted January
+           March 08,12,2024
+                       2023
+Copyedited MM DD, YYYY
+
+
+                                                                                                                                                 1
+                                This work is licensed under a Creative Commons Attribution NonCommercial, No Derivatives 4.0 License.
+                     Copyright © 2023 The Institute of Electronics, Information and Communication Engineers
+                                                                                                              IEICE Communications Express, Vol.12, No.1, 1–4
+
+
+                             RTprop didn’t change for 10 s                                                       CUBIC flow
+                                                                                                    Server1—Emulator—Router1—Router2—Client1
+                                                                                       Server1                                                               Client1
+                                                                                                  Emulator              Router’s Interface
+                                                                                                 delay 20ms                Buffer Size
+                                                                                                  100Mb/s               Bandwidth control
+                                                                                                                            RED 50%
+                                                                                                              Router1                    Router2
+       Start Up             Drain                   ProbeBW   ProbeRTT
+                                                                                                  Emulator                                         100Mb/s
+                                                                                                 delay 20ms
+           BtlBW didn’t change       Inflight Packet < BDP                             Server2    100Mb/s                    50Mb/s
+                                                                                                                                                   100Mb/s
+                                                                                                                                                             Client2
+                for 3 RTT
+                                           Pipe was full         In 200ms
+                                                                                                                   BBR flow
+                             Pipe was not full                                                        Server2—Emulator—Router1—Router2—Client2
+
+                     Fig. 1: Statement of BBR
+                                                                                             Fig. 2: Experimental Testbed Environment
+
+3.1 Proposed method for CUBIC
+TCP CUBIC is a Loss-based TCP that has achieved                                   the gain by 1.25, so preventing CUBIC from consuming
+widespread usage as the default TCP of the Linux oper-                            bandwidth. When RTT is less than 1.5 times the minimum
+ating system. During congestion avoidance, its congestion                         RTT and the number of ECN packets is more than a certain
+window [11].                                                                      value, BBR determines buffer size to be small, and multiplies
+   Proposed CUBIC introduces the same behavior as TCP:                            the gain by 0.75 to prevent from consuming bandwidth. The
+receiving an ECN reduces congestion window (𝑐𝑤𝑛𝑑) in                              values of 0.75 times and 1.25 times are the values of the gain
+the same manner as duplicate ACKs. However, this ECN                              cycle in ProbeBW.
+window reduction is performed only if RTT is at least 1.5
+times the minimum RTT, otherwise CUBIC ignores ECNs.                              4.     Experimental Testbed
+When RTT is more than 1.5 times the minimum RTT, CU-
+BIC determines buffer size to be large, decreasing 𝑐𝑤𝑛𝑑 as                        In this work, we demonstrate the effectiveness of our pro-
+follows:                                                                          posed method using an experimental testbed environment, as
+                                                                                  per. Figure 2. Servers and clients are desktop PCs, equipped
+         𝑐𝑤𝑛𝑑 𝑐𝑢𝑏𝑖𝑐 = 𝐶 · (𝑡 − 𝐾) 3 + 𝑐𝑤𝑛𝑑 𝑐𝑢𝑟𝑟 𝑒𝑛𝑡 ,                       (1)   with either Intel Core-i7 or Intel Core-i9 processors, with 16
+                                                                                  GB of memory. Both servers and clients run Debian Linux
+                             √︂                                                   version 10 OS. An IP network emulator NXS7000F (Fujitsu)
+                                 3   𝑊𝑚𝑎𝑥 · (1 − 𝛽)                               is used to adjust path delays and configure router interfaces
+                      𝐾=                            ,                       (2)
+                                          𝐶                                       with bandwidth capacity, buffer size, and Random Early De-
+                                     𝑐𝑤𝑛𝑑 𝑐𝑢𝑟𝑟 𝑒𝑛𝑡                                tection (RED) for marking ECNs. In all experiments, RED
+          𝑐𝑤𝑛𝑑 = max(𝑐𝑤𝑛𝑑 𝑐𝑢𝑏𝑖𝑐 ,                  ),     (3)                     is configured to not drop packets, but only mark ECN if pack-
+                                           2
+                                                                                  ets exceed 50 % the interface buffer size. PICOQUIC [13]
+   Here 𝐶 is a constant to determine the increase of 𝑐𝑤𝑛𝑑 in                      was used to implement QUIC communication. Link band-
+a high BDP network, which is usually 0.4. 𝑡 is the elapsed                        width is tuned as per Fig. 2, with a bottleneck link between
+time since congestion avoidance. 𝛽 is the reduction factor of                     router 1 and router 2. The resulting bottleneck link delay is
+𝑐𝑤𝑛𝑑 of CUBIC, and in this study, the value of 𝛽 is 7/8 by                        adjusted to 20 ms using the emulators between server 1 and
+adopting the specified value in the implementation used for                       router 1 and between server 2 and router 1. The resulting
+evaluation. cwnd𝑐𝑢𝑟𝑟 𝑒𝑛𝑡 is current cwnd. First, The 𝑐𝑤𝑛𝑑                         RTT between server 1 and client 1 and between server 2
+of CUBIC is calculated from the Eq. (1) and Eq. (2). Finally,                     and client 2 then becomes approximately 40ms. Note that in
+from the Eq. (3), CUBIC compares and determin the value                           our experiments, 1 BDP corresponds to 1 Mbit of data. We
+of 𝑐𝑤𝑛𝑑. Thus, when the buffer size of the bottleneck link                        have devised the following scenarios: two flow experiment,
+is large, CUBIC prevent packets from accumulating in the                          with three bottleneck buffer size scenarios of 1 BDP, 3 BDP,
+buffer and consuming bandwidth.                                                   and 6 BDP; in four flow experiments, with three bottleneck
+                                                                                  buffer size scenarios of 1 BDP, 6 BDP, and 10 BDP. We
+3.2 Proposed method for BBR                                                       have chosen these scenarios because the throughput of CU-
+BBR has four phases, StartUp, Drain, ProbeBW, and                                 BIC and BBR in the existing QUIC is fair in 3 BDP for two
+ProbeRTT, as shown in Fig. 1 [12]. In StartUp and ProbeBW,                        flows and 6 BDP for four flows. We have also created three
+we change phase transition conditions and gain based on                           bottleneck buffer sizes. We evaluate the performance of file
+ECN and RTT as follows.                                                           downloads of 400 MB size per scenario from the server to
+   When the RTT is less than 1.5 times the minimum RTT                            the client. The number of trials in each experimental data
+in StartUp and BBR receives ECN, BBR enters Drain. BBR                            point collected was five. The performance measure used
+determines bottleneck link buffer size to be small, entering                      was throughput per second when two or four flows, CUBIC
+Drain to prevent consuming bandwidth.                                             and BBR, were generated simultaneously.
+   In probeBW, BBR counts the number of ECN packets and
+determines the gain based on RTT and the number of ECN                            5.     Experimental results
+packets in the previous ProbeBW when entering the next
+ProbeBW. When RTT is more than 1.5 times the minimum                              In this section, we show experimental results for several
+RTT, BBR determines buffer size to be large, and multiplies                       bottleneck link buffer sizes, ranging from 1 to 6 BDP worth
+
+                                                                                                                                                                       2
+                                                                                                                                                                                                            IEICE Communications Express, Vol.12, No.1, 1–4
+
+
+                50                                                                  50                                                                        50                                                                        50
+Throughput [Mb/s]
+
+
+
+
+                                                                    Throughput [Mb/s]
+
+
+
+
+                                                                                                                                              Throughput [Mb/s]
+
+
+
+
+                                                                                                                                                                                                                        Throughput [Mb/s]
+                40                                                                  40                                                                        40                                                                        40
+                30                                                                  30                                                                        30                                                                        30
+                20                                                                  20                                                                        20                                                                        20
+                10                                                                  10                                                                        10                                                                        10
+                    0                                                                   0                                                                         0                                                                         0
+                        0     20       40     60         80   100                           0     20        40      60       80         100                           0     20       40     60         80      100                              0     20        40      60       80         100
+                                       Time [s]                                                            Time [s]                                                                  Time [s]                                                                  Time [s]
+                                      CUBIC        BBR                                                 CUBIC with ECN        BBR                                                    CUBIC        BBR                                                       CUBIC with ECN        BBR
+
+
+                            (a) Existing Method                          (b) Proposed Method of CUBIC                                                                     (a) Existing Method                                (b) Proposed Method of CUBIC
+                50                                                                  50                                                                        50                                                                        50
+Throughput [Mb/s]
+
+
+
+
+                                                                    Throughput [Mb/s]
+
+
+
+
+                                                                                                                                              Throughput [Mb/s]
+
+
+
+
+                                                                                                                                                                                                                        Throughput [Mb/s]
+                40                                                                  40                                                                        40                                                                        40
+                30                                                                  30                                                                        30                                                                        30
+                20                                                                  20                                                                        20                                                                        20
+                10                                                                  10                                                                        10                                                                        10
+                    0                                                                   0                                                                         0                                                                         0
+                        0     20       40     60         80   100                           0     20        40      60       80         100                           0     20       40     60         80      100                              0     20        40      60       80         100
+                                       Time [s]                                                            Time [s]                                                                  Time [s]                                                                  Time [s]
+                                   CUBIC      BBR with ECN                                        CUBIC with ECN         BBR with ECN                                            CUBIC      BBR with ECN                                              CUBIC with ECN         BBR with ECN
+
+
+            (c) Proposed Method of BBR                                                          (d) Proposed Method                                       (c) Proposed Method of BBR                                                                (d) Proposed Method
+
+                                              Fig. 3: Throughput - 1 BDP                                                                                                                    Fig. 5: Throughput - 6 BDP
+
+                50                                                                  50
+Throughput [Mb/s]
+
+
+
+
+                                                                    Throughput [Mb/s]
+
+
+
+
+                40                                                                  40
+                                                                                                                                                change proposed and BBR, Fig. 4c shows the flow through-
+                30                                                                  30
+                                                                                                                                                put of CUBIC and BBR with ECN change proposed, and
+                20                                                                  20                                                          Fig. 4d shows the flow throughput of CUBIC with ECN
+                10                                                                  10                                                          change proposed and BBR with ECN change proposed, for
+                    0
+                        0     20       40     60         80   100
+                                                                                        0
+                                                                                            0     20        40      60       80         100     the elapsed time when the buffer size of the bottleneck link
+                                       Time [s]                                                            Time [s]                             is 3 BDP. Fairness becomes apparent in Fig. 4a, Fig. 4c,
+                                      CUBIC        BBR                                                 CUBIC with ECN        BBR
+                                                                                                                                                and Fig. 4d. However, BBR consumes more bandwidth than
+                            (a) Existing Method                          (b) Proposed Method of CUBIC                                           CUBIC in Fig. 4b because CUBIC with ECN receives ECN
+                50                                                                  50
+                                                                                                                                                and acts as duplicate ACKs, increasing retransmissions.
+Throughput [Mb/s]
+
+
+
+
+                                                                    Throughput [Mb/s]
+
+
+
+
+                40                                                                  40
+                30                                                                  30
+                                                                                                                                                   Figure 5a shows the flow throughput of regular CUBIC
+                20                                                                  20
+                                                                                                                                                and BBR, Fig. 5b shows the flow throughput of CUBIC
+                10                                                                  10                                                          with ECN enhancement proposed and regular BBR, Fig. 5c
+                    0
+                        0     20       40     60         80   100
+                                                                                        0
+                                                                                            0     20        40      60       80         100
+                                                                                                                                                shows flow throughput of CUBIC and BBR with ECN en-
+                                       Time [s]                                                            Time [s]                             hancement, and Fig. 5d shows the flow throughput of CUBIC
+                                   CUBIC      BBR with ECN                                        CUBIC with ECN         BBR with ECN
+                                                                                                                                                with ECN enhancement and BBR with ECN enhancement
+            (c) Proposed Method of BBR                                                          (d) Proposed Method                             for the elapsed time when the buffer size of the bottleneck
+                                                                                                                                                link is 6 BDP. Fig. 5a shows that CUBIC consumes more
+                                              Fig. 4: Throughput - 3 BDP
+                                                                                                                                                bandwidth than BBR, while flow throughput of CUBIC de-
+                                                                                                                                                creases and that of BBR increases in Fig. 5b, Fig. 5c, and
+  of data for two flow experiments, and from 1 to 10 BDP                                                                                        Fig. 5d. That is because CUBIC with ECN receives ECN
+  worth of data for four flow experiments.                                                                                                      and acts as duplicate ACKs in Fig. 5b and Fig. 5d, whereas
+                                                                                                                                                BBR with ECN multiplies its gain by 1.25 based on RTT
+  5.1 Two flow performance                                                                                                                      and the number of ECN packets in probeBW in Fig. 5c and
+  Figure 3a shows flow throughput performance of regular                                                                                        Fig. 5d.
+  CUBIC and BBR, Fig 3b shows the flow throughput perfor-
+  mance of CUBIC with ECN change proposed and regular                                                                                           5.2 Four flow performance
+  BBR, Fig. 3c shows the flow throughput performance of                                                                                         Figure 6a and Fig. 6b show the flow throughput performance
+  regular CUBIC and BBR with ECN change proposed, and                                                                                           of CUBIC and BBR for the elapsed time when the buffer size
+  finally Fig. 3d shows the flow throughput of CUBIC with                                                                                       of the bottleneck link is 1 BDP, in the existing and proposed
+  ECN change and BBR with ECN change proposed for the                                                                                           methods, respectively. We verify that BBR consumes more
+  elapsed time, when the buffer size of the bottleneck link                                                                                     bandwidth than CUBIC in the existing method, while the
+  is 1 BDP. BBR consumes more bandwidth than CUBIC in                                                                                           flow throughput of BBR with ECN decreases and that of
+  Fig. 3a and Fig. 3b while throughput of BBR flow decreases                                                                                    CUBIC with ECN increases in the proposed method. That
+  and that of CUBIC increases in Fig. 3c and Fig. 3d. That                                                                                      is because BBR with ECN multiplies its gain by 0.75 based
+  is because BBR with ECN immediately moves to Drain via                                                                                        on RTT and the number of ECN packets in probeBW.
+  ECN notification in StartUp, and BBR with ECN multiplies                                                                                         Figure 6c and Fig. 6d show the flow throughput of CUBIC
+  its gain by 0.75 based on RTT and the number of ECN                                                                                           and that of BBR for the elapsed time when the buffer size
+  packets in probeBW.                                                                                                                           of the bottleneck link is 6 BDP in the existing and proposed
+     Figure 4a shows the flow throughput of CUBIC and BBR,                                                                                      methods respectively. In this scenario, the existing method
+  and Fig. 4b shows the flow throughput of CUBIC with ECN                                                                                       and the proposed method are both fair.
+
+                                                                                                                                                                                                                                                                                              3
+                                                                                                                                                                                                                          IEICE Communications Express, Vol.12, No.1, 1–4
+
+
+                50                                                                        50                                                                                         1.0                                                                       1.0
+Throughput [Mb/s]
+
+
+
+
+                                                                          Throughput [Mb/s]
+
+
+
+
+                                                                                                                                                             Jain's fairness index
+
+
+
+
+                                                                                                                                                                                                                                       Jain's fairness index
+                40                                                                        40                                                                                         0.8                                                                       0.8
+                30                                                                        30
+                                                                                                                                                                                     0.6                                                                       0.6
+                20                                                                        20
+                                                                                                                                                                                     0.4                                                                       0.4
+                10                                                                        10
+                                                                                                                                                                                     0.2                                                                       0.2
+                    0                                                                         0
+                        0     20       40       60         80       100                           0          20        40       60        80       100
+                                        Time [s]                                                                        Time [s]                                                     0.0
+                                                                                                                                                                                           1 BDP          3 BDP         6 BDP
+                                                                                                                                                                                                                                                               0.0
+                                                                                                                                                                                                                                                                     1 BDP          6 BDP        10 BDP
+                               CUBIC 1st flow        BBR 1st flow                                     CUBIC with ECN 1st flow        BBR with ECN 1st flow
+                               CUBIC 2nd flow        BBR 2nd flow                                     CUBIC with ECN 2nd flow        BBR with ECN 2nd flow                                  Existing Method       Proposed Method                                     Existing Method       Proposed Method
+
+
+          (a) Existing Method in 1 BDP                                            (b) Proposed Method in 1 BDP                                                                                 (a) Two flow                                                              (b) Four flow
+                50                                                                        50
+Throughput [Mb/s]
+
+
+
+
+                                                                          Throughput [Mb/s]
+                40                                                                        40                                                                                                                  Fig. 7: Jain’s fairness index
+                30                                                                        30
+                20                                                                        20
+                10                                                                        10                                                                  ing at improving fairness between them within QUIC. We
+                    0                                                                         0
+                        0     20       40
+                                        Time [s]
+                                                60         80       100                           0          20        40
+                                                                                                                        Time [s]
+                                                                                                                                60        80       100        have verified that our proposed methods are effective or do
+                               CUBIC 1st flow        BBR 1st flow                                     CUBIC with ECN 1st flow        BBR with ECN 1st flow    not impact throughput in many cases, even when the ex-
+                               CUBIC 2nd flow        BBR 2nd flow                                     CUBIC with ECN 2nd flow        BBR with ECN 2nd flow
+
+                                                                                                                                                              isting methods and the proposed methods compete among
+          (c) Existing Method in 6 BDP                                            (d) Proposed Method in 6 BDP                                                themselves. As future work, we plan to demonstrate fair-
+                50                                                                        50
+Throughput [Mb/s]
+
+
+
+
+                                                                          Throughput [Mb/s]
+
+
+
+
+                                                                                                                                                              ness improvements using BBR version 2 (BBRv2) or other
+                40                                                                        40
+                30                                                                        30
+                                                                                                                                                              congestion control algorithms within QUIC.
+                20                                                                        20
+                10                                                                        10                                                                  Acknowledgments
+                    0                                                                         0
+                        0     20       40       60         80       100                           0          20        40       60        80       100
+                                        Time [s]                                                                        Time [s]
+                               CUBIC 1st flow
+                               CUBIC 2nd flow
+                                                     BBR 1st flow
+                                                     BBR 2nd flow
+                                                                                                      CUBIC with ECN 1st flow
+                                                                                                      CUBIC with ECN 2nd flow
+                                                                                                                                     BBR with ECN 1st flow
+                                                                                                                                     BBR with ECN 2nd flow
+                                                                                                                                                              This work was supported in part by the Strategic Infor-
+                                                                                                                                                              mation and Communications R&D Promotion Programme
+       (e) Existing Method in 10 BDP                                           (f) Proposed Method in 10 BDP                                                  (SCOPE) funded by Ministry of Internal Affairs and Com-
+                                                                                                                                                              munication (MIC), Japan, and JSPS KAKENHI Grant Num-
+                                            Fig. 6: Throughput in four flow
+                                                                                                                                                              ber 21H03430.
+
+                                                                                                                                                              References
+     Figure 6e and Fig. 6f show the flow throughput of CUBIC
+  and that of BBR for the elapsed time when the buffer size of                                                                                                [1] J. Lyengar, et al., “QUIC: A UDP-Based Multiplexed and Secure Trans-
+  the bottleneck link is 10 BDP, in the existing and proposed                                                                                                     port,” IETF RFC 9000, May 2021.
+  methods, respectively. We verify that CUBIC consumes                                                                                                        [2] R. Gail, et al., “An invarient property of computer network power,”
+  more bandwidth than BBR in the existing method, while                                                                                                           IEEE International Conference on Communications, 63.1.1-63.1.5,
+                                                                                                                                                                  1981
+  the flow throughput of CUBIC with ECN decreases, and
+                                                                                                                                                              [3] N. Uchida, et al., “Performance Evaluation on the Impact of Bottle-
+  that of BBR with ECN increases in the proposed method.                                                                                                          neck Link Buffer Size Under Differnt Congestion Control Algorithm
+  That is because CUBIC with ECN receives ECN and acts                                                                                                            Competition in QUIC,” Proc. IEEE, CCNC, Jan. 2023.
+  as duplicate ACKs, whereas BBR with ECN multiplies its                                                                                                      [4] Y.-J. Song, et al., “Improvement of Cyclic Performance Variation be-
+  gain by 1.25 based on RTT and the number of ECN packets                                                                                                         tween TCP BBR and CUBIC,” IEEE Asia-Pacific Conference on Com-
+                                                                                                                                                                  munications (APCC), Nov. 2019
+  in probeBW.
+                                                                                                                                                              [5] N. Uchida, et al., “Poster: Fairness Improvement Method Using ECNs
+                                                                                                                                                                  with Different Congestion Control Algorithms within QUIC,” Proc.
+  6.                        Discussion                                                                                                                            IEEE ICNP, Oct. 2023.
+                                                                                                                                                              [6] Y. Han, et al., “A Qos-Based Fairness-Aware BBR Congestion Con-
+  To precisely quantify fairness improvements of our proposed                                                                                                     trol Algorithm Using QUIC,” Wireless Communications and Mobile
+                                                                                                                                                                  Computing, Apr 2022.
+  method across different experiments, we use Jain’s fairness
+                                                                                                                                                              [7] N. Katumata, et al., “TCP Fairness Improvement by Congestion Control
+  index [14] as a measure of fairness between CUBIC and                                                                                                           form User Space,” International Conference on Engineering Technol-
+  BBR.                                                                                                                                                            ogy for Communications, Dec. 2021.
+                                           𝑥𝑖 ) 2
+                                      Í𝑛
+                                     ( 𝑖=1                                                                                                                    [8] Y.-J. Song, et al., “Congestion Window Scaling Method for Inter-
+               𝐹𝑎𝑖𝑟𝑛𝑒𝑠𝑠 𝐼𝑛𝑑𝑒𝑥 =         Í𝑛 2 ,            (4)                                                                                                     protocol Fairness of BBR,” IEEE Anual Consumer Communications
+                                   (𝑛 × 𝑖=1 𝑥𝑖 )
+                                                                                                                                                                  and Networking Conference (CCNC), Mar. 2020
+  where 𝑛 is the number of senders, and 𝑥𝑖 is the throughput                                                                                                  [9] R. Ware, et al., “Modeling BBR’s Interactioins with Loss-Based Con-
+  of the i-th flow. We focus on the throughput from 20 s to                                                                                                       gestion Control,” IMC Proceedings of the Internet Measurment Con-
+  70 s to evaluate fairness in steady-state conditions. Figure 7                                                                                                  ference, pp.137-143, Oct. 2019
+                                                                                                                                                              [10] S. Utsumi, et al., “Improving Inter-Protocol Fairness Based on Esti-
+  shows the fairness of CUBIC and BBR for two and four flow                                                                                                       mated Behavior of Competing Flows,” IFIP Networking Conference,
+  scenarios. Fairness improves consistently across all two flow                                                                                                   2022
+  and four flow scenarios, demonstrating the robustness of our                                                                                                [11] L. Rhee, et al., “CUBIC for Fast Long-Distance Networks,” IETF
+  proposed method.                                                                                                                                                RFC 8312, Feb. 2018.
+                                                                                                                                                              [12] N. Cardwell, et al., “BBR Congestion Control,” IETF draft draft-
+                                                                                                                                                                  cardwell-iccrg-bbr-congestion-control-00, Jul. 2017.
+  7.                        Conclusion                                                                                                                        [13] PICOQUIC, https://github.com/private-octopus/picoquic
+                                                                                                                                                              [14] K. R. Jain, et al., “a quantitative measure of fairness and discrimina-
+  In this work, we have proposed new ECN based methods                                                                                                            tion,” Eastern Research Laboratory, Digital Equipment Corporation,
+  for reducing congestion window of CUBIC and BBR aim-                                                                                                            Hudson,MA, vol.21, 1984.
+
+
+                                                                                                                                                                                                                                                                                                              4
+

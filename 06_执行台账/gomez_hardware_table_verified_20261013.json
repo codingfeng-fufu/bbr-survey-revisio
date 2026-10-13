@@ -1,0 +1,61 @@
+{
+  "doi": "10.1016/j.comcom.2024.04.037",
+  "source": "literature_sources_20261012/gomez_bbrv3_author_20261013.pdf",
+  "verified_location": "AuthorPDFp.12Section5.10/Fig13visuallychecked",
+  "scope": "Specific100GbpslowRTThardwareconfiguration;notuniversalversionranking",
+  "conditions": {
+    "link_Gbps": 100,
+    "propagation_ms": "<1",
+    "duration_s": 120,
+    "repetitions": 10,
+    "artificial_loss": "none",
+    "emulated_bottleneck": "none",
+    "PMTUD": "enabled"
+  },
+  "unit": "Gbps",
+  "stream_counts": [
+    1,
+    2,
+    4,
+    8,
+    16
+  ],
+  "MTU1500": {
+    "CUBIC": [
+      9.63,
+      21.4,
+      28,
+      34.3,
+      44.8
+    ],
+    "BBRv3": [
+      5.9,
+      11.1,
+      19,
+      32,
+      35.9
+    ]
+  },
+  "MTU9000": {
+    "CUBIC": [
+      42.9,
+      72.4,
+      91,
+      85.8,
+      80
+    ],
+    "BBRv3": [
+      13.7,
+      23.7,
+      43.3,
+      81.1,
+      75
+    ]
+  },
+  "limitations": [
+    "Tenrepetitionsaveraged;percelluncertaintyintervalnotshowninFig13",
+    "Authorversionnotbyteverifiedagainstpublisherfinal",
+    "Otherqueue/loss/fairnessexperimentsunreviewed",
+    "No95/63.8Mbpsor48%pairedclaimlocated;candidatefixedadvantagewithdrawn"
+  ]
+}

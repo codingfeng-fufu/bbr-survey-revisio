@@ -1,0 +1,837 @@
+Received March 27, 2019, accepted April 14, 2019, date of publication April 29, 2019, date of current version May 20, 2019.
+Digital Object Identifier 10.1109/ACCESS.2019.2913902
+
+
+
+
+Congestion Control and Packet Scheduling for
+Multipath Real Time Video Streaming
+SONGYANG ZHANG , WEIMIN LEI, WEI ZHANG, YUNCHONG GUAN, AND HAO LI
+Department of Communication and Electronic Engineering, School of Computer Science and Engineering, Northeastern University, Shenyang 110169, China
+Corresponding author: Weimin Lei (leiweimin@ise.neu.edu.cn)
+This work was supported in part by the National Key Research and Development Program of China under Grant 2018YFB1702000, in part
+by the Liaoning Provincial Natural Science Foundation of China under Grant 20180551007, and in part by the National Natural Science
+Foundation of China under Grant 61671141.
+
+
+
+
+  ABSTRACT Real time video traffic has stringent delay requirement and is bandwidth demanding when
+  streaming over the internet. Single path transmission may provide unsatisfactory picture quality to users
+  due to packet loss, jitter, and low bandwidth. Multipath transmission is another option to achieve better
+  service by aggregating bandwidth and exploiting path diversity. As utility maximization theory shows,
+  to achieve better satisfaction is to provide higher throughput and lower frame delivery delay for real time
+  video traffic. The congestion control is responsible to probe maximum available bandwidth and packet
+  scheduling is to take advantages of path diversity, which are two key research points in multipath context
+  and are also the main concern in this paper. Given the BBR congestion control algorithm causes high-packet
+  loss rate and large transmission delay when BBR flows competing for bandwidth resource, a delay response
+  BBR (Delay-BBR) algorithm is proposed for real time video transmission. The main idea is that the sender
+  will actively reduce the rate to let intermediate routers drain the excess occupied buffer once round trip delay
+  signal exceeds a certain threshold. The results show that the delay-BBR can achieve lower transmission
+  delay and lower packet loss rate when compared with QUIC-BBR and WebRTC-BBR. The rate stable
+  feature makes delay-BBR appropriate for real time video transmission. Moreover, a packet scheduling
+  algorithm works in coordination with the rate control algorithm achieves lower frame delivery delay further
+  compared with the benchmark algorithms.
+
+
+  INDEX TERMS Multipath transmission, load distribution, real time video traffic, congestion control.
+
+I. INTRODUCTION                                                                                  video content providers e.g., YouTube and NetFlix, while
+According to a recent report [1], video traffic will grow up                                     WebRTC is used to build interactive multimedia applications
+more than 80% of all internet traffic by 2022. The Quality                                       such as conference, video calls. Both of them could dynami-
+of Experience (QoE) of video streaming is still a main con-                                      cally adjust video bitrate according to current network status.
+cern for applications developers and service providers. Video                                    In DASH system, a duration of video content is encoded
+transmission in current network still suffers from restricted                                    into different bitrate chunks. A client requests appropriate
+bandwidth, packet loss. Low quality image could be delivered                                     chunks based on estimated bandwidth and the length of
+due to bandwidth limitation. Packet loss has different conse-                                    buffered video to avoid rebuffering. In WebRTC, the bitrate
+quences such as re-buffering, throughput decrease, or mosaic                                     and resolution of an encoded video frame is dynamically
+according to whether video traffic is streaming over reli-                                       changed as the requirement of congestion control algorithm.
+able or unreliable mode. Such unfavorable factors are quite                                         There exists another possibility to provide better QoE
+harmful to QoE.                                                                                  by exploiting multipath transmission. Today’s networks
+   There are two widely applied technologies DASH                                                are becoming multipath. Mobile devices equipped with
+(dynamic adaptive streaming over HTTP) and WebRTC1 to                                            multi-homed interfaces make concurrent access to het-
+optimize video transmission. DASH is mainly adopted by                                           erogeneous networks (WIFI and 4G) possible. Datacenter
+                                                                                                 networks provide redundant paths for high availability con-
+   The associate editor coordinating the review of this manuscript and                           cern. Enterprises would choose a secondary internet service
+approving it for publication was Shagufta Henna.                                                 provider to reduce the risk of internet outage. Multipath
+  1 https://webrtc.org/
+                                                                                                 transmission scheme brings out many advantages such as
+
+                                             2169-3536 2019 IEEE. Translations and content mining are permitted for academic research only.
+59758                                              Personal use is also permitted, but republication/redistribution requires IEEE permission.         VOLUME 7, 2019
+                                            See http://www.ieee.org/publications_standards/publications/rights/index.html for more information.
+S. Zhang et al.: Congestion Control and Packet Scheduling for Multipath Real Time Video Streaming
+
+
+
+
+providing aggregating bandwidth, accelerating flow comple-                        application layer. The real time video traffic is transmitted
+tion time and improving robustness. There are two trans-                          via UDP.
+port layer protocols MPTCP and CMT-SCTP to maximize                                  Simulation results show the congestion control algorithm
+resource usage in multipath context. The two protocols trans-                     can converge fast to available bandwidth, maintain rate sta-
+mit packets in reliable mode and are suitable for bulk data                       bility and guarantee fairness when sharing bottleneck with
+transmission. For real time video streaming, UDP is a more                        other flows exploiting the same congestion control algorithm.
+preferable choice and video frames can be delivered in unre-                      The packet scheduling algorithm achieves the lowest average
+liable mode for latency consideration. Skipping some of                           frame delivery delay when compared with other benchmark
+incomplete none key frames may not bring perceptible quality                      algorithms.
+deterioration due to packet loss but latency is quite annoying                       The rest of this paper is organized as follows. Section 2 pro-
+for real time video applications. Real Time Protocol (RTP) is                     vides an overview of related works on congestion control
+extended in [2] to enable multipath transmission for real time                    algorithms and packet scheduling algorithms. The propose
+video streaming.                                                                  multipath transmission framework for real time video is intro-
+   Two key research points on multipath transmission scheme                       duced in Section 3. The implementation detail on conges-
+are congestion control and packet scheduling, which are also                      tion control algorithm and packet scheduling algorithm are
+the main consideration in this article. There are several fruit-                  described in Section 4. The performances evaluation and
+ful results on congestion control for MPTCP such as LIA [3],                      comparison are presented on Section 5. Section 6 is the
+OLIA [4], wVegas [5]. The scheduling algorithms [6]–[10]                          conclusion and future working directions.
+for MPTCP aim to improve throughput and minimize flow
+completion time by taking the idea to deliver packets out                         II. RELATED WORK
+of order to achieve in order arrival. Due to heterogeneity of                     As pointed by [15], all flows across internet should imple-
+routing paths, packets sent through different paths may arrive                    ment rate control scheme for congestion avoidance and
+out of order at receiver, which would occupy buffer resource                      promote fair bandwidth occupation. Without restriction of
+and may cause head of line blocking (HOL) [11]. Once                              congestion control algorithms, network users would send
+the pre-allocated buffer is fully occupied, the subsequent                        packets with rate as highly as possible in egoistic manner and
+packets will be dropped. HOL blocking leads the throughput                        network would fall risk into collapse.
+of MPTCP suboptimal since the rate backoff after packet                              Jocobson recommended to regulate sending rate of TCP
+loss detection is not caused by network congestion. Since                         flows according to additive increase and multiplicative
+buffer can be allocated flexibly at application layer, packet                     decrease (AIMD) law in [12], which later developed into
+scheduling for multipath real time video transmission is not                      TCP Reno algorithm. On every RTT, one more packet could
+suffering from HOL, and delay bound should be considered in                       be sent into network to probe more bandwidth. Reno takes
+priority.                                                                         packet loss as network congestion signal and multiplicatively
+   The congestion control algorithms for MPTCP are vari-                          reduces the size of congestion window by half when packet
+ant of Additive Increase Multiplicative Decrease (AIMD)                           loss happens to alleviate link congestion. Most of the later
+law [12] adapted for multipath context. The congestion win-                       algorithms such as Bic [16], Cubic [17], revise the bandwidth
+dow reduced by half due to packet loss makes packet sending                       probe mechanism to make the control algorithm converge
+rate show saw-tooth feature. It would result instability of                       quickly to maximum available bandwidth or attempt to solve
+video encoder if applied in real time video transmission.                         RTT unfairness issue.
+GCC [13] implemented in WebRTC prefers a rate back off                               The main goals of congestion control for MPTCP are to
+factor 0.8 when link is in congestion to maintain stable video                    guarantee intra-protocol friendliness when the subflows of a
+frame generating bitrate.                                                         multipath session share a common bottleneck and move as
+   Inspired by the excellence performance of a most recently                      much as traffic off the congested paths [3]. These multipath
+proposed congestion control algorithm BBR [14], a delay                           congestion control algorithms such as LIA, OLIA, wVegas
+response BBR (Delay-BBR) optimized for real time video                            are built on basis of AIMD rate control mechanism. They cou-
+transmission is proposed to overcome the drawbacks of high                        ple all subflows together to maintain bottleneck fairness when
+packet loss rate and longer transmission latency. By actively                     more than one subflows of a multipath session traversing a
+reducing sending rate to let intermediate routers drain the                       common bottleneck and competing bandwidth with single
+occupied buffer when the round trip delay signal exceeds a                        path TCP session.
+pre-defined threshold, Delay-BBR can achieve obvious lower                           These congestion control algorithms applied in TCP or
+packet loss rate and lower transmission latency while main-                       MPTCP taking packet loss to infer link congestion is not
+taining reasonable throughput at the same time. Moreover,                         quite fit for real time video transmission. First, the saw-
+a packet scheduling algorithm deduced from utility maxi-                          tooth feature of sending rate of loss based congestion con-
+mization theory is proposed, which takes the local occupied                       trol algorithms due to half reduction of congestion window
+buffer length, available bandwidth and transmission delay                         would lead instability of video encoder, which would gener-
+into consideration. In our implementation, the congestion                         ate video pictures with fluctuation quality. Second, in cellular
+control algorithm and packet scheduling algorithm work on                         access network, there exists random packet loss caused by
+
+VOLUME 7, 2019                                                                                                                               59759
+                                                  S. Zhang et al.: Congestion Control and Packet Scheduling for Multipath Real Time Video Streaming
+
+
+
+
+interference or channel fading, and the throughput of loss             is related to available bandwidth and packet loss rate. The
+based rate control algorithms is low in this situation. Third,         packet loss rate is modeled from M/M/1 queue theory.
+in wire network, packet loss is a rare event since deep buffer         Whether the M/M/1 model can reflect the true status of net-
+is configured in modern routing devices. These loss based              work link is quite questionable. The idea to minimize rate dis-
+congestion control algorithms tend to occupy much buffer               tortion is further developed in Wu’ work [26] and packets are
+resource in routers once the rates of all users exceed the             distributed to different paths on frame level. A TCP friendly
+capacity of bottleneck and result in longer transmission delay,        congestion control algorithm is applied in Wu’s work.
+which is notorious for bufferbloat [18].                                  In [27], Markov Decision Process is applied for packet
+   In consideration of these drawbacks of AIMD congestion              distribution over multipath overlay network. The incoming
+control algorithms, there have been a tendency to deploy               packets are segmented into fixed size bins before delivered
+congestion control algorithms at application layer for real            to traffic distributor to choose path. The objective of MDP
+time video transmission. IETF has initiated RMCAT (RTP                 approach is to maximize the average reward over a short
+Media Congestion Avoidance Techniques) Working Group                   time span. The immediate reward when packets are sent by a
+to develop congestion control mechanisms for interactive               specific path is defined as the average packet inter-departure
+real-time media. There are three congestion control drafts             time and propagation delay.
+under this working group, namely, GCC [13], NADA [19],                    EDCLD [28] takes a hybrid model to compute the path
+SCReAM [20]. All three algorithms take delay related sig-              cost, which is modeled from Poisson traffic and unknown
+nal to infer congestion, which can response link congestion            traffic. Its goal is to minimize cost variation from different
+earlier than loss based algorithms. GCC takes one way delay            paths though packet scheduling. Increase packet scheduling
+gradient as congestion signal, NADA takes an aggregated                ratio on path with smaller cost and decrease it on path with
+delay signal and SCReAM takes one way delay signal to                  larger cost. Due to constraint of available bandwidth, schedul-
+control rate. These algorithms pursuit to maintain reasonable          ing more packets to path with smaller cost would increase
+throughput when sharing links with other type flows, while             packets transmission delay. Finally the costs are balanced on
+keeping a low link queue occupancy at the same time.                   all paths.
+   The recent research works on packet scheduling algorithm               SFL [29] splits video frames into sub-frames to optimize
+for multipath transmission are briefed in following.                   delivery delay in wireless network. Watering filling algorithm
+   DEMS [7] is a chunk based scheduling algorithm for                  is applied, and packets are scheduled to specific path accord-
+MPTCP to achieve simultaneous sub-flow completing time.                ing to available bandwidth and one way delay to make equal
+The length of a chunk is decided by application layer accord-          aggregate delay in all paths.
+ing to estimated bandwidth and one way delay. STMS [9]                    Nearly all of these algorithms share a common idea that the
+schedules packets with small sequence number to fast path              optimization is achieved by scheduling more packets to path
+while sending packets with large sequence number on slow               with less cost and the core differences of these works are the
+path, to solve packets out of order arrival problem. The main          definition of routing path cost which may be expressed by
+idea of STMS is quite similar to DEMS with difference that             delay, packet loss rate, or both. And we admit here, the main
+STMP is implemented on transport layer. In [10], the authors           idea of proposed packet scheduling algorithm also belongs
+designed a cross layer packet scheduling algorithm which               to such kinds. But we argue here, due to the different defini-
+takes packet queue length and packet pending delay in net-             tion of cost function, the performances of packet scheduling
+work interface card (NIC) into consideration. When a packet            algorithms show diversity in simulation.
+comes, the scheduler would choose the NIC that can deliver
+the packet earliest to destination.
+   The authors of OMS [22] proposed to schedule packets to             III. FRAMEWORK
+path with minimal arrival delay. The packet arriving delay             A. THE MULTIPATH TRANSMISSION SYSTEM
+is calculated by link capacity and buffered queue length in            FOR REAL TIME VIDEO
+routers. In real network situation, link capacity can be mea-          The multipath real time video transmission framework
+sured by packet pair like technology [23], but queue occupa-           applied in this work is shown in Figure 1. The most important
+tion length in links is hard to estimate. In their simulation,         module is congestion controller (CC), which is introduced
+the queue occupation following asymptotically Weibull dis-             to guarantee fair share of bandwidth when real time video
+tribution [24] is assumed and routing paths have translational         flow competing resource with other types flow and to avoid
+Brownian motion (tBm) traffics with prior known mean rate,             leading network into congestion. The congestion controller
+variance coefficient and Hurst parameter. This algorithm is            is implanted on each sub-path and only one is showed in
+difficult to be practically applied in real network since these        diagram due to limited space.
+parameters are hard to estimate from an endpoint.                         The pacer sends these packets in local buffer into net-
+   In [25], packet scheduling combined with rate control               work evenly with rate determined by congestion controller.
+scheme is proposed for mobile devices which can access                 Traditional window based congestion control algorithms send
+heterogeneous wireless networks concurrently. A rate distor-           packets in burst mode, which may lead these sent packets
+tion equation is introduced as the optimization goal, which            queued at intermediate routers and introduce extra delay.
+
+59760                                                                                                                               VOLUME 7, 2019
+S. Zhang et al.: Congestion Control and Packet Scheduling for Multipath Real Time Video Streaming
+
+
+
+
+FIGURE 1. The designed multipath transmission framework.
+
+
+
+                                                                                                                                      P
+There is a tendency to implement a pacing module in                               l is not used by s. The total rate of user s is ys = l∈L xs,l .
+newly proposed algorithms e.g., BBR and GCC. There are                            The bottleneck capacity (the narrowest link) of path l is cl .
+works [30], [31] argue about the benefit of pacing.                               User s will get a satisfaction or welfare measured by U (ys )
+   The scheduler is responsible for sending packets to local                      when transmitting packet with rate ys . The goal is to find a
+buffer of different paths according to some rules. The rate                       reasonable bandwidth allocation scheme to get resource fully
+controller adjusts the bitrate of the video encoder to make                       utilized. The following optimization problem is obtained:
+sure the output rate of encoded video frame matches the total                                                   X
+                                                                                                          max        U (ys )
+available throughput of all its sub-paths.
+                                                                                                                           s∈S
+   At receiver side, the feedback module on each sub-path                                                              X
+would send acknowledgement packets to sender. They are                                                          s.t.         xs,l ≤ cl                                             (1)
+fed to congestion controller to infer whether routing path                                                             s∈S
+is in congestion or not and packet sending rate is adjusted                          A global bandwidth allocation solution is quite hard
+accordingly. Packets sent on different path belonging to a                        considering the scale and heterogeneity of current network
+same frame would arrive out of order at destination in large                      systems. Such problem is usually solved by deploying rate
+possibility. A jitter buffer is configured at receiver to regroup                 control algorithms at endpoints. The Lagrangian is defined
+packets and video frames can be delivered to upper layer in                       as following:
+evenly spaced intervals.
+                                                                                                    X           X           X
+                                                                                        L(ys , λ) =   U (ys ) +    λl (cl −   xs,l )
+   Real time video traffic is usually transported over UDP for                                          s∈S                  l                     s∈S
+latency consideration and our experiments are no exception.                                             X                  X               X                   X
+The multipath video transmission protocol in simulation is                                          =         U (ys ) −           λl (           xs,l ) +                λl cl
+                                                                                                        s∈S                  l             s∈S                     l
+briefed, which is taken reference from razor project.2 The                                              X                  XX                                  X
+incoming video frame is packaged into segments. Apart from                                          =         U (ys ) −                    xs,l λl +                   λl cl       (2)
+video data, some extra information is included in the segment                                           s∈S                s∈S         l                       l
+header: The frame id (fid), the total packaged segments of                           The parameter λl is the shadow price introduced by
+a frame, the segment index in a frame, the video frame                            Kelly [32] of path l. More specifically, the shadow price is
+generating timestamp. The segment index is used for putting                       congestion signal feedback by network system, which may be
+the received segment in right position in receiver buffer.                        increased delay or packet loss event due to channel overuse.
+                                                                                  According to previous research works [32] [33] [5], the dual
+B. PROBLEM FORMULATION                                                            function of the original problem is:
+The utilization function U is introduced to find methods                                                          min D(λ)                                                         (3)
+to provide better satisfaction of a service, which is usually                                                          λ
+assumed as a strictly concave and increasing function. The                        The function D(λ) is defined as:
+network system is modeled as a set of L routing paths. S                                 D(λ) = max L(ys , λ) =
+                                                                                                                 X
+                                                                                                                   Ls (λ) +
+                                                                                                                            X
+                                                                                                                              λl cl                                                (4)
+denotes the number of network users. A user s can exploit
+                                                                                                                                 s∈S                       l
+multiple routing paths to build concurrent connections. xs,l is
+                                                                                  where
+the packet sending rate of user s on path l, which is zero if                                                                              X
+                                                                                                    Ls (λ) = max U (ys ) −                       xs,l λl                           (5)
+  2 https://github.com/yuanrongxi/razor
+                                                                                                                                           l
+
+VOLUME 7, 2019                                                                                                                                                                   59761
+                                                       S. Zhang et al.: Congestion Control and Packet Scheduling for Multipath Real Time Video Streaming
+
+
+
+
+   Equation (5) is defined as aggregate surplus in [34].                    path price in current time. Assuming the frame generating rate
+To achieve the maximization of aggregate surplus is to send                 is set P
+                                                                                   as the sum of available bandwidth of all the sub-paths
+packets with rate as highly as possible while maintaining                   x =       p cp , it means a single path cannot always sending
+minimal link price at the same time. Due to capacity limita-                the incoming packets to its peer within video frame rendering
+tion of bottleneck, users send packets with too high rate may               deadline. If more packets are scheduled to the minimal cost
+lead network congestion, which would increase the cost in                   path, packets would be buffered once these packets can not
+the second part of the equation (5) and lead aggregate surplus              be sent out immediately and the path price would further
+decrease. Usually, a congestion control algorithm increases                 increase as equation (9) shows. There is a time point that
+rate to probe more bandwidth and responses link congestion                  packets would be switched to another path. Such method can
+by rate reduction, through which the stability of a network                 finally strike a balance in terms of path price in all paths.
+system can be maintained. In multipath context, to maximize
+aggregate surplus is to minimize packet transmission cost                   IV. IMPLEMENTATION
+with constraint of congestion control algorithm . As for the                The implementation on congestion control algorithm will
+congestion control algorithm, an improved BBR optimized                     be detailed in this part. To evaluate the performance of
+for real time video transmission is implemented in this work.               the proposed packet scheduling solution, several benchmark
+To minimize transmission cost is the responsibility of the                  algorithms are implemented. The multipath real time video
+packet scheduling module, which is the main focus in fol-                   transmission framework shown in Figure 1 is implemented
+lowing analysis.                                                            on ns3.3
+   To make the utilization theory can be well applied in
+multipath packet scheduling problem, a minor modification                   A. IMPLEMENTATION ON CONGESTION
+is made to equation (5).                                                    CONTROL ALGORITHM
+                   max U (x) −
+                                 X
+                                     λp xp                 (6)              In an early stage when we search a congestion control solu-
+                                      p
+                                                                            tion for multipath real time video transmission, GCC algo-
+                                                                            rithm is applied. We observed in simulation that the rate
+where, p is path index, λp is path price, and xp is the packet              in underload path ramps up slowly during initial phase and
+scheduling rate. The packets generating rate is x, xp = αp x.               the total throughput is sub-optimal. The packet scheduling
+αp is rate splitting ratio.                                                 algorithm delivers packets to path pa with smaller price and
+  The aggregate cost of multipath session is denoted by q,                  the incoming packets will be switched to another path pb until
+which can be interpreted as the expected cost of a single                   the price of pa is larger than pb due to buffer occupation.
+packet scheduled through multipath (8).                                     Before switch happens, there are not enough packets to be
+                               X
+                          xq =   xp λp                     (7)              sent on pb . It affects bandwidth estimation in GCC and results
+                                  p                                         in low throughput on path with larger transmission delay.
+                                X                                              In such dilemma situation where GCC can not work well
+                           q=         λp αp                       (8)
+                                                                            in multipath context, the recent proposed congestion control
+                                  p
+                                                                            algorithm BBR is tested, which is said to achieve remarkable
+   The path price λp can be denoted by (9). dp is fixed                     performance for bulk data transfer in TCP. Basically, BBR
+propagation delay. dq (t) is packets queueing delay at inter-               is claimed as a congestion based rate control algorithm, with
+mediate routers. And the third term is delay introduced by                  goal to reach the optimal control point, namely, to achieve the
+packets queued in local buffer at sender side, 1(·) is the step             maximum throughput while minimizing end to end latency at
+function. Once the packet scheduling rate xp (t) exceeds the                the same time. The sending rate of BBR flow is depended on
+path sending rate cp , extra sent packets would be queued at                estimated bandwidth gained from acknowledgement packets.
+local buffer.                                                               It does not response to link delay increase nor packet loss
+                           Z
+                             (xp (t) − cp (t))1(xp (t) − cp (t))            event. But simulation results indicate the packets loss rate is
+ λp (t) = dp (t) + dq (t)+                                       dt
+                                            cp (t)                          high and round trip time is large when several BBR flows
+                                                                  (9)       competing for bandwidth in the same routing path. The reason
+                                                                            is analyzed in fourth paragraph in this part.
+   As for the first term of equation (6), there is quite little a              There are four control states StartUp, Drain, ProbeBW,
+packet schedule algorithm can wield impact. The main focus                  and ProbeRTT in BBR. The Startup and Drain states are
+of packet scheduling algorithm is to minimize the second                    used at session start. At the Startup phase, the endpoint
+term.                                                                       uses a high gain ln2  2
+                                                                                                     to double its sending rate to probe the
+                          qt = λp,t αp,t                        (10)        maximum available bandwidth. When estimated bandwidth
+                                                                            is 1.25 times less than the previous sending rate and lasts
+   The aggregate cost equation (8) can be rewritten as equa-                for 3 times, the sender deems it approach to the maximum
+tion (10). αp,t works as an indicator to schedule an incoming               available bandwidth and enters into Drain state. The Drain
+packet to a specific path. It’s obvious that to minimize the
+aggregate cost is to schedule a packet to path with minimal                   3 https://www.nsnam.org/
+
+
+59762                                                                                                                                    VOLUME 7, 2019
+S. Zhang et al.: Congestion Control and Packet Scheduling for Multipath Real Time Video Streaming
+
+
+
+
+state is to get rid of excess queue accumulated during StartUp                    In our implementation, the purpose of ProbeRTT state is
+phase. When the inflight packets are less than BDP (Band-                         not exploited to sample a new minimal RTT but for the
+width Delay Product), the state is changed to ProbeBW.                            excess buffered packets to be drained. The state may be
+At this state, the sending rate is controlled by different gains                  changed to ProbeRTT for many times during the minimal
+[1.25, 0.75, 1, 1, 1, 1, 1, 1] in 8 RTTs. The gain 1.25 is to probe               RTT monitoring interval in the modified version. Once the
+bandwidth. If there is extra bandwidth available, the sender                      control state is set as ProbeRTT, srtt would be reset as zero
+would increases sending rate to occupy it. If the minimal RTT                     (line 4 in Algorithm 5) temporarily and the sequence num-
+is not sampled again within 10 seconds, the link seems in                         ber of the last sent packet is recorded as seq_at_backoff_
+congestion and the state is set as ProbeRTT. Only four packets                    (line 3 in Algorithm 5). The srtt signal will be updated
+are allowed to be sent out in a RTT to let intermediate routers                   until the acknowledged sequence number is larger than the
+drain the occupied buffer and the minimal RTT is reset.                           seq_at_backoff (line 11-16 in Algorithm 3). Such operation
+   Some features of BBR algorithm are unsuitable to be                            is to maintain reasonable rate when real time video flows
+applied directly in real time video transmission. First, the end-                 sharing links with loss based congestion control constraint
+point would send too many packets with pacing gain 1.25 in                        flows.
+ProbeBW. At the next RTT, the transmission rate would be
+reduced to 0.75 times less than its throughput to avoid excess                                      srtt = (1 − α) ∗ srtt + α ∗ rtt        (11)
+queue. Due to video frames are captured at fixed intervals                                                       1sent      1acked
+                                                                                                     bw = min(            ,         )      (12)
+and the output bitrate of video encoder is stable in a short                                                    1sent_ts 1ack_ts
+time span, there may be not enough packets to be sent to
+probe bandwidth in 1.25X gain phase while the packets may                            When a packet is sent out by sender, the packet length
+be queued in the local buffer in 0.75X gain phase. Second, all                    and sent timestamp will be recorded in Algorithm 1. Here,
+BBR flows would insist the maximum estimated bandwidth                            inflight_ is the total length of sent packets without being
+sampled during last 10 RTTs and the total sending rates tend                      acknowledged. On each acknowledgement, the sender would
+to exceed the capacity of bottleneck. The extra sent packets                      compute bandwidth as Equation (12), update rtt following
+would be buffered in routers and lead transmission latency                        Algorithm 2, change packets inflight counter in Algorithm 3,
+increase. The minimal RTT could hardly appear again in 10s.                       check whether the link is in congestion status in Algorithm 4.
+The ProbeRTT state which lasts at most 200 milliseconds                           When link is in congestion or the minimal rtt monitor interval
+may be not longer enough to let routers empty the occupied                        expires (kMinRttExpiry is 10 seconds), the rate pacing gain
+buffer. Thus the optimal control point is deviated. Third, only                   will set as 0.75 in Algorithm 5 to let routers drain buffered
+four packets are sent in a RTT during ProbeRTT would further                      packets in exchange for lower queueing latency.
+introduce frame transmission delay in video transmission.
+   Given these drawbacks, a delay response BBR                                    Algorithm 1 OnPacketSent
+(Delay-BBR) optimized for real time video transmission is                         Require:
+proposed. First, the pacing gains [1.25, 0.75, 1, 1, 1, 1, 1, 1]                      the timestamp (now), sequence (seq) and the payload
+are changed to [1.11, 0.9, 1, 1, 1, 1, 1, 1] to maintain stable                       length of a sent packet
+sending rate. The 1.25X pacing gain shows quite aggressive-                        1: info.sent_ts=timestamp,info.bytes=payload
+ness when flows competing for bandwidth. Second, as for                            2: sent_packets_map_.insert(seq,info)
+optimal control point deviation problem due to excess queue                        3: inflight_← inflight_+payload
+occupation, instead of only entering the ProbeRTT state when                       4: last_sent_packet_←seq
+the minimal RTT is not sampled in 10s, we found that let the
+sender enter the ProbeRTT state more frequently can gain
+better performance.
+   In Delay-BBR algorithm, once the smoothed delay sig-                           Algorithm 2 OnAck
+nal exceeds a certain threshold, the sending rate will be                         Require:
+reduced to let routers empty occupied buffer to get net-                              the ack packet received timestamp (now) and acknowl-
+work system recover back to optimal control point. The                                edged sequence number (seq)
+smoothed RTT (srtt) signal is monitored in ProbeBW state as                        1: UpdateRttAndInflight(now,seq)
+Equation (11). α is 0.9 and the exponential filter is applied to                   2: congested←CheckIfCongestion()
+eliminate noise. Once srtt is β (1.2 in implementation) times                      3: if now-min_rtt_ts_>kMinRttExpiry then
+larger than the base RTT (base_line_rtt_, the minimal RTT                          4:    min_rtt_expired← 1
+in ProbeBW), the link seems fall into congestion (line 4 in                        5: end if
+Algorithm 4), the sending rate would be reduced to 0.75X                           6: DrainExcessBuffer(now,min_rtt_expired,congested)
+(line 6 in Algorithm 5) of its maximum rate before. Until
+inflight packets are less than BDP (bw*min_rtt_), the state
+would be changed into ProbeBW (line 11 in Algorithm 5).                             Even though I tried to explain the implementation detail in
+This gives routers enough time to drain the occupied buffer.                      both word and pseudo code, limitation of language expressive
+
+VOLUME 7, 2019                                                                                                                            59763
+                                                        S. Zhang et al.: Congestion Control and Packet Scheduling for Multipath Real Time Video Streaming
+
+
+
+
+Algorithm 3 UpdateRttAndInflight                                             Algorithm 5 DrainExcessBuffer
+Require:                                                                     Require:
+    the ack packet received timestamp (now) and acknowl-                         (now, min_rtt_expired, congested)
+    edged sequence number (seq)                                               1: if mode_! =ProbeRTT and (min_rtt_expired or con-
+ 1: get the sent packet info in sent_packets_map_                                gested) then
+ 2: rtt=info.sent_ts−now                                                      2:    mode_←ProbeRTT
+ 3: inflight_← inflight_−info.bytes                                           3:    seq_at_backoff_←last_sent_packet_
+ 4: if rtt<min_rtt_ or min_rtt==0 then                                        4:    srtt_←0
+ 5:    min_rtt_←rtt                                                           5:    base_line_rtt_← +∞
+ 6:    min_rtt_ts_←now                                                        6:    pacing_gain_← 0.75
+ 7: end if                                                                    7:    bdp_=bw_*min_rtt_
+ 8: if rtt<kSimilarMinRtt*min_rtt_ then                                       8: end if
+ 9:    min_rtt_ts_←now                                                        9: if mode_==ProbeRTT then
+10: end if                                                                   10:    if inflight_< bdp_ then
+11: if seq>seq_at_backoff_ then                                              11:        EnterProbeBwMode()
+12:    if rtt<base_line_rtt_ then                                            12:    end if
+13:       base_line_rtt_←rtt                                                 13: end if
+14:       srtt_←rtt
+15:    end if                                                                Algorithm 6 Packet Scheduling Procedure
+16:    srtt_← (1 − α)*srtt_+α*rtt
+                                                                             Require:
+17: end if
+                                                                                 The id and length of newly generated packets
+                                                                             Ensure:
+Algorithm 4 CheckIfCongestion                                                    the map between packet id and path id
+ 1: if srtt_==0 or base_line_rtt_== +∞ then                                   1: repeat
+ 2:    return 0                                                               2:    Compute each path cost λp as equation (14)
+ 3: end if                                                                    3:    Get the path index j with the minimal path cost
+ 4: if mode_==ProbeBW and srtt_> β*base_line_rtt_                             4:    Schedule packet i to path j
+    then                                                                      5:    Increase the buffer pending length Qj of path j
+ 5:    return 1                                                               6: until all incoming packets are scheduled
+ 6: end if
+
+
+                                                                             cp (t) is packet sending rate of the Pacer, and the rate is deter-
+ability makes it hard for interested readers to reproduce the                mined by congestion controller. When a packet is scheduled
+algorithm. Thus code can be got at github.4                                  to path p, it will be buffered if the local buffer is not empty.
+   One more thing should be put forward. The padding pack-                                        Q (t)
+                                                                             The second term cpp(t) is the expected waiting time before
+ets carrying useless data should be sent for bandwidth probe
+                                                                             the buffered packet can be sent out. The detail on packet
+purpose when there are no video packets available.
+                                                                             scheduling procedure is shown in Algorithm 6.
+                                                                                Even the scheduling algorithm cannot strictly guarantee
+B. IMPLEMENTATION ON PACKET
+                                                                             in order of delivery of all packets at receiver due to some
+SCHEDULING ALGORITHM
+                                                                             uncertain factors in the routing path, e.g., the occupied buffer
+The proposed packet scheduling algorithm is working on                       length in routers, path reroute, it strives to achieve minimal
+packet level but frame level. When an encoded video frame                    arrival delay expectancy by choosing path with minimal cost
+generates, the scheduler sends the packaged packets to local                 first. Once these received packets can be reassembled as video
+buffer of path with the minimal cost in (13). And the cost of                frames, they would be delivered to upper layer as early as
+path p in the proposed algorithm is defined as equation (14).                possible.
+                       j = arg min λp                            (13)           Since these packets belonging to a same frame may be
+                                  p                                          sent to different paths, the receiver cannot figure out whether
+                            RTTp (t) Qp (t)                                  an incomplete frame is caused by packet lost or late arrival.
+                     λp =           +                            (14)
+                              2       cp (t)                                 At sub-path level, the feedback module would send acknowl-
+                                                                             edgement packets to sender. Whether to retransmit the lost
+                                                  p  RTT (t)
+   RTTp (t) is round trip time. The first term   2    can be                 packets is totally depended on sender. The sent packets will
+used as a reflection of queueing delay and propagation delay                 be cached at sender at most 500 milliseconds. If a lost packet
+in network links. Qp (t) is occupied buffer length at sender.                is found, it will be retransmitted immediately to the path with
+                                                                             minimal transmission delay. The receiver decides the maxi-
+  4 https://github.com/SoonyangZhang/congestion-responce-experiment          mum time to wait for retransmitted packets. For key frame,
+
+59764                                                                                                                                     VOLUME 7, 2019
+S. Zhang et al.: Congestion Control and Packet Scheduling for Multipath Real Time Video Streaming
+
+
+
+
+receiver must wait for lost packets to be retransmitted and a
+complete frame can be rendered, or else the following frames
+that take the key frame as reference will not be decoded
+successfully. In none key frame case, the incomplete frame
+will be discarded if the waiting time exceeds a maximum
+threshold (500 milliseconds in experiment).
+
+C. IMPLEMENTATION ON BENCHMARK ALGORITHMS
+Three other packet scheduling algorithms Weighted Round
+Robin (WRR), EDCLD [28], and SFL [29] are implemented
+                                                                                  FIGURE 2. Watering filling method.
+as benchmark algorithms for performance comparison
+purpose.
+  The WRR algorithm is applied for server load balance. The                       Algorithm 7 Water Filling Algorithm
+number of packets sent on path i are computed by equation                         Require:
+(15). ABWi is the available bandwidth of path i and n is the                          The path_info(ABW , OWD) every available path,
+number of packets that wait to be scheduled.                                          n, total available path,
+                                                                                      The total size s and packet_info(id, len) of newly gener-
+                       ABWi
+    path_load(i) = dn P        e                                      (15)            ated packets
+                        j ABWj                                                    Ensure:
+                                               1        q                             the map of packet id and path id
+           Cp (ψp ) = Dp + (1 − w)                   +w               (16)
+                                          µ p − ψp λ    µp                         1: sort the path_info according to owe way delay
+                                                                                   2: L ← packet_info[start_id].len
+   Equation (16) is path cost defined in EDCLD. Dp is fixed                                             L
+                                                                                   3: step ← path_info[n−1].ABW
+propagation delay, µp is available bandwidth, qp is occupied
+                                                                                   4: for i ∈ [1, ∞) do
+buffer length at sender side, ψ is packet scheduling ratio,
+λ is data generating rate, w is the weight. The cost function                      5:    compensator ← i ∗ step
+follows M/M/1 queue model when w ← 0. In experiment, w                             6:    D ← path_info[n − 1].OWD + compensator
+is set to 0.8. EDCLD will increase the number of packets sent                      7:    water ← 0
+on best path with lowest cost value and decrease scheduling                        8:    for j ∈ [0, n) do
+ratio on worse path. To find optimal value of ψ, a quadratic                       9:       owd ← path_info[j].OWD
+equation Cpbest (ψbest + 1ψ) = Cpworst (ψworst − 1ψ) needs                        10:       abw ← path_info[j].ABW
+to be solved. In an iteration, the packet scheduling ratio on                     11:       path_info[j].bytes = (D−owd)∗abw
+                                                                                                                    1000∗8
+these paths with cost between Cpbest and Cpworst will remain                      12:       water ← water + path_info[j].bytes
+unchanged.                                                                        13:    end for
+   The water filling algorithm in SFL takes available band-                       14:    if water ≥ s then
+width and one way transmission delay into consideration. The                      15:       break
+basic idea is to make an equal aggregate delay by scheduling                      16:    end if
+                                                                                  17: end for
+more packets to the path with smaller transmission delay
+                                                                                  18: i ← 0
+and less packets to larger transmission delay path as shown
+                                                                                  19: for k ∈ [start_id, end_id] do
+in Figure 2, namely Di + di = Dj + dj . Here, di is one
+way delay of path i, Di is the water depth. Through the                           20:    while i 6 = n − 1and path_info[i].bytes < 0 do
+adjustment of Di , the total packets that all paths can be                        21:       i←i+1
+sent in a Pscheduling round should                                                22:    end while
+                                P be equal to the incoming                        23:    Schedule packet k to path i
+packets,       D
+              i i ∗ ABW  i =      l. The detail of the water
+filling packet algorithm is shown in Algorithm 7. For sim-                        24:    len = packet_info[start_id].len
+plicity, when the current water of all path cannot hold all                       25:    path_info[i].bytes ← path_info[i].bytes − len
+                                                                                  26: end for
+packets, the water depth of the path with the largest one
+way delay will increase by step of 1D = ABW      L
+                                                     until all
+packets can be held, and L is the length of transmission
+unit.                                                                             A. PERFORMANCE OF THE CONGESTION
+                                                                                  CONTROL ALGORITHM
+V. EVALUATION                                                                     In order to test the performance of Delay-BBR algorithm,
+The performances of congestion control algorithm and packet                       a point to point topology is built with link configuration
+scheduling algorithms are evaluated in this part. All experi-                     shown in Table 1. The parameters are link capacity (in unit
+ments are running on ns-3.26.                                                     of Mbps), one way propagation delay (in unit of millisecond),
+
+
+
+VOLUME 7, 2019                                                                                                                           59765
+                                                       S. Zhang et al.: Congestion Control and Packet Scheduling for Multipath Real Time Video Streaming
+
+
+
+
+TABLE 1. Network configuration.
+
+
+
+
+                                                                            FIGURE 4. Average packet loss rate.
+
+
+
+
+FIGURE 3. Average packet one way transmission delay.
+
+
+
+and buffer length in routers. We get the BBR algorithm imple-               FIGURE 5. Rate dynamics of QUIC-BBR flows.
+mented in google QUIC running on ns3 platform for compari-
+son purpose. The experiments are running about 300 seconds.
+   On each experiment, three flows exploiting same conges-
+tion control algorithm are initiated at different time points.
+The second flow is started 40s late after the first flow and the
+third flow is started at 80s. At sender side, the packet sending
+rate is traced. One way transmission delay and the sequence
+number of loss packets are recorded at receiver. The average
+one way transmission delay from all received packets in each
+test case is plotted in Figure 3. The packets loss rate of all
+9 experiments is showed in Figure 4.
+   One way delay signal is composed by propagation delay
+and queueing delay, which can be used to indicate the
+                                                                            FIGURE 6. Rate dynamics of delay-BBR flows.
+dynamic of occupied buffer in routers. Delay-BBR algorithm
+achieves lower packet transmission delay and extremely
+lower packet loss rate compared with QUIC-BBR. As routers
+are configured with more buffer (Case 1, 2, 3), the packet
+loss rate decreases and transmission delay increases in
+QUIC-BBR. The QUIC-BBR flows would occupy much
+buffer resource in routers.
+   The rate dynamics of QUIC-BBR flows and Delay BBR
+flows are plotted in Figure 5 and Figure 6 under the link
+configuration in Case 2. The rates of QUIC-BBR flows
+can maintain fairness on average but show a wide range of
+variation from 500kbps to 1500bps due to competition. The
+rates of Delay-BBR flows show stability feature and can also                FIGURE 7. Rate dynamic of Delay-BBR flow.
+converge to the fairness line near 1Mbps in Figure 6. A single
+test may be not persuasive, the results in Figure 8 further show
+such rate fairness property in different experiments. This rate                The reason for high packet loss rate and longer trans-
+stability property makes the proposed algorithm fit for video               mission delay of QUIC-BBR is that all flows tend to insist
+transmission.                                                               the maximum bandwidth sampled within 10 RTTs and the
+
+59766                                                                                                                                    VOLUME 7, 2019
+S. Zhang et al.: Congestion Control and Packet Scheduling for Multipath Real Time Video Streaming
+
+
+
+
+          FIGURE 8. Rate dynamics of Delay-BBR flows. (a) C1. (b) C4. (c) C7.
+
+
+
+
+          FIGURE 9. Rate dynamics of WebRTC-GCC flows. (a) C1. (b) C4. (c) C7.
+
+
+
+
+          FIGURE 10. Rate dynamics of WebRTC-BBR flows. (a) C1. (b) C4. (c) C7.
+
+
+total sending rate would exceed the link capacity as shown                        and srtt would be resampled in state ProbeBW, which could
+in Figure 5. In such situation, the occupied link buffer cannot                   prevent the control state being changed to ProbeRTT too
+be drained in time and extra sent packet would be buffered in                     frequently to yield too much bandwidth.
+routers. When link buffer overflows, packet loss will happen.                        The default congestion control algorithm in WebRTC is
+The modified algorithm responses delay signal as detailed in                      GCC. BBR algorithm is also implemented in WebRTC, but
+algorithm implementation part. A lower queueing delay and                         there is no report available on its performance in real network
+lower packet loss rate is thus achieved.                                          until now. In our previous work [36], performance com-
+   Traditionally, the delay response congestion control algo-                     parison on GCC, NADA, SCReAM and WebRTC-BBR is
+rithms such as Vegas [35] tend to get starvation when sharing                     conducted on ns3. Here, the performance of GCC, WebRTC-
+links with loss based congestion control algorithms. To ver-                      BBR and our optimized version is tested with link con-
+ify the proposed algorithm does not suffer such problem,                          figuration in Case 1, 4, 7. In each case, three flows are
+an experiment is conducted that a TCP Reno flow and a                             injected into network and the experiments are running about
+Delay-BBR flow share routing in Case 2 configuration. The                         300s. And the dynamics on sending rates of all three flows
+TCP Reno flow is started at 50s and ended at 200s. The rate                       with different congestion control algorithms are shown in
+dynamic of the Delay-BBR flow is shown in Figure 7. The                           Figure 8, 9 and 10. Both GCC flows and Delay-BBR flows
+flow can maintain reasonable throughput and indeed yields                         can converge to fairness bandwidth line. While the rates of
+bandwidth during the presence of TCP Reno flow. After rate                        the WebRTC-BBR flows show oscillation and a flow only
+back-off of TCP Reno flow and occupied buffer is emptied,                         maintains a minimal rate due to two other flows occupy much
+Delay-BBR flow has rate increase tendency near 150s. When                         bandwidth resource as Figure 10 shows.
+TCP Reno flow stops, Delay-BBR flow increases rate rapidly                           Further, the average one way transmission delay and packet
+to the point close to link capacity. Thanks to the reset oper-                    loss rate are given in Table 2. Some conclusions can be made
+ation of srtt signal when the state is changed to ProbeRTT                        here. GCC flows can maintain the lowest transmission delay
+
+
+VOLUME 7, 2019                                                                                                                             59767
+                                                          S. Zhang et al.: Congestion Control and Packet Scheduling for Multipath Real Time Video Streaming
+
+
+
+
+TABLE 2. Transmission delay and loss rate of releated algorithms.
+
+
+
+
+                                                                               FIGURE 12. The average frame transmission delay.
+
+
+
+
+FIGURE 11. Multipath topology.
+
+TABLE 3. Link configuration.
+
+
+
+
+                                                                               FIGURE 13. The frame delay with link configure 6.
+
+
+
+
+                                                                               set and the video fame generating bitrate will not increase
+                                                                               further if total available bandwidth is above the maximum
+but have considerable packet loss rate about 10%. Delay-BBR                    bitrate. During simulation, the frame transmission delay (the
+flows achieve lowest packet loss rate, which can almost be                     interval between the time point that a frame can be decoded at
+negligible but have higher average packet transmission delay                   receiver and the time point that an encoded frame is generated
+when compared with GCC.                                                        at sender) is traced.
+                                                                                  The metrics like PSNR, SSIM to evaluate image quality
+B. PERFORMANCE OF THE PACKET                                                   seem only related to the allocated bitrate of encoded frames.
+SCHEDULE ALGORITHM                                                             These metrics are related to the throughput of congestion
+The performances of these packet scheduling algorithms                         control algorithm, since the throughput of congestion control
+are analyzed. All these packets scheduling algorithms work                     algorithm is used as reference to adjust the output bitrate
+under the constraint of the proposed congestion control algo-                  of the video encoder. All the packet scheduling algorithm
+rithm. A simple multipath topology is built as Figure 11.                      are tested under the proposed congestion control algorithm.
+Only two paths are tested. The link configuration is shown                     There may not obvious difference if this two metrics are
+in Table 3. The parameters on each link are capacity (BW,                      applied for evaluation. Hence the average frame transmission
+in unit of Mbps), one way transmission delay (OWD, in unit                     delay is used for such purpose. There are about 7000 frames
+of milliseconds), link queue length (Q, in unit of millisec-                   generated by encoder during simulation. The average frame
+onds). When buffered packets exceed the maximum queue                          transmission delay of different packet scheduling algorithm is
+length (Q*BW), subsequent packets will be discarded due                        showed in Figure 12. In most cases, the proposed algorithm
+to the deployment of droptail queue management. There are                      achieves lower average frame delay compared to these refer-
+totally 10 experiments and all experiments are running about                   ence algorithms. Especially, each frame transmission delay in
+300 seconds.                                                                   experiment case 6 is shown in Figure 13. The delay increase
+   In real network, a routing path can be shared by many                       tendency in Figure 13 is the result of network link congestion
+flows. Besides the multipath session, two flows on L1 and                      due to the link buffer occupation when flows competing for
+one flow on L2 with the same congestion control algorithm                      bandwidth.
+are initiated simulate bandwidth competition among flows.
+An ideal video encoder is applied, in which the video frame                    VI. CONCLUSION
+bitrate can be changed immediately as the requirement of                       In this work, a multipath transmission framework for
+congestion controller. A maximum video bitrate 2Mbps is                        real time video traffic is proposed. Under the multipath
+
+59768                                                                                                                                       VOLUME 7, 2019
+S. Zhang et al.: Congestion Control and Packet Scheduling for Multipath Real Time Video Streaming
+
+
+
+
+transmission context, there are two basic research points:                        REFERENCES
+congestion control algorithm and packet scheduling algo-                           [1] ‘‘Cisco visual networking index: Forecast and trends, 2017–2022,’’
+rithm. The congestion control algorithm is to make sender                              Cisco, San Jose, CA, USA, White Paper, Feb. 2019. [Online].
+                                                                                       Available:       https://www.cisco.com/c/en/us/solutions/collateral/service-
+maintain a throughput as close as the available bandwidth                              provider/visual-networking-index-vni/white-paper-c11-741490.html
+while avoiding leading network into congestion. Since tradi-                       [2] V. Singh, S. Ahsan, and J. Ott, ‘‘MPRTP: Multipath considerations for
+tional AIMD congestion control algorithm is not suitable for                           real-time media,’’ in Proc. 4th ACM Multimedia Syst. Conf., Mar. 2013,
+                                                                                       pp. 190–201.
+real time video transmission due to its sharp rate reduction                       [3] C. Raiciu, M. Handley, and D. Wischik, Coupled Congestion Con-
+when a single packet is lost and high transmission delay                               trol for Multipath Transport Protocols, document, RFC 6356, Internet
+caused by link buffer occupation. Implementing congestion                              Requests for Comments, Oct. 2011. [Online]. Available: https://www.rfc-
+                                                                                       editor.org/info/rfc6356
+control algorithms on application layer for real time video                        [4] R. Khalili, N. Gast, M. Popovic, and J.-Y. Le Boudec, ‘‘MPTCP
+traffic becomes a trend. The most difficult part to design                             is not pareto-optimal: Performance issues and a possible solution,’’
+a new congestion control algorithm is the fairness prop-                               IEEE/ACM Trans. Netw., vol. 21, no. 5, pp. 1651–1665, Oct. 2013. doi:
+                                                                                       10.1109/TNET.2013.2274462.
+erty, namely to guarantee these flows traversing a common                          [5] Y. Cao, M. Xu, and X. Fu, ‘‘Delay-based congestion control for multipath
+bottleneck can gain similar throughput with limited feed-                              TCP,’’ in Proc. 20th IEEE Int. Conf. Netw. Protocols (ICNP), Oct. 2012,
+back information. And the packet scheduling algorithm is to                            pp. 1–10.
+take advantages of the paths heterogeneity to provide better                       [6] A. Frommgen, T. Erbshäußer, A. Buchmann, T. Zimmermann, and
+                                                                                       K. Wehrle, ‘‘ReMP TCP: Low latency multipath TCP,’’ in Proc. IEEE Int.
+service.                                                                               Conf. Commun. (ICC), May 2016, pp. 1–7.
+   Extensive experiments are conducted to compare the                              [7] Y. E. Guo, A. Nikravesh, Z. M. Mao, F. Qian, and S. Sen, ‘‘Accelerating
+performances of GCC, QUIC-BBR, WebRTC-BBR and                                          multipath transport through balanced subflow completion,’’ in Proc. 23rd
+                                                                                       Annu. Int. Conf. Mobile Comput. Netw., Oct.2017, pp. 141–153.
+Delay-BBR. BBR implemented in QUIC for bulk data trans-                            [8] Y.-S. Lim, E. M. Nahum, D. Towsley, and R. J. Gibbens, ‘‘ECF:
+fer will cause high packets loss rate and large transmission                           An MPTCP path scheduler to manage heterogeneous paths,’’ in Proc.
+delay when flows competing for bandwidth. There is con-                                13th Int. Conf. Emerg. Netw. Exp. Technol., Dec. 2017, pp. 147–159. doi:
+                                                                                       10.1145/3143361.3143376.
+siderable packet loss rate when GCC flows competing for                            [9] H. Shi et al., ‘‘STMS: Improving MPTCP throughput under heterogeneous
+bandwidth. Delay-BBR algorithm has nice properties such                                networks,’’ in Proc. USENIX Annu. Tech. Conf., Jul. 2018, pp. 719–730.
+as bandwidth fairness, rate stability, lower packet loss rate                     [10] T. Shreedhar, N. Mohan, S. K. Kaul, and J. Kangasharju. (2018). ‘‘QAware:
+                                                                                       A cross-layer approach to MPTCP scheduling.’’ [Online]. Available:
+and lower transmission delay. To make the BBR congestion                               https://arxiv.org/abs/1808.04390
+control algorithm achieve the claimed optimal control point,                      [11] S. Ferlin, O. Alay, O. Mehani, and R. Boreli, ‘‘BLEST: Blocking
+in which the sender can achieve the maximum through-                                   estimation-based MPTCP scheduler for heterogeneous networks,’’ in Proc.
+                                                                                       IFIP Netw. Conf. (IFIP Netw.) Workshops, May 2016, pp. 431–439.
+put while minimizing end to end latency at the same time,                         [12] V. Jacobson, ‘‘Congestion avoidance and control,’’ ACM SIGCOMM Com-
+is still an open problem. Even Delay-BBR can achieve lower                             put. Commun. Rev., vol. 18, no. 4, pp. 314–329, Aug. 1988.
+one way transmission delay compared with QUIC-BBR and                             [13] G. Carlucci, L. De Cicco, S. Holmer, and S. Mascolo, ‘‘Analysis and
+                                                                                       design of the google congestion control for Web real-time communication
+WebRTC-BBR, it is considerable higher when compared with                               (WebRTC),’’ in Proc. 7th Int. Conf. Multimedia Syst., May 2016, p. 13.
+GCC. To further reduce delay, which means to minimize                             [14] N. Cardwell, Y. Cheng, C. S. Gunn, S. H. Yeganeh, and V. Jacobson,
+queue occupation in routers is one direction of future work.                           ‘‘BBR: Congestion-based congestion control,’’ Queue, vol. 14, no. 5, p. 50,
+Of course, the fair bandwidth property should be maintained                            Sep./Oct. 2016.
+                                                                                  [15] E. Rescorla. (Dec. 2014). Congestion control requirements for RMCAT.
+at the same time.                                                                      Internet Engineering Task Force. Internet-Draft. [Online]. Available:
+   A multipath packet scheduling algorithm induced from uti-                           https://tools.ietf.org/html/draft-ietf-rmcat-cc-requirements-09
+lization maximization theory is proposed. In essence, it can be                   [16] L. Xu, K. Harfoush, and I. Rhee, ‘‘Binary increase congestion control
+                                                                                       (BIC) for fast long-distance networks,’’ in Proc. INFOCOM, Mar. 2004,
+regarded as earliest first algorithm but takes consideration of                        pp. 2514–2524.
+local occupied buffer length, available bandwidth and trans-                      [17] S. Ha, I. Rhee, and L. Xu, ‘‘CUBIC: A new TCP-friendly high-speed
+mission delay on each path. When working in collaboration                              TCP variant,’’ ACM SIGOPS Oper. Syst. Rev., vol. 42, no. 5, pp. 64–74,
+                                                                                       Jul. 2008.
+with the proposed congestion control algorithm, it achieves                       [18] V. Cerf, V. Jacobson, N. Weaver, and N. Weaver, ‘‘BufferBloat: What’s
+better performance in term of average frame delivery delay                             wrong with the Internet?’’ Queue, vol. 9, no. 12, p. 10, 2011.
+compared with benchmark algorithms.                                               [19] X. Zhu et al. (2018). NADA: A unified congestion control scheme for
+                                                                                       real-time media. Internet Engineering Task Force. Internet-Draft. [Online].
+   In real network, different flows traversing the same bot-                           Available: https://tools.ietf.org/html/draft-ietf-rmcat-nada-07
+tleneck may exploit different congestion control algorithms                       [20] I. Johansson and Z. Sarker. Self-Clocked Rate Adaptation for Multime-
+and some flows over UDP even do not implement any rate                                 dia, document, RFC 8298, Internet Requests for Comments, Dec. 2017.
+                                                                                       [Online]. Available: https://www.rfc-editor.org/rfc/rfc8298.txt
+control mechanism at all. Thus link congestion is unavoid-                        [21] N. Kuhn, E. Lochin, A. Mifdaoui, G. Sarwar, O. Mehani, and R. Boreli,
+able and packets loss events happen frequently. For bulk                               ‘‘DAPS: Intelligent delay-aware packet scheduling for multipath trans-
+data transfer, the packet loss can be compensated by retrans-                          port,’’ in Proc. IEEE Int. Conf. Commun. (ICC), Jun. 2014, pp. 1222–1227.
+mission. But for real time video traffic, retransmission may                      [22] C. Cetinkaya and E. W. Knightly, ‘‘Opportunistic traffic scheduling
+                                                                                       over multiple network paths,’’ in Proc. IEEE INFOCOM, Mar. 2004,
+not be effective if the packet arriving time has exceeded                              pp. 1928–1937.
+the video frame rendering deadline. In future, the combi-                         [23] V. J. Ribeiro, R. H. Riedi, R. G. Baraniuk, J. Navratil, and L. Cottrell,
+nation of multipath transmission with forward error cor-                               ‘‘pathChirp: Efficient available bandwidth estimation for network paths,’’
+                                                                                       in Proc. Passive Active Meas. Workshop, Apr. 2003, p. 1.
+rection (FEC) to improve QoE for real time video will be                          [24] I. Norros, ‘‘A storage model with self-similar input,’’ Queueing Syst.,
+considered.                                                                            vol. 16, nos. 3–4, pp. 387–396, Sep. 1994.
+
+VOLUME 7, 2019                                                                                                                                              59769
+                                                                 S. Zhang et al.: Congestion Control and Packet Scheduling for Multipath Real Time Video Streaming
+
+
+
+
+[25] X. Zhu, P. Agrawal, J. Pal Singh, T. Alpcan, and B. Girod, ‘‘Rate allocation                               WEIMIN LEI received the B.E. degree in com-
+     for multi-user video streaming over heterogenous access networks,’’ in                                     puter software from Nankai University, in 1995,
+     Proc. 15th ACM Int. Conf. Multimedia, Sep. 2007, pp. 37–46.                                                the M.E. degree in computer software from the
+[26] J. Wu, C. Yuen, M. Wang, and J. Chen, ‘‘Content-aware concurrent                                           Chinese Academy of Sciences, in 1992, and the
+     multipath transfer for high-definition video streaming over heterogeneous                                  Ph.D. degree from the Dalian University of Tech-
+     wireless networks,’’ IEEE Trans. Parallel Distrib. Syst., vol. 27, no. 3,                                  nology, in 1999. He is currently a Professor with
+     pp. 710–723, Mar. 2016.                                                                                    the School of Computer Science and Engineering,
+[27] V. Bui, W. Zhu, A. Botta, and A. Pescape, ‘‘A Markovian approach to
+                                                                                                                Institute of Communication and Information Sys-
+     multipath data transfer in overlay networks,’’ IEEE Trans. Parallel Distrib.
+                                                                                                                tem, Northeastern University, China. He has pub-
+     Syst., vol. 21, no. 10, pp. 1398–1411, Oct. 2010.
+[28] S. Prabhavat, H. Nishiyama, N. Ansari, and N. Kato, ‘‘Effective delay-                                     lished over 80 papers. His recent research interests
+     controlled load distribution over multipath networks,’’ IEEE Trans. Paral-       include real-time multipath transmission optimization, real-time signal pro-
+     lel Distrib. Syst., vol. 22, no. 10, pp. 1730–1741, Oct. 2011.                   cessing, and future network architecture.
+[29] J. Wu, X. Qiao, Y. Xia, C. Yuen, and J. Chen, ‘‘A low-latency scheduling
+     approach for high-definition video streaming in a heterogeneous wire-
+     less network with multihomed clients,’’ Multimedia Syst., vol. 21, no. 4,
+     pp. 411–425, Jul. 2015.
+[30] A. Aggarwal, S. Savage, and T. Anderson, ‘‘Understanding the per-                                          WEI ZHANG is currently a Lecturer with the
+     formance of TCP pacing,’’ in Proc. IEEE INFOCOM, Mar. 2000,                                                School of Computer Science and Engineering,
+     pp. 1157–1165.                                                                                             Institute of Communication and Information Sys-
+[31] D. Wei, P. Cao, S. Low, and C. Eas. (2006). TCP Pacing Revisited. [Online].                                tem, Northeastern University, China. Her current
+     Available: http://people.cs.pitt.edu/~ihsan/pacing_cal.pdf                                                 research interests include multimedia communi-
+[32] F. P. Kelly, A. K. Maulloo, and D. K. H. Tan, ‘‘Rate control for communica-                                cation, protocols and services in next genera-
+     tion networks: Shadow prices, proportional fairness and stability,’’ J. Oper.
+                                                                                                                tion networks, and network architecture of cloud
+     Res. Soc., vol. 49, no. 3, pp. 237–252, Mar. 1998.
+                                                                                                                computing.
+[33] S. H. Low and D. E. Lapsley, ‘‘Optimization flow control. I. Basic
+     algorithm and convergence,’’ IEEE/ACM Trans. Netw., vol. 7, no. 6,
+     pp. 861–874, Dec. 1999.
+[34] F. Paganini and E. Mallada, ‘‘A unified approach to congestion control and
+     node-based multipath routing,’’ IEEE/ACM Trans. Netw., vol. 17, no. 5,
+     pp. 1413–1426, Oct. 2009.
+[35] L. S. Brakmo and L. L. Peterson, ‘‘TCP Vegas: End to end congestion                                        YUNCHONG GUAN is currently pursuing the
+     avoidance on a global Internet,’’ IEEE J. Sel. Areas Commun., vol. 13,                                     Ph.D. degree in computer application technol-
+     no. 8, pp. 1465–1480, Oct. 1995.                                                                           ogy with the School of Computer Science and
+[36] S. Zhang. (2018). ‘‘Congestion control for RTP media: A compari-                                           Engineering, Northeastern University, China. His
+     son on simulated environment.’’ [Online]. Available: https://arxiv.org/                                    research interests include network architecture and
+     abs/1809.00304
+                                                                                                                the multipath routing of multipath transmission
+                                                                                                                framework, SDN, overlay networks, and the sig-
+                                                                                                                naling control of IP multimedia communication.
+
+
+
+
+                           SONGYANG ZHANG is currently pursuing the                                             HAO LI received the B.Eng. degree in communi-
+                           Ph.D. degree with the School of Computer Science                                     cation engineering from Northeastern University,
+                           and Engineering, Northeastern University, China.                                     Shenyang, China, in 2014, where he is currently
+                           His current research interests include multipath                                     pursuing the Ph.D. degree. His current research
+                           transmission for real time traffic, network conges-                                  interests include transmission control, network
+                           tion control, and overlay networks.                                                  architecture, video coding, and image processing.
+
+
+
+
+59770                                                                                                                                                VOLUME 7, 2019
+

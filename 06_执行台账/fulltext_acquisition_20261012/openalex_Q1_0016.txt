@@ -1,0 +1,1442 @@
+               sensors
+Article
+Improvement of RTT Fairness Problem in BBR Congestion
+Control Algorithm by Gamma Correction
+Wansu Pan 1,2 , Xiaofeng Li 1,2, *, Haibo Tan 1,2 , Jinlin Xu 1 and Xiru Li 1
+
+                                          1   Hefei Institute of Physical Science, Chinese Academy of Sciences, Hefei 230031, China;
+                                              wansupan@mail.ustc.edu.cn (W.P.); hbtan@hfcas.ac.cn (H.T.); jlxu@hfcas.ac.cn (J.X.); xrli@hfcas.ac.cn (X.L.)
+                                          2   University of Science and Technology of China, No.96 JinZhai Road, Baohe District, Hefei 230026, China
+                                          *   Correspondence: xfli@hfcas.ac.cn; Tel.: +86-551-65591292
+
+                                          Abstract: Google proposed the bottleneck bandwidth and round-trip propagation time (BBR), which
+                                          is a new congestion control algorithm. BBR creates a network path model by measuring the available
+                                          bottleneck bandwidth and the minimum round-trip time (RTT) to maximize delivery rate and
+                                          minimize latency. However, some studies have shown that there are serious RTT fairness problems
+                                          in the BBR algorithm. The flow with longer RTT will consume more bandwidth and the flows with
+                                          shorter RTT will be severely squeezed or even starved to death. Moreover, these studies pointed
+                                          out that even small RTT differences will lead to the throughput of BBR flows being unfair. In order
+                                          to solve the problem of RTT fairness, an improved algorithm BBR-gamma correction (BBR-GC) is
+                                          proposed. BBR-GC algorithm takes RTT as feedback information, and then uses the gamma correction
+                                          function to fit the adaptive pacing gain. This approach can make different RTT flows compete for
+                                          bandwidth more fairly, thus alleviating the RTT fairness issue. The simulation results of Network
+                                          Simulator 3 (NS3) show that that BBR-GC algorithm cannot only ensure the channel utilization,
+                                but also alleviate the RTT fairness problem of BBR flow in different periods. Through the BBR-GC
+                                   algorithm, RTT fairness is improved by 50% and the retransmission rate is reduced by more than
+Citation: Pan, W.; Li, X.; Tan, H.; Xu,   26%, compared with that of the original BBR in different buffer sizes.
+J.; Li, X. Improvement of RTT Fairness
+Problem in BBR Congestion Control         Keywords: TCP congestion control; BBR; RTT fairness; gamma correction; pacing gain
+Algorithm by Gamma Correction.
+Sensors 2021, 21, 4128. https://
+doi.org/10.3390/s21124128
+
+                                          1. Introduction
+Academic Editor: Fatos Xhafa
+                                                With the development of network communication, the performance requirements
+                                          of users for network communication need to be improved. On the one hand, scholars
+Received: 15 May 2021
+Accepted: 12 June 2021
+                                          such as Tsiropoulou E.E. et al. [1,2] using the game theory method proposed to solve the
+Published: 16 June 2021
+                                          problem of power and rate allocation. These make the configuration mechanism of network
+                                          resources optimized, and then improves the performance of network communication. On
+Publisher’s Note: MDPI stays neutral
+                                          the other hand, network congestion control is also very important for the improvement
+with regard to jurisdictional claims in
+                                          of network performance. However, with the increasing demand of network applications,
+published maps and institutional affil-   the performance of rate control algorithm based on AIMD is poor [3,4]. Once packet loss
+iations.                                  occurs, the traditional AIMD algorithm will consume quite a long time to recover to the
+                                          congestion window (CWND). Similar to the AIMD algorithm, some scholars propose
+                                          Reno [5], BIC [6], CUBIC [7] and other congestion control algorithms (CCAs) to adjust the
+                                          increase or decrease behavior of CWND through packet loss feedback, so as to adapt to
+Copyright: © 2021 by the authors.
+                                          the high-speed network. However, in the network environment with link packet loss, the
+Licensee MDPI, Basel, Switzerland.
+                                          throughput drops seriously, and a lot of bandwidth is often wasted.
+This article is an open access article
+                                                In 2016, Google released bottleneck bandwidth round trip propagation time (BBR)
+distributed under the terms and           algorithm [8–10]. Unlike packet loss and delay as congestion indicators in loss-based CCAs,
+conditions of the Creative Commons        BBR adjusts its sending behavior according to the estimated bottleneck bandwidth (Btlbw)
+Attribution (CC BY) license (https://     and round-trip propagation time (RTprop) to achieve high throughput and minimum trans-
+creativecommons.org/licenses/by/          mission delay. The goal of BBR is to run at the Kleinrock’s optimal operating point [11], that
+4.0/).                                    is, the inflight data are equal to a bandwidth delay product (BDP). The implementation of
+
+
+
+Sensors 2021, 21, 4128. https://doi.org/10.3390/s21124128                                                       https://www.mdpi.com/journal/sensors
+Sensors 2021, 21, 4128                                                                                             2 of 18
+
+
+
+
+                         BBR published by Google shows that the BBR’s throughput of TCP connection is obviously
+                         higher than that of CUBIC. BBR has received a lot of attention since it has been released.
+                         Literature [12–14] has evaluated the behavior of BBR and proposed some problems: unfair-
+                         ness in sharing bottleneck between BBR and Reno/CUBIC, the RTT fairness problem of
+                         BBR, massive packets retransmission and so on. Aware of the problem of BBR algorithm,
+                         some scholars have modified the regulation factors of BBR to improve the defects of BBR
+                         itself [15–17]. On the other hand, BBR is applied to different network domains to achieve
+                         a better performance [18–21]. Google is also constantly optimizing BBR algorithm and
+                         updating BBR v2 version [22] to improve coexistence with other algorithms and reduce the
+                         attack. In the latest meeting [23], BBR.Swift method was introduced in the update of BBR
+                         v2. Some researchers evaluated and validated BBR v2 alpha. Kafoury et al. [24] evaluated
+                         the BBR v2 alpha version [25] and found that RTT fairness still existed.
+                               Because BBR is still in the development stage, fairness between BBR algorithm and
+                         other loss-based CCAs [26–29] and RTT fairness [12,30–34] need to be improved. In the
+                         above analysis, one of the most serious problems of BBR is the RTT fairness problem in
+                         the protocol. When multiple flow shares have bottleneck links, BBR tends to favor long
+                         RTT flow [12]. Compared with shorter RTT flows, longer RTT flows can achieve higher
+                         throughput and transmission rate. What is more serious, is that short RTT flows will suffer
+                         from serious packet loss and high retransmission after it is compressed by long flows. Some
+                         users may exploit this vulnerability to maliciously compete for the precious bandwidth.
+                               In order to alleviate the RTT fairness, Ma et al. [12] analyzed the reasons for the RTT
+                         fairness of BBR and proposed a BBQ algorithm. By limiting the probe phase of long RTT
+                         flow, the number of packets sent by long RTT flow is reduced. Tao et al. [30] proved that the
+                         RTT differences between BBR flows will affect the bandwidth occupation. When the RTT
+                         ratio is greater than 2, the bandwidth utilization of flows is obviously unfair. Yang et al. [31]
+                         proposed a method to adaptively adjust BBR sending rate by using link state, which is
+                         called adaptive BBR algorithm. Kim [30] et al. proposed Delay-Aware BBR (DA-BBR)
+                         algorithm to alleviate the RTT fairness problem, which reduced the BDP based on the
+                         RTT. Sun et al. [33] put forward the RFBBR algorithm to improve the RTT fairness of BBR,
+                         which could adjust the CWND value according to the different states in the queue. In
+                         our previous study [34], we proposed that the CWND could be adjusted by Btlbw and
+                         RTT to mitigate the RTT fairness. These above-mentioned algorithms have achieved some
+                         results in improving the fairness of RTT. Obviously, new methods are still needed to further
+                         improve the RTT fairness and practicability of BBR algorithm.
+                               We tested the BBR algorithm on Network simulator 3(NS3) based on BBR implemen-
+                         tation version [35–38]. Through a lot of analysis, we found that BBR uses pacing gain of
+                         1.25 or 0.75 to make inflight of respective flow increases by 1.25 times in probe up phase,
+                         and then in the probe down phase inflight falls back to its initial value. In this process,
+                         extra packets cannot be released completely, and a persistent queue will be created in the
+                         bottleneck. The estimated BDP value of long RTT flow is larger than that of short flow,
+                         so the proportion of long flow in persistent queue is larger. Each BBR flow circulates
+                         this process repeatedly, so the longer flows gradually occupies the bandwidth advantage,
+                         forming an unfair global synchronization. As the RTT ratio between BBR flows increases,
+                         RTT fairness deteriorates. Therefore, we can use the RTT of each BBR flow to calculate the
+                         gain coefficient during the detection bandwidth period, instead of the fixed 1.25 or 0.75, so
+                         as to alleviate the unfairness between different RTT flows.
+                               On the basis of the above discussion, this paper proposes an optimized algorithm
+                         based on BBR, named BBR-GC. The BBR-GC algorithm adjusts the pacing gain of different
+                         flows through gamma correction, to keep the data of different RTTs flows in the bottleneck
+                         queue roughly the same. NS3 is used to compare the BBR algorithm, BBQ algorithm,
+                         BBR-ACW algorithm and BBR-GC algorithm in different simulation environments, and the
+                         simulation results show that BBR-GC algorithm has a better performance. Compared with
+                         the original BBR, the RTT fairness of BBR-GC was improved by 50%, the retransmission
+                         rate was reduced by more than 26%, and the latency was also reduced by 57%.
+ Sensors 2021, 21, x FOR PEER REVIEW                                                                                                            3 of 19
+
+
+
+
+                                  simulation results show that BBR-GC algorithm has a better performance. Compared with
+Sensors 2021, 21, 4128            the original BBR, the RTT fairness of BBR-GC was improved by 50%, the retransmission       3 of 18
+                                  rate was reduced by more than 26%, and the latency was also reduced by 57%.
+                                       The rest of this article is arranged as follows. Section 2 introduces the algorithm of
+                                  BBR and analyzes RTT fairness issues. The theoretical model and derivation of BBR-GC
+                                       The rest
+                                  algorithm  areofinthis article
+                                                     Section     is arranged
+                                                              3. Section       as follows.results
+                                                                         4 is simulation    Section 2 introduces
+                                                                                                  and evaluation.the algorithmand
+                                                                                                                  Conclusions     of
+                                 BBR   and analyzes    RTT  fairness
+                                  discussions are held in Section 5.  issues.  The  theoretical model  and  derivation of BBR-GC
+                                 algorithm are in Section 3. Section 4 is simulation results and evaluation. Conclusions and
+                                 discussions  are held in Section 5.
+                                  2. Background
+                                 2.2.1.  BBR Behavior Analysis
+                                     Background
+                                 2.1. BBR Unlike  loss-based
+                                             Behavior  Analysis CCAs, BBR measures the maximum delivery rate and minimum
+                                  transmission      delay alternately
+                                         Unlike loss-based     CCAs, BBR to find   the Kleinrock’s
+                                                                                measures              optimal
+                                                                                            the maximum         operating
+                                                                                                             delivery    ratepoint   [11].
+                                                                                                                                and minimum
+                                          BBR controls
+                                 transmission      delay congestion
+                                                         alternately to  byfind
+                                                                              limiting   the pacingoptimal
+                                                                                  the Kleinrock’s     rate of operating
+                                                                                                               packets, limiting      inflight to
+                                                                                                                            point [11].
+                                  one BBR      ( BDP= Btlbw
+                                         BDP controls           × RTprop
+                                                        congestion      by ).limiting
+                                                                                BBR adjusts    the speed
+                                                                                        the pacing         of packets,
+                                                                                                     rate of   output packets
+                                                                                                                         limitingatinflight
+                                                                                                                                       the latest
+                                                                                                                                               to
+                                 one    BDP (BDP
+                                  estimated     delivery   rate.×At
+                                                     = Btlbw       RTprop).
+                                                                      the same   BBR   adjusts
+                                                                                    time,  BBRthe  speed ofCWND
+                                                                                                 maintains     output inpackets
+                                                                                                                            order attothe  latest
+                                                                                                                                       maintain
+                                 estimated
+                                  consistentdelivery
+                                                throughputrate.inAt  the same
+                                                                  delayed          time, BBRack
+                                                                              or aggregated     maintains
+                                                                                                   networks.CWND       in orderthe
+                                                                                                                 BBR regards       to maximum
+                                                                                                                                       maintain
+                                 consistent
+                                  bandwidththroughput          in delayed
+                                                 (delivery rate)   of the last or 10
+                                                                                  aggregated
+                                                                                      RTTs as theackcurrent
+                                                                                                      networks.
+                                                                                                             Btlbw, BBR
+                                                                                                                      andregards
+                                                                                                                             regardsthethemaxi-
+                                                                                                                                            mini-
+                                 mum       bandwidth    (delivery    rate)   of  the  last 10  RTTs  as  the  current
+                                  mum delay measured in the past 10 s as the current RTprop. Through the scaling factor Btlbw,    and    regards
+                                 the   minimum
+                                  cwnd_gain         delay
+                                                  and       measured
+                                                      pacing_gain      toin   the past
+                                                                          adjust    CWND 10 s and
+                                                                                              as the current
+                                                                                                  pacing   rate,RTprop.
+                                                                                                                  as shown Through      the scal-
+                                                                                                                               in Equations    (1)
+                                 ing    factor
+                                  and (2).     cwnd_gain      and   pacing_gain       to  adjust CWND      and   pacing    rate,  as  shown    in
+                                 Equations (1) and (2).
+                                                                 pacing rate(sending rate) = pacing_gain × Btlbw                               (1)
+                                                         pacing rate(sending rate) = pacing_gain × Btlbw                                      (1)
+                                                                              CWND = cwnd_gain × BDP                                           (2)
+                                                                        CWND = cwnd_gain × BDP                                                (2)
+                                          The BBR algorithm has four control states: StartUP, Drain, ProbeBW and ProbeRTT.
+                                         The BBR algorithm has four control states: StartUP, Drain, ProbeBW and ProbeRTT.
+                                  ThePhases
+                                 The     Phasesof ofBBR
+                                                     BBRisisshown
+                                                             shownin   inFigure
+                                                                          Figure1.1.
+
+
+
+
+                                       StartUP                Drain                 ProbeBW                 ProbeRTT
+
+
+
+
+                                 Figure 1. The phases of BBR.
+                                  Figure 1. The phases of BBR.
+                                       In the StartUP phase, pacing rate and CWND will increase by setting cwnd_gain and
+                                        In the StartUP
+                                 pacing_gain      as 2/ln2phase,
+                                                              (aboutpacing
+                                                                        2.89).rate
+                                                                                 The and   CWND will
+                                                                                       exponential         increase
+                                                                                                         growth    of by setting
+                                                                                                                       pacing       cwnd_gain
+                                                                                                                                 rate  and CWND    and
+                                  pacing_gain     as  2/ln2  (about   2.89).  The    exponential     growth     of pacing
+                                 will lead to queue accumulation on routers. If the newly estimated bandwidth of three       rate and   CWND       will
+                                  lead to queue
+                                 consecutive        accumulation
+                                                 RTTs                 on routers.
+                                                         does not increase            If the
+                                                                                  by at       newly
+                                                                                          least  25%,estimated      bandwidth
+                                                                                                       the BBR enters               of three
+                                                                                                                             the Drain        consec-
+                                                                                                                                          phase.     In
+                                  utive  RTTs    does  not  increase    by at  least   25%,   the BBR    enters   the Drain
+                                 the Drain phase, BBR passes the pacing_gain is reduced to ln2/2 (about 0.35) to clear the     phase.   In the   Drain
+                                  phase, BBRqueue
+                                 remaining       passesinthe
+                                                           thepacing_gain
+                                                                 previous stage, is reduced
+                                                                                       cwnd_gainto ln2/2   (aboutunchanged
+                                                                                                       remains      0.35) to clear   the remaining
+                                                                                                                                   (2/ln2).   At the
+                                 end of this phase, inflight data < the estimated BDP. In the ProbeBW phase, BBRend
+                                  queue    in  the  previous    stage,   cwnd_gain        remains    unchanged       (2/ln2).   At  the    hasof    this
+                                                                                                                                                 eight
+                                  phase,   inflight   data <  the  estimated      BDP.    In the  ProbeBW        phase,  BBR
+                                 cycles in the detection bandwidth (pacing_gain [] = [1.25; 0.75; 1; 1; 1; 1; 1; 1; 1; 1]), and has  eight  cycles     in
+                                  theduration
+                                 the   detection  of bandwidth      ( pacing_gain
+                                                     each pacing_gain                 [] = [1.25;
+                                                                            was RTprop.        In the0.75;
+                                                                                                       probe1;up1;cycle,
+                                                                                                                     1; 1; pacing_gain
+                                                                                                                            1; 1; 1; 1] ), =and1.25theis
+                                  duration
+                                 used         of each
+                                        to detect   morepacing_gain
+                                                           bandwidth.was   In theRTprop.     In thedown
+                                                                                     next probe       probe     up cycle,
+                                                                                                            cycle,          pacing_gain
+                                                                                                                    pacing_gain      = 0.75=is1.25
+                                                                                                                                                 usedis
+                                  used
+                                 to      to detect
+                                    release          more bandwidth.
+                                              the created   queue. Then,Ininthe    thenext
+                                                                                        nextprobe    downpacing_gain
+                                                                                              six cycles,     cycle, pacing_gain      = 0.75
+                                                                                                                             = 1 is used       is used
+                                                                                                                                           to set  the
+                                  to release   the created    queue.   Then,    in  the  next  six  cycles,  pacing_gain
+                                 sending rate of BBR to Btlbw. At this phase, cwnd_gain is set to a fixed value of 2, which   = 1 is used   to  set  the
+                                  sending    rate  of BBR   to Btlbw.    At this    phase,   cwnd_gain       is set to a
+                                 means that the upper flight limit is fixed at 2 BDP. If new RTprop is not sampled again fixed   value   of  2, which
+                                  means 10
+                                 within    that  the upper
+                                              s, BBR   entersflight    limit isInfixed
+                                                                ProbeRTT.                 at 2 BDP.
+                                                                                    this phase,    the IfCWND
+                                                                                                          new RTprop
+                                                                                                                   is set tois4MSS
+                                                                                                                               not sampled
+                                                                                                                                      and lasts  again
+                                                                                                                                                    for
+                                  within
+                                 200  ms. 10 s, BBR enters ProbeRTT. In this phase, the CWND is set to 4MSS and lasts for
+                                  200 ms.
+                                 2.2. BBR’s RTT Fairness
+                                      BBR calculates the pacing rate by active measurement behavior, which is performed on
+                                 each end-to-end host, so bandwidth detection between different RTT flows is independent.
+                                 The fairness of BBR must be guaranteed by each flow itself, and it is difficult for each
+                                 independent flow to share bandwidth fairly.
+                                      We further analyze the ProbeBW phase, flows through the pacing_gain = 1.25 times
+                                 increases their inflight by 1.25 times in the probe up phase. Then, in the probe down phase,
+Sensors 2021, 21, 4128                                                                                                 4 of 18
+
+
+
+
+                         the pacing_gain = 0.75 makes inflight fall back to their respective initial values. Finally,
+                         the pacing_gain = 1 for the remaining 6 cycles to maintain stable bandwidth. When only
+                         one stream passes through the bottleneck link, the upper limit of the transfer rate is Btlbw
+                         after the StartUP phase. The BBR flow will converge at the Kleinrock’s point and run with
+                         the maximum delivery rate and minimum delay. When multiple flows in a bottleneck
+                         link, the total transmission rate is greater than the bottleneck bandwidth. The probe down
+                         phase is not enough to consume the queue formed on the bottleneck, which will lead to
+                         the formation of persistent queue backlog. The BBR flow will run at the point to the right
+                         of Kleinrock’s operation point. According to queuing theory, queue sharing determines
+                         flow’s throughput. Due to queue generation, short RTT flows are first limited by CWND,
+                         and additional bandwidth cannot be obtained even if more probes are performed.
+                               On the other hand, the long RTT flows have a larger estimated BDP value, so the
+                         larger the proportion of persistent queue, the larger the bandwidth consumption. Due to
+                         the extrusion of the long RTT flow, the short RTT flow will reduce the delivery rate in the
+                         next bandwidth detection period. Through this loop, the pacing rate of short RTT flows
+                         become smaller, resulting in serious bandwidth degradation. Even if the free bandwidth
+                         is transferred, it will be rapidly preempted by other flows and cannot make up for the
+                         bandwidth loss. In summary, when the bottleneck link is overloaded, the long RTT flows
+                         can achieve a higher transmission rate than its short RTT flows. Moreover, the greater
+                         RTT radio between the two BBR flows, the worse RTT fairness. Some users may get high
+                         bandwidth by increasing the RTT maliciously. Therefore, the RTT fairness issue in BBR
+                         needs to be solved.
+
+                         3. The Proposed Algorithm: BBR-GC
+                         3.1. Design Motivation
+                               The RTT fairness problem of BBR flows has two aspects: one is how to guarantee
+                         the fairness of competition when there is new free bandwidth (such as flow exiting the
+                         network); the other is how to make different RTT flows share bandwidth fairly when there
+                         is no free bandwidth to occupy (in a stable state: continuously sharing 100% bandwidth
+                         utilization).
+                               Through the above analysis, in order to make different RTT flows compete fairly,
+                         each independent BBR flow needs to form a unified view of bandwidth distribution to
+                         guide their fair sharing of bandwidth. When the lower bandwidth occupied by BBR flows,
+                         the probe up coefficient and probe down coefficient are larger. In this way, the flow will
+                         greatly increase the bandwidth, slightly reduce the bandwidth, and occupy the effective
+                         bandwidth as soon as possible. On the contrary, when the higher bandwidth occupied by
+                         BBR flows, the probe up coefficient and probe down coefficient are smaller. Thus, the flows
+                         will increase bandwidth slightly, greatly reduces the bandwidth, and provides redundant
+                         bandwidth for other flows. Ideally, we can use the absolute value of pacing rate to calculate
+                         the coefficient of detection bandwidth period, thus replacing the fixed values of 1.25 and
+                         0.75. Suppose that there are two different RTT flows in the link and the pacing rate of the
+                         long flow and the short flow is r1 and r2 , respectively, after normalization, and the probe up
+                         coefficient as Pup and the probe down coefficient as Pdown . The Pup and Pdown of long flow
+                         are r1r+1 and r2r−2 1 , and the Pup and Pdown of the short flow are r2r+2 1 and r1r−1 , respectively.
+                                1                                                                           1
+                         In this way, the Pup and Pdown of two flows can be interleaved with each other. If the pacing
+                         rate of a flow is large, it will probe up slowly and draw down quickly. If the pacing rate of
+                         a flow is small, it will probe up quickly and draw down slowly. By flexibly pacing gain
+                         regulation, different RTT flows can share bandwidth fairly in any case. However, the BBR
+                         measures the pacing rate independently, and there are more than two flows in the actual
+                         network. This makes the above method unapplicable in the actual process. Therefore,
+                         we try to find a global variable to obtain ideal Pup and Pdown , and construct a feedback
+                         model about the pacing gain. It can be applied to multiple BBR flows of different RTTs, and
+                         improve RTT fairness without affecting the bandwidth utilization.
+Sensors 2021, 21, 4128                                                                                                5 of 18
+
+
+
+
+                               Algorithm 1 describes the implementation logic of our improved algorithm BBR-GC.
+                         When in probe up phase, if inflight < 1 BDP, different RTT flows actively detect bandwidth
+                         according to their Pup . When the link state changes to inflight >1 BDP, the inflight data
+                         will exceed the bottleneck transmission capacity and form a queue in the bottleneck buffer,
+                         which will be adaptively adjusted according to different RTT flows to reduce the inflight
+                         data. When in probe down phase, if the link state changes to inflight >1.25 BDP and packet
+                         loss occurs (or has loss indication), the number of packets entering the pipeline in the next
+                         cycle is reduced according to the coefficient Pdown .
+
+                          Algorithm 1: ProbeBW phase in BBR-GC
+                          Input: rtt_us, inflight, has loss//The value of rtt_us is updated when an ACK is received
+                          Output: pacing gain
+                          1: RTTmin = min (RTTmin, rtt_us);
+                          2. RTTmax = max (RTTmax, rtt_us);
+                          Phase 1: probe up
+                          3. For every ACK do
+                          4: if inflight < 1BDP then
+                          5:     pacing_gain = Pup
+                          6:     return
+                          7: end if
+                          8: if pacing_gain < 1.0 and inflight < 1BDP then
+                          9:     pacing_gain = 1.0
+                          10:     end if
+                          Phase 2: probe down
+                          1: if inflight > 1.25BDP or has loss then
+                          2:     pacing_gain = Pdown
+                          3: return
+                          4: end if
+                          Phase 3: next six cycles
+                          1: if pacing gain == 1.0 then
+                          2: return
+                          3: end if
+
+                               Algorithm 1 gives the pseudo code of BBR-GC, which is an improvement of BBR
+                         algorithm. The algorithm complexity analysis uses the big O notation [39,40], which can be
+                         divided into time complexity and space complexity. This method uses another function
+                         (usually simpler) to describe the asymptotic upper bound of the order of magnitude of a
+                         function. The number of statements executed in an algorithm is called statement frequency
+                         or time frequency, denoted as T(n). If there is an auxiliary function f(n) such that when n
+                         approaches infinity, the limited value of T(n)/f(n) is a constant not equal to zero, then f(n)
+                         is said to be a function of the same order of magnitude of T(n). Let T(n) = O(f(n)), O(f(n))
+                         is the time complexity of the algorithm. Similar to the discussion of time complexity, the
+                         space complexity S(n) of an algorithm is defined as the storage space consumed by the
+                         algorithm, which is also a function of the problem size n. Let S(n) = O(f (n)), O(f(n)) be the
+                         space complexity of the algorithm.
+                               We refer to the analysis of the complexity of the congestion control algorithm in
+                         literature [20]. The time complexity of the algorithm reflects the magnitude of the increase
+                         of program execution time with the increase of input size. The BBR-GC algorithm adopts
+                         if loop statement to judge state condition, so the time complexity of its algorithm is O(1).
+                         The space complexity of the algorithm represents the growth relationship between data
+                         size and storage space. Since each cycle of the BBR-GC algorithm only stores the results of
+                         pacing gain operation without additional memory consumption, the space complexity of
+                         the BBR-GC algorithm is also O(1). In addition, the implementation of BBR-GC algorithm
+                         is still based on the original BBR framework, and BBR-GC is implemented into NS3 as a
+                         Linux-based module. This method provides a good preparation for the implementation of
+                         the Linux kernel and facilitates the implementation and extension of the BBR-GC algorithm.
+Sensors 2021, 21, 4128                                                                                              6 of 18
+
+
+
+
+                         3.2. Algorithm Model Analysis
+                              In order to better describe the relationship between various parameters of the BBR
+                         algorithm, we carry out modeling analysis on the BBR algorithm. Suppose that there
+                         are n different flows passing through the bottleneck link with the bandwidth of C, let
+                         f lowi (i ∈ [1; n]) denote the flow and di denote the delivery rate. According to the definition
+                         of BBR algorithm, we can get the estimated bandwidth of flows at t time, which can be
+                         calculated by (3).
+                                                  Btlbwi (t) = max (di ( T ))( T ∈ [t − 10RTT; t])                     (3)
+                              Due to the generation of the queue, the round-trip time of f lowi at time t can be
+                         calculated by (4):
+                                                         Ti (t) = qi (t) + RTprop                             (4)
+                         where qi (t) denotes the queuing delay. We use Ii (t) denote inflight data at time t, which
+                         can be obtained by di (t) as shown in (4).
+
+                                                                Ii (t) = di (t) × Ti                                   (5)
+
+                              We assume that the two different RTTs BBR flows send data from different source
+                         nodes. The RTT of flow1 and flow2 are set to T1 and T2 , respectively, and T2 = aT1 ( a ≥ 1).
+                         The total inflight data in the time interval [t, t + a] of the two flows can be calculated by
+                         (6) and (7).
+                                               I1 (t) = [d1 (α) × at + d1 (α − 1) × (1 − at)] × T1                  (6)
+                                                             I2 (t) = d2 (t − 1) × T2                                  (7)
+                         where α = b(t − 1) × ac. The bandwidth occupation of different flows in the link can be
+                         determined by Ii (t):
+                                                                        I (t)
+                                                        oBwi (t) = C × n i                                    (8)
+                                                                      ∑i=0 Ii (t)
+                              Substituting (6) and (7) into (8), we have:
+
+                                                                 I2 (t)            a × d2 ( t − 1)
+                                           oBw2 (t) = C ×                  =C×                                         (9)
+                                                            I2 (t)+ I1 (t)     a × d2 (t − 1) + I1 (t)
+
+                               It can be seen from (9) that the bandwidth occupation of flow2 is related to ratio a.
+                         When di increases, oBw2 also increases, which means that flow2 preempts the bandwidth
+                         of flow1.
+                               To sum up, the throughput of RTT flows is affected by the ratio between RTTs [33].
+                         We can use Ti to reflect the inflight data of the link and construct a negative feedback
+                         model to constrain Pup and Pdown . The BBR flow with lower bandwidth occupancy is
+                         expected to have larger Pup and Pdown . On the contrary, BBR flow with the higher the
+                         bandwidth occupancy is expected to have the smaller Pup and Pdown . Let ωi be defined as
+                         the percentage of current delay and maximum delay:
+
+                                                                     Ti
+                                                             ωi =       (ω ∈ (0, 1])                                 (10)
+                                                                    Tmax i
+
+                         where Tmax is the maximum Ti over this connection and where ωi = 1 only when the
+                         bottleneck link capacity and buffer are fully occupied. It can be seen from Equation (10)
+                         that the larger Ti is, the greater ωi is.
+                              We propose an improved algorithm by using RTT feedback, called BBR-GC. BBR-GC
+                         adjust Pup and Pdown in ProbeBW phase according to ωi reaction link state. For the Pup ,
+                         the correlation function Pup (ωi ) should create a concave downward curve, and the lower
+                         asymptote is Pup = 1. It can reduce the bandwidth occupation of the dominant flows and
+                         provide more available bandwidth for the vulnerable flows. When the current ωi is larger,
+                         the function Pup (ωi ) should decline slowly. The function Pup (ωi ) should decline actively
+Sensors 2021, 21, 4128                                                                                                         7 of 18
+
+
+
+
+                               when the ωi coefficient is smaller. For the Pdown , the correlation function Pdown (ωi ) should
+                               be an upper convex curve, and the upper asymptote is Pdown = 1. When ωi is larger, the
+                               function Pdown (ωi ) should decline rapidly. The function should decline slowly when ωi
+                               is smaller. Moreover, the required function must be a low complexity function, because
+                               it needs to be implemented in BBR algorithm. Therefore, based on the above constraints,
+                               we construct two functions Pup (ωi ) and Pdown (ωi ), respectively. We test some functions
+                               and find that the gamma correction function can meet the needs. By adjusting the pacing
+                               gain through gamma correction, the long flow’s pacing rate is limited, which limits the
+                               bandwidth occupation of the long flow strictly. The bandwidth detection ability of the
+                               short flow is improved, so that different RTT flows can compete more fairly.
+                                    In image processing, gamma correction is used to smooth out the details of the
+                               tone [41]. The Equation is as follows (11):
+
+                                                                              f (I) = Iγ                                         (11)
+
+                                         The gamma correction curve is shown in Figure 2. When γ < 1, as shown by the
+                                   blue dotted line, the dynamic range is large in the low gray value region. In the region
+                                   of high gray value, the dynamic range is small. When γ > 1, as shown by the red dotted
+                                   line, the dynamic range is small in the low gray value region. In the region of high gray
+                                   value, the dynamic range is large. Gamma correction achieves enhanced image contrast
+                                   through histogram weighted average, equalization, correction, and combination of the
+Sensors 2021, 21, x FOR PEER REVIEWoriginal image [42,43]. This enhancement technology plays an important role in 8digital
+                                                                                                                       of 19
+                                   image processing, computer vision and pattern recognition. Therefore, we want to adjust
+                                   the packing gain by gamma correction. By changing the parameters of gamma correction
+                                   function, we can meet the actual needs of Pup (ω ) function and Pdown (ω ) function. As
+                                                              (ω )=1.5 − 0.5 × ω 0.25 ; ( Pup (ω ) ∈ [1,1.5])
+                                   Equations (12) and (13)Pupshows:                                                     (12)
+                                                          Pup (ω ) =1.5 − 0.5 × ω 0.25 ; Pup (ω ) ∈ [1, 1.5] .
+                                                                                                            
+                                                                                                                                 (12)
+                                                       Pdown (ω )=1 − 0.5* ω 4 ; ( Pdown (ω ) ∈ [0.5,1] )                       (13)
+                                                        Pdown (ω )= 1 − 0.5∗ω 4 ; ( Pdown (ω ) ∈ [0.5, 1])                       (13)
+
+
+
+
+                              Figure
+                               Figure2.2.The
+                                          Thecurve
+                                              curveofofgamma
+                                                        gammacorrection.
+                                                              correction.
+
+                                     Thechange
+                                    The   changetrend   of P
+                                                  trendof      (ω) ) and
+                                                            up(ω
+                                                           Pup       and PPdown(ω(ω) )isisshown
+                                                                                           shownininFigure
+                                                                                                     Figure3.3.With
+                                                                                                                Withthe
+                                                                                                                      theincrease
+                                                                                                                          increaseof
+                                                                                                                                   of
+                                                                           down
+                               ω, Pup (ω ) decreases slowly, and the decreasing trend becomes slower. The value range of
+                              ω , Pup (ω ) decreases slowly, and the decreasing trend becomes slower. The value range
+                               Pup (ω ) is between 1 and 1.5. With the increase of ω, the Pdown (ω ) decreases slowly and
+                              of   up (ω ) is between
+                               thePdecreasing          1 and 1.5.
+                                                trend becomes       With
+                                                                faster,   thethe
+                                                                        and     increase    of ω of
+                                                                                  value range    , the
+                                                                                                    Pdown  (ω(ω
+                                                                                                        Pdown   ) between
+                                                                                                              ) is decreases0.5
+                                                                                                                              slowly
+                                                                                                                                and 1.
+                              and the decreasing trend becomes faster, and the value range of Pdown (ω ) is between 0.5
+                              and 1.
+                              The change trend of Pup (ω ) and Pdown (ω ) is shown in Figure 3. With the increase of
+                         ω , Pup (ω ) decreases slowly, and the decreasing trend becomes slower. The value range
+                         of Pup (ω ) is between 1 and 1.5. With the increase of ω , the Pdown (ω ) decreases slowly
+Sensors 2021, 21, 4128                                                                                          8 of 18
+                         and the decreasing trend becomes faster, and the value range of Pdown (ω ) is between 0.5
+                         and 1.
+
+
+
+
+                                     Thecurve
+                          Figure3.3.The
+                         Figure                    Pup
+                                         curveofofPup   and
+                                                      and   Pdown
+                                                          Pdown    functions.
+                                                                functions.
+
+                                BBR-GC further enhances the ability of network state regulation through this feedback
+                          regulation of pacing gain. The bandwidth of each BBR flow is balanced by the Pup and the
+                          Pdown . On one hand, we extend the upper limit of Pup to 1.5, which makes the detection
+                          bandwidth stage of BBR much faster. On the other hand, the lower limit of Pdown is set to
+                          0.5, which makes the fast recovery stage of BBR much faster. The probe up and probe down
+                          coefficients of each flow are staggered with each other by dynamic adjustment. Therefore,
+                          compared with the original BBR, BBR-GC can ensure the bandwidth utilization rate, and
+                          make the pacing rate of each flow converge to the fairness center and improve the fairness
+                          of BBR.
+
+                          4. Results and Evaluation
+                               Different from the traditional congestion control algorithm, BBR prefers large RTT
+                          flows and allocates more bandwidth for large RTT flows. This bias will make a trade-off
+                          between low latency and high transmission rate, breaking the concept of finding the optimal
+                          operating point with the minimum RTT. This study proposes an optimized algorithm based
+                          on the original BBR, named BBR-GC, to improve the RTT fairness of BBR without affecting
+                          the bandwidth utilization of the network. In order to evaluate the performance of BBR-GC,
+                          the original BBR algorithm, the BBQ algorithm and the BBR-ACW algorithm are introduced
+                          as the benchmark. The BBQ algorithm improves RTT fairness by setting an upper limit
+                          on the span of detection cycle and reducing the detection time of flows with long RTT.
+                          The BBR-ACW algorithm solves the limitation of CWND by adjusting cwnd_gain, so as
+                          to alleviate the RTT fairness issue. We use NS3 to do a lot of simulation experiments,
+                          and compare the fairness between BBR, BBQ, BBR-ACW and BBR-GC. The experimental
+                          topology is shown in Figure 4. This section describes the results of running tests under
+                          different network conditions.
+                                 are introduced as the benchmark. The BBQ algorithm improves RTT fairness by setting
+                                 an upper limit on the span of detection cycle and reducing the detection time of flows
+                                 with long RTT. The BBR-ACW algorithm solves the limitation of CWND by adjusting
+                                 cwnd_gain, so as to alleviate the RTT fairness issue. We use NS3 to do a lot of simulation
+                                 experiments, and compare the fairness between BBR, BBQ, BBR-ACW and BBR-GC. The
+ Sensors 2021, 21, 4128                                                                                               9 of 18
+                                 experimental topology is shown in Figure 4. This section describes the results of running
+                                 tests under different network conditions.
+
+                                     Sender                                                       Receiver
+
+
+
+
+                                  S0                                                                       R0
+                                                              Bottleneck link
+                                       ...                                                          ...
+
+                                                      Router1                  Router2
+
+
+
+                                  Sn                                                                       Rn
+                                 Figure 4. Experimental network topology.
+                                 Figure 4. Experimental network topology.
+                                 4.1. RTT Fairness
+                                          The Fairness
+                                    4.1. RTT  comparison of link fairness with different RTTs or using different CCAs is mainly
+                                    carried  out  by comparing
+                                          The comparison        thefairness
+                                                          of link    throughput
+                                                                             with occupied
+                                                                                   different by each
+                                                                                             RTTs  or link.
+                                                                                                       usingThe   throughput
+                                                                                                              different CCAs of is
+                                    BBR, BBQ, BBR-ACW and BBR-GC is compared through simulation experiments, and
+                                    mainly carried out by comparing the throughput occupied by each link. The throughput
+                                    performance of BBR-GC is evaluated. In the simulation experiment, we set the bottleneck
+                                    of BBR, BBQ, BBR-ACW and BBR-GC is compared through simulation experiments, and
+                                    bandwidth as 100 Mbps and the buffer size as 5 BDP. The RTT fairness is evaluated by
+Sensors 2021, 21, x FOR PEER REVIEW performance of BBR-GC is evaluated. In the simulation experiment, we set the bottleneck
+                                                                                                                        10 of 19
+                                    comparing the throughput of 10 ms flow and 50 ms flow. The throughput comparison           of
+                                    bandwidth as 100 Mbps and the buffer size as 5 BDP. The RTT fairness is evaluated by
+                                    BBR, BBQ, BBR-ACW, and BBR-GC algorithms with different RTTs is shown in Figure 5.
+                                    comparing the throughput of 10 ms flow and 50 ms flow. The throughput comparison of
+                                    BBR, BBQ, BBR-ACW, and BBR-GC algorithms with different RTTs is shown in Figure 5.
+
+
+
+
+                                 Figure 5. The throughput comparison of BBR, BBQ, BBR-ACW, and BBR-GC algorithms with
+                               Figure 5. The throughput comparison of BBR, BBQ, BBR-ACW, and BBR-GC algorithms with dif-
+                                 different
+                               ferent RTTs.RTTs.
+
+                                      From Figure 5, we can see that regardless of the BBR, BBQ, BBR-ACW, or BBR-GC,
+                                    From Figure 5, we can see that regardless of the BBR, BBQ, BBR-ACW, or BBR-GC,
+                                 the larger RTT is, the larger the throughput will be. For BBR algorithms, the throughput
+                               the larger RTT is, the larger the throughput will be. For BBR algorithms, the throughput
+                                 of a 50 ms RTT flow is 4 times that of a 10 ms RTT flow. The throughput difference
+                               of a 50 ms RTT flow is 4 times that of a 10 ms RTT flow. The throughput difference be-
+                                 between two BBQ flows with different RTTs is 1.6 times. For BBR-ACW and BBR-GC
+                               tween two BBQ flows with different RTTs is 1.6 times. For BBR-ACW and BBR-GC algo-
+                               rithms, the throughput of a 50 ms RTT flow is about 1.2 times that of a 10 ms RTT flow.
+                               BBQ, BBR-ACW, and BBR-GC have better bandwidth allocation than BBR, and increase
+                               the bandwidth occupancy ratio of 10 ms RTT. However, compared with the BBR and BBQ
+                               algorithms, BBR-GC has the smallest throughput difference and the highest fairness.
+Sensors 2021, 21, 4128                                                                                                     10 of 18
+
+
+
+
+                                algorithms, the throughput of a 50 ms RTT flow is about 1.2 times that of a 10 ms RTT flow.
+                                BBQ, BBR-ACW, and BBR-GC have better bandwidth allocation than BBR, and increase
+                                the bandwidth occupancy ratio of 10 ms RTT. However, compared with the BBR and
+                                BBQ algorithms, BBR-GC has the smallest throughput difference and the highest fairness.
+                                Compared with BBQ algorithm, BBR-GC algorithm suppresses the bandwidth of long
+                                RTT flows and improves the bandwidth of short RTT flows. Compared with BBR-ACW
+                                algorithm, the fairness of BBR-GC algorithm is close to that of BBR-ACW algorithm, but
+                                BBR-GC improves the throughput of flows.
+                                     Furthermore, to quantify the difference of RTT fairness problem of BBR algorithm in
+                                different buffer sizes, the Jain’s fairness index [44] is introduced. The Jain’s fairness index
+                                is used to measure the fairness of bandwidth allocation in the competition of bandwidth
+                                resources. The calculation method is shown in Equation (14).
+
+                                                                                (∑in=1 xi )2
+                                                                                              
+                                                                       J=                                                     (14)
+                                                                                n∑in=1 xi 2
+
+                                        The closer Jain’s fairness index is to 1, the better the fairness of bandwidth allocation
+                                  is. Jain’s fairness index can well reflect the throughput difference.
+                                        A large number of experiments are carried out to compare the differences between
+                                  10
+Sensors 2021, 21, x FOR PEER REVIEW
+                                      ms  RTT and 50 ms RTT flows in different buffer sizes, in order to further evaluate      the
+                                                                                                                           11 of 19
+                                  fairness of the three algorithms. The average throughput and fairness index of different
+                                  algorithms in different buffer size are shown in Figure 6.
+
+
+
+
+       Figure6.6.The
+      Figure     The average
+                       average throughput
+                                throughputand
+                                            andfairness
+                                                fairnessindex
+                                                         indexwhen
+                                                              when10
+                                                                   10 ms
+                                                                      ms RTT
+                                                                         RTTflows
+                                                                             flowscompeting
+                                                                                   competingwith
+                                                                                            with50
+                                                                                                 50ms
+                                                                                                   msRTT
+                                                                                                      RTTflows
+                                                                                                          flowsin
+                                                                                                                indifferent
+                                                                                                                  different
+      buffer
+       buffersize:
+              size:(a)
+                    (a)BBR;
+                        BBR;(b)
+                             (b)BBQ;
+                                  BBQ;(c)
+                                       (c)BBR-ACW;
+                                          BBR-ACW;(d) (d)BBR-GC.
+                                                          BBR-GC.
+
+                                     Figure
+                                     Figure 6a
+                                             6a shows
+                                                shows the
+                                                       the throughput
+                                                            throughput change
+                                                                        change and
+                                                                                and fairness
+                                                                                     fairness index
+                                                                                               index when
+                                                                                                      when 1010 ms
+                                                                                                                ms RTT
+                                                                                                                    RTT flow
+                                                                                                                         flow
+                                competes
+                                competes with 50 ms RTT flow of BBR algorithm. With the increase of buffer size, the
+                                          with   50 ms RTT   flow of BBR algorithm.   With  the  increase of buffer size,  the
+                                throughput difference between 10 ms RTT flow and 50 ms RTT flow becomes larger.
+                                When the buffer size is less than 0.2 BDP, different RTT flows can share bandwidth fairly.
+                                The difference between 10 ms RTT flows and 50 ms RTT flows is less than 5 Mbps, and
+                                the fairness index is about 0.99. When the buffer is larger than 0.2 BDP, the bandwidth
+Sensors 2021, 21, 4128                                                                                      11 of 18
+
+
+
+
+                         throughput difference between 10 ms RTT flow and 50 ms RTT flow becomes larger.
+                         When the buffer size is less than 0.2 BDP, different RTT flows can share bandwidth fairly.
+                         The difference between 10 ms RTT flows and 50 ms RTT flows is less than 5 Mbps, and
+                         the fairness index is about 0.99. When the buffer is larger than 0.2 BDP, the bandwidth
+                         difference between the two flows increases with the increase of the buffer size. When
+                         the buffer is larger than 6 BDP, the throughput of 50 ms RTT is about 84.3 Mbps, and
+                         throughput of 10 ms RTT is only about 11.7 Mbps. The fairness index is only about 0.635.
+                               In Figure 6b, BBQ algorithm can reduce the bandwidth difference between 10 ms RTT
+                         flows and 50 ms RTT flows. The bandwidth difference between the two flows increases with
+                         the increase of the buffer size, and the 50 ms RTT flows are always dominant. Compared
+                         with BBR algorithm, BBQ can improve the RTT fairness. When the buffer is larger than
+                         10 BDP, the bandwidth occupancy ratio remains stable, and the bandwidth of 50 ms RTT is
+                         62.5 Mbps. The fairness index of BBQ can maintain above 0.916.
+                               As shown in Figure 6c, BBR-ACW algorithm can improve the RTT fairness between
+                         10 ms RTT flows and 50 ms RTT flows. Although the throughput of 50 ms RTT flows
+                         is always dominant, maintaining a bandwidth size of 58.9 Mbps, it is only 1.2 times the
+                         bandwidth of 10 ms RTT flows. Compared with BBR algorithm and BBQ algorithm, the
+                         fairness index of BBR-ACW can maintain above 0.964.
+                               For BBR-GC algorithm in Figure 6d, two flows can share bandwidth fairly. When
+                         the buffer size is less than 0.4 BDP, the fairness of BBR-GC is similar to that of BBQ and
+                         BBR-ACW, and the fairness index is approximately 1. When the buffer size is greater than
+                         10 BDP, 50 ms RTT still accounts for most of the bandwidth of the play at about 56.9 Mbps,
+                         and the throughput of 10 ms RTT is improved to about 39.4 Mbps. In the buffer size
+                         distribution of 0.1 BDP to 100 BDP, the fairness index of BBR-GC is basically the same as
+                         that of BBR-ACW, which can be maintained above 0.968.
+                               Overall, BBR-GC algorithm has better fairness than BBR algorithm and BBQ algorithm
+                         in different buffer size, and slightly better than that of BBR ACW algorithm. Especially
+                         in deep buffer, compared with BBR, the RTT fairness has been greatly improved, and the
+                         fairness index has been increased by 50%.
+                               We further conducted the hybrid experiments for different RTT flows to study the
+                         fairness of the four algorithms with different RTT ratios. The fairness changes with the
+                         change of RTT ratio in different buffer sizes. The effectiveness of BBR-GC algorithm was
+                         analyzed by comparing the bandwidth allocation and fairness index between10 ms RTT
+                         flows with different RTTs flows. The comparison of throughput variation and fairness
+                         index are shown in Figure 7.
+                               Figure 7a shows the throughput change and fairness index when 10 ms RTT flow
+                         competes with different RTTs flow of BBR algorithm in 0.5 BDP buffer. When the RTT
+                         difference more than twice, the long RTT BBR flow occupies 70% bandwidth, and the
+                         fairness index of BBR is about 0.803. When the buffer size is increased to 5 BDP, as shown
+                         in Figure 7b. The bandwidth fairness of BBR decreases with the increase of RTT difference.
+                         The throughput of 20 ms RTT flows is 5.6 times that of 10 ms RTT flows. When the RTT
+                         ratio is more than 3 times, the throughput of long RTT flows occupy the leading position,
+                         and the bandwidth takes up about 85%. When 10 ms RTT flows coexist with 100 ms RTT
+                         flows, the fairness index of BBR is only about 0.595.
+                               Figure 7c illustrates the throughput change and fairness index of BBQ in 0.5 BDP
+                         buffer. Compared with Figure 7a, the fairness of RTT is improved. When the RTT ratio is
+                         less than 3 times, the flows can share bandwidth well, and the fair index is about 0.998.
+                         With the increase of RTT differences, fairness decreases and long RTT flows gradually
+                         dominates. When the RTT difference is more than 6 times, the long flows occupy 60%
+                         bandwidth, and the fairness index is about 0.94. Figure 7d illustrates the throughput
+                         change and fairness index of BBQ in 5 BDP buffer. Compared with the case of 0.5 BDP, the
+                         fairness has decreased. But compared with BBR in Figure 6b, the fairness has been greatly
+                         improved. When 10 ms RTT flows coexist with 100 ms RTT flows, the fairness index of
+                         BBQ is about 0.917.
+                                        cially in deep buffer, compared with BBR, the RTT fairness has been greatly improved,
+                                        and the fairness index has been increased by 50%.
+                                              We further conducted the hybrid experiments for different RTT flows to study the
+                                        fairness of the four algorithms with different RTT ratios. The fairness changes with the
+                                        change of RTT ratio in different buffer sizes. The effectiveness of BBR-GC algorithm was
+Sensors 2021, 21, 4128                                                                                                        12 of 18
+                                        analyzed by comparing the bandwidth allocation and fairness index between10 ms RTT
+                                        flows with different RTTs flows. The comparison of throughput variation and fairness
+                                        index are shown in Figure 7.
+
+
+
+
+      Sensors 2021, 21, x FOR PEER REVIEW                                                                                                 13 of 19
+
+
+
+
+      Figure  7. The
+           Figure     average
+                   7. The       throughput
+                          average  throughput andandfairness
+                                                      fairnessindex
+                                                               index of
+                                                                      of flow  when 10
+                                                                         flow when   10msmsRTT
+                                                                                            RTTflows
+                                                                                                   flowscoexists
+                                                                                                          coexists  with
+                                                                                                                 with     different
+                                                                                                                       different RTTsRTTs  flows:
+                                                                                                                                       flows:
+           (a) BBR
+      (a) BBR   withwith
+                      0.50.5
+                          BDPBDPbuffer;
+                                  buffer; (b)
+                                          (b) BBR
+                                              BBRwithwith5 BDP
+                                                           5 BDPbuffer; (c) BBQ
+                                                                   buffer;       with 0.5
+                                                                             (c) BBQ  withBDP0.5buffer;
+                                                                                                  BDP (d)  BBQ with
+                                                                                                        buffer;       5 BDPwith
+                                                                                                                 (d) BBQ     buffer; (e) BBR-
+                                                                                                                                  5 BDP    buffer;
+           ACW withwith
+      (e) BBR-ACW      0.5 BDP   buffer;
+                             0.5 BDP     (f) BBR-ACW
+                                      buffer;  (f) BBR-ACWwith 5 with
+                                                                 BDP 5buffer;  (g) BBR-GC
+                                                                         BDP buffer;        with 0.5 with
+                                                                                       (g) BBR-GC     BDP buffer;
+                                                                                                           0.5 BDP (h)buffer;
+                                                                                                                       BBR-GC (h)with  5 BDPwith
+                                                                                                                                  BBR-GC
+           buffer.
+      5 BDP buffer.
+
+                                              Figure 7a shows the throughput change and fairness index when 10 ms RTT flow
+                                         competes with different RTTs flow of BBR algorithm in 0.5 BDP buffer. When the RTT
+                                         difference more than twice, the long RTT BBR flow occupies 70% bandwidth, and the fair-
+                                         ness index of BBR is about 0.803. When the buffer size is increased to 5 BDP, as shown in
+                                         Figure 7b. The bandwidth fairness of BBR decreases with the increase of RTT difference.
+Sensors 2021, 21, 4128                                                                                            13 of 18
+
+
+
+
+                               As shown in Figure 7e,f, compared with BBR and BBQ, the RTT fairness of BBR-ACW
+                         is improved. When the RTT ratio is less than 5 times, the bandwidth occupation ratio of
+                         10 ms RTT flows can reach 45%, and the fairness index can be above 0.986 in different
+                         buffers. Even when 10 ms RTT flows competes with 100 ms RTT flows, the fairness index
+                         can be maintained at about 0.951 in 0.5 BDP buffer and 0.949 in 5 BDP buffer.
+                               Compared with BBR and BBQ, the RTT fairness of BBR-GC is improved in different
+                         case, as shown in Figure 7g,h. In Figure 7g, compared with 10 ms RTT flows, the bandwidth
+                         of long RTT flows is more advantageous, but the bandwidth difference is smaller. Even
+                         if 10 ms RTT flows compete with 100 ms RTT flows, the bandwidth of 10 ms RTT flows
+                         is about 38.1 Mbps. Compared with BBR-ACW, the fairness of the two algorithms is
+                         basically the same, the fairness index of BBR-GC is slightly higher, which can maintain
+                         above 0.957. In Figure 7h, the buffer size becomes 5 BDP, and the fairness of BBR-GC
+                         decreases, compared with Figure 7g. When the RTT ratio is less than 5 times, the 10 ms
+                         RTT flows of BBR-GC can share the bandwidth fairly with different RTTs flows, and the
+                         bandwidth occupation ratio of 10ms RTT can reach 45%. The fairness of BBR-ACW is
+                         slightly higher than that of BBR-GC. But when RTT difference is greater than 5 times, the
+                         fairness of BBR-GC is higher than that of BBR–ACW. The fairness index of BBR-GC can
+                         keep above 0.962 when competing with different RTTs flows.
+                               Overall, BBR-GC algorithm has a better fairness than BBR algorithm and BBQ algo-
+                         rithm, and compared with BBR-ACW, the fairness of BBR-GC is slightly better. The fairness
+                         index of BBR-GC is the highest among the four algorithms, and the minimum can be kept
+                         about 0.96.
+
+                         4.2. Channel Uutilization
+                              This part conducts some tests to measure the throughput of the flow to calculate the
+                         channel utilization of the bottleneck link. A single flow scenario is created on the NS3
+                         simulation platform, which simulates the ideal situation of the network. The performance
+                         of the congestion algorithm is evaluated on an ideal non-congested network to show the
+                         maximum bandwidth utilization that can be achieved under optimal conditions. In this
+                         scenario, only one sender and one receiver are tested for channel utilization with random
+                         packet loss links, and buffer size is configured from 0.1 BDP to 100 BDP. At the same time,
+                         the random packet loss rate is 0% and 1%, respectively, to test the anti packet loss ability
+                         of the four algorithms. Anti packet loss ability can avoid network congestion and reduce
+                         packet loss rate. The channel utilization of all flows is calculated according to Equation (15):
+
+                                                                     ∑i bytesi
+                                                              η=                                                     (15)
+                                                                   cap ∗ duration
+
+                         where bytesi is the length of all received packets for f lowi . Cap is the bandwidth of
+                         bottleneck link, and duration is the continuous simulation running time.
+                               We compared the channel utilization of BBR, BBQ, BBR-ACW and BBR-GC in different
+                         buffer sizes, and the experimental results are shown in Figure 8. Figure 8a illustrates,
+                         when the random packet loss rate is 0%, the four algorithms can achieve more than 94.7%
+                         bandwidth utilization, and BBR algorithm has the lowest channel utilization. All algorithms
+                         of BBQ, BBR-ACW and BBR-GC improve the channel utilization of BBR, especially in
+                         shallow buffers. There is no significant difference in channel utilization between BBR-ACW
+                         and BBR-GC, while BBR-GC is slightly better.
+                               In the case where the loss rate is 1%, as shown in Figure 8b, the channel utilization of
+                         BBR-ACW and BBR-GC is higher than that of BBR and BBQ. Compared with Figure 8a, the
+                         channel utilization of BBR, BBQ, BBR-ACW, and BBR-GC are decreased, while they can still
+                         maintain more than 93.1%. Compared with BBR-ACW, the channel utilization of BBR-GC
+                         is slightly higher when buffer size is less than 5 BDP, and the difference is about 0.5%.
+                         The results show that the BBR-GC algorithm does not reduce the channel utilization, but
+                         improves the channel utilization in different buffers. Although compared with BBR-ACW
+                         algorithm, the channel utilization of BBR-GC algorithm is not significantly improved, but
+Sensors 2021, 21, 4128                                                                                                                                      14 of 18
+
+
+
+
+                                        it is still of great significance for high-speed networks and lossy environment. In high-
+       Sensors 2021, 21, x FOR PEER REVIEW                                                                          15 of 19
+                                        speed applications, even small growth can significantly improve the speed of practical
+                                        application [45].
+
+
+
+
+             8. Link
+      FigureFigure    utilization
+                   8. Link          of different
+                            utilization           congestion
+                                        of different congestioncontrol
+                                                                controlalgorithms:   (a)the
+                                                                        algorithms: (a)  therandom
+                                                                                              random packet
+                                                                                                   packet lossloss
+                                                                                                               raterate is (b)
+                                                                                                                    is 0%; 0%;the
+                                                                                                                                (b)random
+                                                                                                                                     the random
+      packetpacket
+             loss rate
+                   lossisrate
+                           1%.is 1%.
+
+                                        4.3.4.3.
+                                             Retransmission
+                                                 Retransmission
+                                               BBR-GC
+                                            BBR-GC       algorithmintroduces
+                                                       algorithm    introduces packet
+                                                                                 packet loss feedback
+                                                                                                feedback and
+                                                                                                           andreduces
+                                                                                                                reducespacing
+                                                                                                                         pacinggain
+                                                                                                                                  gainwhen
+                                                                                                                                        when the
+                                         the packet
+                                      packet         loss occurs.
+                                              loss occurs.         The lower
+                                                              The lower   the the  retransmission
+                                                                              retransmission        rate,the
+                                                                                                  rate,   thelower
+                                                                                                              lowerthe
+                                                                                                                    the datagram
+                                                                                                                        datagram loss
+                                                                                                                                    lossrate
+                                                                                                                                          rate and
+                                         and  the better the  congestion  control  effect is. Therefore, we  conduct experiments
+                                      the better the congestion control effect is. Therefore, we conduct experiments to verify theto  verify
+                                         the impact
+                                      impact          of different
+                                               of different        buffer
+                                                              buffer sizessizes
+                                                                            andandthethe  numberofofcontention
+                                                                                       number         contention flows
+                                                                                                                  flowsononthe
+                                                                                                                            theretransmis-
+                                                                                                                                 retransmission
+                                         sion rate. The sender transmits the single or multiple flows using different algorithms to
+                                      rate. The sender transmits the single or multiple flows using different algorithms to the
+       Sensors 2021, 21, x FOR PEER REVIEW
+                                         the receiver, and the buffer size is set to 0.1 BDP or 1 BDP. The retransmission rates     16 ofare
+                                                                                                                                           19
+                                      receiver, and the buffer size is set to 0.1 BDP or 1 BDP. The retransmission rates are shown
+                                         shown in Figure 9, and the starting point is the retransmission rate of a single 10 ms RTT
+                                      in Figure
+                                         flow.
+                                                 9, and the starting point is the retransmission rate of a single 10 ms RTT flow.
+                                               When the buffer size is 0.1 BDP, as shown in Figure 9a, the retransmission rate of
+                                        BBR is significantly higher than that of the other three algorithms. At the starting point,
+                                        the retransmission rate of BBR is about 2.8%, that of BBQ is about 1.5%, and that of BBR-
+                                        ACW and BBR-GC is only about 1.2%. With the increase of the number of flows, there are
+                                        a lot of retransmissions in BBR. When there are 100 flows, BBR has a retransmission rate
+                                        about 14.9%, while BBR-ACW and BBR-GC maintain a retransmission rate of around 4.2%
+                                        and 3.2%. In summary, the retransmission rate of BBR-GC is much lower than that of BBR,
+                                        and it is smaller than that of BBQ and BBR-ACW.
+                                               In Figure 9b, when the buffer size is 1 BDP, the retransmission rates of four algo-
+                                        rithms are all lower than 0.1 BDP. When there is only one flow, the retransmission rates
+                                        of four algorithms are similar, approximately 1%. When the number of flows increases to
+                                        10, BBR’s retransmission rate increases to 3.2%. Compared with BBR algorithm, BBQ re-
+                                        duces retransmission rate to 2.7%, BBR-ACW reduces retransmission rate to 2.5% and
+                                        BBR-GC reduces retransmission rate to 2.1%. When the number of flows is 100, the re-
+                                        transmission rate of BBR is 4.6%, and the retransmission rate of BBQ and BBR-ACW algo-
+            Figure 9. Retransmission rithm
+                                        rate for different      number    of RTTs    flows: (a)the0.1 lowest
+                                                                                                      BDP buffer     size; (b) 1 BDP buffer         size.
+                 Figure 9. Retransmission rateis  forabout   3.9%
+                                                       different    and 3.5%.
+                                                                  number        BBR-GC
+                                                                           of RTTs  flows: has
+                                                                                            (a) 0.1 BDP        retransmission
+                                                                                                          buffer size; (b) 1 BDP rate,
+                                                                                                                                    bufferonly
+                                                                                                                                             size.about 3%.
+                                               Overall, BBR-GC has the lowest retransmission rate, which has a good advantage in
+                                           When
+                                        reducing
+                                        4.4.  Latency the  buffer size rate.
+                                                       retransmission     is 0.1Compared
+                                                                                  BDP, as shown with BBRin Figure     9a, the
+                                                                                                             algorithm,         retransmission
+                                                                                                                             BBR-GC       significantlyratere-of BBR
+                                   is significantly
+                                        duces the number     higher    than that of the
+                                                                  of retransmissions          other
+                                                                                         by 26%       three algorithms.
+                                                                                                   in different   buffer sizes.At     thecompared
+                                                                                                                                   Even     starting withpoint, the
+                                               In order to evaluate the effectiveness of CCAs, a latency experiment is performed.
+                                        BBR-ACW, the
+                                   retransmission              retransmission
+                                                            rate  of  BBR   is    rate 2.8%,
+                                                                               about     of BBR-GC
+                                                                                                that    isBBQ
+                                                                                                       of  reduced
+                                                                                                                 is    by 10%.
+                                                                                                                     about    1.5%,BBR-GC
+                                                                                                                                       and      adjusts
+                                                                                                                                              that   of    the
+                                                                                                                                                        BBR-ACW
+                                        Latency is one of the main factors that cause the performance degradation or instability of
+                                        pacing
+                                   andnetwork
+                                          BBR-GC   rate of
+                                                         is  different
+                                                             only       RTT1.2%.
+                                                                    about     flowsWith
+                                                                                      according
+                                                                                             the   to the link
+                                                                                                  increase    of congestion
+                                                                                                                   the  number   state,
+                                                                                                                                     of  reduce
+                                                                                                                                         flows,    the
+                                                                                                                                                   therenum-are a lot
+                                                      system. The smaller the delay, the faster the packet processing speed and the
+                                        ber of retransmission
+                                   of retransmissions                 and improves      the efficiency    of network      communication.
+                                        higher the effectiveness of congestion control. We analyze the delay statistics of the four about
+                                                                 in  BBR.   When     there   are  100   flows,   BBR     has   a  retransmission         rate
+                                   14.9%,      while BBR-ACW
+                                        algorithms,       and design the andexperiment
+                                                                               BBR-GC maintain
+                                                                                             that 10 msa RTTretransmission
+                                                                                                                  flows competes   ratewithof around
+                                                                                                                                                50 ms RTT 4.2% and
+                                   3.2%.flowsIn for
+                                                 summary,
+                                                       availablethe   retransmission
+                                                                   bandwidth               rate of BBR-GC
+                                                                                  at a bottleneck     buffer size is of
+                                                                                                                     much     lower
+                                                                                                                         1 BDP.         than
+                                                                                                                                   Figure    10that
+                                                                                                                                                 shows of BBR,
+                                                                                                                                                           the and
+                                   it islatency
+                                          smaller      than that
+                                                   statistics        of BBQ
+                                                                for 10ms   RTTandflowsBBR-ACW.
+                                                                                         with different algorithms. Figure 10a shows that the
+                                        delay   of BBR9b,
+                                           In Figure        increases
+                                                               when the to about
+                                                                             buffer35size
+                                                                                        ms. is
+                                                                                            As1shown
+                                                                                                 BDP, the in Figure    10b, the delay
+                                                                                                              retransmission         ratesofofBBQfourisalgorithms
+                                                                                                                                                          26%
+                                   arelower      than that
+                                         all lower       thanof0.1BBR,   which
+                                                                      BDP.   Whenis approximately
+                                                                                       there is only26one  ms.flow,
+                                                                                                                Figure  the10c  shows, compared
+                                                                                                                             retransmission              withof four
+                                                                                                                                                      rates
+                                        the delay of
+                                   algorithms          arethe  BBR and
+                                                             similar,      BBQ, the delay1%.
+                                                                        approximately          of BBR-ACW
+                                                                                                     When the    drops
+                                                                                                                     numberto aboutof 16   ms, 54%
+                                                                                                                                       flows           lower to 10,
+                                                                                                                                                increases
+                                        than that of BBR algorithm. Figure 10d shows that the BBR-GC flow delay can be con-
+                                        trolled around 15 ms. The average delay of BBR-GC is 57% lower than that of BBR, and
+                                        lower than that of BBQ and BBR-ACW. Overall, the delay comparison results of the four
+                                        algorithms show that BBR-GC can avoid the high delay caused by deep queue creation.
+                                        The effectiveness of BBR-GC algorithm in congestion control is further verified.
+Sensors 2021, 21, 4128                                                                                                                                 15 of 18
+              Sensors 2021, 21, x FOR PEER REVIEW                                                                                       16 of 19
+
+
+
+                                       BBR’s retransmission rate increases to 3.2%. Compared with BBR algorithm, BBQ reduces
+                                       retransmission rate to 2.7%, BBR-ACW reduces retransmission rate to 2.5% and BBR-GC
+                                       reduces retransmission rate to 2.1%. When the number of flows is 100, the retransmission
+                                       rate of BBR is 4.6%, and the retransmission rate of BBQ and BBR-ACW algorithm is about
+                                       3.9% and 3.5%. BBR-GC has the lowest retransmission rate, only about 3%.
+                                            Overall, BBR-GC has the lowest retransmission rate, which has a good advantage
+                                       in reducing retransmission rate. Compared with BBR algorithm, BBR-GC significantly
+                                       reduces the number of retransmissions by 26% in different buffer sizes. Even compared
+                                       with BBR-ACW, the retransmission rate of BBR-GC is reduced by 10%. BBR-GC adjusts
+                                       the pacing rate of different RTT flows according to the link congestion state, reduce the
+                                       number of retransmission and improves the efficiency of network communication.
+
+                                       4.4. Latency
+                                             In order
+                         Figure 9. Retransmission          to evaluate
+                                                  rate for different numberthe  effectiveness
+                                                                            of RTTs                 of CCAs,
+                                                                                    flows: (a) 0.1 BDP buffer size;a (b)
+                                                                                                                      latency   experiment
+                                                                                                                         1 BDP buffer size.      is performed.
+                                       Latency is one of the main factors that cause the performance degradation or instability
+                                             4.4. Latency
+                                       of network system. The smaller the delay, the faster the packet processing speed and the
+                                                   In order to evaluate the effectiveness of CCAs, a latency experiment is performed.
+                                       higherLatency
+                                               the effectiveness         of congestion
+                                                        is one of the main                   control.
+                                                                            factors that cause          We analyze
+                                                                                                 the performance          the delay
+                                                                                                                    degradation         statistics
+                                                                                                                                   or instability of of the four
+                                       algorithms,
+                                             network system. The smaller the delay, the faster the packet processing speed and the 50 ms RTT
+                                                        and   design    the   experiment       that   10  ms  RTT     flows    competes       with
+                                       flows higher
+                                              for available       bandwidth
+                                                      the effectiveness           at a bottleneck
+                                                                          of congestion                 buffer the
+                                                                                          control. We analyze     sizedelay
+                                                                                                                         of 1statistics
+                                                                                                                                BDP. Figure      10 shows the
+                                                                                                                                        of the four
+                                             algorithms,     and  design  the experiment    that  10 ms  RTT  flows   competes
+                                       latency statistics for 10 ms RTT flows with different algorithms. Figure 10a shows that    with  50  ms  RTT
+                                             flows for available bandwidth at a bottleneck buffer size of 1 BDP. Figure 10 shows the
+                                       the delay    of BBR increases to about 35 ms. As shown in Figure 10b, the delay of BBQ is
+                                             latency statistics for 10ms RTT flows with different algorithms. Figure 10a shows that the
+                                       26% lower
+                                             delay of than
+                                                         BBRthat    of BBR,
+                                                              increases        which
+                                                                         to about 35 ms.is As
+                                                                                           approximately
+                                                                                                shown in Figure26    ms.
+                                                                                                                  10b,  theFigure
+                                                                                                                             delay of10c
+                                                                                                                                       BBQshows,
+                                                                                                                                             is 26% compared
+                                       with the
+                                             lowerdelay      of the
+                                                     than that       BBR
+                                                                 of BBR,    andisBBQ,
+                                                                          which            the delay
+                                                                                   approximately         of BBR-ACW
+                                                                                                     26 ms.  Figure 10c shows,drops    to about
+                                                                                                                                   compared    with16 ms, 54%
+                                       lowerthe
+                                              thandelaythat   of BBR
+                                                          of the BBR andalgorithm.     Figure
+                                                                            BBQ, the delay        10d shows
+                                                                                              of BBR-ACW         that
+                                                                                                             drops   to the
+                                                                                                                         aboutBBR-GC
+                                                                                                                                16 ms, 54% flow   delay can be
+                                                                                                                                              lower
+                                             than that
+                                       controlled   aroundof BBR15algorithm.
+                                                                    ms. The Figure
+                                                                               average 10ddelay
+                                                                                             showsof that the BBR-GC
+                                                                                                       BBR-GC      is 57% flowlower
+                                                                                                                                delay than
+                                                                                                                                       can bethat
+                                                                                                                                                con-of BBR, and
+                                             trolled around 15 ms. The average delay of BBR-GC is 57% lower than that of BBR, and
+                                       lower than that of BBQ and BBR-ACW. Overall, the delay comparison results of the four
+                                             lower than that of BBQ and BBR-ACW. Overall, the delay comparison results of the four
+                                       algorithms
+                                             algorithmsshow    that
+                                                            show   thatBBR-GC
+                                                                        BBR-GC cancanavoid
+                                                                                        avoid thethe
+                                                                                                   highhigh
+                                                                                                        delaydelay
+                                                                                                               causedcaused
+                                                                                                                        by deep byqueuedeep    queue creation.
+                                                                                                                                           creation.
+                                       The effectiveness
+                                             The effectiveness of of
+                                                                   BBR-GC
+                                                                      BBR-GC algorithm
+                                                                               algorithm inin     congestion
+                                                                                               congestion        control
+                                                                                                           control           is further
+                                                                                                                    is further  verified. verified.
+
+
+
+
+              Sensors 2021, 21, x FOR PEER REVIEW                                                                                       17 of 19
+
+
+
+
+                         Latency
+              Figure 10. Figure     of different
+                                10. Latency        congestion
+                                            of different         control
+                                                         congestion controlalgorithms:
+                                                                            algorithms: (a)(a) BBR;
+                                                                                            BBR;     (b) BBQ;
+                                                                                                 (b) BBQ;       (c) BBR-ACW;
+                                                                                                          (c) BBR-ACW;         (d) BBR-GC.
+                                                                                                                       (d) BBR-GC.
+
+                                               5. Conclusions
+                                                    This paper further analyzes the reasons for the intra-protocol RTT fairness of BBR.
+                                               There is a serious deviation in bandwidth allocation, especially in deep buffer. According
+                                               to the mechanism of unfairness, we propose an improved algorithm BBR-GC. BBR-GC
+                                               adjusts the pacing gain (instead of fixed 1.25 or 0.75) by gamma correction function, and
+Sensors 2021, 21, 4128                                                                                                             16 of 18
+
+
+
+
+                                   5. Conclusions
+                                       This paper further analyzes the reasons for the intra-protocol RTT fairness of BBR.
+                                  There is a serious deviation in bandwidth allocation, especially in deep buffer. According to
+                                  the mechanism of unfairness, we propose an improved algorithm BBR-GC. BBR-GC adjusts
+                                  the pacing gain (instead of fixed 1.25 or 0.75) by gamma correction function, and then
+                                  adjusts the pacing rate of each flow. The coefficients of probe up and probe down of each
+                                  flow are interleaved with each other, so that different RTT flows can detect bandwidth fairly.
+                                       Simulation results on NS3 show that the BBR-GC algorithm can alleviate the RTT
+                                  fairness problem of BBR. Compared with BBR algorithm, BBR-GC algorithm can make
+                                  multiple flows with different RTTs compete fairly. The fairness index of BBR-GC is best
+                                  in different buffer sizes, which is 50% higher than that of BBR algorithm. Moreover, in
+                                  the channel utilization experiments, compared with BBR algorithm, BBR-GC algorithm
+                                  improves the channel utilization of BBR algorithm. Especially in shallow buffers and
+                                  lossy environments, and due to active bandwidth detection, channel utilization can be
+                                  greatly improved. Besides, the retransmission rate of BBR-GC is far lower than that of
+                                  BBR in different buffer size, which is the lowest among the comparison algorithms in the
+                                  experiments. Compared with BBQ and BBR-ACW, it has a better performance. In the
+                                  latency experiment, the delay of BBR-GC algorithm is 57% lower than that of BBR, which is
+                                  the lowest of the four algorithms. According to the simulation results of channel utilization,
+                                  retransmission and latency, it can be seen that BBR-GC algorithm not only alleviate the
+                                  RTT fairness problem of BBR flow in different periods, but also improves the effectiveness
+                                  of congestion control.
+                                       In our future work, we will further optimize BBR-GC and study the optimal parame-
+                                  ters of gamma correction. Besides, we will continue to study BBR and BBR v2, and apply
+                                  the improved method to the latest BBR v2 to solve the fairness problem.
+
+                                  Author Contributions: W.P. proposed the idea, conducted the experiments, and wrote the paper.
+                                  X.L. (Xiaofeng Li) supervised the entire research. H.T. provided guidance and key suggestions. J.X.
+                                  guided data curation. X.L. (Xiru Li) contributed by guiding the paper. All authors have read and
+                                  agreed to the published version of the manuscript.
+                                   Funding: This work was supported by the National Natural Science Foundation of China under Grant
+                                   61602435, in part by the National Natural Science Foundation of Anhui under Grant 1708085QF153.
+                                   Institutional Review Board Statement: This study does not involve human or animal studies.
+                                   Informed Consent Statement: This study does not involve human or animal studies.
+                                   Data Availability Statement: Not applicable.
+                                  Acknowledgments: The authors sincerely thank that the Shuang Yang and Huadong Wang of the
+                                  University of Science and Technology of China for their valuable comments and suggestions on this
+                                  article, which will comprehensively improve the quality of this article.
+                                   Conflicts of Interest: The authors declare no conflict of interest.
+
+References
+1.    Tsiropoulou, E.E.; Katsinis, G.K.; Vamvakas, P.; Papavassiliou, S. Efficient uplink power control in multi-service two-tier femtocell
+      networks via a game theoretic approach. In Proceedings of the 2013 IEEE 18th International Workshop on Computer Aided
+      Modeling and Design of Communication Links and Networks (CAMAD), Berlin, Germany, 25–27 September 2013; pp. 104–108.
+2.    Tsiropoulou, E.E.; Vamvakas, P.; Katsinis, G.K.; Papavassiliou, S. Combined power and rate allocation in self-optimized multi-
+      service two-tier femtocell networks. Comput. Commun. 2015, 72, 38–48. [CrossRef]
+3.    Floyd, S.; Handley, M.; Padhye, J. A Comparison of Equation-Based and AIMD Congestion Control. 2000. Available online:
+      http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.37.7442&rep=rep1&type=pdf (accessed on 21 April 2020).
+4.    Yang, Y.R.; Lam, S.S. General AIMD congestion control. In Proceedings of the 2000 International Conference on Network
+      Protocols, Osaka, Japan, 14–17 November 2000; pp. 187–198.
+5.    Floyd, S.; Henderson, T. The NewReno Modification to TCP’s Fast Recovery Algorithm. 1999. Available online: https://tools.ietf.
+      org/html/rfc2582 (accessed on 21 April 2020).
+Sensors 2021, 21, 4128                                                                                                            17 of 18
+
+
+
+
+6.    Xu, L.; Harfoush, K.; Rhee, I. Binary increase congestion control (BIC) for fast long-distance networks. In Proceedings of the IEEE
+      Infocom, Hong Kong, China, 7–11 March 2004; Volume 4, pp. 2514–2524.
+7.    Ha, S.; Rhee, I.; Xu, L. CUBIC: A new TCP-friendly high-speed TCP variant. ACM SIGOPS Oper. Syst. Rev. 2008, 42, 64–74.
+      [CrossRef]
+8.    Cardwell, N.; Cheng, Y.; Gunn, C.S.; Yeganeh, S.H.; Jacobson, V. BBR: Congestion-based congestion control. ACM Queue 2016, 14,
+      50:20–50:53. [CrossRef]
+9.    Cardwell, N.; Cheng, Y.; Gunn, C.S.; Yeganeh, S.H.; Jacobson, V. BBR Congestion Control. In Proceedings of the IETF 97th
+      Meeting, Seoul, Korea, 13–18 November 2016. Available online: https://www.ietf.org/proceedings/97/slides/slides-97-iccrg-
+      bbr-congestion-control-02.pdf (accessed on 18 February 2020).
+10.   Cardwell, N.; Cheng, Y.; Gunn, C.S.; Yeganeh, S.H.; Jacobson, V. BBR Congestion Control: An Update. Available online: https:
+      //www.ietf.org/proceedings/98/slides/slides-98-iccrg-an-update-on-bbr-congestion-control-00.pdf (accessed on 2 April 2020).
+11.   Kleinrock, L. Power and deterministic rules of thumb for probabilistic problems in computer communications. In Proceedings of
+      the International Conference on Communications, Boston, MA, USA, 10–14 June 1979; Volume 43, pp. 1–43.
+12.   Hock, M.; Bless, R.; Zitterbart, M. Experimental evaluation of BBR congestion control. In Proceedings of the International
+      Conference on Network Protocols (ICNP), Toronto, ON, Canada, 10–13 October 2017; pp. 1–10.
+13.   Ma, S.; Jiang, J.; Wang, W.; Li, B. Fairness of Congestion-Based Congestion Control: Experimental Evaluation and Analysis. arXiv
+      2017, arXiv:1706.09115.
+14.   Scholz, D.; Jaeger, B.; Schwaighofer, L.; Raumer, L.; Geyer, F.; Carle, G. Toward a Deeper Understanding of TCP BBR Congestion
+      Control. In Proceedings of the IFIP Networking, Zurich, Switzerland, 14–16 May 2018; pp. 1–9.
+15.   Mahmud, I.; Kim, G.H.; Lubna, T. BBR-ACD: BBR with advanced congestion detection. Electronics 2020, 9, 136. [CrossRef]
+16.   Su, B.; Jiang, X.; Jin, G. Rethinking the rate estimation of BBR congestion control. Electron. Lett. 2020, 56, 239–241. [CrossRef]
+17.   Najmuddin, S.; Asim, M.; Munir, K.; Baker, T.; Guo, Z.; Ranjan, R. A BBR-based congestion control for delay-sensitive real-time
+      applications. Computing 2020, 102, 2541–2563. [CrossRef]
+18.   Do, H.; Gregory, M.A.; Li, S. SDN-basedWireless Access Networks Utilising BBR TCP Congestion Control. In Proceedings
+      of the 29th International Telecommunication Networks and Applications Conference (ITNAC), Auckland, New Zealand,
+      27–29 November 2019; pp. 1–8.
+19.   Wei, W.; Xue, K.; Han, J.; Xing, Y.; Wei, D.S.; Hong, P. BBR-based Congestion Control and Packet Scheduling for Bottleneck
+      Fairness Considered Multipath TCP in Heterogeneous Wireless Networks. IEEE Trans. Veh. Technol. 2020, 70, 914–927. [CrossRef]
+20.   Jia, M.; Sun, W.; Wang, Z.; Yan, Y.; Qin, H.; Meng, K. MFBBR: An Optimized Fairness-aware TCP-BBR Algorithm in Wired-
+      cumwireless Network. In Proceedings of the IEEE INFOCOM 2020-IEEE Conference on Computer Communications Workshops
+      (INFOCOM WKSHPS), Toronto, ON, Canada, 6–9 July 2020; pp. 171–176.
+21.   Grazia, C.A.; Klapez, M.; Casoni, M. BBRp: Improving TCP BBR performance over WLAN. IEEE Access 2020, 8, 43344–43354.
+      [CrossRef]
+22.   Cardwell, N.; Cheng, Y.; Yeganeh, S.H.; Swett, I.; Vasiliev, V.; Jha, P.; Seung, Y.; Mathis, M.; Jacobson, V. BBRv2: A Model-Based
+      Congestion Control. In Proceedings of the ICCRG IETF 104th Meeting, March 2019. Available online: https://datatracker.ietf.
+      org/meeting/104/materials/slides-104-iccrg-an-update-on-bbr-00 (accessed on 2 April 2020).
+23.   Cardwell, N.; Cheng, Y.; Yang, K.; Yeganeh, S.H.; Jha, P.; Seung, Y.; Hsiao, L.; Mathis, M.; Swett, I.; Wu, B.; et al. BBR
+      Update: 1: BBR.Swift; 2: Scalableloss Handling. In Proceedings of the IETF 109th Meeting, November 2020. Available online:
+      https://datatracker.ietf.org/meeting/109/materials/slides-109-iccrg-update-on-bbrv2-00 (accessed on 7 January 2021).
+24.   Kfoury, E.F.; Gomez, J.; Crichigno, J.; Bou-Harb, E. An emulation-based evaluation of TCP BBRv2 alpha for wired broadband.
+      Comput. Commun. 2020, 161, 212–224. [CrossRef]
+25.   Google/BBR, TCP BBR v2 Alpha/Preview Release. 2019. Available online: https://github.com/google/bbr/tree/-v2alpha
+      (accessed on 7 January 2021).
+26.   Miyazawa, K.; Sasaki, K.; Oda, N.; Yamaguchi, S. Cycle and Divergence of Performance on TCP BBR. In Proceedings of the IEEE
+      International Conference on Cloud Networking (CloudNet), Tokyo, Japan, 22–24 October 2018; pp. 1–6.
+27.   Zhang, Y.; Cui, L.; Tso, F.P. Modest BBR: Enabling Better Fairness for BBR Congestion Control. In Proceedings of the IEEE
+      Symposium on Computers and Communications (ISCC), Natal, Brazil, 25–28 June 2018; pp. 00646–00651.
+28.   Claypool, S.; Claypool, M.; Chung, J.; Li, F. Sharing but not caring-Performance of TCP BBR and TCP CUBIC at the net-
+      work bottleneck. In Proceedings of the Fifteenth Advanced International Conference on Telecommunications, Nice, France,
+      28 July–1 August 2019.
+29.   Ware, R.; Mukerjee, M.K.; Seshan, S.; Sherry, J. Modeling BBR’s Interactions with Loss-Based Congestion Control. In Proceedings
+      of the Internet Measurement Conference, Amsterdam, The Netherlands, 21–23 October 2019; pp. 137–143.
+30.   Tao, Y.; Jiang, J.; Ma, S.; Wang, L.; Wang, W.; Li, B. Unraveling the RTT-fairness Problem for BBR: A queueing model. In Proceedings
+      of the 2018 IEEE Global Communications Conference (GLOBECOM), Abu Dhabi, United Arab Emirates, 9–13 December 2018;
+      pp. 1–6.
+31.   Yang, M.; Yang, P.; Wen, C.; Liu, Q.; Luo, J.; Yu, L. Adaptive-BBR: Fine-grained congestion control with improved fairness and low
+      latency. In Proceedings of the 2019 IEEE Wireless Communications and Networking Conference (WCNC), Marrakech, Morocco,
+      15–18 April 2019; pp. 1–6.
+Sensors 2021, 21, 4128                                                                                                            18 of 18
+
+
+
+
+32.   Kim, G.H.; Cho, Y.Z. Delay-Aware BBR Congestion Control Algorithm for RTT Fairness Improvement. IEEE Access 2019, 8,
+      4099–4109. [CrossRef]
+33.   Sun, W.; Jia, M.; Zhang, G.; Wang, Z. RFBBR: A Rtt Faireness Awared Algorithm Based on BBR. In Proceedings of the 2020 IEEE
+      International Conference on Smart Internet of Things (SmartIoT), Beijing, China, 14–16 August 2020; pp. 124–131.
+34.   Pan, W.; Tan, H.; Li, X.; Li, X. Improved RTT Fairness of BBR Congestion Control Algorithm based on Adaptive Congestion
+      Window. Electronics 2021, 10, 615. [CrossRef]
+35.   Zhang, S. An Evaluation of BBR and its variants. arXiv 2019, arXiv:1909.03673.
+36.   Jain, V.; Mittal, V.; Tahiliani, M.P. Design and implementation of TCP BBR in ns-3. In Proceedings of the 10th Workshop on Ns-3,
+      Surathkal, India, 13–14 June 2018; pp. 16–22.
+37.   Jaeger, B.; Scholz, D.; Raumer, D.; Geyer, F.; Carle, G. Reproducible measurement of TCP BBR congestion control. Comput.
+      Commun. 2019, 144, 31–43. [CrossRef]
+38.   Prakash, M.; Abdrabou, A. On the Fidelity of NS-3 Simulations of Wireless Multipath TCP Connections. Sensors 2020, 20, 7289.
+      [CrossRef] [PubMed]
+39.   Chivers, Ian, and Jane Sleightholme. An introduction to Algorithms and the Big O Notation. Introduction to Programming with Fortran;
+      Springer: Cham, Switzerland, 2015; pp. 359–364.
+40.   Rubinstein-Salzedo, S. Big o notation and algorithm efficiency. In Cryptography; Springer: Cham, Switzerland, 2018; pp. 75–83.
+41.   Farid, H. Blind inverse gamma correction. IEEE Trans. Image Process. 2001, 10, 1428–1433. [CrossRef] [PubMed]
+42.   Huang, S.C.; Cheng, F.C.; Chiu, Y.S. Efficient contrast enhancement using adaptive gamma correction with weighting distribution.
+      IEEE Trans. Image Process. 2012, 22, 1032–1041. [CrossRef] [PubMed]
+43.   Rahman, S.; Rahman, M.; Abdullah-Al-Wadud, M.; Klinge, V.; Mohankumar, S. An adaptive gamma correction for image
+      enhancement. EURASIP J. Image Video Process. 2016, 2016, 35. [CrossRef]
+44.   Jain, R.K.; Chiu, D.M.W.; Hawe, W.R. A Quantitative Measure of Fairness and Discrimination; Eastern Research Laboratory, Digital
+      Equipment Corporation: Hudson, MA, USA, 1984.
+45.   Veluswami, S.J.R.; Chinnusamy, K.; Kumar, K.; Klinge, V.; Mohankumar, S. Improvement of Transmission Control Protocol for
+      High Bandwidth Applications. Wirel. Pers. Commun. 2021, 117, 3359–3379. [CrossRef]
+

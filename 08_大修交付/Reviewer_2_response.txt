@@ -1,0 +1,43 @@
+Response to Reviewer 2
+
+Thank you for reading the manuscript carefully. We respond to each comment below. Page numbers refer to the printed revised manuscript pages.
+
+R2-1: Reproducibility of the review process
+
+Reviewer comment (summary): Provide reproducible search/screening counts and reasons, remove the circular citation-based inclusion criterion, and explain how the claimed 165-item corpus was derived.
+
+Response: This comment identified a substantial problem in our methods reporting. The original citation count did not establish a reproducible systematic-review corpus, and we should not have presented it as one. The revision now supplies a reference-level identity and evidence-role register for all 165 original citations, rather than treating them as 165 screened primary studies. The register distinguishes 34 direct BBR evaluations/analyses, 5 mechanism/version materials, 2 related surveys, 15 learning/control comparators and 109 supporting transport/network references. These are retrospective citation roles assigned from metadata and manuscript use, not full-text inclusion decisions. Exact DOI matching locates 41 citations in the supplemental exports; seven additional citations have exact normalized-title candidate matches, and 117 are not located by those rules in the capped exports. The register records the original acquisition route as a legacy citation baseline where historical retrieval is unknown, and preserves matching rules and source-record IDs instead of assigning invented database origins.
+
+The documented supplemental search exported 1,018 OpenAlex and 1,600 Crossref records before normalization. DOI/title/author matching reduced these to 1,916 report groups; 171 were excluded at title/abstract level, 1,745 were forwarded to eligibility review, and 15 full-text assessments are complete (8 retained and 7 excluded), leaving 1,730 pending. The completed full-text exclusions are recorded by scope or report type in the screening supplement; unavailable reports remain separate from exclusions. We report these as stage counts, not as a completed corpus. Citation in the manuscript is not an eligibility criterion. Automated triage is prioritization only, and the capped exports are not an exhaustive search. We cannot retrospectively prove the originally implied historical 165-study screening process. Accordingly, we withdraw that claim and present a critical narrative synthesis with a documented supplemental search and an explicit, reproducible register of its legacy references. This removes the circular inclusion criterion and gives readers records they can inspect. It does not recover the missing historical inclusion chain, so we cannot claim to have fulfilled the request for a complete reconstruction of the original 165-study screening process.
+
+Manuscript locations: Section 1.3 (p. 2); Figure 1 (p. 4); Table 2 (p. 4).
+
+R2-2: Formal criteria and independent validation
+
+Reviewer comment (summary): Clarify decision criteria and metric-specific suitability, interactions among the dimensions, and the limits of the claimed independent validation.
+
+Response: We have added an explicit analytical assessment procedure and a quantitative transfer evaluation. The condition vector includes capacity, reference and per-flow RTTs, absolute queue size, loss process, implementation, AQM/queue policy, flow count and measurement window. Workload requirements specify separate utilization, Jain fairness, delay and retransmission limits. The procedure returns meets, does not meet or undetermined for each required metric; a missing or incompatible window cannot produce a pass. For two flows, we derive J=1/[1+(2s-1)^2], so a Jain requirement of 0.95 corresponds to shares between approximately 0.385 and 0.615. These are service-dependent acceptance conditions, not universal buffer or BDP thresholds.
+
+We also added a numerical transfer comparison. We calibrate a log-queue interpolation predictor using only 15 equal-RTT BBRv3 E1 runs and evaluate it on disjoint E3 conditions. The analysis is retrospective: the archived outcomes were available when the test was designed, and we do not describe it as preregistered or untouched independent validation. At 200 Mbps, where the four physical queue inputs match the frozen labels, normalized-goodput MAE is 0.00264 and Jain MAE is 0.01010, compared with 0.00264 and 0.01134 for a constant calibration baseline. At 50 Mbps, using corrected physical ratios 4 and 16, queue-conditioned Jain MAE is 0.02027, worse than the constant baseline's 0.01444. All errors and failure cases are reported; the queue descriptor alone therefore does not establish predictive added value. With illustrative retrospective utilization/fairness requirements, all 80 E3 runs meet utilization >=0.90, but only 40/40 BBRv3 and 27/40 CUBIC runs also meet Jain >=0.95. Raising the illustrative utilization requirement to 0.95 changes the joint counts to 0/40 for BBRv3 and 27/40 for CUBIC, exposing the requirement-dependent tradeoff. The supplement provides run-level decisions and threshold sensitivity. Delay assessment remains undetermined because the relevant windows do not align. The earlier Scholz comparison remains an external consistency check, and the archived prediction sheet is retained without assigning numerical acceptance margins after seeing the results.
+
+Manuscript locations: Section 3.6 (p. 12); Section 7 (p. 21); Figure 9 (p. 23); Table 10 (p. 24); Table 11 (p. 24); Section 3.5 (p. 12); Section 7.5 (p. 24); Table 12 (p. 26); Table 13 (p. 26).
+
+R2-3: Version parameters and ECN statements
+
+Reviewer comment (summary): Correct ProbeRTT minimum-window constraints, state-dependent cwnd gains and the misleading ECN-free reversion statement.
+
+Response: We have corrected the ProbeRTT target for the described BBRv2/v3 implementations to max(4 MSS, BDP/2). The cwnd_gain row now distinguishes the BBRv1 baseline value from state-dependent BBRv2/v3 gains instead of presenting 2.0 as a fixed value in every state and version.
+
+We have also removed the ECN-free reversion statement. BBRv2/v3 retain loss-feedback updates to bandwidth and in-flight bounds, including bw_lo, inflight_lo and inflight_hi as applicable to the inspected implementation, and their associated state logic. ECN absence removes an additional feedback channel; it does not remove this loss-based control. The table identifies source-specific defaults and distinguishes them from the experimental builds. Section 2.2 also separates minimum-RTT filter horizons from ProbeRTT freshness and entry conditions.
+
+Manuscript locations: Table 4 (p. 9); Section 2.2 (p. 6).
+
+R2-4: Figure provenance and AI disclosure
+
+Reviewer comment (summary): Disclose whether and how AI generated Figures 3–6, name the tool and purposes, and explain technical verification.
+
+Response: The original disclosure was incomplete. GPT Image 2.0 generated Figures 3–6 in the original manuscript, and the authors manually checked their technical content. We now state this in the declaration and in the corresponding figure captions.
+
+For the revision, Figures 2–6 were redrawn with Python/matplotlib. AI assistance was used in preparing plotting code and editing text; the retained scripts generate the replacement figures. We distinguish that work from the original image-generation history. The technical checks concern the points raised in the reviews: Figure 2 separates propagation RTT from queueing delay; Figure 3 excludes later-version ECN logic from the BBRv1 diagram; Figure 4 avoids an unsupported version-performance ranking; and Figures 5–6 no longer infer allocation from the in-flight identity. These diagrams are explanatory schematics, not measured results. The measurements are presented separately in Figure 9 and the experimental tables.
+
+Manuscript locations: Declaration of generative AI (p. 27); Figure 3 (p. 7); Figure 4 (p. 8); Figure 5 (p. 16); Figure 6 (p. 17); Figure 2 (p. 6).

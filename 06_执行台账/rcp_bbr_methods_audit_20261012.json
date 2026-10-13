@@ -1,0 +1,39 @@
+{
+  "record_id": "openalex_Q1_0026",
+  "doi": "10.1007/s00607-020-00829-2",
+  "title": "A BBR-based Congestion Control for Delay-sensitive Real-time Applications",
+  "review_status": "partial methods and internal-consistency audit; eligibility pending",
+  "source": "fulltext_acquisition_20261012/openalex_Q1_0026.pdf",
+  "version": "LJMU repository author manuscript; placeholder publication dates",
+  "method_locations": [
+    "PDF p.14 Section5",
+    "p.15 Table1/Section5.1",
+    "pp.7–8 Section3.1.3"
+  ],
+  "platform": "NS2 simulation, not nativeLinux/Mininet deployment",
+  "traffic": "4senders/4receivers,3CBR+1VBR,VoIP-oriented",
+  "duration_s": 12,
+  "scenario_count": 5,
+  "repeat_count": "NR; five table runs are different configurations, not independent repetitions",
+  "capacity_range_mbps": [
+    0.3,
+    1.92
+  ],
+  "queue_range_packets": [
+    5,
+    50
+  ],
+  "comparators": [
+    "UDP",
+    "TCP-BBR NODELAY"
+  ],
+  "limits": [
+    "No exact BBRsource/version or NS2implementation commit verified",
+    "Proposed ProbeRTT burst threshold20s exceeds each12ssimulation; these runs do not establish behavior beyond20s",
+    "Text defines latency as send-to-ACKelapsedtime while also discussing end-to-endpacketdelay; preserve metric ambiguity",
+    "Throughput text describes successfully received packet count; do not reinterpret plotted units without checking",
+    "No CUBIC,BBRv2/v3 or heterogeneousRTTfairness validation established",
+    "Claim ofbitwiseoperations<=5msoverhead is not supported by runtime profiling in inspected sections"
+  ],
+  "evidence_acceptance": "Descriptive setup only; performance percentages and final eligibility not signed off"
+}

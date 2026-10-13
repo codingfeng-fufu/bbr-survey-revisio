@@ -1,0 +1,9 @@
+case_id,capacity_mbps,reference_rtt_ms,buffer_bytes,bdp_bytes,frozen_label_ratio,physical_target_ratio,label_matches_target,eligibility
+E3_001,50,10,250000,62500.0,1,4.0,False,input_mismatch
+E3_002,50,10,1000000,62500.0,4,16.0,False,input_mismatch
+E3_003,50,60,1500000,375000.0,1,4.0,False,input_mismatch
+E3_004,50,60,6000000,375000.0,4,16.0,False,input_mismatch
+E3_005,200,10,250000,250000.0,1,1.0,True,input_ratio_consistent
+E3_006,200,10,1000000,250000.0,4,4.0,True,input_ratio_consistent
+E3_007,200,60,1500000,1500000.0,1,1.0,True,input_ratio_consistent
+E3_008,200,60,6000000,1500000.0,4,4.0,True,input_ratio_consistent

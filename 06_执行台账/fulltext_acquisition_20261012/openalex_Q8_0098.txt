@@ -1,0 +1,827 @@
+Received March 17, 2020, accepted April 15, 2020, date of publication May 6, 2020, date of current version May 20, 2020.
+Digital Object Identifier 10.1109/ACCESS.2020.2992480
+
+
+
+
+Crop Yield Prediction Using Deep Reinforcement
+Learning Model for Sustainable
+Agrarian Applications
+DHIVYA ELAVARASAN AND P. M. DURAIRAJ VINCENT , (Member, IEEE)
+School of Information Technology and Engineering, Vellore Institute of Technology (VIT), Vellore 632014, India
+Corresponding author: P. M. Durairaj Vincent (pmvincent@vit.ac.in)
+
+
+
+
+  ABSTRACT Predicting crop yield based on the environmental, soil, water and crop parameters has been a
+  potential research topic. Deep-learning-based models are broadly used to extract significant crop features
+  for prediction. Though these methods could resolve the yield prediction problem there exist the following
+  inadequacies: Unable to create a direct non-linear or linear mapping between the raw data and crop yield
+  values; and the performance of those models highly relies on the quality of the extracted features. Deep
+  reinforcement learning provides direction and motivation for the aforementioned shortcomings. Combining
+  the intelligence of reinforcement learning and deep learning, deep reinforcement learning builds a complete
+  crop yield prediction framework that can map the raw data to the crop prediction values. The proposed work
+  constructs a Deep Recurrent Q-Network model which is a Recurrent Neural Network deep learning algorithm
+  over the Q-Learning reinforcement learning algorithm to forecast the crop yield. The sequentially stacked
+  layers of Recurrent Neural network is fed by the data parameters. The Q- learning network constructs a
+  crop yield prediction environment based on the input parameters. A linear layer maps the Recurrent Neural
+  Network output values to the Q-values. The reinforcement learning agent incorporates a combination of
+  parametric features with the threshold that assist in predicting crop yield. Finally, the agent receives an
+  aggregate score for the actions performed by minimizing the error and maximizing the forecast accuracy.
+  The proposed model efficiently predicts the crop yield outperforming existing models by preserving the
+  original data distribution with an accuracy of 93.7%.
+
+
+  INDEX TERMS Crop yield prediction, deep recurrent Q-network, deep reinforcement learning, intelligent
+  agrarian application.
+
+
+
+I. INTRODUCTION                                                                                and farmers further benefit from yield forecast to make finan-
+Agriculture is the one amongst the substantial area of interest                                cial and management decisions. Agricultural supervision,
+to society since a large portion of food is produced by them.                                  especially the observation of crop yield, is indispensable to
+Currently, many countries still experience hunger because                                      determine food security in a region [2]. On the other hand,
+of the shortfall or absence of food with a growing popu-                                       crop yield forecasting is exceedingly challenging because of
+lation. Expanding food production is a compelling process                                      various complex aspects. Crop yield mainly depends upon
+to annihilate famine. Developing food security and declin-                                     climatic conditions, soil quality, landscapes, pest infestations,
+ing hunger by 2030 are beneficial critical objectives for the                                  water quality and availability, genotype, planning of harvest
+United Nations. Hence crop protection; land assessment and                                     activity and so on [3]–[5].
+crop yield prediction are of more considerable significance to                                    The crop yield processes and strategies vary with time and
+global food production [1]. A country’s policymaker depends                                    they are profoundly non-linear in nature [6], and intricate due
+on precise forecast, to make appropriate export and import                                     to the integration of a wide extent of correlated factors [7], [8]
+assessments to reinforce national food security. Cultivators                                   characterized and impacted by non-arbitrate runs and exter-
+                                                                                               nal aspects. Usually, a considerable part of the agricultural
+  The associate editor coordinating the review of this manuscript and                          framework cannot be delineated in a fundamental stepwise
+approving it for publication was Dongxiao Yu.                                                  calculation, especially with complex, incomplete, ambiguous
+
+                     This work is licensed under a Creative Commons Attribution 4.0 License. For more information, see https://creativecommons.org/licenses/by/4.0/
+86886                                                                                                                                                                 VOLUME 8, 2020
+D. Elavarasan, P. M. Durairaj Vincent: Crop Yield Prediction Using DRL Model for Sustainable Agrarian Applications
+
+
+
+
+and strident datasets. Currently, many studies demonstrate                          directly from the data like, Autoencoders [28], deep belief
+that machine learning algorithms have comparatively more                            networks [29], Gaussian Bernoulli RBM’s [30], Bayesian
+improved potential than conventional statistics [9]–[12].                           Neural Nets [31], Deep Generative models [32]. These mod-
+Machine learning belongs to the field of artificial intelligence                    els can sometimes fail to account for uncertainty while inter-
+by dint of which computers can be instructed without definite                       preting ambiguous inputs. Most of these approaches follow
+programming. These processes resolve non-linear or linear                           greedy procedures that are sub-optimal, learning a single
+based agricultural frameworks with remarkable forecasting                           layer of features at a time without updating its lower-level
+ability [13]. In Machine learning agricultural frameworks,                          parameters resulting in slow and inefficient computations.
+the techniques are obtained from the learning process. These                        The proposed work overcomes the above-mentioned short-
+processes demand over train to perform a specific task. After                       comings promoting the advancement of smart agriculture and
+the completion of the training process, the model makes                             thereby leading to increased food production. The rest of the
+presumptions to test the information.                                               paper is organized as follows. Section 2 presents the literature
+   Further, machine learning resembles an umbrella that holds                       review of the existing works. Section 3 briefs about the
+various significant strategies and methodologies. On observ-                        Deep Q-learning algorithm and the proposed Deep Recurrent
+ing the most prominent models in agriculture, we can see                            Q-Network (DRQN) model for forecasting the crop yield..
+the utilization of artificial and deep neural networks [14].                        Section 4 explains the agriculture dataset and study area
+Deep learning is a subgroup of machine learning that can                            description. Section 5 presents the experimental results and
+determine outcomes from varying arrangements of raw data.                           frameworks, and the performance of the DRL model over the
+Deep learning algorithms, for example, can develop a prob-                          other machine learning algorithms. Section 6 wraps up with
+ability model by taking a decade of field data and providing                        the conclusion and future works.
+insights about crop performance under various climatic con-
+ditions [15]. Data scientists utilize various machine learning                      II. RELATED WORK
+algorithms to derive actionable insights from the available                         The potential growths in Artificial Intelligence have undoubt-
+information. Another intriguing area of artificial intelligence                     edly endless potential results [33], [34]. For creating new
+is reinforcement learning [16]. These can be examined as an                         opportunities, deep learning has surged together with enor-
+essential class of algorithms that can be utilized for streamlin-                   mous data advancement [35]. This result in need of improved
+ing logic for dynamic programming. Reinforcement learning                           measures to envision, determine and assess data exhaustive
+is the preparation of machine learning models to make deci-                         strategies in agricultural frameworks [36], [37]. Crop yield
+sion sequences [17]. The agent learns to accomplish an                              prediction can be considered as a pattern recognition problem
+objective in an ambiguous, potentially complex environment.                         where AI has shown notable efficiency for agricultural appli-
+Based on the agent’s action, the environment rewards it. This                       cations [38]. Abrougui et al. have proposed yield prediction
+scenario depicts the machine as the agent and its surroundings                      of potato crop the soil properties and tillage system by the
+as the environment.                                                                 ANN. The ANN model showed great potential to estimate
+   In recent times advanced and progressive artificial intelli-                     yield [39]. Haghverdi et al. have defined the prediction of
+gence technique named, deep reinforcement learning (DRL)                            cotton lint from the phenology of crop indices using ANN.
+is profound for intelligent decision making in various                              The ANN approach is used to generate 61200 models relating
+domains like energy management [18], robotics [19], health                          to individual crop indices to field estimates of cotton yield to
+care [20], smart grid, game theory [21], [22], finance, com-                        be predicted [40]. Byakatonda et al. explained an ANN-based
+puter vision [23], Natural Language Processing [24], Sen-                           yield forecast for the maize crop based on the climatic indices
+timent analysis [25] and so on with an extensive combina-                           and the precipitation length. In order to facilitate agricultural
+tion of reinforcement learning methods with deep learning                           planning, yield predictions are made using ANN models [41].
+models [26], [27]. This model has been efficient to resolve                         In the approaches as mentioned earlier, the ANN’s were
+a wide extent of complicated decision-making tasks that                             used for the processing, which relied on feature extraction
+were formerly beyond the bounds for the machine. As a                               by time-domain and frequency-domain processing methods.
+result, it is a convincing model endorsed for developing                            This results in the drawback of manual feature extraction
+intelligent agricultural frameworks. The characteristic mod-                        mainly depending on the prior knowledge of the data for pre-
+els of deep reinforcement learning include deep successor                           dicting yield, and the ANN’s shallow architecture in learning
+network, multi-agent deep reinforcement learning and deep                           the complex non-linear relationships in the yield prediction
+Q-network.                                                                          system. With the advent of deep learning, such problems are
+   In this paper, we propose a supervised smart agriculture                         handled to a certain extent.
+framework based on the deep reinforcement learning algo-                               Yang et al. have proposed a deep convolution neural net-
+rithm. A deep Q-Learning based DRL algorithm is used to                             work model to predict the crop yield estimation of the rice
+strengthen the crop yield forecasting efficiency with the best                      crop at the ripening stage. The CNN network learns the
+rewarding iterations. There exist several other deep learning                       significant spatial features concerning the crop yield from
+algorithms that may not be bounded by the biases or require                         the high spatial resolution RGB image [42]. Deep learning
+huge manual effort in label creation deriving the insights                          enabled the crop mapping strategy to identify the crop yield in
+
+VOLUME 8, 2020                                                                                                                                 86887
+                                       D. Elavarasan, P. M. Durairaj Vincent: Crop Yield Prediction Using DRL Model for Sustainable Agrarian Applications
+
+
+
+
+a respective region. Winter wheat mapping using the ground                 penalty. RL differs from other machine learning algorithms
+data statistical references employing the artificial neural net-           by the way that, it is not explicitly advised in performing a
+works and the deep CNN are modeled by Zhong et al. This                    task, but it solves through the problem on its own [55]. For the
+enables automatic identification of wheat seasonality without              RL study process, a Markov choice Procedure (MDP) is char-
+using samples [43]. Ramesh et al., proposed an optimized                   acterized that endorses the formalism where the reinforce-
+deep neural network algorithm recognize and classify crop                  ment learning problems are embraced. The RL algorithm,
+yield based on the diseased leave images obtained by the                   which is an agent learns by collaborating and interacting
+image processing method [44]. Babak et al. computed a                      with the environment. The agent will get rewards on the
+numerical deep learning model of crop growth by incorpo-                   correct actions performed and penalties for the wrong actions.
+rating the DSSAT model’s rainfall and irrigation inputs to                 The agent learns by itself without human intervention by
+predict maize yield [45]. An efficient automatic rice crop                 increasing its rewards and limiting its penalties. The process
+yield heading date estimation method through deep learning                 of reinforcement learning is presented in Fig.1.
+CNN network using time series RGB images of the crop [46]
+has been proposed by Desai et al. Koirala et al., proposed a
+two-staged deep learning method using CNN for mango fruit
+yield estimation [47]. From the literature, the ANN-based
+process can be efficiently identified as a primary predictor,
+whereas deep learning approaches can recognize adaptive
+crop feature extraction by the hierarchical representation of
+DNN architecture. DNN architecture, however, needs a great
+deal of experience and prior knowledge which limits its
+generalization capability. Therefore it is essential to organize
+deep reinforcement learning (DRL) based smart architecture
+to examine crop yield prediction. In the DRL framework,
+deep learning provides the agent with the ability to sense
+                                                                           FIGURE 1. Reinforcement learning process.
+the environment and reinforcement learning provides the
+ability to learn the best strategy for real-time problems [48].
+DRL enables creating an agent that can generalize to an                       An agent that is present in a state ‘s’ performs an action ‘a’.
+environment that is examined as meta-learning [49]. As a                   On Performing an action the agent attains a reward R(s,a)
+generic way of solving optimization problems through trial                 and moves into a new state s’. The policy is a function that
+and error, DRL finds its application in several fields like                maps the states and the actions. In each state, a policy π
+agriculture [50], health care [51], energy management [52],                is determined to specify the action to be carried out by an
+robotic system [53] and game theory [54]. The following                    agent. In an agent’s lifetime, its key objective is to identify
+section provides a brief introduction to the Deep Q-Network                an optimal policy π ∗ which magnifies the total discounted
+DRL algorithm and the proposed methodology.                                reward. The optimal policy π ∗ is defined in equation (1).
+                                                                                           argmax X                 0         0
+III. DEEP Q-NETWORK ALGORITHM BACKGROUND                                         π ∗ (s) =          γ       0   Psa s , a V ∗ (s , a)     (1)
+                                                                                           aA             s ∈S
+Deep reinforcement learning has advanced together with
+enormous data growth and improved measure persistence to                   A value function Vπ (s,a) [56] is defined for each state-action
+make new opportunities to determine, evaluate and acknowl-                 pair is an estimate of the expected reward following a pol-
+edge extensive data procedures for agricultural frameworks.                icy π . The most optimal value function is attained from the
+Some of the essential factors that need to be analyzed in                  best optimal policy, which is identified by the highest reward
+structuring the deep reinforcement learning models are:                    obtained by an agent from all the other states. This optimal
+   • Understanding the patterns and basic structures from the              value function is represented in equation (2).
+     restricted sample space.                                                                      max X             0          0
+   • We are reviewing the objective functions with constant                V ∗ (s, a) = R (s, a) +     γ      0   Psa s , a V ∗ (s , a) (2)
+                                                                                                   aA       s ∈S
+     representations of events.
+   • The performance of the framework must be adequately                     Thus reinforcement learning agent learns from the envi-
+     viable to embrace consistently dynamic actions.                       ronment through interactions. They maximize their rewards
+This section explains in detail the reinforcement learning,                by determining the best bellman optimal policy and value
+Q-learning and the deep Q-Network algorithm.                               function using dynamic programming functions.
+
+A. REINFORCEMENT LEARNING                                                  B. Q-LEARNING
+Reinforcement learning (RL) is a framework in artificial                   Q-Learning is a method that assesses which action to take by
+intelligence with a dynamic programming concept that devel-                an agent, depending on an action-value function. It decides
+ops and trains algorithms utilizing a strategy of reward and               the value of being in a specific state and making a specific
+
+86888                                                                                                                                     VOLUME 8, 2020
+D. Elavarasan, P. M. Durairaj Vincent: Crop Yield Prediction Using DRL Model for Sustainable Agrarian Applications
+
+
+
+
+action at that state. It is one of the most significant progress                    the policy of the agent and also the correlation between the
+in reinforcement learning by the development of an off-policy                       target and Q-Value. These inadequacies are overcome in Deep
+temporal difference control algorithm. Q-Learning evaluates                         Q-Network using two strategies, namely, experience replay
+a state-action value function for a target policy that ascertains                   and iterative updates. Iterative updates minimize the corre-
+in choosing the action of maximum value. The function Q                             lation between the target and he Q-values through consis-
+takes the input as the current state ‘s’ and an action ‘a’ and                      tently revising the Q-values towards the target values. While
+returns an expected reward of that action in that state. In the                     experience replay tends to solve the correlation problem by
+initial steps before analyzing the environment, Q functions                         smoothing over the data distribution changes through data
+give the arbitrary fixed values. Later with better analysis,                        randomization. In the proposed work during the enhancement
+Q function provides a better approximation of the value                             of the DQN agent, the experience replay randomly selects the
+function for the action ’a’ in the state ’s’. The Q function                        experience from the memory and the Deep Q-network uti-
+goes on updating providing the optimal value. The agent will                        lized is the RNN, which acts as a function approximation with
+perform a series of actions that will ultimately generate the                       weights θ . Hence the Q-Network can be prepared by revising
+total maximum reward.                                                               the parameters θi in the ‘i’th iteration by diminishing the mean
+                                                                                    squared error in the Bellman equation. The loss function,
+C. DEEP Q-NETWORK                                                                   which is the squared difference between the Target Q and the
+Deep Q-networks is an advanced reinforcement learning                               Predicted Q is defined in equation (3) as follows:
+agent that uses a Deep Neural Networks (DNN) to map the                                                                                     2
+                                                                                                           max  0 0 0 
+connections among the states and the actions analogous to a                                Loss = (r + γ 0 Q s , a ;θ − Q(s, a; θ ))             (3)
+                                                                                                           a
+Q-Table in Q-Learning. DNNs like Convolution Neural Net-
+works (CNN), Recurrent Neural Networks (RNN) and sparse                             Gradient descent for the actual parameters can be performed
+auto-encoder can directly learn the abstract representations of                     in order to reduce this loss.
+the raw data from the sensors. A DQN agent communicates
+with the environment through a series of observations, actions                      D. PROPOSED DEEP REINFORCEMENT LEARNING
+and rewards which is identical to the task of Q-Learning                            MODEL FOR CROP YIELD PREDICTION
+agent. Fig. 2 depicts the generic structure of deep Q-Network.                      Reinforcement learning is broadly designed in areas such
+                                                                                    as operations research, game theory, multi-agent systems,
+                                                                                    and control theory. In the proposed work, forecasting crop
+                                                                                    yield is studied as a regression problem that is resolved
+                                                                                    by supervised learning. This supervised learning-based crop
+                                                                                    yield prediction process needs to consider the crop yield data
+                                                                                    and its corresponding parameters as the inputs to determine
+                                                                                    the crop yield in the concerned region. In the RL based
+                                                                                    methods, the learning efficiency of the yield predicting agents
+                                                                                    is determined by the overall rewards. It results in unsteady
+                                                                                    feedback for the agents to adapt their performance along with
+                                                                                    the supervised learning methods. In other words, the agents
+                                                                                    will not be able to recognize from the inputs which samples
+                                                                                    are not efficiently learned during the learning process. Such a
+FIGURE 2. Structure of deep Q-Network.                                              component enforces the agent to be more efficient by uncov-
+                                                                                    ering the deep characteristic contrasts among the crop yield.
+   The network takes a state as an input and for each action                           In order to understand the yield forecast method based on
+in the action space, the Q-Values are generated. The objective                      DRL, a yield forecasting environment is designed based on
+of the neural network is to learn and train the parameters.                         the input parameters that converts the supervised learning
+During the prediction process, this trained network is used to                      process to the reinforcement learning process. The environ-
+predict the next best action to occur in the environment. Basi-                     ment can be determined as a ’yield prediction game’. Every
+cally, Q-Learning determines the state-action value function                        game incorporates certain parametric feature combinations
+for a specific target policy that ultimately chooses an action                      and thresholds that aids in crop yield and each combination
+of best value. It works fine for a restricted state and action                      has a set of samples and its corresponding labels. When the
+space. However, for a huge set of action space may require                          agent starts playing, it determines the crop yield parameter
+millions of records to be stored in program memory. This                            values by performing the actions to attain the rewards. For
+results in the inflation of memory volume leading to curse of                       every nearby predicted value of the target, the agent gets a
+dimensionality or an unstable representation of a Q-Function.                       positive reward, otherwise a negative reward. After complet-
+   The instability in Q-Learning arises due to the correlations                     ing the entire process, the agent will receive an aggregate
+existing in the series of observations. The relative small                          score for its actions performed. This flow of yield prediction
+updates in the Q-value can result in the drastic change in                          is presented in Fig. 3.
+
+VOLUME 8, 2020                                                                                                                                86889
+                                          D. Elavarasan, P. M. Durairaj Vincent: Crop Yield Prediction Using DRL Model for Sustainable Agrarian Applications
+
+
+
+
+                                                                              FIGURE 4. Propagation process of recurrent neural network.
+
+
+
+
+                                                                              The value of the hidden state at time ‘t’ is given in equation (4)
+                                                                              as follows:
+                                                                                              H t = f (u × x t + w×H t−1 + b1 )                         (4)
+                                                                              The predicted output Ot of the RNN at time ‘t’ is given as
+                                                                              follows in equation (5):
+                                                                                                      Ot = f (v×H t + b2 )                              (5)
+                                                                              The error L of the RNN at time‘t’ is given as follows in
+FIGURE 3. The flow diagram of the proposed deep recurrent Q-Network           equation (6):
+model for crop yield prediction.
+                                                                                                           L = Ot − y t                                 (6)
+   For the actual reinforcement learning methods like the                     The crucial aspects of the RNN, which can efficiently deter-
+Q-learning, it is challenging to discriminate and analyze the                 mine the crop yield, are the representation of the actual fea-
+crop yield prediction due to the restricted ability of those                  tures self-learning layer after layer and the sparse constraint
+methods to describe the states. Inspired by the DQN concept                   that limits the parameter space preventing over-fitting. The
+of processing huge information, a Recurrent Neural network                    RNN in the proposed work consists of three hidden layers
+Based DNN is used in the proposed method to predict the crop                  between the input layer and the output Q-value layer. For each
+yield using the various environmental, soil and groundwater                   RNN layer, a ReLU [57] activation function and L1 regular-
+parameters. It is termed as the Deep Recurrent Q-Learning                     ization [58], [59] is used. It results in penalizing the absolute
+model which is basically an RNN on top of the DQN. RNN                        values of the data parameters in the neural network when
+can assist in mining temporal and semantic data and has                       they are huge. Before the training process of the DRL, a pre-
+advanced in time series analysis, language modeling and                       training process is applied to all the training data samples.
+speech recognition. RNN is a variant of the ANN, where the                    Then the agent’s yield prediction perception is built by stack-
+current state input is connected to the output of the previ-                  ing the input layers and the fully connected layer to output
+ous state. The definite explanation is that the network will                  the final Q-values.
+recollect the previous information and apply it to the present                   During the training process of the DRL framework, a huge
+network calculation.                                                          set of state and action space is processed which can result in
+   In our proposed method the DQN agent is framed by                          instability due to data correlations. Hence in the training pro-
+stacking the RNN layers sequentially, initializing the param-                 cess of the DQN, two alterations of the Q-Learning are made
+eters utilizing the weights saved in the RNN Pre-training                     to ensure non-divergence of DRL’s training process. The first
+process and adding a linear layer mapping the RNN output to                   is terms of experience replay, where the agent’s experience
+Q-Values. Fig. 4 shows the structure of the RNN used in the                   is saved in the replay memory (D) by means of state, action
+DQN. x t denotes the training data input at time t, H t defines               and reward of the present time stamp and the state of the next
+the hidden state at time t. Current input x t and the previous                timestamp. Say initially at each time step t, the experience
+hidden layer state H t−1 determines H t . Here, Ot represents                 replay saves the agent’s experience resulting in a collection
+the output of the current layer at time t. The training data                  of specific sets of experiences. An individual experience et
+original output Y t and the current output Ot determines the                  at a time t is described as et = (st , at , rt , st+1 ) and the
+error L at time t. The weights shared across the RNN’s are                    memory at time t is defined as Dt , where Dt = {e1 . . . .et .
+represented as u, v, and w.                                                   Experience replay is an effective technique in eliminating the
+   F depicts the activation function of the hidden layers. The                divergence in the parameters enabling the agents to recognize
+thresholds shared across the RNN’s are defined as b1 and b2 .                 its experience in the learning process. The second alteration
+
+86890                                                                                                                                        VOLUME 8, 2020
+D. Elavarasan, P. M. Durairaj Vincent: Crop Yield Prediction Using DRL Model for Sustainable Agrarian Applications
+
+
+
+
+of Q-Learning is to utilize an independent network for gener-                       IV. DATASET AND STUDY AREA DESCRIPTION
+ating the targets during the Q-Learning update process. These                       Deep learning models demand huge data volume for effi-
+alterations can substantially improve the DRL stability. Also,                      cient processing. Information with adaptable characteristics
+it is observed that usually RL algorithms iteratively update                        streamlines the effort of finding regularities by removing the
+the action-value function using a Bellman equation. As this                         irrelevant features for the learning objective. Fabricating a
+approach is tedious in practice the action-value function is                        deep reinforcement learning model for the agricultural frame-
+estimated using an RNN function approximator with weight                            work is highly tedious since they are extremely unsteady and
+θ . Hence the Q-Network can be prepared by revising the                             possess a dynamic non-linear behavior. This section explains
+parameters θi in the ‘i’th iteration by diminishing the mean                        in detail the dataset used for the study for predicting the crop
+squared error in the Bellman equation.                                              yield.
+   The training process comprises two steps. The first step                            The proposed study investigates the yield prediction of
+involves the pre-training of the RNN and the second step is                         paddy crop for the Vellore district in the southern part of
+the training of the DQN agent. The agent selects and executes                       India. Here, the block of district considered for the study
+an action based on a ε-greedy policy. Here the action is                            include Ponnai, Arcot, Sholinghur, Ammur, Thimiri, and
+selected randomly with a probability ε, while the probability                       Kalavai. Paddy is one of the prevailing monetary crops
+1-ε chooses the action representing the maximum q value.                            cultivated in this region and hence this area is considered
+The optimization algorithm utilized in the proposed study is                        for investigation. In varying to the typical climatic and soil
+the stochastic gradient descent algorithm. The optimization                         parameters, the dataset incorporates specific climate, soil and
+algorithm updates the network weights iteratively based on                          groundwater properties along with the volume of fertilizers
+the training data. The algorithm for training the RRN based                         consumed by the crops of the study area. Some of the param-
+Deep Recurrent Q-Network is defined in follows:                                     eters analyzed in the current study include evapotranspira-
+                                                                                    tion, ground frost frequency, groundwater nutrients, wet day
+Algorithm Training of RNN Based DQN                                                 frequency, aquifer characteristics which are not recognized
+  Step 1: Pre-training of the RNN.                                                  together in the existing literature. Table 1 represents concise
+            (a) Initialize the replay memory capacity as N;                         information about the various crop parameters utilized in
+            (b) Initialize the RNN network with random                              the study. The data is taken for 35 years. The paddy crop
+             weights θi .                                                           yield is estimated in terms of area cultivated (in hectares),
+            For i = 1, I do                                                         paddy production (in tons) and yield acquired (in kg/hectare).
+                 (c) Train the ith hidden layer.                                    The knowledge pertinent to regular climatic factors like
+                 (d) Save the parameters of the ith hidden                          temperature, precipitation, reference crop evapotranspiration,
+                 layer.                                                             potential evapotranspiration, humidity and distinctive cli-
+           End For                                                                  matic parameters like ground frost frequency, diurnal temper-
+           (d) Initialize action-value network Q with the                           ature range, and wind speed has been utilized. The climatic
+          parameters of the hidden layer, other than the input                      data are provided by the Indian Meteorological department
+           and the output layer.                                                    from its portal metdata tool. The soil parameters comprise
+           (e) Initialize the target action-value function Q’                       topsoil density, soil PH and the amount of the soil macronu-
+           with the same parameters as Q.                                           trients (Nitrogen, Phosphorus and Potassium) present.
+  Step 2: Training of the DQN agent                                                 Distinctive hydro-chemical properties of groundwater like
+  For event = 1, M do                                                               transmissivity, aquifer type, permeability, electrical con-
+       (a) Initialize the observation sequence s1 by out-                           ductivity, pre-monsoon and post-monsoon micro-nutrients
+  putting the predicted yield randomly.                                             (calcium, potassium, sodium, magnesium, and chloride) con-
+       For t = 1, T do                                                              tent in groundwater are considered for the study.
+           (b) Select a random action at , with probability ε.                         The following section presents the experimental results
+           (c) Perform the action at and obtain the reward rt .                     obtained for predicting the crop yield using the DRQN model
+           (d) Randomly generate the next state s(t+1) .                            and comparison of the results with the existing models.
+           (e) Save the memory D as (st , at , rt , s(t+1) ).
+           (f) With respect to the network parameters θ ,                           V. RESULTS AND DISCUSSION
+           perform gradient descent on (rt − Q(st , at ;θ )2                        The efficiency of a learning model is determined by evalu-
+           (g) Reset Q’ = Q.                                                        ating the model various execution measures or by monitor-
+       End For                                                                      ing the performance by various evaluation metrics. For the
+  End For                                                                           proposed work the model is validated in terms of:
+                                                                                       • Performance estimation
+   The following section explains a brief definition of the                            • Comparison of various other algorithms in terms of:
+various agrarian factors that influence the crop yield, and                                ◦ Evaluation metrics
+evaluation of various crop parameters to be considered for                                 ◦ Data distribution properties
+the construction of the learning models.                                                   ◦ Model accuracy measures
+
+VOLUME 8, 2020                                                                                                                                86891
+                                           D. Elavarasan, P. M. Durairaj Vincent: Crop Yield Prediction Using DRL Model for Sustainable Agrarian Applications
+
+
+
+
+TABLE 1. List of dataset parameters for the proposed DRL framework.            TABLE 1. (Continued.) List of dataset parameters for the proposed DRL
+                                                                               framework.
+
+
+
+
+86892                                                                                                                                         VOLUME 8, 2020
+D. Elavarasan, P. M. Durairaj Vincent: Crop Yield Prediction Using DRL Model for Sustainable Agrarian Applications
+
+
+
+
+A. PERFORMANCE ESTIMATION
+During the construction of machine learning models,
+the dataset is arbitrarily split into training and test set, where
+the highest amount of data is taken as the training set. Even
+though the test dataset is small, there exist chances of leaving
+out some important information that may have enhanced the
+model. Also, there is a concern of high variance in the dataset.
+To handle this issue, K-fold cross-validation is utilized. It is
+a strategy that is utilized to assess the deep learning models
+by re-sampling the training information for enhancing the
+performance. Modeling and forecasting time series data are
+intricate and challenging. Randomly splitting a time series
+data for cross-validation does not hold well. It may lead to a
+temporal dependency problem as there is an implicit reliance
+on past observation and simultaneously, a leakage from the
+response variable to lag variables is bound to happen. This
+results in non-stationarity, which is the frequent changes in
+mean and variance in the information space. In such cases,
+cross-validation is performed in a forward-chaining manner.
+   For the proposed approach, five-fold forward chaining
+cross-validation is performed, which more precisely models
+the data prediction where the model is built on past data and
+predicts the forward-looking data. The results are tabulated
+in Table 2.
+
+TABLE 2. Results of 5- fold forward chaining cross-validation for the
+deep reinforcement model M.                                                         FIGURE 5. Data predictions of the deep reinforcement forecasting model
+                                                                                    against true values (a) Before cross-validation, (b) After cross-validation.
+
+
+
+                                                                                    data is subjected to training and 30% of the data for testing.
+                                                                                    The model is trained throughout the K-fold forward chaining
+                                                                                    cross-validation process and the error metric is determined.
+                                                                                    The error metric is the r2 score, which is appended in every
+                                                                                    iteration and obtain the best value defining the overall model
+                                                                                    accuracy.
+
+                                                                                    B. COMPARISION WITH OTHER MODELS
+   It is like starting with a small subset of data initially for                    The proposed deep reinforcement model DRQN is explored
+training, predict for the following data and determining the                        and tested with other significant algorithms, namely Deep
+exactness of the predicted data. The same forecasted data                           LSTM network, Artificial Neural networks (ANN), gradient
+points are enclosed as a part of the next training data subset                      boosting (GB), random forest (RF) and other deep learning
+and the following data points are forecasted. Fig. 5 repre-                         based algorithms like Bernoulli Deep Belief Network (BDN),
+sents the deep reinforcement model plot before and after                            Bayesian Artificial Neural Networks (BAN), Rough Auto
+performing the cross-validation.                                                    Encoders (RAE) and Interval Deep Generative Artificial Neu-
+   The cross-validation is performed using the python                               ral Networks (IDANN). An inducing aspect for the evaluation
+Scikit-Learn machine learning library. The dataset is                               metric is their ability to discriminate between the results of
+preprocessed using the min-max scaling which normal-                                different learning models.
+ized the dataset. From the Sklearn using the sub-library
+model_selection, the train_test_split function is imported to                       1) EVALUATION METRICS
+split the training and test sets. The hyperparameter tuning for                     The proposed model’s reasonability is determined by evaluat-
+the cross-validation in determining the best ‘K’ is obtained                        ing the model against different execution measures or specific
+using the cross_val_score function of the Sklearn library. The                      evaluation metrics. The various evaluation metrics considered
+data is split into ’K’ subsets, in this case, it is five by setting                 for the proposed work are the Determination Coefficient (R2),
+the parameter n_splits as 5. The training and validation data                       Mean Absolute Error (MAE), Mean Squared Error (MSE),
+set size is determined by the parameter test_size which is                          Root Mean Squared Error (RMSE), Median Absolute Error
+taken as 0.3 for the proposed work, indicating that 70% of the                      (MedAE), Mean Squared Logarithmic Error (MSLE), Mean
+
+VOLUME 8, 2020                                                                                                                                            86893
+                                        D. Elavarasan, P. M. Durairaj Vincent: Crop Yield Prediction Using DRL Model for Sustainable Agrarian Applications
+
+
+
+
+Absolute Percentage Error (MAPE) and Explained Variance                     TABLE 3. Performance evaluation metrics of the proposed deep
+                                                                            reinforcement model and other machine learning models.
+Score (Exp. Var.). To assure a fair examination of the model
+error metrics, two sets of these four models for training and
+validation were constructed to forecast yield. The hyperpa-
+rameter optimization for the proposed approach and the other
+models are observed through a manual selection approach
+for the respective models. The key objective of the manual
+hyperparameter selection is to tune the model’s capacity to
+match the target task complexity. The hyperparameters like
+the learning rate, the number of hidden units, optimizer,
+activation function and the dropout values are determined
+on the degree on which the training process and cost func-
+tion reduce the test error. The DQRN based DRL model is
+constructed using an RNN network of one input layer, three
+hidden layers with each layer consisting of 8 neurons, a fully
+connected layer and an output layer presenting the crop yield
+value. The input layer consists of 30 neurons representing the
+crop dataset parameters. The RNN uses a ReLU activation
+function for the processing in the hidden layers. To attain
+                                                                            TABLE 4. Performance evaluation metrics of the proposed deep
+the best performance accuracy without over-fitting, the agent               reinforcement model and other machine learning models.
+learns by performing an action through 1000 epochs.
+   In the construction of the interval deep generative artifi-
+cial neural networks [60] and the rough auto encoders [61],
+a rough set theory is introduced to the deep learning algo-
+rithm to deal with data ambiguity. The rough set theory is a
+mathematical function brought in by Pawlak [62] to handle
+uncertainty in learning. It is a proper theory obtained from
+the intrinsic research on logical characteristics of information
+systems. An information system S is identified as 4 tuple
+S =< U , V , A, f >. Here U is the universe of primitive
+objects,
+       SA is the set of attributes, V is the domain set such that
+V = a∈A Va . The mapping f is termed as the information
+or total function f : U × A → V . In concerning any attribute
+set At ⊆ A and concept set such as X ⊆ U rough set defines
+two approximations:
+   • At X represents the set of attributes in U which can
+      possibly be members of X with respect to the attributes
+      of At .
+   • At X represents set of all attributes in U that can be
+      exactly identified as members of X with respect to the
+      attributes of At .                                                    auto encoders are trained progressively using back propaga-
+The boundary region, B = At X − At X defines the set                        tion with stochastic gradient descent to determine the rough
+of attributes that can’t certainly be identified to X only by               features for crop yield.
+considering set of attributes of At . If B (X ) = ∅ then X is the              For the experimented IDANN, variational autoencoders
+crisp set with respect to At else it is defined as the rough set.           with the rough set theory is incorporated to extract the data
+   For the experimented rough autoencoder model a rough                     features. The variational autoencoder is a framework con-
+neuron based on the rough set theory is incorporated into the               sisting of both encoder and decoder that is trained to reduce
+two layered stacked autoencoder model. The rough neurons                    the reconstructed error between the generated and the actual
+are applied in the output and the hidden layers of the RAE                  data. The features are learned by means of stochastic gener-
+model. The rough neuron used in this approach consists                      ation of mean and standard deviation of the input samples.
+of an upper bound neuron U = (w1 , b1 , α) and a lower                      The initialization process is a regularization task; the ran-
+bound neuron L = (w2 , b2 , β). w1 , b1 , w2 , b2 are the weights           domly initialized parameters are moved to better latent space.
+and biases of the upper bound and lower bound neurons.                      The features are learned by maximizing the probabilities
+The output coefficients α, β defines the contribution of the                of the generative model-variational autoencoder to initialize
+upper bound and lower bound outputs O1 , O2 to the neuron’s                 the biases and weights of the multi-layered neural network.
+output O. Beginning from the first layer of RAE, the rough                  Naturally the mean vector oversees where the input encoding
+
+86894                                                                                                                                      VOLUME 8, 2020
+D. Elavarasan, P. M. Durairaj Vincent: Crop Yield Prediction Using DRL Model for Sustainable Agrarian Applications
+
+
+
+
+TABLE 5. Performance evaluation metrics of other unsupervised deep
+machine learning models.
+
+
+
+
+TABLE 6. Accuracy and MAPE measure of the proposed deep
+reinforcement model and other machine learning models.
+
+
+
+
+                                                                                    FIGURE 7. Model performance evaluation results using MSLE, Exp. Var.
+                                                                                    Score and MedAE for the experimented models.
+
+
+
+
+FIGURE 6. Model performance evaluation results using MAE, MSE, RMSE
+and R2 for the experimented models.                                                 FIGURE 8. Comparison of actual data distribution with Predicted data
+                                                                                    distribution using experimented algorithms (a): Deep reinforcement
+                                                                                    learning, Random forest, Gradient boosting, artificial neural networks,
+                                                                                    Deep learning. (b): Bayesian artificial neural networks, interval deep
+                                                                                    generative artificial neural network, Bernoulli deep belief network, Rough
+should be centered, and the standard deviation controls how                         autoencoders.
+much from the mean the encodings can vary. As the encodings
+are generated at random, the decoder understands that the                              Tables 3 to 6 compare the performance of the machine
+sample refers to not a single point in latent space, but rather                     learning models on both training and validation datasets to
+all nearby points.                                                                  the metrics as mentioned earlier of evaluation.
+
+VOLUME 8, 2020                                                                                                                                         86895
+                                              D. Elavarasan, P. M. Durairaj Vincent: Crop Yield Prediction Using DRL Model for Sustainable Agrarian Applications
+
+
+
+
+        FIGURE 9. Probability density functions of the: (a) Original data and Predicted data using: (b) Deep reinforcement learning, (c) deep
+        learning (d) Artificial neural network, (e) Gradient boosting, (f) Random forest, (g) Bernoulli DBN, (h) Bayesian ANN, (i) Interval deep
+        generative ANN, (j) Rough autoencoder.
+
+
+
+86896                                                                                                                                            VOLUME 8, 2020
+D. Elavarasan, P. M. Durairaj Vincent: Crop Yield Prediction Using DRL Model for Sustainable Agrarian Applications
+
+
+
+
+        FIGURE 9. (Continued.) Probability density functions of the: (a) Original data and Predicted data using: (b) Deep reinforcement learning,
+        (c) deep learning (d) Artificial neural network, (e) Gradient boosting, (f) Random forest, (g) Bernoulli DBN, (h) Bayesian ANN, (i) Interval
+        deep generative ANN, (j) Rough autoencoder.
+
+
+
+
+   These models were enforced and implemented in python                             and the other ML algorithms can preserve the distributional
+in the most effective aspect and tested under similar software                      properties of the actual crop yield data.
+and hardware conditions to assure reasonable comparisons.                              Fig.9 defines the individual probability density plots of the
+The error metric is used to define the performance degree                           original data, proposed DRL method and other experimented
+during the execution of a model. The residuals obtained                             ML algorithms.
+during the experiments, which are the difference between the                           From Fig. 9, it is explicitly defined that the proposed deep
+actual and the predicted values are used to estimate the error                      reinforcement learning model can more approximately pre-
+measure. In other words, by observing the magnitude of the                          serve the distribution properties of the actual crop yield data
+residual spread, the precision, as well as the efficiency of the                    when compared to the other experimented machine learning
+model, is determined.                                                               algorithms.
+   In terms of precision and efficiency, the proposed deep
+reinforcement model is observed to outperform the other                             3) MODEL ACCURACY MEASURES
+machine learning models with an accuracy of 93.7% and                               Evaluation of the model accuracy is an integral part of the
+improved error measures.                                                            model development process. It enables in identifying the
+   However, the performance of other deep learning models                           optimum model for the data representation and performance
+BDN, BAN, IDANN, RAE and Deep LSTN is reasonably                                    of the model for the future timestamps.
+close to the DRL approach. Fig. 6 and Fig. 7 explain the                               Accuracy refers to the ratio of predictions which the model
+evaluated performance measures of the experimented models                           has forecasted precisely. Accuracy reflects the closeness of
+for the crop yield prediction.                                                      the predicted value to the actual value or the true value.
+                                                                                    Fig.10 graphically represents the accuracy measure of the
+2) DATA DISTRIBUTION PROPERTIES                                                     predicted data using the proposed deep reinforcement learn-
+In order to determine if the proposed DRQN model preserved                          ing algorithm and the other experimented machine learning
+the original distributional properties of the data, the proba-                      algorithms.
+bility density function of the actual crop yield data and the                          On observing the experimental values and results obtained
+experimented models are observed. The Probability Density                           for the paddy crop dataset, the deep reinforcement learning
+function (PDF) is an analytical expression that characterizes                       model is found to predict the data with better accuracy and
+probability distribution for a continuous random variable                           precision of 93.7% over the other experimented algorithms.
+against a discrete random variable. In graphically defining                            Though the accuracy measures of other deep learning
+the PDF, the region under the curve will represent the inter-                       algorithms like BDN, BAN, IDANN, RAE and Deep LSTN
+val where the predicted variable falls. The absolute area in                        are reasonably close to the proposed approach the computa-
+the graph interval equates the probability of the continuous                        tional cost and time complexity is more than the proposed
+random variable occurrence. It enables us to calculate the                          model. The BDN and IDANN are asserted to be more suit-
+probabilities of the range of outcomes.                                             able for predicting continuous data enabling greedy layer-
+   The probability density functions of the actual crop yield                       by-layer learning efficiently by evaluating the parameters
+and the predicted crop yield using the proposed deep rein-                          quickly. A critical disadvantage is that the approximation
+forcement learning and the other machine learning algorithms                        process is restricted to an individual bottom-up pass and
+are shown in Fig.8. It is done to observe if the proposed model                     the existing greedy process is very slow and inefficient.
+
+VOLUME 8, 2020                                                                                                                                         86897
+                                          D. Elavarasan, P. M. Durairaj Vincent: Crop Yield Prediction Using DRL Model for Sustainable Agrarian Applications
+
+
+
+
+        FIGURE 10. Prediction accuracy measure of: (a) Proposed DRL algorithm, (b) Deep learning algorithm, (c) Artificial neural network
+        algorithm, (d) Gradient boosting algorithm and (e) Random forest algorithm, (f) Bernoulli DBN, (g) Bayesian ANN, (h) Interval deep
+        generative ANN, (i) Rough autoencoders.
+
+
+
+86898                                                                                                                                        VOLUME 8, 2020
+D. Elavarasan, P. M. Durairaj Vincent: Crop Yield Prediction Using DRL Model for Sustainable Agrarian Applications
+
+
+
+
+                                                                                    it feasible for the agent to identify and learn the crop yield
+                                                                                    prediction through self-exploration and experience replay.
+                                                                                    Through the dataset prediction results, it is evident that the
+                                                                                    yield prediction agent administers the process, suggesting
+                                                                                    that the proposed method can precisely define the char-
+                                                                                    acteristics for crop yield. The combination of RNN based
+                                                                                    feature processing and DQN based self experimental anal-
+                                                                                    ysis is the key objective to attain favorable results. Unlike
+                                                                                    the supervised learning-based crop yield prediction process,
+                                                                                    DRQN based process provides a complete solution that inde-
+                                                                                    pendently mines the non-linear mapping between the crop
+                                                                                    yield and the climatic, soil and groundwater parameters. This
+                                                                                    advantage can definitely minimize expert dependency and
+                                                                                    prior knowledge for developing crop yield prediction mod-
+                                                                                    els. Hence the proposed approach provides a perception of
+                                                                                    implementing a more generalized model for yield prediction.
+FIGURE 10. (Continued.) Prediction accuracy measure of: (a) Proposed
+DRL algorithm, (b) Deep learning algorithm, (c) Artificial neural network
+                                                                                    However, the RNN based DRL can cause the gradients to
+algorithm, (d) Gradient boosting algorithm and (e) Random forest                    explode or disappear if the time series is very much longer.
+algorithm, (f) Bernoulli DBN, (g) Bayesian ANN, (h) Interval deep                   Experimenting data prediction through a wide range of ML
+generative ANN, (i) Rough autoencoders.
+                                                                                    predictive algorithms can be observed as a basis for decision
+                                                                                    making, but it is critical to interpret the statistical uncertainty
+RAE automatically learns from the data samples, which is an                         related to these predictions. Hence there exist needs to design
+essential feature, it is simple to train specific examples of the                   a framework that predicts both target and their prediction’s
+algorithm that will perform well on a particular kind of infor-                     uncertainty. Probabilistic predictive modeling strategies like
+mation. It doesn’t require any new designing, just relevant                         information theory, probabilistic bias-variance decomposi-
+training data. But the auto encoders’ decompressed outcomes                         tion, composite prediction strategies, probabilistic boosting
+will be degraded on comparison to the actual inputs deviating                       and bagging approaches etc. can be considered to handle the
+from lossless arithmetic compression. Also in generalizing                          uncertainty in statistical predictions that can be observed as
+the model requires a large amount of training data. Though                          a future extension of the current model. Another alternative
+the RAE supports application in greedy layer-wise approach                          approach to be considered is to use an LSTM based DRL.
+pertaining for deep networks, better random weight initializa-                      Exploration of more crop yield prediction parameters with
+tion schemes, batch normalization and residual learning could                       respect to pest and infestations and crop damage can be
+provide sufficient training for deep networks. BAN exposes                          included in the current framework to construct a more robust
+few powerful insights and techniques to deep learning by                            working model in the future. Further improvement in the
+automatically estimating errors associated with predictions                         computing efficiency of the training process is an intriguing
+but however, they are difficult to scale for large datasets. This                   option to be concentrated.
+is even evident by comparing the MAPE value obtained from
+the proposed approach and the BAN model.                                            ACKNOWLEDGMENT
+   In terms of error measures evaluation, the DRQN presented                        The authors would like to thank the India water portal for
+the lowest error values and almost preserved the original                           providing the meteorological data relevant to climatic factors
+data distribution. It is evident from the results obtained that                     from their MET data tool. The MET data tool provides district
+the proposed deep reinforcement learning DQRN model can                             wise monthly and the annual mean of each metrological indi-
+solve the crop yield prediction problem by learning from the                        cator values. They would also like to thank the Joint Director
+various dataset parameters through memory replaying and                             of Agriculture, Vellore, Tamil Nadu, India, for providing the
+self-learning. Thus the predominance of the proposed method                         details regarding the soil and groundwater properties for the
+additionally enhances the system intelligence to predict the                        respective village blocks.
+yield by minimizing the dependence on expert experience.
+                                                                                    REFERENCES
+VI. CONCLUSION AND FUTURE WORKS                                                      [1] S. Li, S. Peng, W. Chen, and X. Lu, ‘‘INCOME: Practical land monitoring
+The evolution of DRL has raised the self-reliance and the                                in precision agriculture with sensor networks,’’ Comput. Commun., vol. 36,
+                                                                                         no. 4, pp. 459–467, Feb. 2013.
+intelligence of the Artificial Intelligence algorithms and moti-
+                                                                                     [2] A. D. Jones, F. M. Ngure, G. Pelto, and S. L. Young, ‘‘What are we
+vates to propose a novel crop yield prediction system. The                               assessing when we measure food security? A compendium and review of
+results observed from the precision and efficiency tests illus-                          current metrics,’’ Adv. Nutrition, vol. 4, no. 5, pp. 481–505, 2013.
+trate the effectiveness and versatility of the proposed Deep                         [3] G. E. O. Ogutu, W. H. P. Franssen, I. Supit, P. Omondi, and
+                                                                                         R. W. Hutjes, ‘‘Probabilistic maize yield prediction over East Africa using
+Recurrent Q-Network for yield prediction. By building a                                  dynamic ensemble seasonal climate forecasts,’’ Agricult. Forest Meteorol.,
+yield prediction environment, the proposed method makes                                  vols. 250–251, pp. 243–261, Mar. 2018.
+
+VOLUME 8, 2020                                                                                                                                               86899
+                                                   D. Elavarasan, P. M. Durairaj Vincent: Crop Yield Prediction Using DRL Model for Sustainable Agrarian Applications
+
+
+
+
+ [4] M. E. Holzman, F. Carmona, R. Rivas, and R. Niclòs, ‘‘Early assessment            [26] Z. Liu, C. Yao, H. Yu, and T. Wu, ‘‘Deep reinforcement learning with its
+     of crop yield from remotely sensed water stress and solar radiation data,’’            application for lung cancer detection in medical Internet of Things,’’ Future
+     ISPRS J. Photogramm. Remote Sens., vol. 145, pp. 297–308, Nov. 2018.                   Gener. Comput. Syst., vol. 97, pp. 1–9, Aug. 2019.
+ [5] A. Singh, B. Ganapathysubramanian, A. K. Singh, and S. Sarkar,                    [27] H. Huang, M. Lin, and Q. Zhang, ‘‘Double-Q learning-based DVFS for
+     ‘‘Machine learning for high-throughput stress phenotyping in plants,’’                 multi-core real-time systems,’’ in Proc. IEEE Int. Conf. Internet Things
+     Trends Plant Sci., vol. 21, no. 2, pp. 110–124, 2016.                                  (iThings) IEEE Green Comput. Commun. (GreenCom) IEEE Cyber, Phys.
+ [6] R. Whetton, Y. Zhao, S. Shaddad, and A. M. Mouazen, ‘‘Nonlinear                        Social Comput. (CPSCom) IEEE Smart Data (SmartData), Jun. 2017,
+     parametric modelling to study how soil properties affect crop yields and               pp. 522–529.
+     NDVI,’’ Comput. Electron. Agricult., vol. 138, pp. 127–136, Jun. 2017.            [28] H. Jahangir, M. A. Golkar, F. Alhameli, A. Mazouz, A. Ahmadian, and
+ [7] Y. Dash, S. K. Mishra, and B. K. Panigrahi, ‘‘Rainfall prediction for the              A. Elkamel, ‘‘Short-term wind speed forecasting framework based on
+     Kerala state of India using artificial intelligence approaches,’’ Comput.              stacked denoising auto-encoders with rough ANN,’’ Sustain. Energy Tech-
+     Elect. Eng., vol. 70, pp. 66–73, Aug. 2018.                                            nol. Assessments, vol. 38, Apr. 2020, Art. no. 100601.
+ [8] W. Wieder, S. Shoop, L. Barna, T. Franz, and C. Finkenbiner, ‘‘Compar-            [29] K. Peng, R. Jiao, J. Dong, and Y. Pi, ‘‘A deep belief network based health
+     ison of soil strength measurements of agricultural soils in Nebraska,’’ J.             indicator construction and remaining useful life prediction using improved
+     Terramech., vol. 77, pp. 31–48, Jun. 2018.                                             particle filter,’’ Neurocomputing, vol. 361, pp. 19–28, Oct. 2019.
+ [9] Y. Cai, K. Guan, J. Peng, S. Wang, C. Seifert, B. Wardlow, and Z. Li, ‘‘A         [30] J. Zhang, H. Wang, J. Chu, S. Huang, T. Li, and Q. Zhao, ‘‘Improved
+     high-performance and in-season classification system of field-level crop               Gaussian–Bernoulli restricted Boltzmann machine for learning dis-
+     types using time-series Landsat data and a machine learning approach,’’                criminative representations,’’ Knowl.-Based Syst., vol. 185, Dec. 2019,
+     Remote Sens. Environ., vol. 210, pp. 35–47, Jun. 2018.                                 Art. no. 104911.
+[10] X. E. Pantazi, D. Moshou, T. Alexandridis, R. L. Whetton, and                     [31] M. M. Rahman, D. Hagare, and B. Maheshwari, ‘‘Bayesian belief network
+     A. M. Mouazen, ‘‘Wheat yield prediction using machine learning and                     analysis of soil salinity in a peri-urban agricultural field irrigated with recy-
+     advanced sensing techniques,’’ Comput. Electron. Agricult., vol. 121,                  cled water,’’ Agricult. Water Manage., vol. 176, pp. 280–296, Oct. 2016.
+     pp. 57–65, Feb. 2016.                                                             [32] F. Du, J. Zhang, J. Hu, and R. Fei, ‘‘Discriminative multi-modal deep
+[11] T. U. Rehman, S. Mahmud, Y. K. Chang, J. Jin, and J. Shin, ‘‘Current                   generative models,’’ Knowl.-Based Syst., vol. 173, pp. 74–82, Jun. 2019.
+     and future applications of statistical machine learning algorithms for agri-      [33] A. V. Samsonovich, ‘‘Socially emotional brain-inspired cognitive archi-
+     cultural machine vision systems,’’ Comput. Electron. Agricult., vol. 156,              tecture framework for artificial intelligence,’’ Cognit. Syst. Res., vol. 60,
+     pp. 585–605, Jan. 2019.                                                                pp. 57–76, May 2020.
+[12] D. Elavarasan, D. R. Vincent, V. Sharma, A. Y. Zomaya, and K. Srinivasan,         [34] K. Ryan, P. Agrawal, and S. Franklin, ‘‘The pattern theory of self in
+     ‘‘Forecasting yield by integrating agrarian factors and machine learning               artificial general intelligence: A theoretical framework for modeling self
+     models: A survey,’’ Comput. Electron. Agricult., vol. 155, pp. 257–282,                in biologically inspired cognitive architectures,’’ Cognit. Syst. Res., to be
+     Dec. 2018.                                                                             published.
+[13] M. D. Johnson, W. W. Hsieh, A. J. Cannon, A. Davidson, and F. Bédard,             [35] R. Wason, ‘‘Deep learning: Evolution and expansion,’’ Cognit. Syst. Res.,
+     ‘‘Crop yield forecasting on the Canadian Prairies by remotely sensed vege-             vol. 52, pp. 701–708, Dec. 2018.
+     tation indices and machine learning methods,’’ Agricult. Forest Meteorol.,        [36] X. Zhu, M. Zhu, and H. Ren, ‘‘Method of plant leaf recognition based on
+     vols. 218–219, pp. 74–84, Mar. 2016.                                                   improved deep convolutional neural network,’’ Cognit. Syst. Res., vol. 52,
+[14] A. Kaya, A. S. Keceli, C. Catal, H. Y. Yalic, H. Temucin, and                          pp. 223–233, Dec. 2018.
+     B. Tekinerdogan, ‘‘Analysis of transfer learning for deep neural network          [37] S. Zhang, W. Huang, and C. Zhang, ‘‘Three-channel convolutional neu-
+     based plant classification models,’’ Comput. Electron. Agricult., vol. 158,            ral networks for vegetable leaf disease recognition,’’ Cognit. Syst. Res.,
+     pp. 20–29, Mar. 2019.                                                                  vol. 53, pp. 31–41, Jan. 2019.
+[15] A. Kamilaris and F. X. Prenafeta-Boldú, ‘‘Deep learning in agriculture: A         [38] P. Nevavuori, N. Narra, and T. Lipping, ‘‘Crop yield prediction with deep
+     survey,’’ Comput. Electron. Agricult., vol. 147, pp. 70–90, Apr. 2018.                 convolutional neural networks,’’ Comput. Electron. Agricult., vol. 163,
+[16] I. M. Evans, ‘‘Reinforcement, principle,’’ in International Encyclopedia of            Aug. 2019, Art. no. 104859.
+     the Social & Behavioral Sciences, J. D. Wright, 2nd ed. Amsterdam, The            [39] K. Abrougui, K. Gabsi, B. Mercatoris, C. Khemis, R. Amami, and
+     Netherlands: Elsevier, 2015, pp. 207–210.                                              S. Chehaibi, ‘‘Prediction of organic potato yield using tillage systems
+[17] D. Vogiatzis and A. Stafylopatis, ‘‘Reinforcement learning for rule extrac-            and soil properties by artificial neural network (ANN) and multiple linear
+     tion from a labeled dataset,’’ Cognit. Syst. Res., vol. 3, no. 2, pp. 237–253,         regressions (MLR),’’ Soil Tillage Res., vol. 190, pp. 202–208, Jul. 2019.
+     Jun. 2002.                                                                        [40] A. Haghverdi, R. A. Washington-Allen, and B. G. Leib, ‘‘Prediction of
+[18] D. A. Temesgene, M. Miozzo, and P. Dini, ‘‘Dynamic control of functional               cotton lint yield from phenology of crop indices using artificial neural
+     splits for energy harvesting virtual small cells: A distributed reinforcement          networks,’’ Comput. Electron. Agricult., vol. 152, pp. 186–197, Sep. 2018.
+     learning approach,’’ Comput. Commun., vol. 148, pp. 48–61, Dec. 2019.             [41] J. Byakatonda, B. P. Parida, P. K. Kenabatho, and D. B. Moalafhi, ‘‘Influ-
+[19] S. Wan, Z. Gu, and Q. Ni, ‘‘Cognitive computing and wireless commu-                    ence of climate variability and length of rainy season on crop yields in
+     nications on the edge for healthcare service robots,’’ Comput. Commun.,                semiarid Botswana,’’ Agricult. Forest Meteorol., vol. 248, pp. 130–144,
+     vol. 149, pp. 99–106, Jan. 2020.                                                       Jan. 2018.
+[20] A. Tolba, O. Said, and Z. Al-Makhadmeh, ‘‘MDS: Multi-level decision sys-          [42] Q. Yang, L. Shi, J. Han, Y. Zha, and P. Zhu, ‘‘Deep convolutional neural
+     tem for patient behavior analysis based on wearable device information,’’              networks for rice grain yield estimation at the ripening stage using UAV-
+     Comput. Commun., vol. 147, pp. 180–187, Nov. 2019.                                     based remotely sensed images,’’ Field Crops Res., vol. 235, pp. 142–153,
+[21] V. Hassija, V. Saxena, and V. Chamola, ‘‘Scheduling drone charging for                 Apr. 2019.
+     multi-drone network based on consensus time-stamp and game theory,’’              [43] L. Zhong, L. Hu, H. Zhou, and X. Tao, ‘‘Deep learning based winter wheat
+     Comput. Commun., vol. 149, pp. 51–61, Jan. 2020.                                       mapping using statistical data as ground references in Kansas and northern
+[22] S. Gheisari and E. Tahavori, ‘‘CCCLA: A cognitive approach for conges-                 Texas, US,’’ Remote Sens. Environ., vol. 233, Nov. 2019, Art. no. 111411.
+     tion control in Internet of Things using a game of learning automata,’’           [44] S. Ramesh and D. Vydeki, ‘‘Recognition and classification of paddy leaf
+     Comput. Commun., vol. 147, pp. 40–49, Nov. 2019.                                       diseases using optimized deep neural network with Jaya algorithm,’’ Inf.
+[23] S. J. Shri and S. Jothilakshmi, ‘‘Crowd video event classification using               Process. Agricult., to be published.
+     convolutional neural network,’’ Comput. Commun., vol. 147, pp. 35–39,             [45] B. Saravi, A. P. Nejadhashemi, and B. Tang, ‘‘Quantitative model of
+     Nov. 2019.                                                                             irrigation effect on maize yield by deep neural network,’’ Neural Comput.
+[24] M. Al-Ayyoub, A. Nuseir, K. Alsmearat, Y. Jararweh, and B. Gupta, ‘‘Deep               Appl., to be published.
+     learning for arabic NLP: A survey,’’ J. Comput. Sci., vol. 26, pp. 522–531,       [46] S. V. Desai, V. N. Balasubramanian, T. Fukatsu, S. Ninomiya, and W. Guo,
+     May 2018.                                                                              ‘‘Automatic estimation of heading date of paddy rice using deep learning,’’
+[25] M. Usama, B. Ahmad, J. Yang, S. Qamar, P. Ahmad, Y. Zhang, J. Lv, and                  Plant Methods, vol. 15, no. 1, p. 76, Dec. 2019.
+     J. Guna, ‘‘Equipping recurrent neural network with CNN-style attention            [47] A. Koirala, K. B. Walsh, and W. Z. McCarthy, ‘‘Deep learning for real-
+     mechanisms for sentiment analysis of network reviews,’’ Comput. Com-                   time fruit detection and orchard fruit load estimation: Benchmarking of
+     mun., vol. 148, pp. 98–106, Dec. 2019.                                                 ‘MangoYOLO,’’’ Precis. Agricult., vol. 20, no. 6, pp. 1107–1135, 2019.
+
+86900                                                                                                                                                       VOLUME 8, 2020
+D. Elavarasan, P. M. Durairaj Vincent: Crop Yield Prediction Using DRL Model for Sustainable Agrarian Applications
+
+
+
+
+[48] K. Arulkumaran, M. P. Deisenroth, M. Brundage, and A. A. Bharath,               [61] M. Khodayar, O. Kaynak, and M. E. Khodayar, ‘‘Rough deep neural
+     ‘‘Deep reinforcement learning: A brief survey,’’ IEEE Signal Process.                architecture for short-term wind speed forecasting,’’ IEEE Trans. Ind.
+     Mag., vol. 34, no. 6, pp. 26–38, Nov. 2017.                                          Informat., vol. 13, no. 6, pp. 2770–2779, Dec. 2017.
+[49] E. A. O. Diallo, A. Sugiyama, and T. Sugawara, ‘‘Coordinated behavior of        [62] Z. Pawlak, ‘‘Rough sets,’’ Int. J. Comput. Inf. Sci., vol. 11, no. 5,
+     cooperative agents using deep reinforcement learning,’’ Neurocomputing,              pp. 341–356, 1982.
+     to be published.
+[50] F. Bu and X. Wang, ‘‘A smart agriculture IoT system based on deep rein-
+     forcement learning,’’ Future Gener. Comput. Syst., vol. 99, pp. 500–507,
+                                                                                                               DHIVYA ELAVARASAN received the bachelor’s
+     Oct. 2019.                                                                                                degree in information technology from Anna Uni-
+[51] Z. Liu, C. Yao, H. Yu, and T. Wu, ‘‘Deep reinforcement learning with its                                  versity, India, and the master’s degree in computer
+     application for lung cancer detection in medical Internet of Things,’’ Future                             and communication technology from the Vellore
+     Gener. Comput. Syst., vol. 97, pp. 1–9, Aug. 2019.                                                        Institute of Technology (VIT), India, where she
+[52] Y. Liu, X. Guan, J. Li, D. Sun, T. Ohtsuki, M. M. Hassan, and A. Alelaiwi,                                is currently pursuing the Ph.D. degree in machine
+     ‘‘Evaluating smart grid renewable energy accommodation capability with                                    learning and analytics for agrarian frameworks
+     uncertain generation using deep reinforcement learning,’’ Future Gener.                                   with the School of Information Science and Tech-
+     Comput. Syst., to be published.                                                                           nology. She worked as a Data Science Application
+[53] A. Plasencia, Y. Shichkina, I. Suárez, and Z. Ruiz, ‘‘Open source robotic                                 Developer with IBM India Pvt., Ltd., for two years,
+     simulators platforms for teaching deep reinforcement learning algo-             and a Data Analyst with NetApp India Pvt., Ltd., for one year. She is currently
+     rithms,’’ Procedia Comput. Sci., vol. 150, pp. 162–170, 2019.                   doing her research for crop yield prediction system by developing machine
+[54] D. Silver, A. Huang, C. J. Maddison, A. Guez, L. Sifre,                         learning models for an optimal solution to agricultural problems involving
+     G. van den Driessche, J. Schrittwieser, I. Antonoglou, V. Panneershelvam,       machine learning and deep learning technologies.
+     M. Lanctot, S. Dieleman, D. Grewe, J. Nham, N. Kalchbrenner,
+     I. Sutskever, T. Lillicrap, M. Leach, K. Kavukcuoglu, T. Graepel, and
+     D. Hassabis, ‘‘Mastering the game of Go with deep neural networks and                                      P. M. DURAIRAJ VINCENT (Member, IEEE)
+     tree search,’’ Nature, vol. 529, no. 7587, pp. 484–489, 2016.                                              received the B.E. degree in electronics and the
+[55] M. A. Khan, S. Peters, D. Sahinel, F. D. Pozo-Pardo, and X. T. Dang,                                       M.E. degree in computer science from Anna Uni-
+     ‘‘Understanding autonomic network management: A look into the past,                                        versity, Chennai, India, and the Ph.D. degree from
+     a solution for the future,’’ Computer Commun., vol. 122, pp. 93–117,                                       the Vellore Institute of Technology (VIT), Vellore,
+     Jun. 2018.                                                                                                 in 2015. He has more than 13 years of teaching
+[56] M. L. Littman, ‘‘Value-function reinforcement learning in Markov games,’’                                  and research experience. He has excellent indus-
+     Cognit. Syst. Res., vol. 2, no. 1, pp. 55–66, Apr. 2001.                                                   trial connectivity and also handled sessions for
+[57] P. Petersen and F. Voigtlaender, ‘‘Optimal approximation of piecewise                                      Wipro employees. He is currently working as an
+     smooth functions using deep ReLU neural networks,’’ Neural Netw.,                                          Associate Professor with the School of Informa-
+     vol. 108, pp. 296–330, Dec. 2018.
+                                                                                     tion Technology and Engineering, VIT. He is a motivated researcher with
+[58] X. Qian, H. Huang, X. Chen, and T. Huang, ‘‘Efficient construction of
+     sparse radial basis function neural networks using L1 -regularization,’’
+                                                                                     more than 50 publications in Scopus Database. His current research interests
+     Neural Netw., vol. 94, pp. 239–254, Oct. 2017.                                  include security, machine learning, the Internet of Things, and data analytics.
+[59] X. Fan, X. Li, and J. Zhang, ‘‘Compressed sensing based loss tomog-             He also acts as a doctoral committee member of a few universities. He has
+     raphy using weighted `1 minimization,’’ Comput. Commun., vol. 127,              delivered a keynote in a few reputed conferences and also delivered invited
+     pp. 122–130, Sep. 2018.                                                         talks in leading institutes, including Anna University. He has organized a
+[60] M. Khodayar, J. Wang, and M. Manthouri, ‘‘Interval deep generative neural       few conferences, including one virtual conference. He is a Reviewer of a
+     network for wind speed forecasting,’’ IEEE Trans. Smart Grid, vol. 10,          few reputed journals including the IEEE ACCESS.
+     no. 4, pp. 3974–3989, Jul. 2019.
+
+
+
+
+VOLUME 8, 2020                                                                                                                                               86901
+

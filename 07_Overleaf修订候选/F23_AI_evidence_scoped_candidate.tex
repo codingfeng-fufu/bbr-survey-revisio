@@ -1,0 +1,28 @@
+% Working fragment; finalize bibliography keys and full-study eligibility before integration.
+\subsection{Evidence needed for learning-assisted congestion control}
+Learning-assisted congestion control covers different control actions. A policy
+may select an existing congestion-control algorithm, adjust the congestion
+window directly, or modify a parameter within a BBR implementation. These
+actions have different feedback and deployment requirements, so performance
+observations should be compared within the evaluated control task.
+
+For example, the inspected WiFi study (DOI 10.3390/fi16090330) uses offline
+learning to select among congestion-control algorithms. Its stated reward
+combines throughput, latency and loss. This provides evidence about the
+reported selection setup, but does not by itself establish a safe online
+BBRv3 parameter controller or an inference-time budget. TCP-Drinc
+(DOI 10.1109/ACCESS.2019.2892046), in contrast, learns congestion-window
+actions in ns-3 using a goodput--delay utility difference. Its fairness table
+reports a mean Jain index of 0.8058 with a 95\% confidence interval of
+[0.7233, 0.8882]. These results remain specific to the simulation conditions;
+the reported baseline intervals overlap, and a significant improvement in
+fairness is not established by the table alone.
+
+Training accuracy, accumulated reward and a narrow reported confidence
+interval answer different questions. Deployment assessment requires measured
+inference latency and resource use, while transfer assessment requires tests
+outside the training conditions. Fairness assessment should report the
+objective, per-flow rates and the evaluation metric together. A reward need
+not contain Jain's index explicitly to express a fairness-related utility;
+conversely, training convergence alone does not prove fairness under a new
+queue policy, flow population or implementation.

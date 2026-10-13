@@ -1,0 +1,943 @@
+Received May 1, 2021, accepted May 19, 2021, date of publication May 21, 2021, date of current version June 1, 2021.
+Digital Object Identifier 10.1109/ACCESS.2021.3082715
+
+
+
+
+BBR-S: A Low-Latency BBR Modification
+for Fast-Varying Connections
+FEDERICO CHIARIOTTI 1 , (Member, IEEE), ANDREA ZANELLA 2 , (Senior Member, IEEE),
+STEPAN KUCERA3 , (Senior Member, IEEE), AND HOLGER CLAUSSEN4 , (Senior Member, IEEE)
+1 Department  of Electronic Systems, Aalborg University, 9100 Aalborg, Denmark
+2 Department  of Information Engineering, University of Padova, 35131 Padova, Italy
+3 Nokia Bell Labs, 11481 Munich, Germany
+4 Tyndall National Institute, Dublin 8, D08 WV88 Ireland
+
+Corresponding author: Federico Chiariotti (fchi@es.aau.dk)
+
+
+
+
+  ABSTRACT The new possibilities offered by 5G and beyond networks have led to a change in the focus
+  of congestion control from capacity maximization for web browsing and file transfer to latency-sensitive
+  interactive and real-time services, and consequently to a renaissance of research on the subject, whose most
+  well-known result is Google’s Bottleneck Bandwidth and Round-trip propagation time (BBR) algorithm.
+  BBR’s promise is to operate at the optimal working point of a connection, with the minimum Round Trip
+  Time (RTT) and full capacity utilization, striking the balance between resource use efficiency and latency
+  performance. However, while it provides significant performance improvements over legacy mechanisms
+  such as Cubic, it can significantly overestimate the capacity of fast-varying mobile connections, leading to
+  unreliable service and large potential swings in the RTT. Our BBR-S algorithm replaces the max filter that
+  causes this overestimation issue with an Adaptive Tobit Kalman Filter (ATKF), an innovation on the Kalman
+  filter that can deal with unknown noise statistics and saturated measurements, achieving a 40% reduction in
+  the average RTT over BBR, which increases to 60% when considering worst-case latency, while maintaining
+  over 95% of the throughput in 4G and 5G networks.
+
+
+  INDEX TERMS Congestion control, latency, transport protocols, BBR.
+
+
+I. INTRODUCTION                                                                                 maintaining a low RTT at the same time. Google has switched
+Over the next few years, several formerly impossible applica-                                   to BBR for most of its outgoing traffic and included it in
+tions are going to become real, thanks to the novel capabilities                                its new QUIC protocol [3], which is poised to replace the
+of 5G and beyond networks: smooth high-definition video                                         Transmission Control Protocol (TCP) over the next few years.
+conferencing over mobile networks, remote robotic opera-                                        BBR works by explicitly estimating the Bandwidth-Delay
+tions on the factory floor, and wireless Augmented Reality                                      Product (BDP) of a connection with a simple max filter
+(AR) are just a few well-known examples. All these applica-                                     (i.e., taking the maximum measured value over a window as
+tions have a high throughput and strict latency constraints,                                    the ‘‘true’’ capacity), then using it to control the congestion
+which are expected to be met by the new Radio Access                                            window and pacing rate of the sender.
+Technologies (RATs), but the existing end-to-end congestion                                        In this work, we present BBR-S, where the S stands for
+control approaches often do not consider latency, caus-                                         Sender-side Kalman Inference Procedure (SKIP): our con-
+ing self-queuing delay by probing the channel too aggres-                                       gestion control maintains the basic structure of BBR, but
+sively [1]. Finding the correct balance between exploiting                                      replaces the max filter with the titular SKIP, a better estima-
+capacity efficiency and maintaining a low latency is still an                                   tion mechanism. The BBR-S mechanism can avoid BBR’s
+open problem in congestion control.                                                             pitfalls by improving capacity tracking, significantly reduc-
+   The recent work by Google on this subject has led to the                                     ing the RTT while still achieving fairness with Cubic flows
+development of BBR [2], a new mechanism that promises                                           and effectively exploiting capacity. The main contributions
+to solve this problem by exploiting capacity fully and                                          in the paper are as follows:
+                                                                                                   • We present the SKIP filter, which models capacity as
+   The associate editor coordinating the review of this manuscript and                                 the combination of a Gauss-Markov process with rare
+approving it for publication was Peng-Yong Kong               .                                        step-like events and tracks it through an ATKF, which is
+                                           This work is licensed under a Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 License.
+76364                                                  For more information, see https://creativecommons.org/licenses/by-nc-nd/4.0/                VOLUME 9, 2021
+F. Chiariotti et al.: BBR-S: Low-Latency BBR Modification for Fast-Varying Connections
+
+
+
+
+      a new theoretical tool that we developed by combining                         of the bufferbloat problem [10]: as buffers in the Internet
+      the Tobit Kalman Filter (TKF) [4] and an Adaptive                             grew, Cubic’s RTT did the same, reaching values up to several
+      Kalman Filter (AKF) [5];                                                      seconds.
+   • We describe the operation modes that the congestion                               In order to maintain a low RTT, the Vegas congestion
+      control mechanism uses to keep track of sudden shifts                         control mechanism [11] was developed with a delay-based
+      in the capacity, in order to react faster even in cases of                    philosophy: any increase in the RTT is interpreted as con-
+      blockage or cross-traffic spikes;                                             gestion, making Vegas suited to low-latency application.
+   • We test the new mechanism in extensive ns-3 simula-                            Vegas achieves a fair capacity exploitation with no RTT
+      tions over real network traces from modern wireless                           increases when sharing the bottleneck with other Vegas flows,
+      network, comparing it with standard BBR and other                             but it has famously never been widely adopted because it
+      state-of-the-art congestion control mechanisms.                               cannot coexist with Cubic, since its throughput drops to
+   BBR-S manages to stay close to the actual minimum                                almost zero when it shares a bottleneck with more aggres-
+RTT while maintaining more than 90% of standard BBR’s                               sive loss-based mechanisms. Compound [12], which is the
+throughput in our ns-3 simulations over real network traces.                        default mechanism on Windows machines, combines this
+The average RTT reduction over standard BBR was 40%,                                approach with a loss-based one, attempting to strike a balance
+which increased to approximately 60% when considering the                           between throughput and delay. Verus [13] is a more advanced
+99th percentile. This result combines the traditional advan-                        delay-based congestion control mechanism, which shares
+tages of Vegas, whose RTT is only similar, with the ability                         Vegas’s vulnerability but works very well in fast-varying
+to share capacity fairly with more aggressive congestion                            channels.
+control mechanisms. In fact, BBR-S can get 90% of its                                  Another philosophy that has recently gained traction
+fair share when competing with a Cubic flow, making the                             is learning-driven congestion control: although they are
+protocol extremely versatile. These results show a signifi-                         not yet mature for widespread use, the Remy [14] and
+cant end-to-end performance advantage for latency-sensitive                         Performance-oriented Congestion Control (PCC) [15] pro-
+application over existing congestion control mechanisms,                            tocols are two important examples of this recent trend. The
+including standard BBR, in fast-varying connections like                            main issue that learning-driven congestion control has to
+those that use mmWave links.                                                        face is generalization, since the mechanisms are often tied
+   The rest of the paper is organized as follows: first, the state                  to knowledge about a specific scenario or a limited training
+of the art on congestion control is presented in Sec. II, with a                    set and cannot be used out of the box on the wider Inter-
+focus on the BBR protocol and its issues. Then, our BBR-S                           net without major performance losses. For a more extensive
+solution is described in detail in Sec. III, defining the SKIP                      discussion of congestion control mechanisms, we refer the
+filter and its practical implementation. The simulation scenar-                     reader to [16], [17].
+ios and results are described in Sec. IV, and Sec. V concludes
+the paper and lists some avenues of future research.                                 A. BBR CONGESTION CONTROL
+                                                                                    We now look at BBR [2], the congestion control mechanism
+II. RELATED WORK                                                                    our work is based on. We examine its driving mechanism,
+Congestion control is an essential component of modern net-                         as well as the flaws that we try to correct with BBR-S. BBR
+works, since the large number of heavy flows that the infras-                       tries to explicitly estimate the BDP and stay close to the
+tructure needs to support can only be delivered if senders limit                    connection’s optimal operating point, defined as full capac-
+their rate before flooding connections and generating conges-                       ity exploitation with minimum RTT [18]. In other words,
+tion. This issue is even more pressing in wireless networks,                        the objective of BBR is to transmit data at the highest possible
+from the first commercial services in the 1990s [6] to modern                       rate without creating a queue. BBR uses a capacity-based
+mmWave links [7]: the nature of the wireless medium makes                           philosophy, measuring capacity directly like the older West-
+it prone to losses and fluctuations in the capacity, putting a                      wood mechanism [19] and the more recent Sprout [20]. The
+strain on congestion control. Line of Sight (LoS) to Non-Line                       protocol has four phases, which are represented in Fig. 1:
+of Sight (NLoS) transitions in mmWave [8] are even more                                • In the startup phase, BBR uses a gain of 2/ ln(2) to
+damaging, since they cause sharp drops in the capacity which                              quickly ramp up the sending rate until the actual band-
+TCP is often too slow to adapt to and recover from, creating                              width is discovered. This can create a queue of up to
+a long queue after the drop and taking a long time to get back                            twice the BDP, resulting in an RTT increase of twice the
+to full capacity after it is over.                                                        minimum RTT of the connection.
+   Classic congestion control mechanisms, such as the                                  • In the drain phase, BBR uses the inverse of the
+omnipresent Cubic [9] and the older Tahoe and New Reno,                                   startup gain to reduce the queue before starting normal
+interpret packet losses as a signal of congestion: they gradu-                            operation.
+ally increase their sending rate until a loss indicates that the                       • The bandwidth probe phase is BBR’s normal mode of
+bottleneck buffer is full. Filling the buffer allows Cubic to                             operation: in this phase, BBR is driven by its capacity
+exploit capacity effectively, but the RTT can grow quickly if                             estimates. The estimates of the capacity are passed to
+the bottleneck buffer is large. This has led to the emergence                             a max filter, whose output is the protocol’s bandwidth
+
+VOLUME 9, 2021                                                                                                                                76365
+                                                              F. Chiariotti et al.: BBR-S: Low-Latency BBR Modification for Fast-Varying Connections
+
+
+
+
+        FIGURE 1. Operation of the BBR algorithm.
+
+
+      estimate. This optimistic estimation mechanism is not
+      without issues, as we will discuss later, but it allows
+      BBR to fully exploit the capacity in stable channels.
+      The protocol then sets the pacing rate to the bandwidth
+      and the congestion window to twice the BDP, ensuring
+      that the reaction to capacity drops will not be too slow.
+      Since capacity estimates are limited by the pacing rate,
+      BBR periodically adjusts the pacing rate to 1.25 times
+      the measured bandwidth. In this way, it builds up a
+      queue and gets more accurate estimates of the capacity,
+      identifying large upswings in the capacity. After one
+      RTT, the protocol spends another RTT with a reduced            FIGURE 2. Comparison between a sending rate driven by capacity
+      pace of 0.75 times the bandwidth in order to reduce the        estimates based on the max filter and a simple moving average.
+
+      standing queue.
+   • The RTT probe phase is repeated periodically, with a            filtered using a simple max filter, any temporary upswing in
+      default of 10 s. During this phase, BBR updates its            the path capacity influences BBR’s bandwidth estimate until
+      estimate of the connection’s minimum RTT. In order to          the sample exits the max filter window [25]. The window
+      do so, it reduces the congestion window to 4 packets           itself has no fixed length, but expires after 10 subsequent
+      for a short period, flushing the queue at the bottleneck       sentinel packets, whose RTT can be much larger than the
+      and ensuring that the estimate of the minimum RTT is           minimum RTT of the connection. In fact, it is often almost
+      unaffected by self-queuing delay. Naturally, other flows       twice as much: if the pacing rate is higher than the actual
+      sharing the bottleneck buffer might still bias the esti-       capacity, packets will be queued at the bottleneck, until the
+      mate. After an RTT probe, operation resumes normally.          2BDP limit is reached and the congestion window limits the
+Since it does not interpret loss as a signal of congestion,          queuing.
+relying on the BDP estimate to avoid buffer overflows, BBR              The same behavior has been observed when multiple BBR
+does not reduce its sending rate as a consequence of packet          flows share a bottleneck buffer [26]. In these cases, which are
+loss. This gives it an advantage over loss-based mechanisms          very common for wireless connections with volatile capac-
+in naturally lossy connections such as wireless and mobile           ity, BBR’s operating point will be far from the maximum
+systems.                                                             throughput and minimum RTT objective. Connections whose
+                                                                     bottlenecks are mmWave links will experience this phe-
+B. BBR’s ISSUES IN MOBILE NETWORKS                                   nomenon often, since the capacity of mmWave links can drop
+BBR is currently on the way to become the standard TCP ver-          suddenly and dramatically after a transition between LoS and
+sion for mobile networks: measurements in a highway mobil-           NLoS propagation or a beam switching event [27]. In fact,
+ity scenario show that it can achieve a far higher throughput        the performance of TCP over mmWave links is already a
+than Cubic in fast-varying scenarios [21]. However, BBR              concern for the research community [7], and cross-layer solu-
+also has some significant shortcomings: aside from being             tions have already been proposed to overcome the trade-off
+RTT-unfair [22] because of its 2BDP congestion window                between underutilization and high latency that traditional
+limit, its fairness to Cubic flow is highly dependent on             end-to-end congestion control faces [28].
+the bottleneck buffer size, as BBR is very aggressive in                Some of these issues are partly addressed by the
+shallow-buffer connections, but far more conservative than           BBRv2 release [29], which reduces the impact of RTT probes
+Cubic in bufferbloat conditions [23]. Another issue is the           by making the change in the congestion window less drastic:
+slow convergence of multiple flows to the fair bandwidth             instead of reducing it to 4 packets, the new version reduces
+allocation [24], as the synchronization between RTT probing          it to half of the currently estimated BDP. It also deals with
+periods can take more than 30 s.                                     shallow buffers by probing for congestion and maintaining
+   The most important issue of BBR in fast-varying net-              headroom, but quickly resuming standard operation if the
+works, which we aim to solve with BBR-S, is inherent in its          buffer is large. Other changes involve an improved mecha-
+bandwidth estimation procedure: since capacity samples are           nism to deal with Explicit Congestion Notification (ECN)
+
+76366                                                                                                                                VOLUME 9, 2021
+F. Chiariotti et al.: BBR-S: Low-Latency BBR Modification for Fast-Varying Connections
+
+
+
+
+and Active Queue Management (AQM) techniques, improved                                     to the mean of the ATKF, but the filter is not updated
+performance over aggregation-heavy links, and a way to                                     with new capacity samples: a counter is increased, and
+handle lossy networks by setting a maximum acceptable loss                                 after tthr steps in drop mode, the mean of the ATKF
+rate. However, the max filter structure is unchanged even in                               is reset to the average capacity seen during the drop.
+BBRv2, so RTT performance in fast-varying networks will                                    In this way, the sending rate is not decreased at every
+be similar.                                                                                temporary drop, but SKIP can still react quickly to
+   BBRx [30] is a recent modification to BBR that attempts                                 persistent changes in the capacity. The requirement to
+to correct for the aggressiveness of the standard mechanism.                               avoid decreasing the sending rate does not hold for step
+BBRx corrects the max filter output by adding a factor that                                mode: in this case, the ATKF is still evolved with the
+depends on the difference between the current RTT and the                                  new samples, but its mean is reset after tthr steps to
+minimum measured RTT of the connection. The parameters                                     ensure full capacity utilization.
+of the filter can be learned online.                                                Thanks to its three modes of operation, SKIP can deal with
+                                                                                    both small, persistent variations in the capacity, which are
+III. THE BBR-S SOLUTION                                                             well-represented by a Gauss-Markov model, and large step-
+The idea behind the BBR-S solution is simple: in order to                           wise changes: resetting the mean of the filter speeds up the
+avoid the queuing problem caused by the max filter, capacity                        response to the change, giving SKIP a faster response than
+needs to be estimated with an unbiased filter. If the filter is                     standard BBR. At the same time, SKIP is not significantly
+accurate and there are no sudden upswings in the capacity,                          more complex than standard BBR, maintaining the computa-
+the throughput loss with respect to standard BBR will be                            tional cost acceptable in a high-capacity real-time setting.
+negligible, and the queue at the bottleneck buffer will be much                        Additionally, during RTT Probe periods, the congestion
+shorter. Fig. 2 shows this in a simple example: we generated                        window is set to half the BDP instead of just 4 packets in order
+a normally distributed capacity trace with a mean of 10 Mb/s                        to estimate the minimum RTT without affecting throughput
+and a standard deviation of 1 Mb/s, then ran the max filter                         too heavily. This innovation is also present in BBRv2, but
+alongside a simple moving average (the window for both                              we remark that BBRv2 does not solve the max filter issue,
+filters was 0.1 s). The two filters were used to determine                          and will suffer from the same overestimation in wireless
+the pace of the sender: as the plot on the right side shows,                        networks. Finally, BBR-S can exit from the startup phase
+the constant overestimation of capacity by the max filter leads                     faster than BBR, basing it on the measured RTT instead of
+to a very large standing queue, and BBR will soon reach a full                      capacity growth: while BBR enters the drain phase only if the
+congestion window and operate at twice the minimum RTT.                             measured capacity grows by a factor lower than 1.25, we stop
+   The difference between the simple max filter and the BBR-                        the startup exponential growth if either that condition is met
+S SKIP procedure is shown in Fig. 3. While BBR uses a                               or the RTT reaches 6 times the minimum, indicating that there
+simple rate sampling strategy and filters its outputs directly                      is a large standing queue.
+through a max filter, BBR-S operates in three steps:                                   We would also like to remark that the Gauss-Markov model
+   1) RTT samples are processed to get a capacity sam-                              with steps is not necessarily the optimal model for any given
+       ple. This procedure is more accurate than counting                           scenario, but it satisfies three extremely important needs in
+       acknowledgments over time, as it can take variations                         the design of a congestion control algorithm. The model is
+       in the pacing rate into account. However, the capacity                       flexible, as it can deal with most practical cases with no stabil-
+       sample is inaccurate when there is no standing queue at                      ity issues, and has no obvious failure modes that lead to sub-
+       the bottleneck, as the capacity will be censored by the                      optimal performance, unlike the max filter. It is simple, as the
+       sending pace.                                                                computational requirements of a one-dimensional ATKF are
+   2) We assume that most of the time the capacity of the                           very limited, and can be executed with little effort on most
+       link is going to be slow-varying, with a certain amount                      modern platforms. Finally, it is extendable: a more accurate
+       of noise caused by short flows and fading. This can be                       model, considering specific features of a given connection,
+       represented well by a Gauss-Markov model, particu-                           can be easily integrated in the framework by modifying the
+       larly when the filter is adaptive and can adjust the noise                   underlying model of the ATKF. Furthermore, as our simula-
+       variance. However, all Kalman-based models can take                          tion will show, the throughput loss with respect to standard
+       a long time to converge in case of stepwise changes                          BBR is negligible, while maintaining the RTT very close to
+       in the system, which are to be expected in wireless                          the minimum for the connection in different wireless net-
+       systems, e.g., when a heavy cross-traffic flow starts                        works. In the following, we will describe the implementation
+       or ends, or when blockage significantly affects the                          of SKIP in detail.
+       channel quality. For this reason, SKIP has a drop mode
+       and a step mode, which are triggered when capacity                            A. ESTIMATING CAPACITY WITH SKIP
+       sharply decreases and increases, respectively.                               First, we introduce the notations used in the following: given
+   3) If SKIP is in normal mode, the sample is filtered                             a random variable X , its expected value is denoted by E[X ]
+       through the ATKF, and the pacing rate is set to the mean                     and its variance by Var[X ]. The conditional expectation of X
+       of the filter. In drop mode, the pacing rate is still set                    given the value of Y is denoted by E[X |Y ]. Vectors like x are
+
+VOLUME 9, 2021                                                                                                                                  76367
+                                                                     F. Chiariotti et al.: BBR-S: Low-Latency BBR Modification for Fast-Varying Connections
+
+
+
+
+     FIGURE 3. Comparison of the pacing rate adaptation in BBR and BBR-S.
+
+
+TABLE 1. Main notations used in the paper.                                  The resulting RTT vector is τ = a − t, and its i-th element is
+                                                                            given by:
+                                                                                                                        Li
+                                                                                                     τi = τmin +           + qi ,                      (1)
+                                                                                                                        C
+                                                                            where τmin is the end-to-end forwarding, propagation and
+                                                                            processing time for the packet and its ACK, i.e., the mini-
+                                                                            mum RTT of the path, except for the contribution due to the
+                                                                            bottleneck link, C is the bottleneck link’s available bitrate,
+                                                                            i.e., the path capacity, and qi is the time required to get rid of
+                                                                            the backlog at the bottleneck when the packet is generated,
+                                                                            which is defined as:
+                                                                                             
+                                                                                              X (ti )
+                                                                                                       − (ti − t1 ), if S(ti ) > C;
+                                                                                       qi =     C                                          (2)
+                                                                                             0,                     otherwise;
+                                                                                                Pi
+                                                                            where X (ti ) =        j=1 Lj is the number of bytes in flight at
+                                                                                                       (ti )
+                                                                            time ti , and S(ti ) = tXi −t 1
+                                                                                                             is the average sending rate between
+                                                                            t1 and ti . In practice, (2) states that, if the sending rate exceeds
+                                                                            the bottleneck capacity, the queuing delay grows linearly in
+                                                                            time. By combining (1) and (2), we get:
+                                                                                                                                     +
+                                                                                                        Li        X (ti )
+                                                                                         τi = τmin +         +            − (ti − t1 ) ,      (3)
+                                                                                                        C          C
+                                                                            where [x]+ is equal to x if the argument is positive, and 0 if
+                                                                            it is negative. Consequently, we have
+                                                                                                                                     +
+written in bold, while matrices like A are written in bold and                              Lj − Li     X (tj ) − X (ti )
+                                                                                  τj − τi =         +                     − (tj − ti ) , (4)
+indicated with capital letters. The hat symbol indicates that                                  C                C
+the value is an estimate: x̂ is an estimate of x. We refer to
+the univariate normal PDF as φ(·), and to the normal CDF                    where j > i. If we assume a quasi-stationary regime,
+as 8(·). Accordingly, the estimate of the value of x at time t              i.e., S(ti ) ' S(tj ), we get
+given the observations up to time ` is denoted as x̂t|` . The                              Ln − L1
+                                                                                                        
+                                                                                                          S(t)(tn − t1 )
+                                                                                                                                     +
+main notations used in the following are listed in Table 1.                  τn − τ1 =               +                   − (tn − t1 ) . (5)
+                                                                                              C                 C
+   Let t = (t1 , . . . , tn ) be the vector of send times for the last
+n packets whose ACKs arrived in the last estimation time Tk ,                 If we take the derivative over time of the RTT on the path,
+and a = (a1 , . . . , an ) be the vector of the corresponding ACK           we get
+reception instants. Furthermore, let L = (L1 , . . . , Ln ) be the
+vector of the corresponding packet sizes. In the following,                                              ∂τ      S(tn )
+                                                                                                            =             − 1,                         (6)
+we assume that ti ≥ tj ∀i > j and ai ≥ aj ∀i > j.1                                                       ∂t       C
+
+
+  1 This in-order delivery hypothesis is a basic assumption of most TCP
+                                                                            from which we get
+congestion control mechanisms, and holds almost universally in modern                                              S(tn )
+networks.
+                                                                                                           C =     ∂τ     .                            (7)
+                                                                                                                   ∂t+1
+
+76368                                                                                                                                       VOLUME 9, 2021
+F. Chiariotti et al.: BBR-S: Low-Latency BBR Modification for Fast-Varying Connections
+
+
+
+
+                            ∂τ
+We can now estimate         ∂t   by using linear least squares fitting:             case, deriving the Adaptive Tobit Kalman Filter (ATKF).
+                                    Pn      2     Pn
+                                                           τj
+                                                                                   Other AKF techniques such as Autocovariance Least Squares
+                   Pn      Pn         j=1 tj      τi
+                                                     P j=1
+          ∂τ        i=1 Li  i=1 ti −   n          L − n L
+                                                      i
+                                                                                    (ALS) [36] can also be used, but the adaptations required to
+                                                           j=1 j
+             =                                                     .      (8)       make them work in the Tobit case are more extensive.
+          ∂t
+                                             Pn      2
+                                     Pn        j=1 tj
+                                 n        t
+                                      i=1 i −   n                                      We now quickly report the derivation of the TKF, which
+                                                                                    is adapted from [4]. To simplify the notation in the following
+   By combining (7) and (8), we can get an estimate of the
+                                                                                    steps, we denote the normalized distance from the censoring
+average capacity, which we can store to get an empirical CDF
+                                                                                    threshold as ηt :
+of the path capacity. The norm of the residual error of the
+linear fit is useful to gauge the jitter of the path, i.e., capacity                                               St − x̂t|t−1
+                                                                                                            ηt =                ,                  (11)
+fluctuations that are faster than the estimation timestep Tk .                                                         σv
+   The derivation above assumes that there is queuing, so it                        where x̂t|t−1 is the a priori estimate of the hidden state xt . This
+will not work when there is no standing queue and the                               parameter is critical in the TKF, as the censoring probability
+sender’s pace S(t) is below the capacity. In that case, the esti-                   is computed directly from it and, consequently, so are the
+mation will simply return S(t). Most capacity estimation                            filter update equations and Kalman error. We also define the
+methods share this limit, as Jaffe proved in 1981 [31].                             inverse Mills ratio, i.e., E[X |X < α], which denoted as λ(α)
+This kind of saturation effect can be modeled using Tobit                           for the univariate normal case:
+Type I censoring [32], in which measurements have an upper                                                             φ(α)
+or lower threshold, and any value beyond the threshold is                                                   λ(α) = −         .                      (12)
+                                                                                                                       8(α)
+clipped.
+                                                                                         Its equivalent for the variance is ð(α):
+B. TRACKING CAPACITY WITH THE ATKF                                                                      ð(α) = λ(α) (λ(α) − α) .                   (13)
+The capacity estimation method we defined above is noisy,
+both because of imperfections in the estimates and because                            Using the notation defined above, the first two moments of
+of the natural fluctuations of the channel. In order to reduce                      Ct are given by:
+this imprecision, we track the evolution of the capacity using a                      E[Ct |xt , σv ] = (1−8(ηt ))St +8(ηt ) (xt −σv λ(ηt )) ;     (14)
+Kalman Filter (KF) [33], assuming that the noise is Gaussian.
+The TKF [32] is an extension of the KF that can deal with                            Var[Ct |xt , σv ] = σv [1 − ð (ηt )] .                        (15)
+Tobit Type I censoring, solving the limited measurement                                  The Kalman error C̃t is then given by:
+issue. The basic system model we use is very simple, and
+operates on discrete timesteps with interval Tk , which is                                            C̃t = Ct − E[Ct |x̂t|t−1 , σv ].             (16)
+equivalent to the capacity estimation timestep:                                       Additionally, the Bernoulli variable pt represents the cen-
+                       xt+1 = xt + wt ;                                   (9)       soring of the measurements: the variable is 0 if the measure-
+                                                                                    ment is censored and 1 if it is not. It is given by:
+                         Ct = min(St , xt + vt ).                        (10)
+                                                                                                             pt = I (Ct < St ),                    (17)
+   In the model, the measured capacity Ct is a noisy observa-
+tion of a hidden state xt , which represents the actual capacity                    where I (·) is the indicator function. The expected value of the
+of the channel, whose evolution is modeled by a simple                              censoring variable is:
+Gauss-Markov process. The measured capacity is limited
+                                                                                                            E[pt ] = 8 (ηt ) .                     (18)
+by the sending rate St . The two components wt and vt are                                                           h              i
+Gaussian random variables with zero mean and variances                                   The covariance Rx C̃,t = E (xt − xt−1 )C̃t is:
+σw2 = Q and σv2 = R, respectively. The two variances
+are required inputs of the filter, which needs to distinguish                                            Rx C̃,t = 9t|t−1 Ct E[pt ],               (19)
+between temporary variations due to vt (estimation noise) and
+                                                                                    where 9t|t−1 = E[(xt − x̂t|t−1 )2 ] is the predicted a priori
+long-term effects that change the state of the system due to
+                                                                                    state error variance. The variable ṽt = σv λ (ηt ) represents the
+wt (process noise). The KF gain Kt is calculated based on
+                                                                                    bias introduced in the measurement noise by the censoring.
+the a priori and a posteriori estimates of the prediction error
+                                                                                    Ash in i[4], the Kalman error covariance matrix is RC̃ C̃,t =
+variance. The KF is the optimal estimator if its parameters
+are correct for the tracked system, but it needs the values of                      E C̃t2 :
+Q and R as inputs, and its results can degrade quickly if the
+settings are wrong [34]. If the variances are unknown or can                                   RC̃ C̃,t = E[pt ]2 9t|t−1 + E[pt (vt − ṽt )2 ].    (20)
+change over time, as in our case, there are several techniques                        The second term of the sum corresponds to the measure-
+to estimate them online while tracking the underlying pro-                          ment variance Vt = Var[Ct |x̂t|t−1 , σv ]. The Kalman gain is
+cess [35]. These extensions of the KF are called AKFs. In the                       calculated as:
+following, we describe the TKF and extend the recursive
+AKF implementation from [5] to the Tobit Type I censored                                                    Kt = Rx C̃,t R−1 .                     (21)
+                                                                                                                           C̃ C̃,t
+
+VOLUME 9, 2021                                                                                                                                    76369
+                                                                 F. Chiariotti et al.: BBR-S: Low-Latency BBR Modification for Fast-Varying Connections
+
+
+
+
+The TKF is then given by:                                                  The a posteriori state error variance 9`|` is givenhin (25).
+                                                                                                                                   i
+                                                                        The derivation of (34) follows from the fact that E C̃t2 =
+         x̂t|t−1 = x̂t−1|t−1 ;                                (22)
+                                                                        RC̃ C̃,t . In the following step, we use (25) to remove the
+         9t|t−1 = 9t−1|t−1 + Qt−1 ;                           (23)      Kalman gain from the equation. We can now subtract the
+            x̂t|t = x̂t|t−1 + Rx C̃,t R−1 C̃t ;               (24)      expected value in (35) from (32) to write the unbiased esti-
+                                       C̃ C̃,t
+                                                                      mator for the process noise covariance:
+            9t|t = (1 − E[pt ])Rx C̃,t R−1 9t|t−1 .           (25)
+                                                   C̃ C̃,t                                        t
+                                                                                           1 X      2
+   The ATKF combines the TKF from [4] with the recursive                           Q̂t =       K` C̃` + 9`|` − 9`−1|`−1 .                        (36)
+                                                                                           t
+AKF implementation from [5]. In the following, we repeat                                         `=1
+
+the derivation of the noise covariance estimator, adapting it              The derivation of (36) is the same as in [5], using the
+to the TKF. The a posteriori density function of the noise              TKF modified equations instead of the standard KF. The
+covariance of a standard Kalman filter can be estimated using           estimation noise variance Rt does not have a linear estima-
+the Maximum A Posteriori (MAP) coupling form [37]:                      tor, since the Kalman error covariance matrix RC̃ C̃,t , given
+                                                                        by (20), contains  the censoredmeasurement noise variance
+                            t
+                                                                        Vt = E (max (vt , St − xt ))2 instead of Rt . We get the
+                                                                                   
+                       1 Xh                 2 i
+               Q̂t =        x̂t|` − x̂t|`−1      ;            (26)
+                       t                                                unbiased estimator for V̂t by substituting the TKF equations
+                           `=1
+                            t h                                         into the one-step version of (27):
+                       1   X                       2 i
+               R̂t =                  C` − x̂t|`          .   (27)                      1X
+                                                                                             t                              
+                       t                                                        V̂t =      (1 − K` ) C̃`2 (1 − K` ) + Rx C̃,` .                  (37)
+                           `=1
+                                                                                        t
+                                                                                           `=1
+    Even in the standard scenario with no censoring, the terms
+x̂t|`−1 and x̂t|` require multiple prediction steps and make               In order to estimate R̂t , we can now simply invert the
+the optimal formulation above impractical, as it cannot be              formula for computing the variance of a censored Gaussian
+described in recursive form. A practical one-step approxima-            random variable, which is given in (15):
+tion is presented in [5]. In the TKF case, the derivation for
+                                                                                                                  V̂t
+the practical unbiased estimator for Q̂t follows   from (9). The                                      R̂t =             ;                       (38)
+process noise variance is still Q = E (xt − xt−1 )2 , and if
+                                                                                                            1 − ð(η̂t )
+we assume that the ATKF state estimate is close enough to                                                    St − x̂t|t−1
+                                                                                                       η̂t =               ,                     (39)
+the real state, i.e., x̂t|t ' xt (an assumption that the standard                                               σ̂v,t−1
+TKF also requires) we get:                                                                q
+                             h              i                           where σ̂v,t−1 = R̂t−1 and η̂t is the estimate of the normal-
+                   Q = E (xt − xt−1 )2                        (28)      ized distance of the current state from the censoring threshold.
+                             h                   i                      The resulting heuristic estimator is not unbiased, since the
+                       ' E (x̂t|t − x̂t−1|t−1 )2              (29)      function is non-linear, but corresponds to the one-step Maxi-
+                             h                 i                        mum Likelihood Estimator (MLE) for the censored Gaussian
+                       ' E (x̂t|t − x̂t|t−1 )2                (30)      distribution, as derived by Gupta [38].
+                                   2                                   The TKF converges to the standard KF when the censoring
+                       ' E Kt C̃t         ,                   (31)      region is far from the state value. The noise estimator also
+                                                                        converges to the unbiased noise estimator used in the AKF.
+where Kt is the Kalman
+                         gain of the filter at time t and C̃t =        After substituting the terms in (36), the estimator is the one
+Ct − E Ct |x̂t|t−1 is the Kalman error. We can now estimate             in [5]. The same goes for the measurement noise estimator,
+the value of Q from the available samples:                              since limηt →−∞ R̂t = V̂t . In order to deal with time-varying
+                                  t                                     noise, the estimation of the noise covariances needs to be
+                            1 X      2
+                                                                        performed over a limited window in time. This can be done
+                   Q̂t =        K` C̃` .                      (32)
+                            t                                           with a simple lowpass filter, so that the new estimate of the
+                                 `=1
+                                                                        covariance is the linear combination of the old estimate and
+  The expected value of the process noise covariance is:                the latest sample, weighted by a factor 0t :
+                                                                                                               1−γ
+                       " t                #
+            h i          1 X          2
+                                                                                                        0t =          ,                          (40)
+          E Q̂t = E             K` C̃`                  (33)                                                   1 − γt
+                         t
+                           `=1
+                         " t                   #                        where γ ∈ [0, 1) is a fading factor. Lower values of the
+                     1     X
+                                                                        fading factor correspond to a higher weight to new samples,
+                  = E          E[p` ]K` 9`|`−1          (34)
+                     k
+                           `=1
+                                                                        and setting γ = 0 is equivalent to only considering the
+                       " t                    #                         latest sample. However, the covariance samples are sensitive
+                         1X
+                  =E           9`|`−1 − 9`|` .          (35)            to noise outliers, and the estimator might even diverge. For
+                         t                                              this reason, the estimator can use an Innovation Covariance
+                                  `=1
+
+76370                                                                                                                                   VOLUME 9, 2021
+F. Chiariotti et al.: BBR-S: Low-Latency BBR Modification for Fast-Varying Connections
+
+
+
+
+Estimator (ICE) that averages the covariance samples over a                         Algorithm 1 SKIP Mode Operation
+rectangular sliding window to guarantee that noise covariance                        1: function SKIPmode(C, S,ATKF, tdrop , tstep , tout )
+matrices are semidefinite positive [39]:                                             2:   if C ≥ S then                 F Application-limited mode
+                                                                                     3:      tdrop , tstep , tout ← 0;
+                                    t
+                             1      X        h i                                     4:      update(ATKF, C, S);
+                      ξt =                    C̃`2 ,                     (41)
+                             N                                                       5:      return;
+                                 `=t−N +1
+                                                                                     6:   end if
+where N is the size of the sliding window. The ICE is another                        7:   if C = 0 then                             F Outage mode
+lowpass filter, and its length determines the reactiveness of                        8:      tout ← tout + 1;
+the estimator. If the noise statistics are fast-varying, shorter                     9:      tstep ← 0;
+windows are recommended. It is now possible to rewrite the                          10:      if tout = tthr then                      F Reset filter
+estimator recursive equations, considering (40) and (41):                           11:          tout ← 0;
+                                                                                  12:          reset(ATKF, Cmin );
+  Q̂t = (1 − 0t )Q̂t−1 + 0t Kt2 ξt +9t|t −9t−1|t−1 ; (42)                           13:          return;
+                                                                                  14:      end if
+  V̂t = (1 − Kt ) Kt ξt (1 − Kt ) + Rx C̃,t ;              (43)                     15:   else
+                                        −1                                        16:      tout ← 0;
+  R̂t = (1 − 0t )R̂t−1 + 0t 1 − ð η̂t        V̂t .         (44)
+                                                                                    17:   end if
+   The full ATKF is given by the full estimator in (42)-(44),                       18:   if C < ATKF.x − 3ATKF.σ then                F Drop mode
+along with the standard update formulas in (22)-(25). While it                      19:      tdrop ← tdrop + 1;
+is more complex than a max filter, its complexity is still linear                   20:      tstep ← 0;
+in the number of packets, and an efficient implementation can                       21:      blindUpdate(ATKF);
+run in real time with no issues even in mobile processor. The                       22:      if tdrop = tthr then                     F Reset filter
+most complex component of the filter is the ICE, which can                          23:          tdrop ← 0;
+be implemented in a way that only requires 4 operations at                          24:          reset(ATKF, µdrop );
+each step by exploiting previous steps. All other components                        25:      end if
+are a simple series of conditions and basic mathematical                            26:   else
+operations, which are not significantly more complex than                           27:      tdrop ← 0;
+mechanisms such as Cubic.                                                           28:      if C < ATKF.x + 3ATKF.σ then              F Step mode
+                                                                                    29:          tstep ← tstep + 1;
+C. SKIP OPERATION                                                                   30:          if tstep = tthr then                 F Reset filter
+                                                                                    31:              tstep ← 0;
+The ATKF can deal well with gradual changes to the capacity,
+                                                                                    32:              reset(ATKF, µstep );
+but it does not respond quickly enough to sudden capacity
+                                                                                    33:          end if
+drops or even full outages. Wireless channels are often char-
+                                                                                    34:      else                                   F Normal mode
+acterized by sharp drops and temporary outages, and this
+                                                                                    35:          tstep ← 0;
+issue is particularly significant at higher frequencies, where
+                                                                                    36:      end if
+transitions from LoS to NLoS propagation due to blockage
+                                                                                    37:      update(ATKF, C, S);
+from walls, objects or humans are very fast. For this reason,
+                                                                                    38:   end if
+SKIP has three modes of operation, which we will describe
+below: the pseudocode for the filter mode operation is given
+in Algorithm 1.
+   In order to describe the operation mode logic, we will con-                      drastically:
+sider time step t, for which the ATKF has a mean x̂t|t−1 and a                                        t−tthr
+total variance 9t|t−1 +Q+R. First, we examine the condition
+                                                                                                       X
+                                                                                                               Ck = 0 ∧ x̂t|t−1 > 0.            (46)
+to trigger the drop mode. If the sender is in app-limited mode,                                       k=t
+i.e., the application is not providing enough data to fill the
+available capacity, BBR-S should not go into drop mode: the                         If this second condition, implemented in line 7 of the pseu-
+measured capacity is an artifact of the limited sending rate.                       docode, is verified, the mean of the ATKF is reset to the initial
+We then formulate a first condition:                                                minimum value (50 kB/s in our setup) straight away.
+                                                                                       We now define another condition, which gives the drop
+                                 Ct < St .                               (45)       mode its name: a sharp capacity drop. We define a capac-
+                                                                                    ity drop as a 3σ event for the ATKF: according to the
+  This condition is checked in line 2 of the pseudocode.                            model, the probability that the capacity is lower than the
+We then state a second condition, considering the full outage                       ATKF’s mean by more than 3 times its standard deviation
+case: if the measured capacity is 0 for at least tthr samples,                      should be about 10−3 , but propagation conditions can make
+the link is in outage and the sending rate should be reduced                        drops happen far more often. The condition for a drop is
+
+VOLUME 9, 2021                                                                                                                                 76371
+                                                                 F. Chiariotti et al.: BBR-S: Low-Latency BBR Modification for Fast-Varying Connections
+
+
+
+
+                                                                        TABLE 2. Main parameters of the simulation scenario.
+
+
+
+
+                                                                           We also consider a third mode of operation for SKIP, which
+                                                                        we named step mode. In this case, the mechanism needs to
+                                                                        react to a sharp step upwards in the capacity. The issues of the
+                                                                        ATKF are the same as with drops, with the added problem of
+                                                                        the censoring, so the unaided ATKF can be very slow to reach
+                                                                        the full capacity. For this reason, we turn on step mode if the
+                                                                        opposite condition to drop mode is verified:
+FIGURE 4. Block diagram of the filter operation modes.
+                                                                                      Ct > x̂t|t−1 + 3 9t|t−1 + Q + R.
+                                                                                                       p
+                                                                                                                                   (49)
+then given by:                                                             During step mode operation, the ATKF is evolved nor-
+                                                                        mally, but if the condition persists for more than tthr steps,
+              Ct < x̂t|t−1 − 3 9t|t−1 + Q + R.
+                              p
+                                                             (47)
+                                                                        its mean is reset to the average capacity measured during the
+   This condition is implemented in line 18 of the pseu-                step:
+docode. During the drop, we keep evolving the ATKF by                                                                 t
+                                                                                                             1        X
+running the prediction step, thus gradually increasing its                                   µstep (t) =                          .              (50)
+variance, but do not update it with the new capacity samples.                                               tthr
+                                                                                                                   τ =t−tthr +1
+We consider the drop over after p     τ steps if the measured
+                                                                           As for the drop mode, the trade-off in setting tthr is between
+capacity is higher than x̂t|t−1 − 3 9t|t−1 + (τ + 1)Q + R.
+                                                                        underexploiting capacity if the threshold is too high and
+If the drop lasts for a number of steps tdrop ≥ tthr , we consider
+                                                                        reducing stability if it is too low. The step mode also helps
+the capacity shift to be permanent and reset the mean of the
+                                                                        the filter converge faster in the startup phase, making its
+ATKF x̂ to accelerate the adaptation to the new conditions.
+                                                                        convergence fast enough even in high-capacity scenarios.
+The new value of the mean is the average capacity measured
+                                                                        As soon as BBR-S exits its drain phase, the filter is already
+during the drop:
+                                                                        operational, with a good estimate of the current capacity.
+                                        t−tthr +1                       The modes of operation of the filter are also graphically
+                                  1       X
+                   µdrop (t) =                      Ct .     (48)       illustrated in the block diagram in Fig. 4. These conditions
+                                 tthr     τ =t                          allow BBR-S to avoid BBR’s failure modes, maintaining
+    The drop mode increases the filter’s reactiveness to sudden         responsiveness to sudden events while following the trend of
+drops in the capacity, making the protocol more resistant to            the capacity, and are a fundamental part of the mechanism’s
+this kind of issues and limiting the build-up in the bottleneck         operation.
+buffer. During the drop mode, the mean of the ATKF is
+unchanged, so the pacing rate is as well, but the mean reset            IV. TESTING SCENARIO AND RESULTS
+can allow BBR-S to react faster to sudden capacity drops. The           In order to test the performance of BBR-S, we simulated
+number of necessary samples tthr increases the robustness of            the protocol over ns-3 in a controlled scenario. We used
+the mechanism to random temporary changes in the capacity,              two PointToPointChannel objects to simulate the
+but there is a trade-off between stability and responsiveness.          paths, varying their capacity according to two real network
+We found that setting tthr = 3 guarantees that the mechanism            traces:
+avoids following noise in the capacity measurement, while                  • An LTE trace from a driving mobility scenario, with
+still strongly outperforming standard BBR in terms of respon-                highly variable capacity but no sharp drops.
+siveness to outage event. With a longer tthr , the filter would            • A WiGig trace from an experimental setup, with fre-
+take longer to react to changes in the capacity, operating with              quent sharp drops due to LoS/NLoS transitions.
+a wrong estimate for a longer time. On the other hand, setting          In our simulation, a backlogged source sends data to a client
+tthr to 1 or 2 would make it more vulnerable to temporary               using TCP, and we measure performance in terms of achieved
+changes due to physical layer effects, such as fast fading:             throughput and RTT. In order to show the performance of
+resetting the filter mean every time it receives an outlier             BBR-S, we compare it with legacy BBR and BBRx, along
+sample would reduce its stability and, consequently, its ability        with three traditional congestion control mechanisms: Cubic,
+to filter out noise from the capacity measurements.                     Compound, and Vegas. In our simulation, we assumed that
+
+76372                                                                                                                                   VOLUME 9, 2021
+F. Chiariotti et al.: BBR-S: Low-Latency BBR Modification for Fast-Varying Connections
+
+
+
+
+     FIGURE 5. Goodput and RTT over time in the LTE trace.
+
+
+
+
+FIGURE 6. Average throughput versus RTT comparison in the LTE scenario.             FIGURE 7. Average throughput versus 99th percentile RTT comparison in
+                                                                                    the LTE scenario.
+
+
+there are no physical layer losses in order to compare the                          of congestion, BBR variants, including BBRx and BBR-S,
+algorithms fairly: while earlier mechanisms, including Vegas,                       are relatively insensitive to it and infer congestion from
+Cubic, and Compound, always interpret packet loss as a sign                         other measurements. This gives all BBR-based algorithms
+
+VOLUME 9, 2021                                                                                                                                      76373
+                                                             F. Chiariotti et al.: BBR-S: Low-Latency BBR Modification for Fast-Varying Connections
+
+
+
+
+  FIGURE 8. Goodput and RTT over time in the WiGig trace.
+
+
+
+
+an advantage over lossy connections, as they can still fully           Fig. 6 shows a comparison of the average throughput and
+exploit the capacity, without reacting to individual packet         RTT obtained by the different congestion control algorithms.
+losses by halving the congestion window.                            While BBR-S and Vegas have a slightly lower throughput,
+   In the LTE scenario, BBR-S is able to exploit the capac-         they are able to maintain a far lower RTT, both on average and
+ity almost as well as the more aggressive algorithms, but           in the 99th percentile, as Fig. 7 shows. BBR-S stays very close
+performs much better in terms of RTT, as Fig. 5 shows.              to the minimum RTT, while other versions of BBR perform
+In particular, BBR-S has a faster start than Vegas, and can         far worse, and Compound and Cubic can go far over 500 ms
+follow the average throughput, but does not exploit short           (as above, they are not shown in the figure).
+upward spikes as well as BBR, BBRx, Compound, or Cubic,                The benefits that BBR-S gets from running the SKIP
+as it does not maintain a long queue. Note that, in this case,      capacity estimation and filtering are even more evident in
+BBRx performs almost identically to BBR in terms of RTT             the WiGig scenario, as Fig. 8 shows. BBR-S is the only
+and throughput, while BBR-S can control the latency much            algorithm that can follow the transition from LoSto NLoS
+better. In this case, Compound and Cubic can generate huge          that happens after the 70 second mark, tracking the capacity
+delays, and are not shown in the figure because their average       while remaining close to the minimum RTT when even Vegas
+RTT is over 500 ms.                                                 has a long-term increase in the delay. As above, Cubic and
+
+
+76374                                                                                                                               VOLUME 9, 2021
+F. Chiariotti et al.: BBR-S: Low-Latency BBR Modification for Fast-Varying Connections
+
+
+
+
+FIGURE 9. Average throughput and RTT comparison in the WiGig scenario.              FIGURE 11. Throughput of 10 BBR-S flows over a 100 Mb/s bottleneck.
+
+
+
+
+                                                                                    FIGURE 12. 10 BBR-S flows over a 100 Mb/s bottleneck.
+FIGURE 10. Average throughput and 99th percentile RTT comparison in
+the WiGig scenario.
+
+
+                                                                                    scenario and is crucial for reliability-oriented applications:
+                                                                                    as Fig. 10 shows, BBR, BBRx, and Vegas reach an RTT of
+Compound perform worse than any of the other mechanisms                             approximately 250 ms, while BBR-S only arrives at 100 ms.
+in terms of delay, with RTTs over 500 ms during the NLoS                            Cubic is not even shown in the figure, as the 99th percentile
+event. The biggest issue with Vegas is the extremely slow                           of the RTT is over 1 second.
+start, as it does not reach the full capacity until the 40 second
+mark, while the BBR versions and Cubic have an extremely                             A. BEHAVIOR WITH MULTIPLE FLOWS
+aggressive slow start, bringing the RTT over 500 ms. Thanks
+                                                                                    In order to verify the BBR-S congestion control mechanism’s
+to the SKIP filter, BBR-S can reduce the start-up time by
+                                                                                    fairness, we test the scenario in which 10 flows compete
+about half, starting normal operation after less than 4 seconds
+                                                                                    for a shared bottleneck with a capacity of 100 Mb/s and a
+(i.e., as soon as the SKIP filter converges to the connection
+                                                                                    minimum RTT of 50 ms. The flows arrive at an 8 second
+capacity), while BBR and BBRx’s performance suffers for
+                                                                                    interval, as Fig. 11 shows. The spikes in the throughput are
+almost 10.
+                                                                                    due to the start-up phase of new flows, which probes the
+   We can also observe that BBRx is better than standard BBR
+                                                                                    capacity like standard BBR. However, after a few seconds,
+at maintaining a low RTT, but still has increased delays when
+                                                                                    the flows get back to a fair share of capacity, albeit with some
+the capacity changes. We can see BBRx as an intermediate
+                                                                                    oscillations. The Jain Fairness Index (JFI) is a measure of
+solution between our BBR-S, which loses some throughput
+                                                                                    fairness in communication networks that we can use to gauge
+but maintains a very low RTT, and standard BBR. This is
+                                                                                    the fairness of the congestion control mechanism:
+confirmed by Fig. 9, which shows the average throughput
+and RTT of the different congestion control mechanisms                                                                    Pn      2
+                                                                                                                           i=1 xi
+(measured after the 10 second mark, to remove the effect of                                        J (x1 , . . . , xn ) = Pn          .          (51)
+                                                                                                                         n i=1 (xi )2
+the slow start): while BBR-S has a 10% loss in the average
+goodput with respect to the other algorithms (Vegas has 20%),                          An ideal division into exactly equal shares would get a JFI
+it has an average RTT just above the minimum, doing better                          of 1. The JFI of the 10 BBR-S flows is 0.9711, which is very
+than even Vegas. This is even more evident if we look at the                        close to the optimum. As Fig. 12 shows, the RTT of the flows
+99th percentile of the RTT, which represents the worst-case                         is also limited: while the performance is slightly worse than in
+
+VOLUME 9, 2021                                                                                                                                     76375
+                                                                    F. Chiariotti et al.: BBR-S: Low-Latency BBR Modification for Fast-Varying Connections
+
+
+
+
+                                                                           for both flows. The BBR-S flow takes up between 80% and
+                                                                           90% of its fair share of capacity. The two RTT Probe phases
+                                                                           after approximately 15 and 25 seconds make Cubic quickly
+                                                                           occupy the whole space. However, the shallow RTT probing
+                                                                           makes the protocol quickly get back its half of the capacity.
+                                                                           As Fig. 14, the RTT can grow significantly, as Cubic does not
+                                                                           try to maintain a low latency.
+
+                                                                           V. CONCLUSION
+                                                                           In this work, we presented BBR-S, an improvement to the
+                                                                           BBR congestion control scheme that significantly improves
+                                                                           its latency with negligible capacity losses. While the max
+                                                                           filter used by BBR tends to make it too aggressive in
+FIGURE 13. Throughput of a Cubic flow and a BBR-S flow over a 50 Mb/s
+bottleneck.
+                                                                           fast-varying connections, making the congestion window the
+                                                                           limiting factor on the send rate, and not the pace as BBR was
+                                                                           designed for, our SKIP filter maintains the send rate close
+                                                                           to the capacity. In order to effectively track capacity from
+                                                                           censored observations, which are limited by the pace at which
+                                                                           the packets were sent, we developed the ATKF, an adaptation
+                                                                           of the TKF that can deal with linear systems with unknown
+                                                                           noise covariances. Furthermore, SKIP can overcome the limi-
+                                                                           tations of Kalman-based filters by adapting directly to sudden
+                                                                           transitions in the capacity.
+                                                                              The results of our ns-3 simulations show that BBR-S can
+                                                                           have more than 90% of BBR’s throughput while reducing
+                                                                           the average and 99th percentile RTT by more than 50%
+                                                                           when operating on capacity traces from real wireless network
+                                                                           environments. In particular, its reactiveness to sharp capacity
+FIGURE 14. RTT of a Cubic flow and a BBR-S flow over a 50 Mb/s             drops makes it ideal for WiGig scenarios. Unlike Vegas,
+bottleneck.                                                                the other common latency-oriented congestion control mech-
+                                                                           anism, it can also share a link fairly with capacity-oriented
+                                                                           flows, albeit without most of its latency advantages. BBR-
+the single-flow case, the average RTT after all the flows have             S is far better at maintaining a low latency than current
+started is just 84 ms, and no flow’s RTT goes over 100 ms                  mechanisms, as well as adaptable to different scenarios and
+outside of the startup phases.                                             able to deal with sudden changes in the capacity.
+   In modern cellular networks, data for different pairs of                   Future extensions of the protocol will focus on further
+hosts is stored in separate buffers [20], and if the wireless              refinements on the filter, including more complex statistical
+link is the bottleneck of the connection, flows will not inter-            tools such as Gaussian Mixture Models (GMMs) to improve
+act directly. Cross-traffic will be experienced as a uniform               the capacity tracking. Other improvements to BBR such
+reduction in capacity, since wireless resources are allocated              as the ones suggested for BBRv2 might be patched in, reduc-
+by a scheduler that tries to maintain fairness while each flow             ing the impact of bandwidth probing on the protocol’s latency
+is on a separate buffer. In this case, self-interaction is the             and improving fairness.
+foremost cause of queuing delay, and BBR-S can keep the
+RTT close to the minimum thanks to BBR-S’s more accurate                   REFERENCES
+estimates of the available capacity. If the bottleneck is not               [1] M. Polese, R. Jana, and M. Zorzi, ‘‘TCP and MP-TCP in 5G mmWave
+the cellular wireless access, but rather an 802.11 link, or in                  networks,’’ IEEE Internet Comput., vol. 21, no. 5, pp. 12–19, Sep. 2017.
+the network core, BBR-S will have no performance loss                       [2] N. Cardwell, Y. Cheng, C. S. Gunn, S. H. Yeganeh, and V. Jacobson,
+                                                                                ‘‘BBR: Congestion-based congestion control,’’ ACM Queue, vol. 14, no. 5,
+over BBR, which is here considered as the state-of-the-art                      pp. 50-20–50-53, Oct. 2016.
+protocol. By inheriting the basic structure of BBR, BBR-S                   [3] A. Langley, A. Riddoch, A. Wilk, A. Vicente, C. Krasic, D. Zhang, F. Yang,
+also gets its resistance to lossy connections.                                  F. Kouranov, I. Swett, J. Iyengar, and J. Bailey, ‘‘The QUIC transport pro-
+                                                                                tocol: Design and Internet-scale deployment,’’ in Proc. Conf. ACM Special
+   BBR-S can also coexist fairly with Cubic, while BBR                          Interest Group Data Commun. (SIGCOMM), Aug. 2017, pp. 183–196.
+is arguably too aggressive [24] and highly sensitive to                     [4] B. Allik, C. Miller, M. J. Piovoso, and R. Zurakowski, ‘‘The tobit Kalman
+buffer size, even though the next version of the proto-                         filter: An estimator for censored measurements,’’ IEEE Trans. Control Syst.
+col [29] promises to overcome these issues. Fig. 13 shows                       Technol., vol. 24, no. 1, pp. 365–371, Jan. 2016.
+                                                                            [5] W. Gao, J. Li, G. Zhou, and Q. Li, ‘‘Adaptive Kalman filtering with
+the throughput over time of a Cubic flow and a BBR-S flow                       recursive noise estimator for integrated SINS/DVL systems,’’ J. Navigat.,
+sharing a 50 Mb/s bottleneck, with a minimum RTT of 50 ms                       vol. 68, no. 1, pp. 142–161, Jan. 2015.
+
+76376                                                                                                                                      VOLUME 9, 2021
+F. Chiariotti et al.: BBR-S: Low-Latency BBR Modification for Fast-Varying Connections
+
+
+
+
+ [6] H. Balakrishnan, V. N. Padmanabhan, S. Seshan, and R. H. Katz, ‘‘A com-        [29] N. Cardwell, Y. Cheng, S. H. Yeganeh, I. Swett, V. Vasiliev, P. Jha,
+     parison of mechanisms for improving TCP performance over wireless                   Y. Seung, M. Mathis, and V. Jacobson, ‘‘BBR v2: A model-based conges-
+     links,’’ IEEE/ACM Trans. Netw., vol. 5, no. 6, pp. 756–769, Dec. 1997.              tion control,’’ in Proc. IETF Meeting, Mar. 2019, pp. 1–36.
+ [7] M. Zhang, M. Polese, M. Mezzavilla, J. Zhu, S. Rangan, S. Panwar, and          [30] J. Chung, F. Li, and B. Kim, ‘‘BBRx: Extending BBR for customized TCP
+     M. Zorzi, ‘‘Will TCP work in mmWave 5G cellular networks?’’ IEEE                    performance,’’ in Proc. NetDev 0x12, Jul. 2018, pp. 262–276.
+     Commun. Mag., vol. 57, no. 1, pp. 65–71, Jan. 2019.                            [31] J. Jaffe, ‘‘Flow control power is nondecentralizable,’’ IEEE Trans. Com-
+ [8] M. Zhang, M. Mezzavilla, R. Ford, S. Rangan, S. Panwar, E. Mellios,                 mun., vol. COM-29, no. 9, pp. 1301–1306, Sep. 1981.
+     D. Kong, A. Nix, and M. Zorzi, ‘‘Transport layer performance in 5G             [32] J. Tobin, ‘‘Estimation of relationships for limited dependent variables,’’
+     mmWave cellular,’’ in Proc. IEEE Conf. Comput. Commun. Workshops                    Econometrica, J. Econ. Soc., vol. 26, no. 1, pp. 24–36, Jan. 1958.
+     (INFOCOM WKSHPS), Apr. 2016, pp. 730–735.                                      [33] R. E. Kalman, ‘‘A new approach to linear filtering and prediction prob-
+ [9] S. Ha, I. Rhee, and L. Xu, ‘‘CUBIC: A new TCP-friendly high-speed TCP               lems,’’ J. Basic Eng., vol. 82, no. 1, pp. 35–45, Mar. 1960.
+     variant,’’ ACM SIGOPS Operating Syst. Rev., vol. 42, no. 5, pp. 64–74,         [34] C. Price, ‘‘An analysis of the divergence problem in the Kalman filter,’’
+     Jul. 2008.                                                                          IEEE Trans. Autom. Control, vol. AC-13, no. 6, pp. 699–702, Dec. 1968.
+[10] J. Gettys and K. Nichols, ‘‘Bufferbloat: Dark buffers in the Internet,’’       [35] R. Mehra, ‘‘On the identification of variances and adaptive Kalman fil-
+     Queue, vol. 9, no. 11, p. 40, Nov. 2011.                                            tering,’’ IEEE Trans. Autom. Control, vol. AC-15, no. 2, pp. 175–184,
+[11] L. S. Brakmo, S. W. O’Malley, and L. L. Peterson, ‘‘TCP Vegas: New tech-            Apr. 1970.
+     niques for congestion detection and avoidance,’’ ACM Comput. Commun.           [36] B. J. Odelson, M. R. Rajamani, and J. B. Rawlings, ‘‘A new autocovari-
+     Rev., vol. 24, no. 4, pp. 24–35, Oct. 1994.                                         ance least-squares method for estimating noise covariances,’’ Automatica,
+[12] K. Tan, J. Song, Q. Zhang, and M. Sridharan, ‘‘A compound TCP approach              vol. 42, no. 2, pp. 303–308, Feb. 2006.
+     for high-speed and long distance networks,’’ in Proc. 25th IEEE Int. Conf.     [37] A. P. Sage and G. W. Husa, ‘‘Adaptive filtering with unknown prior statis-
+     Comput. Commun. (IEEE INFOCOM), Apr. 2006, pp. 1–12.                                tics,’’ in Proc. Joint Autom. Control Conf., no. 7, Aug. 1969, pp. 760–769.
+[13] Y. Zaki, T. Pötsch, J. Chen, L. Subramanian, and C. Görg, ‘‘Adaptive           [38] A. Gupta, ‘‘Estimation of the mean and standard deviation of a nor-
+     congestion control for unpredictable cellular networks,’’ ACM SIGCOMM               mal population from a censored sample,’’ Biometrika, vol. 39, nos. 3–4,
+     Comput. Commun. Rev., vol. 45, no. 4, pp. 509–522, Sep. 2015.                       pp. 260–273, Dec. 1952.
+[14] K. Winstein and H. Balakrishnan, ‘‘TCP ex machina: Computer-generated          [39] D.-J. Jwo and T.-P. Weng, ‘‘An adaptive sensor fusion method with appli-
+     congestion control,’’ ACM SIGCOMM Comput. Commun. Rev., vol. 43,                    cations in integrated navigation,’’ J. Navigat., vol. 61, no. 4, pp. 705–721,
+     no. 4, pp. 123–134, Sep. 2013.                                                      Oct. 2008.
+[15] M. Dong, Q. Li, D. Zarchy, P. B. Godfrey, and M. Schapira, ‘‘PCC: Re-
+     architecting congestion control for consistent high performance,’’ in Proc.
+     12th USENIX Symp. Netw. Syst. Design Implement. (NSDI), May 2015,
+     pp. 395–408.
+[16] M. Polese, F. Chiariotti, E. Bonetto, F. Rigotto, A. Zanella, and M. Zorzi,
+     ‘‘A survey on recent advances in transport layer protocols,’’ IEEE Commun.
+     Surveys Tuts., vol. 21, no. 4, pp. 3584–3608, Sep. 2019.
+[17] H. Haile, K.-J. Grinnemo, S. Ferlin, P. Hurtig, and A. Brunstrom,
+     ‘‘End-to-end congestion control approaches for high throughput and low                                   FEDERICO CHIARIOTTI (Member, IEEE)
+     delay in 4G/5G cellular networks,’’ Comput. Netw., vol. 186, Feb. 2021,                                  received the bachelor’s and master’s degrees in
+     Art. no. 107692.                                                                                         telecommunication engineering and the Ph.D.
+[18] L. Kleinrock, ‘‘Power and deterministic rules of thumb for probabilistic                                 degree in information engineering from the Uni-
+     problems in computer communications,’’ in Proc. Conf. Rec., Int. Conf.                                   versity of Padova, in 2013, 2015, and 2019, respec-
+     Commun., Boston, MA, USA, Jun. 1979, pp. 43.1.1–43.1.10.                                                 tively. He was a Research Intern with Nokia Bell
+[19] A. Zanella, G. Procissi, M. Gerla, and M. Y. Sanadidi, ‘‘TCP west-
+                                                                                                              Labs, Dublin, in 2017 and 2018. He is currently
+     wood: Analytic model and performance evaluation,’’ in Proc. IEEE Global
+                                                                                                              a Postdoctoral Researcher with the Department of
+     Telecommun. Conf. (GLOBECOM), vol. 3, Dec. 2001, pp. 1703–1707.
+[20] K. Winstein, A. Sivaraman, and H. Balakrishnan, ‘‘Stochastic forecasts
+                                                                                                              Electronic Systems, Aalborg University, Denmark.
+     achieve high throughput and low delay over cellular networks,’’ in Proc.                                 He has authored over 40 published articles on wire-
+     10th Symp. Netw. Syst. Design Implement. (NSDI), Lombard, IL, USA,             less networks and the use of artificial intelligence techniques to improve their
+     Apr. 2013, pp. 459–471.                                                        performance. His current research interests include network applications of
+[21] F. Li, J. W. Chung, X. Jiang, and M. Claypool, ‘‘TCP CUBIC versus BBR          machine learning, transport layer protocols, smart cities, bike sharing system
+     on the highway,’’ in Proc. Int. Conf. Passive Act. Netw. Meas. (PAM).          optimization, age of information, and adaptive video streaming. He was
+     Cham, Switzerland: Springer, Mar. 2018, pp. 269–280.                           a recipient of the Best Paper Award at several conferences, including the
+[22] D. Scholz, B. Jaeger, L. Schwaighofer, D. Raumer, F. Geyer, and G. Carle,      2020 IEEE INFOCOM WCNEE Workshop.
+     ‘‘Towards a deeper understanding of TCP BBR congestion control,’’ in
+     Proc. IFIP Netw. Conf. (IFIP Netw.) Workshops, May 2018, pp. 1–9.
+[23] P. Hurtig, H. Haile, K.-J. Grinnemo, A. Brunstrom, E. Atxutegi, F. Liberal,
+     and Å. Arvidsson, ‘‘Impact of TCP BBR on CUBIC traffic: A mixed
+     workload evaluation,’’ in Proc. 30th Int. Teletraffic Congr. (ITC), vol. 1,                              ANDREA ZANELLA (Senior Member, IEEE)
+     Sep. 2018, pp. 218–226.                                                                                  received the Laurea degree in computer engineer-
+[24] P. Farrow, ‘‘Performance analysis of heterogeneous TCP congestion con-                                   ing and the Ph.D. degree from the University
+     trol environments,’’ in Proc. Int. Conf. Perform. Eval. Modeling Wired                                   of Padova, Italy, in 1998 and 2001, respectively.
+     Wireless Netw. (PEMWN), Nov. 2017, pp. 1–6.                                                              He spent nine months with Prof. Mario Gerla’s
+[25] Z. Zhong, I. Hamchaoui, R. Khatoun, and A. Serhrouchni, ‘‘Performance                                    Research Team, University of California, Los
+     evaluation of CQIC and TCP BBR in mobile network,’’ in Proc. 21st Conf.                                  Angeles (UCLA), in 2000. He is one of the coordi-
+     Innov. Clouds, Internet Netw. Workshops (ICIN), Feb. 2018, pp. 1–5.
+                                                                                                              nators of the SIGnals and NETworking (SIGNET)
+[26] M. Hock, R. Bless, and M. Zitterbart, ‘‘Experimental evaluation of BBR
+                                                                                                              Research Laboratory. He is currently a Full Profes-
+     congestion control,’’ in Proc. IEEE 25th Int. Conf. Netw. Protocols (ICNP),
+     Oct. 2017, pp. 1–10.
+                                                                                                              sor with the Department of Information Engineer-
+[27] M. Zhang, M. Mezzavilla, J. Zhu, S. Rangan, and S. Panwar, ‘‘TCP               ing (DEI), University of Padova. His long-established research activities are
+     dynamics over mmwave links,’’ in Proc. IEEE 18th Int. Workshop Signal          in the fields of protocol design, optimization, and performance evaluation
+     Process. Adv. Wireless Commun. (SPAWC), Jul. 2017, pp. 1–6.                    of wired and wireless networks. He has been serving as a Technical Area
+[28] M. Pieska and A. Kassler, ‘‘TCP performance over 5G mmWave                     Editor for the IEEE INTERNET OF THINGS JOURNAL, and an Associate Editor
+     links—Tradeoff between capacity and latency,’’ in Proc. IEEE 13th Int.         for the IEEE TRANSACTIONS ON COGNITIVE COMMUNICATIONS AND NETWORKING,
+     Conf. Wireless Mobile Comput., Netw. Commun. (WiMob), Oct. 2017,               IEEE COMMUNICATIONS SURVEYS AND TUTORIALS, and Digital Communications
+     pp. 385–394.                                                                   and Networks.
+
+VOLUME 9, 2021                                                                                                                                                 76377
+                                                                           F. Chiariotti et al.: BBR-S: Low-Latency BBR Modification for Fast-Varying Connections
+
+
+
+
+                          STEPAN KUCERA (Senior Member, IEEE)                                                HOLGER CLAUSSEN (Senior Member, IEEE)
+                          received the Ph.D. degree in informatics from the                                  received the Ph.D. degree in signal processing
+                          Graduate School of Informatics, Kyoto University,                                  for digital communications from The University
+                          Kyoto, Japan, in 2008. He currently works as an                                    of Edinburgh, U.K., in 2004. He is currently the
+                          Senior 5G Expert and 3GPP RAN2 delegate with                                       Head of the Wireless Communications Labora-
+                          Nokia Munich, Germany, where he is responsible                                     tory, Tyndall National Institute, where he is build-
+                          for driving research and development of advanced                                   ing up research teams in the area of RF, access,
+                          5G NR concepts as well as their 3GPP standard-                                     protocols, AI, and quantum systems to invent
+                          ization, mainly in areas of the industrial IoT, V2X                                the future of wireless communication networks.
+                          sidelink, and enhanced positioning. In the past                                    He led the Wireless Communications Department,
+decade, he developed at Nokia innovative networking technologies that             Nokia Bell Labs, Ireland and USA. In this role, he and his team inno-
+became the basis for new commercial products and have been demonstrated           vated in all areas related to future evolution, deployment, and operation of
+to top-tier business customers worldwide and in industry shows. Impactful         wireless networks to enable exponential growth in mobile data traffic and
+examples include multi-connectivity with user-defined latency/reliability         reliable low latency communications. His research in this domain has been
+guarantees, zero-touch machine-designed self-optimization for large-scale         commercialized in Nokia’s (formerly Alcatel-Lucent’s) Small Cell product
+networks, light-based Gigabit mobile access, optimal interference man-            portfolio and continues to have significant impact. Prior to this, he directed
+agement, and medium access for heterogeneous networks. He also served             research in the areas of self-managing networks to enable the first large
+as a work package leader, primary beneficiary/investigator, board member          scale femtocell deployments. He joined Bell Labs, in 2004, where he began
+in large-scale research projects totaling 15+ Mil. EUR, such as MINTS,            his research in the areas of network optimization, cellular architectures,
+ENLIGHTEM, and ELIOT, as well as founded and managed advanced                     and improving energy efficiency of networks. He is author of the book
+research projects with six major universities in EU and Japan. He has filed       Small Cell Networks, more than 130 journal and conference publications,
+more than 50 patents, published more than 70 book chapters, transactions,         78 granted patent families, and 46 filed patent applications pending. He is
+and conference papers in peer-reviewed ACM/IEEE venues. He actively               a Fellow of the World Technology Network. He is a member of the IET.
+serves on technical boards of major ACM/IEEE journals and conferences.            He received the 2014 World Technology Award in the individual category
+He was a recipient of multiple professional awards, among others the              Communications Technologies for innovative work of the greatest likely
+Nokia Top Inventor 2018, the Nokia UK&I Top Inventor of All Times,                long-term significance.
+the Hummies Gold Award for Best Human-Competitive Design 2019, and
+the Irish Laboratory Scientist of the Year Award 2018.
+
+
+
+
+76378                                                                                                                                             VOLUME 9, 2021
+

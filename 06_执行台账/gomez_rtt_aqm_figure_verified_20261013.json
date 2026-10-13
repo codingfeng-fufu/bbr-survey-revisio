@@ -1,0 +1,18 @@
+{
+  "source": "literature_sources_20261012/gomez_bbrv3_author_20261013.pdf",
+  "doi": "10.1016/j.comcom.2024.04.037",
+  "review_date": "2026-10-13",
+  "location": "Section 5.2, Figure 5, PDF page 8 visually checked",
+  "design": "Two same-version BBR flows with reported 20/100 ms delay values; buffer sweep; Tail Drop for v1/v2/v3, FQ-CoDel for v3",
+  "observations": [
+    "Figure 5(d) displays near-100% Jain and near-equal throughput across plotted buffer sizes with FQ-CoDel",
+    "Tail Drop BBRv3 shows buffer-dependent asymmetry; longer-delay flow obtains larger throughput for larger buffers"
+  ],
+  "limits": [
+    "Figure curves visually checked but not digitized; no precise universal threshold inferred",
+    "FQ-CoDel combines per-flow scheduling and CoDel; experiment does not isolate CoDel contribution",
+    "Section 5.2 calls delays RTT; caption calls propagation delay",
+    "Source prose says BBRv2 fairness never below 80% above BDP, but Figure 5(b) visibly dips below 80%; do not reproduce that lower bound",
+    "Same-version RTT fairness does not establish BBRv3/CUBIC coexistence fairness"
+  ]
+}

@@ -1,0 +1,24 @@
+\begin{table}[htbp]
+\centering
+\caption{E2 competition with CUBIC at 100 Mbps and equal 20-ms RTTs, with ECN disabled. Each cell summarizes five full-run receiver measurements. Share denotes the BBR flow; Jain is the mean of per-run indices. Different implementation environments limit causal version attribution.}
+\label{tab:e2_results}
+\small
+\begin{tabular}{lrrrr}
+\toprule
+Implementation & Q/BDP & Total (Mbps) & BBR share & Jain \\
+\midrule
+In-tree baseline & 0.5 & 95.59 & 0.155 & 0.677 \\
+In-tree baseline & 2 & 95.59 & 0.153 & 0.674 \\
+In-tree baseline & 10 & 95.58 & 0.165 & 0.690 \\
+BBRv1 module & 0.5 & 95.59 & 0.144 & 0.663 \\
+BBRv1 module & 2 & 95.59 & 0.143 & 0.663 \\
+BBRv1 module & 10 & 95.59 & 0.149 & 0.669 \\
+BBR2 & 0.5 & 95.58 & 0.278 & 0.835 \\
+BBR2 & 2 & 95.58 & 0.327 & 0.886 \\
+BBR2 & 10 & 95.58 & 0.274 & 0.828 \\
+BBRv3 & 0.5 & 95.58 & 0.153 & 0.675 \\
+BBRv3 & 2 & 95.58 & 0.145 & 0.664 \\
+BBRv3 & 10 & 95.59 & 0.164 & 0.689 \\
+\bottomrule
+\end{tabular}
+\end{table}

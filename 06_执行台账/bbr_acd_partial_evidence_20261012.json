@@ -1,0 +1,44 @@
+{
+  "record_id": "openalex_Q1_0033",
+  "doi": "10.3390/electronics9010136",
+  "title": "BBR-ACD: BBR with Advanced Congestion Detection",
+  "status": "partial implementation and loss-source methods review; eligibility pending",
+  "source": "fulltext_acquisition_20261012/openalex_Q1_0033.pdf",
+  "implementation": {
+    "physical_testbed": "Linux4.17/BBRv1.0",
+    "simulation": "ns3.28 BBRadaptation; not nativeLinuxequivalence established"
+  },
+  "traffic": "Two senders eachfiveflows; starts0..4sand55..59s",
+  "testbed_loss_matrix": {
+    "buffer_packets": [
+      100000,
+      100
+    ],
+    "configured_netem_loss_pct": [
+      0,
+      0.1
+    ]
+  },
+  "tools": [
+    "fq",
+    "netem",
+    "ethtool",
+    "iperf3",
+    "Wireshark",
+    "netstat"
+  ],
+  "mechanism": "Congestion inference using elongated/nearlyidenticalRTT andtripledupACK; alphatolerance1000usselected inpaper",
+  "limits": [
+    "Netemrandomloss models synthetic errors, not realwirelessnetworkfailures",
+    "Largebuffer alone does not prove absenceofallcongestion; actualcounterevidence required",
+    "Alpha tuning trades retransmission againstsentpackets andauthors saydepends onscenario",
+    "Physicaltestbed andns3results must remain separate",
+    "NoBBRv2/v3identity,ECNcomparison orindependentrepeated-rununcertainty confirmed",
+    "Performancepercentages/tablevalues not yet visuallyverified orreproduced"
+  ],
+  "source_locations": [
+    "Sections3.1/3.3",
+    "Section4/Fig6",
+    "Section5/Table3"
+  ]
+}

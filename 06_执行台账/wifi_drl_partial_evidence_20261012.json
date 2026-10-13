@@ -1,0 +1,40 @@
+{
+  "record_id": "openalex_Q1_0164",
+  "doi": "10.3390/fi16090330",
+  "title": "On the Fairness of Internet Congestion Control over WiFi with Deep Reinforcement Learning",
+  "status": "partial AI/methods extraction; final eligibility pending",
+  "source": "fulltext_acquisition_20261012/openalex_Q1_0164.pdf",
+  "action": "Select/switchCCA(Cubic,BBR,PCC), not tuneBBRv3state-machine gains",
+  "reward": "0.5logthroughput-0.25loglatency-0.25loglossrate aswritten",
+  "training": "OfflineDRLchosen explicitly; user-spaceimplementation dependencies",
+  "testbed": {
+    "clients_OS": "Ubuntu22.04.4",
+    "router": "MikroTikRouterOS6.49.4/hAPax",
+    "capacity_mbps": 100,
+    "queue_packets": 50,
+    "queue": "PFIFO",
+    "duration_s": 100,
+    "tools": [
+      "iperf3",
+      "Wireshark",
+      "tshark",
+      "Scapy"
+    ]
+  },
+  "metrics": "ThroughputratioThratio,RTT,jitter,loss; exactJainusage not confirmed",
+  "limits": [
+    "BBR2/3algorithm labels alone do not establish source/kernel/runtimeidentity",
+    "Offlinechosen switches do not establish online inference latency orsafein-connectiondeployment",
+    "Reward has no explicitJain/interflowfairness term; claim thatfairnessisoptimized requires policy/aggregationverification",
+    "Logloss atzero requiresfloor/normalization not confirmed in inspectedtext",
+    "Trainingaccuracy/rewardconvergence not proof of generalization acrossunseenWiFisystems",
+    "50trainingruns not automatically networkexperimentrepeatcount",
+    "Before/afterCCAswitching compares differentalgorithms, not fixedBBRv3causalperformance"
+  ],
+  "locations": [
+    "p.13action/reward/offlineparagraph",
+    "pp.14–15setup/Table4",
+    "Table5reportedbefore/afterresults"
+  ],
+  "evidence_acceptance": "Specific methods/limitations only; quantitative gains andoverallAIclaims not signedoff"
+}

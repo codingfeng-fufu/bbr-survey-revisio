@@ -1,0 +1,1219 @@
+IEEE TRANSACTIONS ON WIRELESS COMMUNICATIONS, VOL. 19, NO. 2, FEBRUARY 2020                                                                           729
+
+
+
+
+             Multi-Agent Reinforcement Learning-Based
+              Resource Allocation for UAV Networks
+                              Jingjing Cui , Member, IEEE, Yuanwei Liu , Senior Member, IEEE,
+                                                 and Arumugam Nallanathan , Fellow, IEEE
+
+
+
+
+   Abstract— Unmanned aerial vehicles (UAVs) are capable of                       systems (RPAS) or drones, are small pilotless aircraft that are
+serving as aerial base stations (BSs) for providing both cost-                    rapidly deployable for complementing terrestrial communica-
+effective and on-demand wireless communications. This arti-                       tions based on the 3rd Generation Partnership Project (3GPP)
+cle investigates dynamic resource allocation of multiple UAVs
+enabled communication networks with the goal of maximizing                        LTE-A (Long term evolution-advanced) [4]. In contrast to
+long-term rewards. More particularly, each UAV communicates                       channel characteristics of terrestrial communications, the chan-
+with a ground user by automatically selecting its communicat-                     nels of UAV-to-ground communications are more probably
+ing user, power level and subchannel without any information                      line-of-sight (LoS) links [5], which is beneficial for wireless
+exchange among UAVs. To model the dynamics and uncertainty                        communications.
+in environments, we formulate the long-term resource allocation
+problem as a stochastic game for maximizing the expected                             In particular, UAVs based different aerial platforms that for
+rewards, where each UAV becomes a learning agent and each                         providing wireless services have attracted extensive research
+resource allocation solution corresponds to an action taken by                    and industry efforts in terms of the issues of deployment,
+the UAVs. Afterwards, we develop a multi-agent reinforcement                      navigation and control [6]–[8]. Nevertheless, resource alloca-
+learning (MARL) framework that each agent discovers its best                      tion such as transmit power, serving users and subchannels,
+strategy according to its local observations using learning. More
+specifically, we propose an agent-independent method, for which                   as a key communication problem, is also essential to further
+all agents conduct a decision algorithm independently but share                   enhance the energy-efficiency and coverage for UAV-enabled
+a common structure based on Q-learning. Finally, simulation                       communication networks.
+results reveal that: 1) appropriate parameters for exploitation
+and exploration are capable of enhancing the performance
+of the proposed MARL based resource allocation algorithm;                         A. Prior Works
+2) the proposed MARL algorithm provides acceptable perfor-
+mance compared to the case with complete information exchanges                       Compared to terrestrial BSs, UAVs are generally faster to
+among UAVs. By doing so, it strikes a good tradeoff between                       deploy and more flexible to configure. The deployment of
+performance gains and information exchange overheads.                             UAVs in terms of altitude and distance between UAVs was
+   Index Terms— Dynamic resource allocation, multi-agent                          investigated for UAV-enabled small cells in [9]. In [10], a
+reinforcement learning (MARL), stochastic games, UAV                              three-dimensional (3D) deployment algorithm based on circle
+communications.                                                                   packing is developed for maximizing the downlink coverage
+                                                                                  performance. Additionaly, a 3D deployment algorithm of a
+                           I. I NTRODUCTION                                       single UAV is developed for maximizing the number of
+                                                                                  covered users in [11]. By fixing the altitudes, a successive UAV
+A     ERIAL communication networks, encouraging new inno-
+      vative functions to deploy wireless infrastructure, have
+recently attracted increasing interests for providing high net-
+                                                                                  placement approach was proposed to minimize the number
+                                                                                  of UAVs required while guaranteeing each ground user to be
+work capacity and enhancing coverage [2], [3]. Unmanned                           covered by at least one UAV in [12]. Moreover, 3D drone-cell
+aerial vehicles (UAVs), also known as remotely piloted aircraft                   deployments for mitigating congestion of cellular networks
+                                                                                  was investigated in [13], where the 3D placement problem
+  Manuscript received September 20, 2018; revised May 17, 2019; accepted          was solved by designing the altitude and the two-dimensional
+August 7, 2019. Date of publication August 20, 2019; date of current version
+February 11, 2020. This work was supported by the U.K. Engineering and            location, separately.
+Physical Sciences Research Council (EPSRC) under Grant EP/N029720/2.                 Despite the deployment optimization of UAVs, trajec-
+This article was presented in part at the IEEE Proceedings of International       tory designs of UAVs for optimizing the communication
+Conference on Communication Workshops (ICCW), 2019 [1]. The associate
+editor coordinating the review of this article and approving it for publication   performance have attracted tremendous attentions, such as
+was A. Abrardo. (Corresponding author: Jingjing Cui.)                             in [14]–[16]. In [14], the authors considered one UAV as a
+  J. Cui is with the School of Electronics and Computer Science, University of    mobile relay and investigated the throughput maximization
+Southampton, Southampton SO17 1BJ, U.K. (e-mail: jingj.cui@soton.ac.uk).
+  Y. Liu and A. Nallanathan are with the School of Electronic Engineering         problem by optimizing power allocation and the UAV’s trajec-
+and Computer Science, Queen Mary University of London, London E1 4NS,             tory. Then, a designing approach of the UAV’s trajectory based
+U.K. (e-mail: yuanwei.liu@qmul.ac.uk; a.nallanathan@qmul.ac.uk).                  on successive convex approximation (SCA) techniques was
+  Color versions of one or more of the figures in this article are available
+online at http://ieeexplore.ieee.org.                                             proposed in [14]. By transforming the continuous trajectory
+  Digital Object Identifier 10.1109/TWC.2019.2935201                              into a set of discrete waypoints, the authors in [15] investigated
+      This work is licensed under a Creative Commons Attribution 4.0 License. For more information, see http://creativecommons.org/licenses/by/4.0/
+730                                                      IEEE TRANSACTIONS ON WIRELESS COMMUNICATIONS, VOL. 19, NO. 2, FEBRUARY 2020
+
+
+
+the UAV’s trajectory design with minimizing the mission com-         as the network size continues to increase. Multi-agent rein-
+pletion time in a UAV-enabled multicasting system. Addition-         forcement learning (MARL) is capable of providing a distrib-
+ally, multiple-UAV enabled wireless communication networks           uted perspective on the intelligent resource management for
+(multi-UAV networks) were considered in [16], where a joint          UAV-enabled communication networks especially when these
+design for optimizing trajectory and resource allocation was         UAVs only have individual local information.
+studied with the goal of guaranteeing fairness by maximizing            The main benefits of MARL are: 1) agents consider indi-
+the minimum throughput among users. In [17], the authors             vidual application-specific nature and environment; 2) local
+proposed a joint of subchannel assignment and trajectory             interactions between agents can be modeled and investigated;
+design approach to strike a tradeoff between the sum rate and        3) difficulties in modelling and computation can be handled in
+the delay of sensing tasks for a multi-UAV aided uplink single       distributed manners. The applications of MARL for cognitive
+cell network.                                                        radio networks were studied in [27] and [28]. Specifically,
+   Due to the versatility and manoeuvrability of UAVs, human         in [27], the authors focused on the feasibilities of MARL
+intervention becomes restricted for UAVs’ control design.            based channel selection algorithms for a specific scenario
+Therefore, machine learning based intelligent control of UAVs        with two secondary users. A real-time aggregated interference
+is desired for enhancing the performance for UAV-enabled             scheme based on MARL was investigated in [28] for wireless
+communication networks. Neural networks based trajectory             regional area networks (WRANs). Moreover, in [29], the
+designs were considered from the perspective of UAVs’ manu-          authors proposed a MARL based channel and power level
+factured structures in [18] and [19]. Furthermore, an UAV rout-      selection algorithm for device-to-device (D2D) pairs in hetero-
+ing designing approach based on reinforcement learning was           geneous cellular networks. The potential of machine learning
+developed in [20]. Regarding UAVs enabled communication              based user clustering for mmWave-NOMA networks was
+networks, a weighted expectation based predictive on-demand          presented in [30]. Therefore, invoking MARL to UAV-enabled
+deployment approach of UAVs was proposed to minimize the             communication networks provides a promising solution for
+transmit power in [21], where Gaussian mixture model was             intelligent resource management. Due to the high mobility and
+used for building data distributions. In [22], the authors studied   adaptive altitude, to the best of our knowledge, multi-UAV
+the autonomous path planning of UAVs by jointly taking               networks are not well-investigated, especially for the resource
+energy efficiency, latency and interference into consideration,      allocation from the perspective of MARL. However, it is
+in which an echo state networks based deep reinforcement             challenging for MARL based multi-UAV networks to spec-
+learning algorithm was proposed. In [23], the authors pro-           ify a suitable objective and strike a exploration-exploitation
+posed a liquid state machine (LSM) based resource allocation         tradeoff.
+algorithm for cache enabled UAVs over LTE licensed and                  Motivated by the features of MARL and UAVs, this article
+unlicensed bands. Additionally, a log-linear learning based          aims to develop a MARL framework for multi-UAV networks.
+joint channel-slot selection algorithm was developed for multi-      In [1], we introduced a basic MARL inspired resource alloca-
+UAV networks in [24].                                                tion framework for UAV networks and presented some initial
+                                                                     results under a specific system set-up. The work of this article
+                                                                     is an improvement and an extension on the studies in [1], we
+B. Motivation and Contributions                                      provide a detailed description and analysis on the benefits and
+   As discussed above, machine learning is a promising and           limits on modeling resource allocation of the considered multi-
+power tool to provide autonomous and effective solutions             UAV network. More specifically, we consider a multi-UAV
+in an intelligent manner to enhance the UAV-enabled com-             enabled downlink wireless network, in which multiple UAVs
+munication networks. However, most research contributions            try to communicate with ground users simultaneously. Each
+focus on the deployment and trajectory designs of UAVs in            UAV flies according to the predefined trajectory. It is assumed
+communication networks, such as [21]–[23]. Though resource           that all UAVs communicate with ground users without the
+allocation schemes such as transmit power and subchannels            assistance of a central controller. Hence, each UAV can only
+were considered for UAV-enabled communication networks               observe its local information. Based on the proposed frame-
+in [16] and [17], the prior studies focused on time-independent      work, our major contributions are summarized as follows:
+scenarios. That is the optimization design is independent for           1) We investigate the optimization problem of maximizing
+each time slot. Moreover, for time-dependent scenarios, [23]                long-term rewards of multi-UAV downlink networks
+and [24] investigated the potentials of machine learning based              by jointly designing user, power level and subchannel
+resource allocation algorithms. However, most of the proposed               selection strategies. Specifically, we formulate a quality
+machine learning algorithms mainly focused on single UAV                    of service (QoS) constrained energy efficiency function
+scenarios or multi-UAV scenarios by assuming the availability               as the reward function for providing a reliable com-
+of complete network information for each UAV. In practice,                  munication. Because of the time-dependent nature and
+it is non-trivial to obtain perfect knowledge of dynamic envi-              environment uncertainties, the formulated optimization
+ronments due to the high movement speed of UAVs [25], [26],                 problem is non-trivial. To solve the challenging problem,
+which imposes formidable challenges on the design of reliable               we propose a learning based dynamic resource allocation
+UAV-enabled wireless communications. Besides, most existing                 algorithm.
+research contributions focus on centralized approaches, which           2) We propose a novel framework based on stochastic game
+makes modeling and computational tasks become challenging                   theory [31] to model the dynamic resource allocation
+CUI et al.: MARL-BASED RESOURCE ALLOCATION FOR UAV NETWORKS                                                                          731
+
+
+
+                                                                      consists of M single-antenna UAVs and L single-antenna
+                                                                      users, denoted by M = {1, · · · , M } and L = {1, · · · , L},
+                                                                      respectively. The ground users are randomly distributed in the
+                                                                      considered disk with radius rd . As shown in Fig. 1, multiple
+                                                                      UAVs fly over this region and communicate with ground
+                                                                      users by providing direct communication connectivity from
+                                                                      the sky [2]. The total bandwidth W that the UAVs can operate
+                                                                      is divided into K orthogonal subchannels, denoted by K =
+                                                                      {1, · · · , K}. Note that the subchannels occupied by UAVs
+                                                                      may overlap with each other. Moreover, it is assumed that
+                                                                      UAVs fly autonomously without human intervention based on
+                                                                      pre-programmed flight plans as in [33]. That is the trajectories
+                                                                      of UAVs are predefined based on the pre-programmed flight
+                                                                      plans. As shown in Fig. 1, there are three UAVs flying on
+                                                                      the considered region based on the pre-defined trajectories,
+Fig. 1.   Illustration of multi-UAV communication networks.           respectively. This article focuses on the dynamic design of
+                                                                      resource allocation for multi-UAV networks in term of user,
+                                                                      power level and subchannel selections. Additionally, assuming
+      problem of multi-UAV networks, in which each UAV                that all UAVs communicate without the assistance of a central
+      becomes a learning agent and each resource allocation           controller and have no global knowledge of wireless com-
+      solution corresponds to an action taken by the UAVs.            munication environments. In other words, the channel state
+      Particularly, in the formulated stochastic game, the            information (CSI) between a UAV and users are known locally.
+      actions for each UAV satisfy the properties of Markov           This assumption is reasonable in practical due to the mobilities
+      chain [32], that is the reward of a UAV is only depen-          of UAVs, which is similar to the research contributions such
+      dant on the current state and action. Furthermore, this         as in [25], [26].
+      framework can be also applied to model the resource
+      allocation problem for a wide range of dynamic multi-
+      UAV systems.                                                    A. UAV-to-Ground Channel Model
+   3) We develop a MARL based resource allocation algo-                  In contrast to the propagation of terrestrial communications,
+      rithm for solving the formulated stochastic game of             the air-to-ground (A2G) channel is highly dependent on the
+      multi-UAV networks. Specifically, each UAV as an                altitude, elevation angle and the type of the propagation
+      independent learning agent runs a standard Q-learning           environment [4], [5], [7]. In this article, we investigate the
+      algorithm by ignoring the other UAVs, and hence infor-          dynamic resource allocation problem for multi-UAV networks
+      mation exchanges between UAVs and computational                 under two types of UAV-to-ground channel models:
+      burdens on each UAV are substantially reduced. Addi-               1) Probabilistic Model: As discussed in [4], [5], UAV-to-
+      tionally, we also provide a convergence proof of the            ground communication links can be modeled by a probabilistic
+      proposed MARL based resource allocation algorithm.              path loss model, in which the LoS and non-LoS (NLoS) links
+   4) Simulation results are provided to derive parameters            can be considered separately with different probabilities of
+      for exploitation and exploration in the -greedy method         occurrences. According to [5], at time slot t, the probability
+      over different network setups. Moreover, simulation             of having a LoS connection between UAV m and a ground
+      results also demonstrate that the proposed MARL based           user l is given by
+      resource allocation framework for multi-UAV networks
+                                                                                                          1
+      strikes a good tradeoff between performance gains and                  P LoS (t) =                                        ,    (1)
+      information exchange overheads.                                                      1 + a exp(−b sin−1 ( dm,l
+                                                                                                                  H
+                                                                                                                     (t) ) − a)
+
+                                                                      where a and b are constants that depend on the environment.
+C. Organization
+                                                                      dm,l denotes the distance between UAV m and user l and H
+   The rest of this article is organized as follows. In Section II,   denotes the altitude of UAV m. Furthermore, the probability
+the system model for downlink multi-UAV networks is pre-              of have NLoS links is P NLoS (t) = 1 − P LoS (t).
+sented. The problem of resource allocation is formulated                Accordingly, in time slot t, the LoS and NLoS pathloss from
+and a stochastic game framework for the considered multi-             UAV m to the ground user l can be expressed as
+UAV network is presented in Section III. In Section IV, a
+                                                                                              m,l = Lm,l (t) + η
+                                                                                           P LLoS    FS          LoS
+Q-learning based MARL algorithm for resource allocation is                                                           ,              (2a)
+designed. Simulation results are presented in Section V, which                                    =
+                                                                                      P LNLoS          m,l (t)
+                                                                                                      LFS        +η   NLoS
+                                                                                         m,l                                 ,      (2b)
+is followed by the conclusions in Section VI.
+                                                                      where LFSm,l (t) denotes the free space pathloss with Lm,l (t) =
+                                                                                                                             FS
+                         II. S YSTEM M ODEL                           20 log(dm,l (t)) + 20 log(f ) + 20 log( c ), and f is the car-
+                                                                                                               4π
+
+   Consider a multi-UAV downlink communication network as             rier frequency. Furthermore, η LoS and η NLoS are the mean
+illustrated in Fig. 1 operating in a discrete-time axis, which        additional losses for LoS and NLoS, respectively. Therefore,
+732                                                            IEEE TRANSACTIONS ON WIRELESS COMMUNICATIONS, VOL. 19, NO. 2, FEBRUARY 2020
+
+
+                                                                                      
+at time slot t, the average pathloss between UAV m and user                k
+                                                                         Im,l (t) =     j∈M,j=m Gj,l (t)cm (t)Pj (t). Therefore, at any
+                                                                                                   k      k
+
+l can be expressed as                                                    time slot t, the SINR for UAV m can be expressed as
+                                                                                                    
+ Lm,l (t) = P LoS (t) · P LLoS
+                           m,l (t) + P
+                                       NLoS
+                                            (t) · P LNLoS
+                                                     m,l (t).                              γm (t) =            k
+                                                                                                             γm,l (t).                (7)
+                                                                   (3)                               l∈L k∈K
+
+   2) LoS Model: As discussed in [14], the LoS model                        In this article, discrete transmit power control is adopted
+provides a good approximation for practical UAV-to-ground                at UAVs [34]. The transmit power values by each UAV
+communications. In the LoS model, the path loss between a                to communicate with its respective connected user can be
+UAV and a ground user relies on the locations of the UAV and             expressed as a vector P = {P1 , · · · , PJ }. For each UAV m,
+the ground user as well as the type of propagation. Specifically,        we define a binary variable pjm (t), j ∈ J = {1, · · · , J}.
+under the LoS model, the channel gains between the UAVs                  pjm (t) = 1, if UAV m selects to transmit at a power level Pj
+and the users follow the free space path loss model, which               at time slot t; and pjm (t) = 0, otherwise. Note that only one
+is determined by the distance between the UAV and the user.              power level can be selected at each time slot t by UAV m,
+Therefore, at time slot t, the LoS channel power gain from               we have
+the m-th UAV to the l-th ground user can be expressed as                                    
+                                                                                                pjm (t) ≤ 1, ∀m ∈ M.                 (8)
+                                          β0
+      gm,l (t) = β0 d−α
+                     m,l (t) =                     α ,           (4)                     j∈J
+                                vl − um (t)2 + Hm
+                                                  2 2
+                                                                            As a result, we can define a finite set of possible power
+where um (t) = (xm (t), ym (t)), and (xm (t), ym (t)) denotes            level selection decisions made by UAV m, as follows.
+the location of UAV m in the horizontal dimension at time                                           
+slot t. Correspondingly, vl = (xl , yl ) denotes the location of                Pm = {pm (t) ∈ P|      pjm (t) ≤ 1}, ∀m ∈ M.      (9)
+user l. Furthermore, β0 denotes the channel power gain at the                                       j∈J
+reference distance of d0 = 1 m, and α ≥ 2 is the path loss
+                                                                         Similarly, we also define finite sets of all possible subchannel
+exponent.
+                                                                         selection and user selection by UAV m, respectively, which
+                                                                         are given as follows:
+B. Signal Model                                                                                       
+  In the UAV-to-ground transmission, the interference to each                    Cm = {cm (t) ∈ K|        ckm (t) ≤ 1}, ∀m ∈ M, (10)
+                                                                                                      k∈K
+UAV-to-ground user pair is created by other UAVs operating                                            
+on the same subchannel. Let ckm (t) denote the indicator of                      Am = {am (t) ∈ L|          alm (t) ≤ 1}, ∀m ∈ M.    (11)
+subchannel, where ckm (t) = 1 if subchannel k occupied by                                             l∈L
+UAV m at time slot t; ckm (t) = 0, otherwise. It satisfies                  To proceed further, we assume that the considered multi-
+                     
+                          ckm (t) ≤ 1.                     (5)           UAV network operates on a discrete-time basis where the
+                           k∈K
+                                                                         time axis is partitioned into equal non-overlapping time inter-
+                                                                         vals (slots). Furthermore, the communication parameters are
+That is each UAV can only occupy a single subchannel                     assumed to remain constant during each time slot. Let t
+for each time slot. Note that the number of states and                   denote an integer valued time slot index. Particularly, each
+actions would becomes huge with no limits on subchannel                  UAV holds the CSI of all ground users and decisions for
+allocations, which results in extremely heavy complexities in            a fixed time interval Ts ≥ 1 slots, which is called decision
+learning and storage. In this case, modeling of the cooperation          period. We consider the following scheduling strategy for the
+between the UAVs and the approximation approaches for the                transmissions of UAVs: Any UAV is assigned a time slot t
+learning process are required to be introduced and treated               to start its transmission and must finish its transmission and
+carefully. Integrating more sophisticated subchannel allocation          select the new strategy or reselect the old strategy by the end
+approaches into the learning process may be considered in                of its decision period, i.e., at slot t + Ts . We also assume
+future. Let alm (t) be the indicator of users. alm (t) = 1 if user       that the UAVs do not know the accurate duration of their stay
+l served by UAV m in time slot t; alm (t) = 0, otherwise.                in the network. This feature motivates us to design an on-
+Therefore, the observed signal-to-interference-plus-noise ratio          line learning algorithm for optimizing the long-term energy-
+(SINR) for a UAV-to-ground user communication between                    efficiency performance of multi-UAV networks.
+UAV m and user l over subchannel k at time slot t is given
+by
+                                                                                  III. S TOCHASTIC G AME F RAMEWORK FOR
+                           Gkm,l (t)alm (t)ckm (t)Pm (t)
+             k
+            γm,l (t)   =                                   ,       (6)                     M ULTI -UAV N ETWORKS
+                                   k (t) + σ 2
+                                  Im,l
+                                                                            In this section, we first describe the optimization problem
+where Gkm,l (t) denotes the channel gain between UAV                     investigated in this article. Then, to model the uncertainty of
+m and user l over subchannel k at time slot t. Pm (t)                    stochastic environments, we formulate the problem of joint
+denotes the transmit power selected by UAV m at time                     user, power level and subchannel selections by UAVs to be a
+          k
+slot t. Im,l (t) is the interference to UAV m with                       stochastic game.
+CUI et al.: MARL-BASED RESOURCE ALLOCATION FOR UAV NETWORKS                                                                             733
+
+
+
+A. Problem Formulation                                                  power level at each time slot. Particularly, we adopt a future
+   Note that from (6) to achieve the maximal throughput, each           discounted reward [37] as the measurement for each UAV.
+UAV transmits at a maximal power level, which, in turn,                 Specifically, at a certain time slot of the process, the discounted
+results in increasing interference to other UAVs. Therefore,            reward is the sum of its payoff in the present time slot, plus
+it is reasonable to consider the tradeoff between the achieved          the sum of future rewards discounted by a constant factor.
+throughput and the consumed power as in [29]. Moreover,                 Therefore, the considered long-term reward of UAV m is given
+as discussed in [35], the reward function defines the goal              by
+of the learning problem, which indicates what are the good
+and bad events for the agent. Hence, it is rational for the                                       
+                                                                                                  +∞
+
+UAVs to model the reward function in terms of throughput and                           vm (t) =          δ τ Rm (t + τ + 1),          (14)
+                                                                                                  τ =0
+the power consumption. To provide reliable communications
+of UAVs, the main goal of the dynamic design for joint                  where δ denotes the discount factor with 0 ≤ δ < 1.
+user, power level and subchannel selection is to ensure that            Specifically, values of δ reflect the effect of future rewards
+the SINRs provided by the UAVs no less than the prede-                  on the optimal decisions: if δ is close to 0, it means that the
+fined thresholds. Specifically, the mathematical form can be            decision emphasizes the near-term gain; By contrast, if δ is
+expressed as                                                            close to 1, it gives more weights to future rewards and we say
+                     γm (t) ≥ γ̄, ∀m ∈ M,                       (12)    the decisions are farsighted.
+                                                                           Next we introduce the set of all possible user, subchannel
+where γ̄ denotes the targeted QoS threshold of users served             and power level decisions made by UAV m, m ∈ M, which
+by UAVs.                                                                can be denoted as Θm = Am ⊗ Cm ⊗ Pm with ⊗ denoting the
+   At time slot t, if the constraint (12) is satisfied, then the UAV    Cartesian product. Consequently, the objective of each UAV
+obtains a reward Rm (t), defined as the difference between              m is to make a selection θm   ∗
+                                                                                                        (t) = (a∗m (t), c∗m (t), p∗m (t)) ∈
+the throughput and the cost of power consumption achieved               Θm , which maximizes its long-term reward in (14). Hence the
+by the selected user, subchannel and power level. Otherwise,            optimization problem for UAV m, m ∈ M, can be formulated
+it receives a zero reward. That is the reward would be zero             as
+when the communications cannot happen successfully between
+the UAV and the ground users. Therefore, we can express the                             ∗
+                                                                                       θm (t) = arg maxθm ∈Θm Rm (t).                 (15)
+reward function Rm (t) of UAV m at time slot t, as follows:
+          
+            W
+               log2 (1 + γm (t))−ωm Pm (t), if γm (t) ≥ γ̄m ,           Note that the optimization design for the considered multi-
+Rm (t) = K
+            0,                                      o.w.,               UAV network consists of M subproblems, which corresponds
+                                                                 (13)   to M different UAVs. Moreover, each UAV has no information
+                                                                        about other UAVs such as their rewards, hence one cannot
+for all m ∈ M and the corresponding immediate reward is                 solve problem (15) accurately. To solve the optimization prob-
+denoted as Rm (t). In (13), ωm is the cost per unit level of            lem (15) in stochastic environments, we try to formulate the
+power. Note that at any time slot t, the instantaneous reward           problem of joint user, subchannel and power level selections
+of UAV m in (13) relies on: 1) the observed information:                by UAVs to a stochastic non-cooperative game in the following
+the individual user, subchannel and power level decisions of            subsection.
+UAV m, i.e., am (t), cm (t) and pm (t). In addition, it also
+relates with the current channel gain Gkm,l (t); 2) unobserved
+information: the subchannels and power levels selected by               B. Stochastic Game Formulation
+other UAVs and the channel gains. It should be pointed out that
+we omitted the fixed power consumption for UAVs, such as the               In this subsection, we consider to model the formulated
+power consumed by controller units and data processing [36].            problem (15) by adopting a stochastic game (also called
+As UAVs’ trajectories are pre-defined and fixed during its              Markov game) framework [31], since it is the generalization
+flight, we assume that the UAVs can always find at least one            of the Markov decision processes to the multi-agent case.
+user that would be satisfied with the QoS requirements at each             In the considered network, M UAVs communicate to users
+time slot. It’s reasonable such as in some UAV aided user-              with having no information about the operating environment. It
+intensive networks and cellular hotspots. Note that if some             is assumed that all UAVs are selfish and rational. Hence, at any
+of the UAVs cannot find an user with satisfying the QoS                 time slot t, all UAVs select their actions non-cooperatively
+requirements, these UAV would be non-functional from the                to maximize the long-term rewards in (15). Note that the
+network’s point of view resulting in the problem related to             action for each UAV m is selected from its action space Θm .
+“isolation of network components”. In this case, more complex           The action conducted by UAV m at time slot t, is a triple
+reward functions are required to be modeled for ensuring the            θm (t) = (am (t), cm (t), pm (t)) ∈ Θm , where am (t), cm (t)
+effectiveness of the UAVs in the network, which we may                  and pm (t) represent the selected user, subchannel and power
+include in our future work.                                             level respectively, for UAV m at time slot t. For each UAV m,
+   Next, we consider to maximize the long-term reward                   denote by θ−m (t) the actions conducted by the other M − 1
+vm (t) by selecting the served user, subchannel and transmit            UAVs at time slot t, i.e., θ−m (t) ∈ Θ \ Θm .
+734                                                        IEEE TRANSACTIONS ON WIRELESS COMMUNICATIONS, VOL. 19, NO. 2, FEBRUARY 2020
+
+
+                                                                                                          t
+   As a result, the observed SINR of (7) for UAV m at time             power is a function of the action θm and the instantaneous
+slot t can be rewritten as                                             rate of UAV m is given by
+      γm (t)[θm (t), θ−m (t), Gm (t)]                                                           W                              
+                                                                        Cmt
+                                                                            (θm
+                                                                              t    t
+                                                                                , θ−m , Gtm ) =   log2 1 + γm (θm
+                                                                                                                t    t
+                                                                                                                  , θ−m , Gtm ) ,
+           Sm,l      k
+                          (t)[θm (t), θ−m (t), Gm,l (t)]        (16)                            K
+       =                                                      ,                                                                 (21)
+                  I
+         l∈L k∈K m,l
+                    k  (t)[θ m (t), θ −m (t), Gm,l (t)] + σ 2
+                                                                                                                                            t
+                                                                          Notice that from (20), at any time slot t, the reward rm
+where    k
+        Sm,l (t) =   Gkm,l (t)alm (t)ckm (t)Pm (t), and   k
+                                                         Im,l (t)(·)   received by UAV m depends on the current state sm , which  t
+
+is given in (6). Furthermore, Gm,l (t) denotes the matrix of           is fully observed, and partially-observed actions (θm       t    t
+                                                                                                                                     , θ−m  ).
+instantaneous channel responses between UAV m and user l               At the next time slot t + 1, UAV m moves to a new random
+at time slot t, which can be expressed as                              state st+1
+                                                                               m whose possibilities are only based on the previous
+                        ⎡ 1                       ⎤                    state sm (t) and the selected actions (θm    t     t
+                                                                                                                       , θ−m ). This proce-
+                          G1,l (t) · · · GK
+                                          1,l (t)
+                        ⎢    ..    ..       ..    ⎥                    dure repeats for the indefinite number of slots. Specifically,
+             Gm,l (t) = ⎣     .        .     .    ⎦,    (17)
+                                                                       at any time slot t, UAV m can observe its state stm and the
+                          GM,l (t) · · · GM,l (t)
+                           1              K
+                                                                       corresponding action θm    t
+                                                                                                    , but it does not know the actions
+                                                                       of other players, θ−m , and the precise values Gtm . The state
+                                                                                              t
+with Gm,l (t) ∈ RM×K , for all l ∈ L and m ∈ M.
+                                                                       transition probabilities are also unknown to each player UAV
+Specifically, Gm,l (t) includes the channel responses between
+                                                                       m. Therefore, the considered UAV system can be formulated
+UAV m and user l and the interference channel responses from
+                                                                       as a stochastic game [38].
+the other M − 1 UAV. Note that Gm,l (t) and σ 2 in (16) result
+                                                                          Definition 2: A stochastic game can be defined as a tuple
+in the dynamics and uncertainty in communications between
+                                                                       Φ = (S, M, Θ, F, R) where:
+UAV m and user l.
+                                                                          • S denotes the state set with S = S1 × · · · × SM , Sm ∈
+   At any time slot t, each UAV m can measure its current
+SINR level γm (t). Hence, the state sm (t) for each UAV m,                   {0, 1} being the state set of UAV m, for all m ∈ M;
+                                                                          • M is the set of players;
+m ∈ M, is fully observed, which can be defined as
+                                                                         • Θ denotes the joint action set and Θm is the action set
+                            1, if γm (t) ≥ γ̄,                               of player UAV m;
+               sm (t) =                                   (18)
+                            0, o.w..                                      • F is the state transition probability function which
+                                                                             depends on the actions of all players. Specifically,
+Let s = (s1 , · · · , sM ) be a state vector for all UAVs. In this
+                                                                             F (stm , θ, st+1
+                                                                                          m ) = Pr{sm |sm , θ}, denotes the probabil-
+                                                                                                       t+1 t
+article, UAV m does not know the states for other UAVs as
+                                                                             ity of transitioning to the next state st+1
+                                                                                                                      m from the state sm
+                                                                                                                                            t
+UAV cannot cooperate with each other.
+                                                                             by executing the joint action θ with θ = {θ1 , · · · , θM } ∈
+   We assume that the actions for each UAV satisfy the
+                                                                             Θ;
+properties of Markov chain, that is the reward of a UAV is only
+                                                                          • R = {R1 , · · · , RM }, where Rm : Θ × S → R is a real
+dependant on the current state and action. As discussed in [32],
+                                                                             valued reward function for player m.
+Markov chain is used to describes the dynamics of the states
+                                                                          In a stochastic game, a mixed strategy πm : Sm → Θm ,
+of a stochastic game where each player has a single action in
+                                                                       denoting the mapping from the state set to the action set,
+each state. Specifically, the formal definition of Markov chains
+                                                                       is a collection of probability distribution over the available
+is given as follows.
+                                                                       actions. Specifically, for UAV m in the state sm , its mixed
+   Definition 1: A finite state Markov chain is a discrete
+                                                                       strategy is πm (sm ) = {πm (sm , θm )|θm ∈ Θm }, where each
+stochastic process, which can be described as follows: Let
+                                                                       element πm (sm , θm ) of πm (sm ) is the probability with UAV
+a finite set of states S = {s1 , · · · , sq } and a q× q transition
+                                                       q               m selecting an action θm in state sm and πm (sm , θm ) ∈ [0, 1].
+matrix F with each entry 0 ≤ Fi,j ≤ 1 and j=1 Fi,j = 1
+                                                                       A joint strategy π = {π1 (s1 ), · · · , πM (sM )} is a vector of
+for any 1 ≤ i ≤ q. The process starts in one of the states and
+                                                                       strategies for M players with one strategy for each player.
+moves to another state successively. Assume that the chain is
+                                                                       Let π−m = {π1 , · · · , πm−1 , πm+1 , · · · , πM (sM )} denote the
+currently in state si . The probability of moving to the next
+                                                                       same strategy profile but without the strategy πm of player
+state sj is
+                                                                       UAV m. Based on the above discussions, the optimization
+             Pr{s(t + 1) = sj |s(t) = si } = Fi,j ,            (19)    goal of each player UAV m in the formulated stochastic game
+                                                                       is to maximize its expected reward over time. Therefore, for
+which depends only on the present state and not on the                 player UAV m under a joint strategy π = (π1 , · · · , πm )
+previous states and is also called Markov property.                    with assigning a strategy πi to each UAV i, the optimization
+  Therefore, the reward function of UAV m in (13), m ∈ M,              objective in (14) can be reformulated as
+can be expressed as                                                                                                          
+                                                                                                    +∞
+         t
+        rm = Rm (θm
+                  t    t
+                    , θ−m , stm )                                                Vm (s, π) = E           τ t+τ +1
+                                                                                                        δ rm       | s = s, π ,
+                                                                                                                      t
+                                                                                                                                          (22)
+                                                                                                  τ =0
+            = stm Cm
+                   t
+                     [θm
+                       t    t
+                         , θ−m , Gtm ] − ωm Pm [θm
+                                                 t
+                                                   ] .         (20)              t+τ +1
+                                                                       where rm          represents the immediate reward received by
+Here we put the time slot index t in the superscript for notation      UAV m at time t + τ + 1. E{·} denotes the expectation
+compactness and it is adopted in the following of this article         operations and the expectation here is taken over the prob-
+for notational simplicity. In (20), the instantaneous transmit         abilistic state transitions under strategy π from state s. In the
+CUI et al.: MARL-BASED RESOURCE ALLOCATION FOR UAV NETWORKS                                                                                      735
+
+
+
+                                                                          t–state stm and reward rm   t
+                                                                                                         ; the right-hand side of the box is
+                                                                          the action for UAV m at time slot t. The decision problem
+                                                                          faced by a player in a stochastic game when all other players
+                                                                          choose a fixed strategy profile is equivalent to an Markov
+                                                                          decision processes (MDP) [32]. An agent-independent method
+                                                                          is proposed, for which all agents conduct a decision algo-
+                                                                          rithm independently but share a common structure based on
+                                                                          Q-learning.
+                                                                             Since Markov property is used to model the dynamics
+                                                                          of the environment, the rewards of UAVs are based only
+                                                                          on the current state and action. MDP for agent (UAV) m
+                                                                          consists of: 1) a discrete set of environment state Sm , 2) a
+Fig. 2.   Illustration of MARL framework for multi-UAV networks.          discrete set of possible actions Θm , 3) a one-slot dynamics
+                                                                          of the environment given by the state transition probabilities
+                                                                          Fst →st+1
+                                                                                  m
+                                                                                      = F (stm , θ, st+1
+                                                                                                     m ) for all θm ∈ Θm and sm , sm ∈
+                                                                                                                                   t   t+1
+                                                                             m
+formulated stochastic game, players (UAVs) have individual                Sm ; 4) a reward function Rm denoting the expected value of
+expected reward which depends on the joint strategy and not               the next reward for UAV m. For instance, given the current
+on the individual strategies of the players. Hence one cannot             state sm , action θm and the next state sm : Rm (sm , θm , sm ) =
+simply expect players to maximize their expected rewards as               E{rm     |sm = sm , θm
+                                                                               t+1 t               t
+                                                                                                        = θm , st+1
+                                                                                                                  m    = sm }, where rm  t+1
+
+it may not be possible for all players to achieve this goal at            denotes the immediate reward of the environment to UAV m
+the same time. Next, we describe a solution for the stochastic            at time t + 1. Notice that UAVs cannot interact with each
+game by Nash equilibrium [39].                                            other, hence each UAV knows imperfect information of its
+   Definition 3: A Nash equilibrium is a collection of strate-            operating stochastic environment. In this article, Q-learning
+gies, one for each player, so that each individual strategy               is used to solve MDPs, for which a learning agent operates
+is a best-response to the others. That is if a solution π ∗ =             in an unknown stochastic environment and does not know
+{π1∗ , · · · , πM
+                ∗
+                  } is a Nash equilibrium, then for each UAV m,           the reward and transition functions [35]. Next we describe
+                   ∗                                                      the Q-learning algorithm for solving the MDP for one UAV.
+the strategy πm      such that
+                    ∗                                                   Without loss of generalities, UAV m is considered for sim-
+               Vm (πm , π−m ) ≥ Vm (πm , π−m ), ∀πm ,              (23)   plicity. Two fundamental concepts of algorithms for solving
+           
+where     πm∈ [0, 1] denotes all possible strategies taken by             the above MDP is the state value function and action value
+UAV m.                                                                    function (Q-function) [40]. Specifically, the former in fact is
+   It means that in a Nash equilibrium, each UAV’s action is              the expected reward for some state in (22) giving the agent in
+the best response to other UAVs’ choice. Thus, in a Nash                  following some policy. Similarly, the Q-function for UAV m
+equilibrium solution, no UAV can benefit by changing its                  is the expected reward starting from the state sm , taking the
+strategy as long as all the other UAVs keep their strategies              action θm and following policy π, which can be expressed as
+constant. Note that the presence of imperfect information                                         
+                                                                                                   +∞                                   
+in the formulated non-cooperative stochastic game provides                 Qm (sm , θm , π) = E            δ τ rm
+                                                                                                                t+τ +1
+                                                                                                                       | st = s, θm
+                                                                                                                                  t
+                                                                                                                                    = θm ,
+opportunities for the players to learn their optimal strategies                                     τ =0
+through repeated interactions with the stochastic environment.                                                                               (24)
+Hence, each player UAV m is regarded as a learning agent
+whose task is to find a Nash equilibrium strategy for any state           where the corresponding values of (24) are called action values
+sm . In next section, we propose a multi-agent reinforcement-             (Q-values).
+learning framework for maximizing the sum expected reward                    Proposition 1: A recursive relationship for the state value
+in (22) with partial observations.                                        function can be derived from the established return. Specif-
+                                                                          ically, for any strategy π and any state sm , the following
+      IV. P ROPOSED M ULTI -AGENT R EINFORCEMENT-                         condition holds between two consistency states stm = sm and
+                                                                                                 
+                 L EARNING A LGORITHM                                      m = sm , with sm , sm ∈ Sm :
+                                                                          st+1
+   In this section, we first describe the proposed MARL                                        +∞                       
+                                                                                                 
+framework for multi-UAV networks. Then a Q-Learning based                     Vm (sm , π) = E                 |sm = sm
+                                                                                                     τ t+τ +1 t
+                                                                                                    δ rm
+resource allocation algorithm will be proposed for maximizing                                     τ =0
+the expected long-term reward of the considered for multi-                                                                 
+                                                                                          =             F (sm , θ, sm )         πj (sj , θj )
+UAV network.
+                                                                                              sm ∈Sm               θ∈Θ j∈M
+                                                                                              × [Rm (sm , θ, sm ) + δV (sm , π)] ,
+                                                                                                              
+                                                                                                                                             (25)
+A. MARL Framework for Multi-UAV Networks
+   Fig. 2 describes the key components of MARL studied in                 where πj (sj , θj ) is the probability of choosing action θj in
+this article. Specifically, for each UAV m, the left-hand side            state sj for UAV m.
+of the box is the locally observed information at time slot                   Proof: See Appendix A.                                   
+736                                                                          IEEE TRANSACTIONS ON WIRELESS COMMUNICATIONS, VOL. 19, NO. 2, FEBRUARY 2020
+
+
+
+Note that the state value function Vm (sm , π) is the expected                         Note that (32) indicates that the optimal strategy will always
+return when starting in state sm and following a strategy                              choose an action that maximizes the Q-function for the current
+π thereafter. Based on Proposition 1, we can rewrite the                               state. In the multi-agent case, the Q-function of each agent
+Q-function in (24) also into a recursive from, which is given by                       depends on the joint action and is conditioned on the joint
+Qm (sm , θm , π)                                                                       policy, which makes it complex to find an optimal joint
+                
+                 +∞                                                                   strategy [40]. To overcome these challenges, we consider UAV
+= E rm + δ
+        t+1          τ t+τ +2 t
+                    δ rm                 t       t+1  
+                             |sm = sm , θm = θ, sm = sm                                are independent learners (ILs), that is UAVs do not observe
+                           τ =0
+                                                                                       the rewards and actions of the other UAVs, they interact
+                                                                                    with the environment as if no other UAUs exist1 . As for the
+=                F (sm , θ, sm )                            πj (sj , θj )
+                                                                                       UAVs with partial observability and limited communication,
+      sm ∈Sm                       θ−m ∈Θ−m j∈M\{m}
+                                                                                       a belief planing approach was proposed in [42], by casting
+      × [R(sm , θ, sm ) +         δVm (sm , π)] .                             (26)   the partially observable problem as a fully observable under-
+Note that from (26), Q-values depend on the actions of all the                         actuated stochastic control problem in belief space. Further-
+UAVs. It should be pointed out that (25) and (26) are the basic                        more, evolutionary Bayesian coalition formation game was
+equations for the Q-learning based reinforcement learning                              proposed in [43] to model the distributed resource allocation
+algorithm for solving the MDP of each UAV. From (25)                                   for multi-cell device-to-device networks. As observability of
+and (26), we also can derive the following relationship                                joint actions is a strong assumption in partially observable
+between state values and Q-values:                                                     domains, ILs are more practical [44]. More complicated par-
+                                                                                      tially observable network would be considered in our future
+     Vm (sm , π) =        πm (sm , θm )Qm (sm , θm , π). (27)
+                                                                                       work.
+                              θm ∈Θm
+   As discussed above, the goal of solving a MDP is to find
+an optimal strategy to obtain a maximal reward. An optimal                             B. Q-Learning Based Resource Allocation for Multi-UAV
+strategy for UAV m at state sm , can be defined, from the                              Networks
+perspective of state value function, as                                                   In this subsection, an ILs [41] based MARL algorithm
+                     Vm∗ = max Vm (sm , π), sm ∈ Sm .                           (28)   is proposed to solve the resource allocation among UAVs.
+                                  πm
+                                                                                       Specifically, each UAV runs a standard Q-learning algorithm
+For the optimal Q-values, we also have
+                                                                                       to learn its optimal Q-value and simultaneously determines an
+Q∗m (sm , θm ) = max Qm (sm , θm , π), sm ∈ Sm , θm ∈ Θm .                             optimal strategy for the MDP. Specifically, the selection of an
+                            πm
+                                                                                (29)   action in each iteration depends on the Q-function in terms
+                                                                                       of two states-sm and its successors. Hence Q-values provide
+Substituting (27) to (28), the optimal state value equation                            insights on the future quality of the actions in the successor
+in (28) can be reformulated as                                                         state. The update rule for Q-learning [35] is given by
+               Vm∗ (sm ) = max Q∗m (sm , θm ),            (30)
+                                                                                        m (s
+                                                                                       Qt+1 m , θm ) = Qm (sm , θm )
+                            θm                                                                          t
+                                             ∗                                                                                            
+where the fact that           θm π(sm , θm )Qm (sm , θm )   ≤
+maxθm Q∗m (sm , θm ) was applied to obtain (30). Note that                               +αt rm t
+                                                                                                  + δ max Qtm (sm , θm
+                                                                                                                       
+                                                                                                                         ) − Qtm (sm , θm ) ,                   (33)
+                                                                                                           θm ∈Θm
+in (30), the optimal state value equation is a maximization
+over the action space instead of the strategy space.                                   with stm = sm , θm t
+                                                                                                            = θm , where sm and θm  
+                                                                                                                                        correspond to
+                                                                                         t+1      t+1
+  Next by combining (30) with (25) and (26), one can obtain                            sm and θm , respectively. Note that an optimal action-value
+the Bellman optimality equations, for state values and for                             function can be obtained recursively from the correspond-
+Q-values, respectively:                                                                ing action-values. Specifically, each agent learns the optimal
+                                                                                       action-values based on the updating rule in (33), where αt
+Vm∗ (sm )
+                                                                                     denotes the learning rate and Qtm is the action-value of UAV
+  =                                      πj (sj , θj )                                 m at time slot t.
+       θ−m ∈Θ−m j∈M\{m}                                                                   Another important component of Q-learning is action selec-
+                                                                         
+       × max               F (sm , θ, sm ) R(sm , θm , sm ) + δVm∗ (sm ) ,          tion mechanisms, which are used to select the actions that the
+                θm                                                                     agent will perform during the learning process. Its purpose
+                     sm
+                                                                                (31)   is to strike a balance between exploration and exploitation
+                                                                                       that the agent can reinforce the evaluation it already knows
+and                                                                                    to be good but also explore new actions [35]. In this article,
+Q∗m (sm , θm )                                                                         we consider -greedy exploration. In -greedy selection, the
+                                                                                     agent selects a random action with probability  and selects
+=                                      πj (sj , θj )
+                                                                                       the best action, which corresponds to the highest Q-value at
+      θ−m ∈Θ−m j∈M\{m}
+                                                                       
+      ×         F (sm , θ, sm ) R(sm , θm , sm )+δ max   ∗
+                                                             (s      
+                                                                        )
+                                                                                         1 Note that in comparison with the joint learning with cooperation,
+                                                      
+                                                         Q m m m ., θ
+                                                             θm                        IL approach needs less storage and computational overhead in the action-
+          sm
+                                                                                       space as the size of the state-action space is linear with the number of agents
+                                                                                (32)   in IL [41].
+CUI et al.: MARL-BASED RESOURCE ALLOCATION FOR UAV NETWORKS                                                                        737
+
+
+
+Algorithm 1 Q-learning Based MARL Algorithm for UAVs                 C. Analysis of the Proposed MARL Algorithm
+ 1: Initialization:                                                     In this subsection, we investigate the convergence of the
+ 2: Set t = 0 and the parameters δ, cα                               proposed MARL based resource allocation algorithm. Notice
+ 3: for all m ∈ M do                                                 that the proposed MARL algorithm can be treated as an
+ 4: Initialize the action-value Qtm (sm , θm ) = 0, strategy         independent multi-agent Q-learning algorithm, in which each
+      πm (sm , θm ) = |Θ1m | = MKJ
+                                1
+                                   ;                                 UAV as a learning agent makes a decision based on the
+ 5: Initialize the state sm = stm = 0;                               Q-learning algorithm. Therefore, the convergence is concluded
+ 6: end for                                                          in the following proposition.
+ 7: Main Loop:                                                          Proposition 2: In the proposed MARL algorithm of Algo-
+ 8: while t < T do                                                   rithm 1, the Q-learning procedure for each UAV is always
+ 9: for all UAV m, m ∈ M do                                          converged to the Q-value for individual optimal strategy.
+10:     Update the learning rate αt according to (35).                  The proof of Proposition 2 depends on the following obser-
+11:     Select an action θm according to the strategy πm (sm ).      vations. Due to the non-cooperative property of UAVs, the
+12:     Measure the achieved SINR at the receiver according          convergence of the proposed MARL algorithm is dependent
+        to (16);                                                     on the convergence of Q-learning algorithm [41]. Therefore,
+13:     if γm (t) ≥ γ̄m then                                         we focus on the proof of convergence for the Q-learning
+14:       Set stm = 1.                                               algorithm in Algorithm 1.
+15:     else                                                            Theorem 1: The Q-learning algorithm in Algorithm 1 with
+16:       Set stm = 0.                                               the update rule in (33) converges with probability one (w.p.1)
+17:     end if                                                       to the optimal Q∗m (sm , θm ) value if
+                                           t
+18:     Update the instantaneous reward rm   according to (20).         1) The  state and action
+        Update the action-value Qm (sm , θm ) according
+                                      t+1                                  +∞              +∞spaces    are finite;
+19:                                                                     2)    t=0  αt
+                                                                                      =  ∞,    t=0 (α )
+                                                                                                     t 2
+                                                                                                         <  ∞ uniformly w.p. 1;
+        to (33).                                                        3) Var{rm t
+                                                                                    } is bounded;
+20:     Update the strategy πm (sm , θm ) according to (34).             Proof: See Appendix B.                                  
+21:     Update t = t + 1 and the state sm = stm .
+22: end for                                                                            V. S IMULATION R ESULTS
+23: end while
+                                                                        In this section, we verify the effectiveness of the proposed
+                                                                     MARL based resource allocation algorithm for multi-UAV
+                                                                     networks by simulations. The deployment and parameters
+the moment, with probability 1 − . As such, the probability         setup of the multi-UAV network are mainly based on the
+of selecting action θm at state sm is given by                       investigations in [6], [11], [29]. Specifically, we consider the
+                                                                    multi-UAV network deployed in a disc area with a radius rd =
+                         1 − , if Qm of θm is the highest,          500 m, where the ground users are randomly and uniformly
+   πm (sm , θm ) =                                            (34)
+                         , otherwise.                               distributed inside the disk and all UAVs are assumed to fly at
+                                                                     a fixed altitude H = 100 m [2], [16]. In the simulations,
+where  ∈ (0, 1). To ensure the convergence of Q-learning,           the noise power is assumed to be σ 2 = −80 dBm, the
+the learning rate αt are set as in [45], which is given by           subchannel bandwidth is W   K = 75 KHz and T s = 0.1 s [6].
+                                                                     For the probabilistic model, the channel parameters in the
+                                     1                               simulations follow [11], where a = 9.61 and b = 0.16.
+                         αt =               ,                 (35)
+                                (t + cα )ϕα                          Moreover, the carrier frequency is f = 2 GHz, η LoS = 1 and
+                                                                     η NLoS = 20. For the LoS channel model, the channel power
+where cα > 0, ϕα ∈ ( 12 , 1].                                        gain at reference distance d0 = 1 m is set as β0 = −60 dB
+   Note that each UAV runs the Q-learning procedure indepen-         and the path loss coefficient is set as α = 2 [16]. In the
+dently in the proposed ILs based MARL algorithm. Hence,              simulations, the maximal power level number is J = 3, the
+for each UAV m, m ∈ M, the Q-learning procedure is con-              maximal power for each UAV is Pm = P = 23 dBm, where
+cluded in Algorithm 1. In Algorithm 1, the initial Q-values          the maximal power is equally divided into J discrete power
+are set to zero, therefore, it is also called zero-initialized       values. The cost per unit level of power is ωm = ω = 100 [29]
+Q-learning [46]. Since UAVs have no prior information on the         and the minimum SINR for the users is set as γ0 = 3 dB.
+initial state, a UAV takes a strategy with equal probabilities,      Moreover, cα = 0.5, ρα = 0.8 and δ = 1.
+i.e., πm (sm , θm ) = |Θ1m | . Note that though no coordination         In Fig. 3, we consider a random realization of a multi-
+problems are addressed explicitly in independent learners (ILs)      UAV network in horizontal plane, where L = 100 users are
+based MARL, IL based MARL has been applied in some                   uniformly distributed in a disk with radius r = 500 m and two
+applications by choosing the proper exploration strategy such        UAVs are initially located at the edge of the disk with the angle
+as in [27], [47]. More sophisticated joint learning algorithms       φ = π4 . For illustrative purposes, Fig. 4 shows the average
+with cooperation between the UAVs as well as modelings of            reward and the average reward per time slot of the UAVs
+cooperation quantifications would be considered in our future        under the setup of Fig. 3, where the speed of the UAVs are
+work.                                                                set as 40 m/s. Fig. 4(a) shows average rewards with different
+738                                                           IEEE TRANSACTIONS ON WIRELESS COMMUNICATIONS, VOL. 19, NO. 2, FEBRUARY 2020
+
+
+
+
+Fig. 3.   Illustration of UAVs based networks with M = 2 and L = 100.
+
+
+
+                                     
+, which is calculated as v t = M  1              t
+                                          m∈M vm . As it can be
+observed from Fig. 4(a), the average reward increases with the
+algorithm iterations. This is because the long-term reward can
+be improved by the proposed MARL algorithm. However, the
+curves of the average reward become flat when t is higher than
+250 time slots. In fact, the UAVs will fly outside the disk when
+t > 250. As a result, the average reward will not increase.
+Correspondingly, Fig. 4(b) illustrates
+                                       the average instantaneous
+reward per time slot rt = m∈M rm       t
+                                          . As it can be observed
+from Fig. 4(b), the average reward per time slot decreases
+with algorithm iterations. This is because the learning rate
+αt in the adopted Q-learning procedure is a function of t
+in (35), where αt decreases with time slots increasing. Notice          Fig. 4. Comparisons for average rewards with different , where M = 2
+that from (35), αt will decrease with algorithm iterations,             and L = 100.
+which means that the update rate of the Q-values becomes
+slow with increasing t. Moreover, Fig. 4 also investigates
+the average reward with different  = {0, 0.2, 0.5, 0.9}.               we consider the same setup as in Fig. 4 but with J = 1 for
+If  = 0, each UAV will choose a greedy action which is                 the simplicity of algorithm implementation, which indicates
+also called exploit strategy. If  goes to 1, each UAV will             that the UAV’s action only contains the user selection for
+choose a random action with higher probabilities. Notice that           each time slot. Furthermore, we consider complete information
+from Fig. 4,  = 0.5 is a good choice in the considered                 exchanges among UAVs are performed in the matching theory
+setup.                                                                  based user selection algorithm, that is each UAV knows other
+   In Fig. 5 and Fig. 6, we investigate the average reward              UAVs’ action before making its own decision. For compar-
+under different system configurations. Fig. 5 illustrates the           isons, in the matching theory based user selection procedure,
+average reward with LoS channel model given in (4) over                 we adopt the Gale-Shapley (GS) algorithm [48] at each time
+different . Moreover, Fig. 6 illustrates the average reward            slot. Moreover, we also consider the performance of the
+under probabilistic model with M = 4, K = 3 and L =                     randomly user selection algorithm (Rand) as a baseline scheme
+200. Specifically, the UAVs randomly distributed in the cell            in Fig. 7. As can be observed that from Fig. 7, the achieved
+edge. In the iteration procedure, each UAV flies over the cell          average reward of the matching based user selection algorithm
+followed by a straight line over the cell center, that is the           outperforms that of the proposed MARL algorithm. This is
+center of the disk. As can be observed from Fig. 5 and Fig. 6,          because there is not information exchanges in the proposed
+the curves of the average reward have the similar trends with           MARL algorithm. In this case, each UAV cannot observe the
+that of Fig. 4 under different . Besides, the considered multi-        other UAVs’ information such as rewards and decisions, and
+UAV network attains the optimal average reward when  = 0.5             thus it makes its decision independently. Moreover, it can be
+under different network configurations.                                 observed from Fig. 7, the average reward for the randomly
+   In Fig. 7, we investigate the average reward of the pro-             user selection algorithm is lower than that of the proposed
+posed MARL algorithm by comparing it to the matching                    MARL algorithm. This is because of the randomness of
+theory based resource allocation algorithm (Mach). In Fig. 7,           user selections, it cannot exploit the observed information
+CUI et al.: MARL-BASED RESOURCE ALLOCATION FOR UAV NETWORKS                                                                                   739
+
+
+
+
+                                                                         Fig. 7. Comparisons of average rewards among different algorithms, where
+                                                                         M = 2, K = 1, J = 1 and L = 100.
+
+
+
+
+Fig. 5.   LoS channel model with different , where M = 2 and L = 100.
+
+
+
+
+                                                                         Fig. 8.   Average rewards with different time slots and speeds.
+
+
+
+
+                                                                            In Fig. 8, we investigate the average reward as a function of
+                                                                         algorithm iterations and the UAV’s speed, where a UAU from
+                                                                         a random initial location in the disc edge, flies over the disc
+                                                                         along a direct line across the disc center with different speeds.
+                                                                         The setup in Fig. 8 is the same as that in Fig. 6 but with M = 1
+                                                                         and K = 1 for illustrative purposes. As can be observed that
+                                                                         for a fixed speed, the average reward increases monotonically
+                                                                         with increasing the algorithm iterations. Besides, for a fixed
+                                                                         time slot, the average reward of larger speeds increases faster
+                                                                         than that with smaller speeds when t is smaller than 150. This
+Fig. 6. Illustration of multi-UAV networks with M = 4, K = 3 and         is due to the randomness of the locations for users and the
+L = 200.                                                                 UAV, at the start point the UAV may not find an appropriate
+                                                                         user satisfying its QoS requirement. Fig. 8 also shows that the
+effectively. As a result, the proposed MARL algorithm can                achieved average reward decreases when the speed increases
+achieve a tradeoff between reducing the information exchange             at the end of algorithm iterations. This is because if the UAV
+overhead and improving the system performance.                           flies with a high speed, it will take less time to fly out the
+740                                                                 IEEE TRANSACTIONS ON WIRELESS COMMUNICATIONS, VOL. 19, NO. 2, FEBRUARY 2020
+
+
+
+disc. As a result, the UAV with higher speeds has less serving                    where the definition of Rm (sm , θ, sm ) has been used to obtain
+time than that of slower speeds.                                                  the final step. Similarly, the second part can be transformed
+                                                                                  into
+                                                                                      +∞                       
+                              VI. C ONCLUSION                                           
+                                                                                   E        δ rm     |sm = sm
+                                                                                             τ t+τ +2 t
+   In this article, we investigated the real-time designs of                             τ =0
+resource allocation for multi-UAV downlink networks to max-                                                           
+                                                                                     =             F (sm , θ, sm )                πj (sj , θj )
+imize the long-term rewards. Motivated by the uncertainty of                             sm ∈Sm                      θ∈Θ j∈M
+environments, we proposed a stochastic game formulation for                                     +∞                                                                
+                                                                                                 
+the dynamic resource allocation problem of the considered                                ×E              δ τ rm     |sm
+                                                                                                              t+τ +2 t
+                                                                                                                          =          t
+                                                                                                                              s m , θm   =   θm , st+1   =   sm
+                                                                                                                                                   m
+multi-UAV networks, in which the goal of each UAV was to                                          τ =0
+find a strategy of the resource allocation for maximizing its                                                         
+                                                                                     =             F (sm , θ, sm )                πj (sj , θj )V (sm , π). (A.3)
+expected reward. To overcome the overhead of the informa-
+                                                                                         sm ∈Sm                      θ∈Θ j∈M
+tion exchange and computation, we developed an ILs based
+MARL algorithm to solve the formulated stochastic game,                           Substituting (A.2) and (A.3) into (A.1), we get
+                                                                                                                       
+where all UAVs conducted a decision independently based                           V (sm , π) =        F (sm , θ, sm )      πj (sj , θj )
+on Q-learning. Simulation results revealed that the proposed                                       sm ∈Sm                     θ∈Θ j∈M
+MARL based resource allocation algorithm for the multi-
+                                                                                                              × [Rm (sm , θ, sm ) + δV (sm , π)] . (A.4)
+UAV networks can attain a tradeoff between the information
+exchange overhead and the system performance. One promis-                         Thus, Proposition 1 is proved.
+ing extension of this work is to consider more complicated
+joint learning algorithms for multi-UAV networks with the                                         A PPENDIX B: P ROOF OF T HEOREM 1
+partial information exchanges, that is the need of cooperation.                      The proof of Theorem 1 follows from the idea in [45],
+Moreover, incorporating the optimization of deployment and                        [49]. Here we give a more general procedure for Algorithm
+trajectories of UAVs into multi-UAV networks is capable of                        1. Note that the Q-learning algorithm is a stochastic form of
+further improving energy efficiency of multi-UAV networks,                        value iteration [45], which can be observed from (26) and (32).
+which is another promising future research direction.                             That is to perform a step of value iteration requires knowing
+                                                                                  the expected reward and the transition probabilities. Therefore,
+                                                                                  to prove the convergence of the Q-learning algorithm, stochas-
+           A PPENDIX A: P ROOF OF P ROPOSITION 1
+                                                                                  tic approximation theory is applied. We first introduce a result
+   Here, we show that the state values for one UAV m over                         of stochastic approcximation given in [45].
+time in (25). For one UAV m with state sm ∈ Sm at time step                          Lemma 1: A random iterative process t+1 (x), which is
+t, its state value function can be expressed as                                   defined as
+V (sm , π)
+                                                                                            t+1
+                                                                                                   (x) = (1 − αt (x))          t
+                                                                                                                                   (x) + β t (x)Ψt (x),        (B.1)
+        +∞                   
+                                                                                 converges to zero w.p.1 if and only if the following conditions
+  =E                 |sm = sm
+             τ t+τ +1 t
+            δ rm                                                                  are satisfied.
+         τ =0                                                                     1) The    state space is 
+                                                                                                             finite;
+                             
+                             +∞                                                         +∞                    +∞                   +∞ t
+  =E        t+1
+           rm     +δ              δ τ rm     |sm
+                                       t+τ +2 t
+                                                   = sm                             2) t=0 αt = ∞,            t=0 (α ) < ∞,
+                                                                                                                     t 2
+                                                                                                                                      t=0 β = ∞,
+                                                                                           +∞
+                                                                                           t=0 (β ) < ∞, and E{β (x)|Λ } ≤ E{α (x)|Λ }
+                                                                                                   t 2                  t      t               t       t
+                         τ =0
+                                           +∞                                         uniformly w.p. 1;
+      t+1 t                               
+  = E rm  |sm = sm + δE                             δ τ rm     |sm = sm
+                                                         t+τ +2 t
+                                                                              ,     3) E{Ψt (x)|Λt }W ≤  t W , where  ∈ (0, 1);
+                                             τ =0                                   4) Var{Ψt (x)|Λt } ≤ C(1 +  t W )2 , where C > 0 is a
+                                                                      (A.1)             constant.
+                                                                                  Note that Λt = { t , t−1 , · · · , Ψt−1 , · · · , αt−1 , · · · , β t−1 }
+where the first part and the second part represent the expected
+                                                                                  denotes the past at time slot t.  · W denotes some weighted
+value and the state value function, respectively, at time t +
+                                                                                  maximum norm.
+1 over the state space and the action space. Next we show
+                                                                                    Based on the results given in Lemma 1, we now prove
+the relationship between the first part and the reward function
+                                                                                  Theorem 1 as follows.
+R(sm , θ, sm ) with stm = sm , θm
+                                 t
+                                    = θ and st+1      
+                                                 m = sm .
+                                                                                    Note that the Q-learning update equation in (33) can be
+    t+1 t          
+E rm      |sm = sm                                                                rearranged as
+                              
+             F (sm , θ, sm )                                                      m (sm , θm ) = (1 − α )Qm (sm , θm )
+                                                                                  Qt+1                   t  t
+  =                                 πj (sj , θj )
+                                                                                                                                  
+      sm ∈Sm                  θ∈Θ j∈M                                                           +αt rm t
+                                                                                                           + δ max Qtm (sm , θm
+                                                                                                                                
+                                                                                                                                  ) .                          (B.2)
+                                                   
+                                                                                                                         θm ∈Θm
+      ×E r      t+1
+                      |stm
+                      = s m , θm t
+                                   = θm , st+1
+                                           m = sm
+                                                                               By subtracting Q∗m (sm , θm ) from both side of (B.2), we have
+  =           F (sm , θ, sm )         πj (sj , θj )Rm (sm , θ, sm ),
+                                                                                     m (sm , θm )
+                                                                                     t+1
+      sm ∈Sm                  θ∈Θ j∈M
+                                                                      (A.2)                     = (1 − αt )     t
+                                                                                                                m   (sm , θm ) + αt δΨt (sm , θm ),            (B.3)
+CUI et al.: MARL-BASED RESOURCE ALLOCATION FOR UAV NETWORKS                                                                                                    741
+
+
+                                                                                                          
+                                                                                                         
+Hq1 (sm , θm ) − Hq2 (sm , θm )∞ = max δ                                                                
+                                   (a)
+                                                 F (sm , θm , sm ) max q (s 
+                                                                         1 m m , θ 
+                                                                                     ) − max q (s 
+                                                                                                    ,
+                                                                                              2 m m  θ 
+                                                                                                          )
+                                       sm ,θm                        θ                  θm                       m
+                                                                sm
+                                                                                                               
+                                              (b)                                                             
+                                                                                                         
+                                              ≤ max δ   F (sm , θm , sm ) max
+                                                                            
+                                                                               q1 (sm , θm ) − max
+                                                                                                
+                                                                                                   q2 (sm , θm )
+                                                    sm ,θm                                θm                    θm
+                                                              sm
+                                                                                                             
+                                              (c)                                                           
+                                              ≤ max δ                  
+                                                           F (sm , θ, sm ) max                          
+                                                                                 q1 (sm , θm ) − q2 (sm , θm )
+                                                  sm ,θm                   θ  
+                                                                                      m
+                                                              sm
+                                              (d)                                                                      (e)
+                                              = max δ               F (sm , θ, sm )q1 (sm , θm
+                                                                                                
+                                                                                                  )−q2 (sm , θm
+                                                                                                               
+                                                                                                                 )∞ = δq1 (sm , θm
+                                                                                                                                    
+                                                                                                                                      ) − q2 (sm , θm
+                                                                                                                                                     
+                                                                                                                                                       )∞
+                                                    sm ,θm
+                                                              sm
+                                                                                                                                                           (B.10)
+
+
+where                                                                                  Based on (B.5) and (B.9),
+
+  m (sm , θm )
+  t
+                 = Qtm (sm , θm ) − Q∗m (sm , θm ),                        (B.4)          E{Ψt (sm , θm )}
+                                                                                              
+Ψtm (sm , θm )   = rm
+                    t
+                      + δ max Qtm (sm , θm
+                                           
+                                             ) − Q∗m (sm , θm ).                            =      F (sm , θ, sm )
+                              θm ∈Θm
+                                                                                                   sm
+                                                                           (B.5)                     t                                          
+                                                                                                   × rm + δ max Qtm (sm , θm
+                                                                                                                             
+                                                                                                                               ) − Q∗m (sm , θm )
+                                                                                                             θm ∈Θm
+Therefore, the Q-learning algorithm can be seen as the random
+process of Lemma 1 with β t = αt .                                                             =   HQm (sm , θm ) −
+                                                                                                      t
+                                                                                                                       Q∗m (sm , θm )
+   Next we prove that the Ψt (sm , θm ) has the properties of 3)                               =   HQtm (sm , θm ) −   HQ∗m (sm , θm ).                   (B.11)
+and 4) in Lemma 1. We start by showing that Ψt (sm , θm ) is                        where we have used the fact that                         Q∗m (sm , θm )
+                                                                                                                                                =
+a contraction mapping with respect to some maximum norm.                            HQ∗m (sm , θm ) since Q∗m (sm , θm ) is a some constant value.
+   Definition 4: For a set X , a mapping H : X → X is a                             As a result, we can obtain from Proposition 3 and (B.4) that
+contraction mapping, or contraction, if there exists a constant
+δ, with delta ∈ (0, 1), such that                                                     E{Ψt (sm , θm )}∞ ≤ δQtm (sm , θm ) − Q∗m (sm , θm )∞
+                                                                                                                  = δ        t
+                                                                                                                                  (sm , θm )∞ ,          (B.12)
+                 Hx1 − Hx2  ≤ δx1 − x2 ,                               (B.6)                                              m
+
+                                                                                    Note that (B.12) corresponds to condition 3) of Lemma 1 in
+for any x1 , x2 ∈ X .                                                               the form of infinity norm.
+   Proposition 3: There exists a contraction mapping H for                             Finally, we verify the condition in 4) of Lemma 1 is
+the function q with the form of the optimal Q-function in (B.8).                    satisfied.
+That is
+                                                                                      Var{Ψt (sm , θm )}
+Hq1 (sm , θm ) − Hq2 (sm , θm )∞
+                                                                                           = E{rm
+                                                                                                t
+                                                                                                  + δ max Qtm (sm , θm
+                                                                                                                       
+                                                                                                                         ) − Q∗m (sm , θm )
+                    ≤ δq1 (sm , θm ) − q2 (sm , θm )∞ ,                  (B.7)                        θm ∈Θm
+
+                                                                                               −HQm (sm , θm ) + Q∗m (sm , θm )}
+                                                                                                    t
+   Proof: From (32), the optimal Q-function for Algorithm
+                                                                                           =      t
+                                                                                               E{rm  + δ max Qtm (sm , θm
+                                                                                                                             ) − HQtm (sm , θm )}
+1 can be expressed as                                                                                   θm ∈Θm
+                                                                                          =   Var{rm
+                                                                                                    t
+                                                                                                      + δ max Qtm (sm , θm 
+                                                                                                                               )}
+  Q∗m (sm , θm ) =   F (sm , θm , sm )                                                                   θm ∈Θm
+                     sm
+                                                                                         ≤   C(1 +  tm (sm , θm )2W ),                    (B.13)
+                    × R(sm , θm , sm ) + δ max
+                                             
+                                                Q∗m (sm , θm
+                                                            
+                                                              ) .
+                                                         θm                         where C is some constant. The final step is based on the fact
+                                                                           (B.8)    that the variance of rmt
+                                                                                                             is bounded and Qtm (sm , θm
+                                                                                                                                        
+                                                                                                                                          ) at most
+                                                                                    linearly.
+Hence, we have                                                                         Therefore,  tm (sm , θm ) converges to zero w.p.1
+                  
+Hq(sm , θm ) =           F (sm , θm , sm )                                         in Lemma 1, which indicates Qtm (sm , θm ) converges to
+                   sm
+                                                                                    Q∗m (sm , θm ) w.p.1 in Theorem 1.
+                                                        
+                  × R(sm , θm , sm ) +δ max
+                                          
+                                             q(sm , θm
+                                                      
+                                                        ) . (B.9)
+                                                    θm                                                             R EFERENCES
+To obtain (B.7), we make the following calculations in (B.10),                        [1] J. Cui, Y. Liu, and A. Nallanathan, “The application of multi-agent
+                                                                                          reinforcement learning in UAV networks,” in Proc. IEEE Int. Commun.
+shown at the top of the this page. Note that the defini-                                  Conf. Workshops (ICCW), May 2019, pp. 1–6.
+tion of q is used in (a), (b) and (c) follows properties of                           [2] I. Bucaille, S. Hethuin, T. Rasheed, A. Munari, R. Hermenier, and
+absolute value inequalities. Moreover, (d) comes from the                                 S. Allsopp, “Rapidly deployable network for tactical applications: Aerial
+                                                                                          base station with opportunistic links for unattended and temporary
+definition of infinity norm and (e) is based on the maximum                               events ABSOLUTE example,” in Proc. IEEE Military Commun. Conf.
+calculation.                                                                             (MILCOM), Nov. 2013, pp. 1116–1120.
+742                                                                IEEE TRANSACTIONS ON WIRELESS COMMUNICATIONS, VOL. 19, NO. 2, FEBRUARY 2020
+
+
+
+ [3] Z. Xiao, P. Xia, and X.-G. Xia, “Enabling UAV cellular with millimeter-    [26] Y. Cai, F. R. Yu, J. Li, Y. Zhou, and L. Lamont, “Medium access control
+     wave communication: Potentials and approaches,” IEEE Commun. Mag.,              for unmanned aerial vehicle (UAV) ad-hoc networks with full-duplex
+     vol. 54, no. 5, pp. 66–73, May 2016.                                            radios and multipacket reception capability,” IEEE Trans. Veh. Technol.,
+ [4] S. Chandrasekharan et al., “Designing and implementing future aer-              vol. 62, no. 1, pp. 390–394, Jan. 2013.
+     ial communication networks,” IEEE Commun. Mag., vol. 54, no. 5,            [27] H. Li, “Multi-agent Q-learning of channel selection in multi-user
+     pp. 26–34, May 2016.                                                            cognitive radio systems: A two by two case,” in Proc. IEEE SMC,
+ [5] A. Al-Hourani, S. Kandeepan, and S. Lardner, “Optimal LAP altitude              San Antonio, TX, USA, Oct. 2009, pp. 1893–1898.
+     for maximum coverage,” IEEE Wireless Commun. Lett., vol. 3, no. 6,         [28] A. Galindo-Serrano and L. Giupponi, “Distributed Q-learning for aggre-
+     pp. 569–572, Dec. 2014.                                                         gated interference control in cognitive radio networks,” IEEE Trans. Veh.
+ [6] E. W. Frew and T. X. Brown, “Airborne communication networks                    Technol., vol. 59, no. 4, pp. 1823–1834, May 2010.
+     for small unmanned aircraft systems,” Proc. IEEE, vol. 96, no. 12,         [29] A. Asheralieva and Y. Miyanaga, “An autonomous learning-based algo-
+     pp. 2008–2027, Dec. 2008.                                                       rithm for joint channel and power level selection by D2D pairs in
+ [7] M. Mozaffari, W. Saad, M. Bennis, Y. Nam, and M. Debbah, “A tutorial            heterogeneous cellular networks,” IEEE Trans. Commun., vol. 64, no. 9,
+     on UAVs for wireless networks: Applications, challenges, and open               pp. 3996–4012, Sep. 2016.
+     problems,” IEEE Commun. Surveys Tuts., to be published.                    [30] J. Cui, Z. Ding, P. Fan, and N. Al-Dhahir, “Unsupervised machine
+ [8] X. Cao, P. Yang, M. Alzenad, X. Xi, D. Wu, and H. Yanikomeroglu,                learning-based user clustering in millimeter-wave-NOMA systems,”
+     “Airborne communication networks: A survey,” IEEE J. Sel. Areas                 IEEE Trans. Wireless Commun., vol. 17, no. 11, pp. 7425–7440,
+     Commun., vol. 36, no. 10, pp. 1907–1926, Sep. 2018.                             Nov. 2018.
+ [9] M. Mozaffari, W. Saad, M. Bennis, and M. Debbah, “Drone small cells        [31] A. Nowé, P. Vrancx, and Y.-M. De Hauwere, “Game theory and
+     in the clouds: Design, deployment and performance analysis,” in Proc.           multi-agent reinforcement learning,” in Reinforcement Learning. Berlin,
+     IEEE Global Commun. Conf. (GLOBECOM), Dec. 2015, pp. 1–6.                       Germany: Springer, 2012, pp. 441–470.
+[10] M. Mozaffari, W. Saad, M. Bennis, and M. Debbah, “Efficient                [32] A. Neyman, “From Markov chains to stochastic games,” in Stochastic
+     deployment of multiple unmanned aerial vehicles for optimal wire-               Games Applications. Dordrecht, The Netherlands: Springer, 2003,
+     less coverage,” IEEE Commun. Lett., vol. 20, no. 8, pp. 1647–1650,              pp. 9–25.
+     Aug. 2016.                                                                 [33] J. How, Y. Kuwata, and E. King, “Flight demonstrations of cooperative
+[11] M. Alzenad, A. El-Keyi, F. Lagum, and H. Yanikomeroglu, “3-D Place-             control for UAV teams,” in Proc. 3rd AIAA Unmanned Unlimited Tech.
+     ment of an unmanned aerial vehicle base station (UAV-BS) for energy-            Conf., Workshop Exhibit, Sep. 2004, p. 6490.
+     efficient maximal coverage,” IEEE Wireless Commun. Lett., vol. 6, no. 4,   [34] J. Zheng, Y. Cai, Y. Liu, Y. Xu, B. Duan, and X. Shen, “Optimal
+     pp. 434–437, Aug. 2017.                                                         power allocation and user scheduling in multicell networks: Base station
+[12] J. Lyu, Y. Zeng, R. Zhang, and T. J. Lim, “Placement optimization of            cooperation using a game-theoretic approach,” IEEE Trans. Wireless
+     UAV-mounted mobile base stations,” IEEE Commun. Lett., vol. 21, no. 3,          Commun., vol. 13, no. 12, pp. 6928–6942, Dec. 2014.
+     pp. 604–607, Mar. 2017.                                                    [35] R. S. Sutton and A. G. Barto, Reinforcement Learning: An Introduction.
+[13] P. Yang, X. Cao, X. Xi, Z. Xiao, and D. Wu, “Three-dimensional drone-           Cambridge, MA, USA: MIT Press, 1998.
+     cell deployment for congestion mitigation in cellular networks,” IEEE      [36] B. Uragun, “Energy efficiency for unmanned aerial vehicles,” in
+     Trans. Veh. Technol., vol. 67, no. 10, pp. 9867–9881, Oct. 2018.                Proc. Int. Conf. Mach. Learn. Appl. Workshops, Dec. 2011, vol. 2,
+[14] Y. Zeng, R. Zhang, and T. J. Lim, “Throughput maximization for                  pp. 316–320.
+     UAV-enabled mobile relaying systems,” IEEE Trans. Commun., vol. 64,        [37] Y. Shoham and K. Leyton-Brown, Multiagent Systems: Algorith-
+     no. 12, pp. 4983–4996, Dec. 2016.                                               mic, Game-Theoretic, and Logical Foundations. Cambridge, U.K.:
+[15] Y. Zeng, X. Xu, and R. Zhang, “Trajectory design for completion                 Cambridge Univ. Press, 2008.
+     time minimization in UAV-enabled multicasting,” IEEE Trans. Wireless       [38] A. Neyman and S. Sorin, Stochastic Game Application. New York, NY,
+     Commun., vol. 17, no. 4, pp. 2233–2246, Apr. 2018.                              USA: Springer-Verlag, 2003.
+[16] Q. Wu, Y. Zeng, and R. Zhang, “Joint trajectory and communication          [39] M. J. Osborne and A. Rubinstein, A Course Game Theory. Cambridge,
+     design for multi-UAV enabled wireless networks,” IEEE Trans. Wireless           MA, USA: MIT Press, 1994.
+     Commun., vol. 17, no. 3, pp. 2109–2121, Mar. 2018.                         [40] G. Neto, “From single-agent to multi-agent reinforcement learning:
+[17] S. Zhang, H. Zhang, B. Di, and L. Song, “Cellular UAV-to-X communi-             Foundational concepts and methods,” in Learning Theory Course
+     cations: Design and optimization for multi-UAV networks,” IEEE Trans.           (Lecture Notes), May 2005.
+     Wireless Commun., vol. 18, no. 2, pp. 1346–1359, Jan. 2019.                [41] L. Matignon, G. J. Laurent, and N. Le Fort-Piat, “Independent rein-
+[18] B. Geiger and J. Horn, “Neural network-based trajectory optimization            forcement learners in cooperative Markov games: A survey regarding
+     for unmanned aerial vehicles,” in Proc. 47th AIAA Aerosp. Sci. Meeting          coordination problems,” Knowl. Eng. Rev., vol. 27, no. 1, pp. 1–31,
+     Including New Horizons Forum Aerosp. Exposit., Aug. 2009, p. 54.                Feb. 2012.
+[19] D. Nodland, H. Zargarzadeh, and S. Jagannathan, “Neural network-           [42] R. Platt, R. Tedrake, L. Kaelbling, and T. Lozano-Perez, “Belief space
+     based optimal control for trajectory tracking of a helicopter UAV,” in          planning assuming maximum likelihood observations,” in Proc. Robot.,
+     Proc. IEEE Conf. Decision Control Eur. Control Conf., Dec. 2011,                Sci. Syst., Zaragoza, Spain, Jun. 2010, pp. 1–9.
+     pp. 3876–3881.                                                             [43] A. Asheralieva, T. Q. S. Quek, and D. Niyato, “An asymmetric evolution-
+[20] D. Henkel and T. X. Brown, “Towards autonomous data ferry route                 ary Bayesian coalition formation game for distributed resource sharing
+     design through reinforcement learning,” in Proc. Int. Symp. World               in a multi-cell device-to-device enabled cellular network,” IEEE Trans.
+     Wireless, Mobile Multimedia Netw., Jun. 2008, pp. 1–6.                          Wireless Commun., vol. 17, no. 6, pp. 3752–3767, Jun. 2018.
+[21] Q. Zhang, M. Mozaffari, W. Saad, M. Bennis, and M. Debbah, “Machine        [44] C. Claus and C. Boutilier, “The dynamics of reinforcement learning
+     learning for predictive on-demand deployment of UAVs for wireless               in cooperative multiagent systems,” in Proc. 15th National/Tenth Conf.
+     communications,” Mar. 2018, arXiv:1803.00680. [Online]. Available:              Artif. Intell./Innov. Appl. Artif. Intell. Menlo Park, CA, USA: American
+     https://arxiv.org/abs/1803.00680                                                Association Artificial Intelligence, 1998, pp. 746–752.
+[22] U. Challita, W. Saad, and C. Bettstetter, “Cellular-connected UAVs         [45] T. Jaakkola, M. I. Jordan, and S. P. Singh, “Convergence of stochastic
+     over 5G: Deep reinforcement learning for interference management,”              iterative dynamic programming algorithms,” in Proc. Adv. Neural Inf.
+     Jan. 2018, arXiv:1801.05500. [Online]. Available: https://arxiv.org/abs/        Process. Syst., 1994, pp. 703–710.
+     1801.05500                                                                 [46] S. Koenig and R. G. Simmons, “Complexity analysis of real-time
+[23] M. Chen, W. Saad, and C. Yin, “Liquid state machine learning for                reinforcement learning applied to finding shortest paths in deterministic
+     resource allocation in a network of cache-enabled LTE-U UAVs,”                  domains,” School Comput. Sci., Carnegie-Mellon Univ., Pittsburgh, PA,
+     in Proc. IEEE Global Commun. Conf. (GLOBECOM), Singapore,                       USA, Tech. Rep. CMU-CS-93-106, 1992.
+     Dec. 2017, pp. 1–6.                                                        [47] K. Tumer and A. Agogino, “Distributed agent-based air traffic flow
+[24] J. Chen, Q. Wu, Y. Xu, Y. Zhang, and Y. Yang, “Distributed demand-              management,” in Proc. 6th Int. Joint Conf. Auto. Agents Multiagent Syst.
+     aware channel-slot selection for multi-UAV networks: A game-theoretic           New York, NY, USA, May 2007, Art. no. 255.
+     learning approach,” IEEE Access, vol. 6, pp. 14799–14811, 2018.            [48] D. Gale and L. S. Shapley, “College admissions and the stability of
+[25] N. Sun and J. Wu, “Minimum Error Transmissions with Imperfect                   marriage,” Amer. Math. Monthly, vol. 69, no. 1, pp. 9–15, Jan. 1962.
+     Channel Information in High Mobility Systems,” in Proc. Mil. Commun.       [49] F. S. Melo, “Convergence of Q-learning: A simple proof,” Inst. Syst.
+     Conf. (MILCOM), Nov. 2013, pp. 922–927.                                         Robot., Tech. Rep., 2001, pp. 1–4.
+CUI et al.: MARL-BASED RESOURCE ALLOCATION FOR UAV NETWORKS                                                                                                  743
+
+
+
+                         Jingjing Cui (S’14–M’18) received the Ph.D.                                        Arumugam Nallanathan (S’97–M’00–SM’05–
+                         degree in information and communications engineer-                                 F’17) was with the Department of Informatics,
+                         ing from Southwest Jiaotong University, Chengdu,                                   King’s College London, from December 2007 to
+                         China 2018. She was a Research Assistant with the                                  August 2017, where he was a Professor of wireless
+                         School of Electronic Engineering and Computer Sci-                                 communications from April 2013 to August 2017
+                         ence, Queen Mary University of London, U.K., from                                  and a Visiting Professor in September 2017. He was
+                         May 2018 to May 2019 and a Visiting Ph.D. Student                                  an Assistant Professor with the Department of Elec-
+                         with the School of Computing and Communications,                                   trical and Computer Engineering, National Univer-
+                         Lancaster University, U.K., from November 2016                                     sity of Singapore, from August 2000 to December
+                         to November 2017. She is currently a Research                                      2007. He has been a Professor of wireless communi-
+                         Fellow with the School of Electronics and Computer                                 cations and the Head of the Communication Systems
+Science, University of Southampton, U.K. Her research interests include UAV        Research (CSR) Group, School of Electronic Engineering and Computer
+communications, quantum communications, non-orthogonal multiple access,            Science, Queen Mary University of London, since September 2017. He
+machine learning, and optimization theory for wireless communications.             published nearly 500 technical papers in scientific journals and international
+                                                                                   conferences. His research interests include 5G wireless networks, the Internet
+                                                                                   of Things (IoT), and molecular communications.
+                                                                                     Dr. Nallanathan was a co-recipient of the Best Paper Awards presented at
+                                                                                   the IEEE International Conference on Communications 2016 (ICC’2016), the
+                          Yuanwei Liu (S’13–M’16–SM’19) received the B.S.          IEEE Global Communications Conference 2017 (GLOBECOM’2017), and
+                          and M.S. degrees from the Beijing University of          the IEEE Vehicular Technology Conference 2018 (VTC’2018). He was a
+                          Posts and Telecommunications in 2011 and 2014,           recipient of the IEEE Communications Society SPCE Outstanding Service
+                          respectively, and the Ph.D. degree in electrical engi-   Award in 2012 and the IEEE Communications Society RCC Outstanding
+                          neering from the Queen Mary University of London,        Service Award in 2014. He has been selected as a Web of Science Highly
+                          U.K., in 2016.                                           Cited Researcher in 2016. He has served as the Chair for the Signal
+                            He was with the Department of Informatics, King’s      Processing and Communication Electronics Technical Committee of the IEEE
+                          College London, from 2016 to 2017, where he              Communications Society and the technical program chair and a member of
+                          was a Post-Doctoral Research Fellow. He has been         technical program committees in numerous IEEE conferences. He was an
+                          a Lecturer (Assistant Professor) with the School         Editor of the IEEE T RANSACTIONS ON W IRELESS C OMMUNICATIONS from
+                          of Electronic Engineering and Computer Science,          2006 to 2011, the IEEE T RANSACTIONS ON V EHICULAR T ECHNOLOGY
+Queen Mary University of London, since 2017. His research interests include        from 2006 to 2017, the IEEE W IRELESS C OMMUNICATIONS L ETTERS , and
+5G and beyond wireless networks, the Internet of Things, machine learning,         the IEEE S IGNAL P ROCESSING L ETTERS . He is also an Editor of the IEEE
+and stochastic geometry. He has served as a TPC Member for many IEEE               T RANSACTIONS ON C OMMUNICATIONS. He is also an IEEE Distinguished
+conferences, such as GLOBECOM and ICC. He received the Exemplary                   Lecturer.
+Reviewer Certificate of the IEEE W IRELESS C OMMUNICATIONS L ETTERS in
+2015, the IEEE T RANSACTIONS ON C OMMUNICATIONS in 2016 and 2017,
+and the IEEE T RANSACTIONS ON W IRELESS C OMMUNICATIONS in 2017
+and 2018. He has served as the Publicity Co-Chair for VTC 2019-Fall.
+He is also an Editor on the Editorial Board of the IEEE T RANSACTIONS
+ON C OMMUNICATIONS , the IEEE C OMMUNICATIONS L ETTERS , and IEEE
+A CCESS . He also serves as the Guest Editor for IEEE JSTSP special issue
+on Signal Processing Advances for Non-Orthogonal Multiple Access in Next
+Generation Wireless Networks.
+

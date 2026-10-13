@@ -1,0 +1,1154 @@
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015                                                                                          1
+
+
+
+
+               Learning Traffic Network Embeddings for
+                  Predicting Congestion Propagation
+                                              Yidan Sun, Guiyuan Jiang, Siew-Kei Lam, Peilan He
+
+
+
+
+   Abstract—Traffic congestion has become a global concern                       (e.g., shopping mall, school, stadium, hospital, etc.) in the
+due to continuous increase in traffic demand and limited road                    region. In addition, the occurrence of congestions is associated
+capacity. The ability to predict traffic congestion propagation,                 with evolving travel demands. Typically, congestion emerges
+which depicts the spatiotemporal evolution of the congestion
+scenario, is essential for developing smart traffic management                   on road segments where the traffic flow exceeds the road
+systems and enabling road users to make informed route choices.                  capacity. If this persists, the congested road segments are
+In this work, we study the behavior of congestion propagation                    likely to affect its neighboring road segments. If the traffic
+at the road segment level, and leverage this to develop a novel                  flow continues to increase (e.g., during daily peak hours), the
+machine learning framework that characterizes and predicts the                   congestion propagation may exhibit a domino effect where
+congestion evolution among different road segments in the traffic
+network. In particular, our framework can infer the likelihood                   the congestions propagate to other spatially connected road
+of congestion propagation between any pair of road segments                      segments. This will last until the travel demand diminishes,
+through single or multiple propagation paths. The proposed                       and a reverse propagation effect can be observed.
+framework relies on a network embedding module to learn                             Researches in traffic congestion propagation have been
+a representation for each road segment, and a propagation                        studied at various levels. At the macroscopic level, congestion
+model which calculates the congestion propagation likelihood
+based on the learned representations. Specifically, an asymmetric                are represented as spatially connected road clusters. Con-
+embedding of local proximity and global tendency (AE-LPGT)                       gestion propagation are determined based on the changes in
+is relied upon for learning low dimension embeddings of the                      shape/size/location of the clusters instead of the individual
+road segments which incorporate various realistic properties of                  road segments [4], [5]. Most of the research make efforts
+congestion propagations, such as the local proximity property,                   to develop efficient pattern mining algorithms, or to partition
+global propagation tendency, and asymmetric transitivity of
+congestion propagations. Experimental results with Singapore                     the traffic network into sub-networks (clusters) and track the
+traffic data show that our method significantly outperforms                      dynamic changes of the clusters [5], [6]. Research at the
+the state-of-the-art, and the congestion propagation properties                  microscopic level considers congestion propagation within
+in our embeddings have significant impact on the prediction                      one long road segment. Typically, a long road is partitioned
+performance.                                                                     into several sections, and methods [7], [8] were proposed to
+   Index Terms—Congestion propagation, network embedding,                        characterize the congestion propagation from downstream to
+local proximity, global propagation tendency, propagation model.                 upstream sections.
+                                                                                    The macroscopic level models consider congestion propa-
+                                                                                 gations at a coarse granularity (i.e., a cluster of similar roads),
+                          I. I NTRODUCTION                                       while microscopic level models consider propagations among
+                                                                                 subsections within an individual road. Existing works focusing
+
+T     Raffic congestions, especially in urban areas, is becoming
+      increasingly severe due to the rapid growth in the number
+of vehicles and travel demands. This adversely impacts the
+                                                                                 on the macroscopic and microscopic levels fail to model
+                                                                                 congestion evolution behaviors among different roads at road-
+                                                                                 level granularity (i.e., mesoscopic level). Accurate prediction
+quality of life and economic productivity in metropolitan                        of congestion propagation at mesoscopic level is essential
+areas [1], [2] due to the increase in fuel consumption, travel                   for many downstream applications such as road-level traffic
+cost, road accidents, and carbon emissions. Generally, traffic                   prediction [3], bottleneck identification [9], and traffic signal
+congestions exhibit specific propagation patterns based on                       scheduling [10]. In addition, road users of private vehicles and
+their spatiotemporal significance [3]. For example, different                    public transport can make effective route decisions if they are
+regions of a large urban road network experience distinctive                     provided with near-future road congestion predictions.
+traffic flow patterns depending on the significance of venues                       Many works [3], [11] have investigated congestion prop-
+                                                                                 agation at the mesoscopic level, which considers congestion
+   This research project is supported in part by the National Research Founda-   propagation between adjacent different road segments. Ex-
+tion Singapore under its Campus for Research Excellence and Technological        isting works mainly focused on mining propagation patterns
+Enterprise (CREATE) programme with the Technical University of Munich            using causality trees/graphs [3], [9], [11], which are then
+at TUMCREATE. (G. Jiang is the corresponding author)
+   Y. Sun, G. Jiang, S.K. Lam, P. He are with the School of Computer Science     used to predict potential propagation. As such, the quality of
+and Engineering, Nanyang Technological University, 639798, Singapore. (e-        predictions is limited to the available patterns mined. Also,
+mail: {ysun014,phe002}@e.ntu.edu.sg, {gyjiang,assklam}@ntu.edu.sg.               these propagation patterns fail to sufficiently capture the fol-
+  Manuscript received November 15, 2020; revised May 11, 2021; accepted          lowing realistic characteristics of true congestion propagation.
+August 13, 2021.                                                                 Firstly, congestion propagates in an asymmetric manner (i.e.,
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015                                                                             2
+
+
+
+the asymmetric transitivity of congestion propagation). This          behavior of a group of road segments or a region. Congestion
+means the probability that road segment ri ’s congestion states       is represented as a cluster of roads that are spatially connected
+will propagate to ri0 is different from the probability that ri0 ’s   and have the same congestion states. Congestion propagation
+congestion states will propagate to ri . Secondly, the traffic        is defined as the change in the shape/size of a congestion
+state of a road segment is highly correlated with the traffic         cluster. Existing works formulated road clusters by partitioning
+states of its local neighborhood [12] (i.e., local proximity).        the traffic network into sub-networks [4], [5] or grids [13],
+Also, a congestion propagation could stretch across a large           [14]. Techniques have also been proposed to discover the
+area over the entire traffic network (i.e., global tendency),         congestion propagation patterns [15]–[17], e.g., the spatio-
+rather than be limited to a local area. Local proximity and           temporal co-location patterns.
+global tendency reflect different ranges and granularity of the          Macroscopic level propagation models typically explain the
+congestion propagations in the spatial dimension. The existing        traffic congestions as a series of events, where each event
+works have not sufficiently considered the above-mentioned            involves several spatially connected roads and stretches across
+properties, and hence they fail to produce good prediction            multiple time slices. The related works mainly focus on
+performance under complex traffic conditions.                         mining the propagation patterns rather than predicting the
+   In this paper, we focus on congestion propagation at the           propagations on large scale traffic networks. In practice, the
+mesoscopic level. We propose novel machine learning methods           congestion clusters are time-dependent and irregular in size,
+to characterize and predict congestion propagations while             shape, duration, etc., which make accurate prediction difficult.
+taking into account various realistic properties of congestion        These coarse-granularity models have tens or hundreds of
+propagations as mentioned above, which have not been suffi-           roads in a cluster, which are not suitable for applications that
+ciently considered in existing works. The main contributions          require congestion propagation prediction of specific roads.
+of our work are summarized as follows.                                   2) Microscopic level: Many works focused on microscopic
+   • We propose a machine learning based framework to char-           level congestion propagations, in which a long road is parti-
+     acterize and predict congestion propagations. This departs       tioned into several parts (sections). The propagation considered
+     from existing methods that mostly rely on causality              occurs among the sections without affecting the neighboring
+     trees/graphs and mining propagation patterns. Our frame-         roads. As such only downstream and upstream congestions
+     work incorporates a novel network embedding method               are considered. Typically, vehicles accelerate downstream,
+     to learn representations of the road segments while              while upstream vehicles decelerate when approaching the
+     characterizing various realistic properties of congestion        congestion. The work in [7] studied traffic flow diagrams at an
+     propagations. With the learned representations, the pro-         off-ramp of a highway, which reveals congestion propagation
+     posed framework can infer the likelihood of congestion           patterns at diverge bottlenecks. [18] used traffic speed time
+     propagation between any pair of road segments that are           series collected on a freeway to plot spatiotemporal images,
+     connected through single or multiple propagation paths.          and then extracted properties such as bottleneck strength,
+   • We propose a deep learning based embedding method,               congestion propagation velocity, growth rate, and wave-length.
+     called asymmetric embedding of local proximity and               These features are used to calibrate the traffic flow models
+     global tendency (AE-LPGT), to learn low dimension                of various simulators. [19] studied the highway section using
+     embedding of each road segment. AE-LPGT incorporates             time-space diagram as inputs, and utilized deep neural network
+     the local proximity property (spatiotemporal similarity in       with an encoder-decoder structure to predict the propagation
+     local neighborhood), and the global propagation tendency         of shock wave in the form of time-space diagram. The work
+     (dynamic congestion propagation tendency over the entire         in [8] studied the congestion evolution behavior within a long
+     network). AE-LPGT also considers the asymmetric tran-            road, where five levels of traffic states are considered: very
+     sitivity of congestion propagations by learning source em-       smooth, basic smooth, mild congestion, moderate congestions,
+     bedding and target embedding separately. Moreover, the           and heavy congestion. A spatiotemporal heat diagram is used
+     AE-LPGT model can capture the dynamic and temporal               for detecting congestion evolution. Studies on microscopic
+     dependencies of multi-range congestion propagations in           level congestion propagations are limited to individual roads,
+     the traffic network.                                             and these methods cannot be extended to a traffic network
+   • We develop a propagation model that can efficiently              with more complex traffic states.
+     predict the congestion propagation between a source and             3) Mesoscopic Level: Researches at the mesoscopic level
+     target road segment. The propagation model infers the            consider congestion propagations occuring between the macro-
+     likelihood that the congestion associated with the source        scopic and microscopic levels. Specifically, traffic congestion
+     road segment will propagate to the target road segment           is associated with individual road segments, and congestion
+     through all the paths connecting them. We validate the           propagation occurs between adjacent road segments. The
+     proposed network embedding and the propagation model             work in [20] proposed a spatiotemporal co-location congestion
+     using real traffic data, and the results show that our           pattern mining method to discover an orderly set of roads
+     method significantly outperforms the state-of-the-art.           with congestion propagation in urban traffic, which reveals
+                                                                      the process of congestion propagation and uncovers the main
+                  II. R ELATED W ORK                                  propagation paths that lead to large-scale congestion. The
+  1) Macroscopic Level: Researches on congestion propa-               work in [21] identified the locations of traffic bottlenecks
+gation at macroscopic level typically study the congestion            by mining congestion propagations. It built congestion prop-
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015                                                                             3
+
+
+
+agation graphs to model congestion propagations, constructed         method to preserve not only the first-order and second-order
+maximal spanning trees to model the causal relationship, and         proximities but also the community structure (communities
+utilized the Markov analysis to determine the probabilities          have dense intra-connections but sparse inter-connections) by
+of congestion propagations, based on which bottlenecks are           making use of modularized non-negative matrix factoriza-
+identified. The work in [3] formulated congestion propagation        tion model. The above methods typically assume symmetric
+between road segments as a direct edge. Then, causality              proximity between nodes, which is not applicable to traffic
+trees are constructed, and propagation patterns are discovered       networks. For example, traffic congestion propagates from
+as frequent subtree structures using association rule mining.        downstream to upstream, but not the other way. These methods
+Based on the obtained patterns, a dynamic Bayesian network           also typically focus on local proximity while neglecting the
+is used to predict the likelihood of congestion propagation be-      global tendency of congestion propagations as well as the
+tween any two adjacent road segments in the frequent subtree         evolving correlations of the road segments.
+structures. This work was further extended in [11] to build             Some works have considered preserving asymmetric tran-
+directed acyclic graphs (DAG) based on causality trees. A            sitivity in network embedding for network inference. For
+spatial matrix that incorporates the DAG into a fine granularity     example, the work in [29] proposed a method for graph
+grid map (i.e., each grid contains at most one road) is fed into a   embedding while preserving asymmetric transitivity, i.e., a
+Convolutional Neural Network (CNN) to predict congestions.           source embedding and a target embedding are produced for
+The work in [22] classified congestion levels of each road           each network node. For a directed edge from node i to
+using fuzzy clustering and divided the traffic network into          node j, the source embedding of node i should be located
+clusters using mixed integer linear programming optimization.        closely with the target embedding of node j in the latent
+The congestion propagation between roads within a cluster is         embedding space. They applied generalized Singular Value
+predicted using a dynamic Bayesian network. This method              Decomposition (SVD) method [30] to obtain embedding by
+has high computation overhead as it needs to perform the             preserving high-order proximity such as Katz Index [31],
+clustering for each time window. Also, it fails to consider          Adamic-Adar [32], etc. In this paper, we also consider the
+the temporal dependency across different time windows. The           asymmetric characteristics of traffic congestion propagations.
+work in [9] also described congestion propagation as causality       Unlike previous methods, we combine the NMF method and
+trees and identified bottlenecks in urban traffic network by         deep neural networks to achieve efficient embedding learning
+mining road segments that lead to congestion propagation.            while simultaneously incorporating both local proximity and
+There are also simulation-based methods [23], [24] that study        global propagation tendencies.
+the traffic congestion evolution (emergence, disappearance,             On the other hand, network embedding techniques have
+propagation, etc.). However, these methods rely on strong            been applied to various traffic prediction problems, such as
+traffic assumptions (e.g., road capacity, density, number of         travel time estimation [33], traffic flow prediction [34], traffic
+vehicles, traffic demand, etc.), which could differ significantly    speed forecasting [35], etc. Network embedding techniques
+from real traffic scenarios.                                         are developed to learn low-dimension vector representation of
+   In general, the above works typically focus on discovering        network nodes while incorporating various network informa-
+congestion propagation patterns on network structure (e.g.,          tion such as node attributes, local and global road network
+tree, graph. etc.) by mining frequent congested substructure         structure, etc. However, the existing works for traffic predic-
+using historical datasets. While some also consider congestion       tion typically focus on learning representations for individual
+propagation prediction, they are limited to specific types of        nodes rather than the associations between nodes (i.e., links).
+propagation patterns that are defined during the pattern mining      In this paper, we investigate the propagation of congestions
+stage. In this work, we also focus on congestion propagation         among different roads, which requires new embedding tech-
+at mesoscopic level and propose novel embedding methods              niques to incorporate the unique characteristics of congestion
+for accurate prediction of congestion propagation between any        propagations.
+road pairs in the traffic network.
+                                                                                          III. P RELIMINARIES
+A. Network embedding                                                     The road network is represented as a graph G = (V, E),
+   Network embedding techniques have been widely investi-            where node set V = {r1 , ...rN } is a set of N road segments
+gated in various application scenarios, such as social networks,     (connected by junctions in the road network), E = {<
+information networks, and transportation networks. Many              ri , ri0 >} is a set of edges, and < ri , ri0 > indicates a
+methods have been developed for network embedding [25],              spatial connection between road segments ri and ri0 . Each
+i.e., learning representations of networks to support network        road segment ri ∈ V is associated with a speed time series
+reconstruction and network inference (e.g., link prediction,         ŝi ∈ RT , where T is the number of time slices during the
+important node identification, etc.). The first-order and second-    entire time period. The traffic speeds of all road segments in
+order structures [26] are usually preserved when learning the        G over the T time slices are represented as a traffic speed
+network embeddings, and high-order structure has also been           matrix Ŝ ∈ RN ×T , where ŝti represents the average traffic
+considered in [27], where a method named DeepWalk was                speed of road segment ri during time slice t. cti is a binary
+developed to preserve the neighboring structures of nodes. The       variable such that cti = 1 indicates that road segment ri is
+work in [28] proposed a community preserving embedding               congested during time slice t, while cti = 0 indicates that ri
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015                                                                                    4
+
+
+
+                                                                           i.e., other roads are targets whose states become congested at
+                                                                           time t+1 from non-congested state at time t; 3) patk cannot
+                                                                           be further expanded by adding new roads at the end. If a
+                                                                           propagation path consists of only two road segments, e.g.,
+                                                                           patk =< ri1 → ri2 > such that ri1 propagates its congestion
+                                                                           state to ri2 , it is called a 1-hop congestion propagation. On
+                                                                           the other hand, if patk =< ri1 → ri2 → · · · > contains more
+                                                                           than two road segments, it is called a multi-hop congestion
+                                                                           propagation, as the congestion state of ri1 propagates to
+                                                                           multiple road segments along the propagation path within a
+                                                                           time slice. As shown in Fig. 1 (d), there is a single one-
+                                                                           hop propagation path (i.e., hr6 → r9 i), and three multi-hop
+                                                                           propagation paths (i.e., hr2 → r4 → r8 i, hr2 → r5 → r8 i and
+                                                                           hr6 → r5 → r8 i).
+                                                                              Congestion Propagation Prediction: Given a road network
+Fig. 1: (a) and (b) show Gtd and Gt+1    d    where red nodes              G = (V, E), a set of historical traffic graphs Gd , and a pair
+are congested roads and black nodes represent congestion-                  of source and target road segment (i.e., ri and ri0 ), predict
+free roads; (c) Sets V+t , V−t and V∼t of road segments whose              the likelihood that the congestion will propagate from ri to
+traffic state changed from non-congested to congested, from                ri0 via the paths between them in the next H time slices.
+congested to non-congested, and is unchanged, respectively.                There may be multiple paths between the source and target
+(d) Congestion propagation paths from time slices t to t + 1.              road segments, which are likely to have different propagation
+                                                                           speed and significance. For example, as shown in Fig. 1, r2 to
+                                                                           r8 are connected by two distinct paths pa1 = hr2 → r4 → r8 i
+is congestion free. Thus, ct ∈ RN is a vector associated with
+                                                                           and pa2 = hr2 → r5 → r8 i. If a congestion emerges on r2 ,
+each time slice, consisting of the congestion states of all road
+                                                                           its propagation to r8 could manifest through either r4 or r5 or
+segments at time slice t.
+                                                                           both. Thus, the prediction model needs to consider multiple
+   Let Gtd = (V, E, ct ) be a dynamic traffic graph that
+                                                                           paths and their influence on each other.
+describes traffic states at time slice t. Thus, the spatiotem-
+poral evolution of congestions over the entire traffic network
+can be characterized by a series of dynamic traffic graphs                                    IV. P ROPOSED M ETHOD
+Gd = {Gtd |Gtd = (V, E, ct )}. Fig. 1 (a) and (b) show two                    Our method learns a representation for each road segment
+examples of dynamic traffic graphs, i.e., Gtd and Gt+1  d   which          that reflects the propagation tendencies between different
+correspond to time slices t and t + 1, respectively. Based on              roads (for both 1-hop and multi-hop propagation). Two road
+the traffic states in Gtd and Gt+1
+                                d , we divide all road segments            segments with frequent propagations will have similar repre-
+into 3 disjoint sets: V+t , V−t and V∼t . Set V+t consists of road         sentations, while road segments with independent traffic states
+segments ri whose traffic state changed from congestion-free               will have largely dissimilar representations. In the following,
+to congested, i.e.,                                                        we first introduce the main framework for addressing the
+                  V+t = {ri |cti = 0 ∧ ct+1 = 1}                    (1)    congestion propagation problem, then we describe the main
+                                        i
+                                                                           components, i.e., the embedding model and the propagation
+Similarly, V−t consists of road segments whose traffic state               model in Section V and Section VI, respectively.
+changed from congested to congestion-free, i.e.,                              Fig. 2 shows the proposed framework for traffic congestion
+                  V−t = {ri |cti = 1 ∧ ct+1 = 0}                    (2)    propagation prediction, which consists of three major modules.
+                                        i
+                                                                              1) Detect Historical Congestion Propagations: Traffic con-
+V∼t consists of road segments whose traffic state have not                 gestions are first identified from historical traffic data. Dy-
+changed, i.e.,                                                             namic traffic graphs are then constructed to extract the histor-
+                                                                           ical congestion propagation paths based on the dynamic traffic
+  V∼t = {ri |(cti = 1 ∧ ct+1
+                         i   = 1) ∨ (cti = 0 ∧ ct+1
+                                                i   = 0)} (3)
+                                                                           graphs defined in the previous section.
+As shown in Fig. 1 (c), based on the dynamic traffic graphs                   2) Learning Asymmetric Embedding of Local Proximity and
+shown in (a) and (b), V+t = {r4 , r5 , r8 , r9 }, V−t = {r3 , r6 , r7 },   Global Tendency (AE-LPGT): The propagation paths from the
+V∼t = {r1 , r2 }.                                                          previous stage are used to learn embedding vectors (esrc   i    and
+   Congestion propagation behaviors are characterized by                   etrg
+                                                                            i   ) for each road segment   r i , where e src
+                                                                                                                        i   is called   source
+propagation paths that can be extracted from traffic graph Gd .            embedding and etrgi   is called target embedding. The learned
+Let pat = {pat1 , pat2 , · · · , patk , · · · } be a set of propagation    representations can reflect various propagation characteristics.
+paths from time t to t + 1. A sequence of connected road                   The proposed AE-LPGT consists of three components: i)
+segments, patk =< ri1 → ri2 → · · · → riu → · · · >,                       Local Proximity Embedding (LPE) incorporates the spatiotem-
+forms a propagation path if it satisfies the following conditions          poral correlations of traffic states in local neighborhoods
+simultaneously: 1) cti1 = 1, i.e., the road ri1 is source, which           into embedding. This ensures that road segments associated
+is congested at time slice t; 2) riu ∈ V+t for u = 2, 3, · · · ,           with a congestion propagation have similar representation
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015                                                                                       5
+
+
+
+                                                                               equals to the distance from ei to ei0 ), where ei ∈ Rd is
+   Data Pre-processing
+      Historical    Network                                                    d− dimension vector after embeddding for node ri . However,
+                    Structure    Congestion Propagation
+       Speeds                                                        Pr        traffic congestion propagations are often asymmetric, i.e.,
+                                         Model
+                                                                   Source      the probability that road segment ri ’s congestion states will
+                                                                   embedding   propagate to ri0 is different from the probability that ri0 ’s
+      Identify Congestion                                                      congestion states will propagate to ri . It is possible that ri
+                                                                   Target
+               𝐺𝑑                                                  embedding
+                                                                               is always the source of ri0 ’s congestion between the two
+                                                                               road segments. To incorporate this asymmetrical property of
+      Extract Propagation       AE-LPGT Embedding
+                                                                               congestion propagation, we generate the source embedding
+
+
+
+
+                                                    Local-Global
+             Paths                Global Tendency
+                                                                               esrc      K1
+                                                                                             and target embedding etrg       K1
+
+
+
+
+                                                      Module
+                                                                                 i,t ∈ R                             i,t ∈ R     separately, for
+
+
+
+
+                                                      Fusion
+         Samples                    Embedding
+                                                                               each road segment ri at time slice t. The representation esrc  i,t
+                                  Local Proximity
+                                   Embedding                                   characterizes the likelihood that ri propagates its congestion
+                                                                               states to other road segments; while etrg
+                                                                                                                      i,t captures the tendency
+                                                                               that other road segments’ congestion states will propagate
+                                                                               to ri . The embeddings also depend on time slice t (using
+Fig. 2: Proposed framework for modeling congestion propa-                      historical data that are related to the time slice t), which
+gations.                                                                       enables it to incorporate the dynamic evolution of traffic states.
+
+                                                                               A. Local Proximity Embedding (LPE)
+(smaller distance in embedding space). In other words, this
+component preserves the same proximity of road segments                           The core idea of network embedding is to learn low di-
+in embedding space as that in the original space. ii) Global                   mension vectors that are isomorphic with respect to certain
+Tendency Embedding (GTE) captures the dynamic tendency                         network properties, e.g., proximity, community. In contrast
+of congestion propagations over the entire traffic network.                    to existing works that consider static networks, the local
+GTE differs from LPE in that it focuses on the congestion                      proximity in our work depends not only on the network
+propagation behavior over a large-scale traffic network rather                 structure but also on dynamic traffic states. For example, two
+than a local area. iii) Local-Global Fusion component fuses                    road segments with small geographic distance should not be
+the LTE and GTE using an attention mechanism. Both the                         located close to each other in the embedding space if their
+LPE and GTE components consider the sources and targets of                     traffic evolution trends differ significantly. Thus, the local
+the propagations separately in order to preserve asymmetric                    proximity embedding (LPE) aims to capture the evolving local
+transitivity of congestion propagations.                                       proximity that is affected by both traffic network structure and
+   3) Modeling Congestion Propagations: The congestion                         temporal traffic states. To achieve LPE, a neural network based
+propagations are modeled in the form of propagation paths.                     LPE-Source/Target module is constructed, as shown in Fig.
+Specifically, given a congested road segment ri and a target                   3 (a), which consists of Long Short-Term Memory (LSTM)
+road segment ri0 , the propagation model calculates the proba-                 layers, Graph Convolution Network (GCN) layers, and fully-
+bility that the congestion associated with road segment ri will                connected neural network (FCN) based fusion layers. The LPE
+propagate to the target road segment ri0 through all the paths                 component first relies on LSTM and GCN layers to extract
+connecting them. For example, as shown in Fig. 1, r2 and r8                    local information while incorporating spatial correlations. It
+are connected through two different paths pa1 = hr2 → r4 →                     then simultaneously produces source embedding and target
+r8 i and pa2 = hr2 → r5 → r8 i. The proposed propagation                       embedding using latent features learned via LSTM and GCN
+model takes into account the heterogeneous influence of both                   layers. In other words, the source embedding process and the
+pa1 and pa2 .                                                                  target embedding process share the same network component
+                                                                               to aggregate the local neighborhood information while incor-
+   The details for data pre-processing (including both conges-
+                                                                               porating their correlations (i.e., the LSTM layers and the GCN
+tion detection and propagation path extraction) are discussed
+                                                                               layers). The source embedding and target embedding are then
+in Section VII-A. In the following, we introduce the second
+                                                                               generated by the FCN layers.
+and third modules, i.e., representation learning via asymmetric
+                                                                                  The feature vectors of the road segments in a path are
+embedding and modeling congestion propagations.
+                                                                               fed into the LPE-Source/Target component sequentially to
+                                                                               produce a separate source (and target) embedding for each
+    V. R EPRESENTATION L EARNING VIA A SYMMETRIC                               road segment at time slice t, i.e., elsrc       K1
+                                                                                                                                  (eltrg     K1
+                                                                                                                       i,t ∈ R       i,t ∈ R    )
+                     E MBEDDING                                                where K1 is the dimension of the embedding vector. The
+   Network embeddings have been used in previous works                         feature vector of a road segment ri contains two parts: a
+[25] where low dimension representation for each network                       feature vector xti ∈ RF of ri itself (F is the number of
+node is learned while preserving network topological and                       features, t is time slice), and the feature vectors of ri ’s up
+structure information, i.e., nodes with links (or have strong                  to h hop neighbors, i.e.,
+correlations in traffic states) in original network should locate
+                                                                                             XtN1∼h (ri ) = {xti0 |ri0 ∈ N1∼h (ri )}         (4)
+relatively close to one another in the embedding space. These
+works typically assume that the embedding is symmetric,                        The feature vector  xti
+                                                                                                    includes the following attributes: speed
+i.e., dist(ei , ei0 ) = dist(ei0 , ei ) (the distance from ei to ei0           values of previous W time slices which indicate recent traffic
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015                                                                                                                       6
+
+
+
+
+                                       Fig. 3: Architecture of the AE-LPGT embedding model.
+
+
+state, historical daily and weekly average speed at time slice t
+                                                                                                                                            1                          𝑡
+(which captures long term periodicity), time indicator such as                     𝑡
+                                                                                                                              𝑡
+                                                                                                                           𝑓(𝑢5,1 )        𝑧𝑖,𝑡 =       ෍           𝑓(𝑢𝑖,𝑖 ′)
+                                                                                  𝑢𝑖,𝑖              𝑇
+                                                                                       ′ = 𝜎 (𝒉𝑡,𝑖 ) ∙ 𝑀 ∙ 𝒉𝑡,𝑖 ′                                   𝑟𝑖′ ∈𝑁1 (𝑟𝑖 )
+time of day and day of week, road characteristics such as road
+category (e.g., primary road, second primary road, highway),
+the number of lanes and bus stops along the road. The road                             𝑟1
+                                                                                                                     𝑡
+category is represented using one-hot encoding.                                                                     𝑢5,1  𝑡
+                                                                                                                         𝑢5,6
+   In the LPE-Source/Target component, the features xti and                  𝑟2        𝑟5    𝑟3                                               1
+                                                                                                                                      𝒛𝑖,𝑡 = 𝑧𝑖,𝑡        ℎ
+                                                                                                                                                  , … , 𝑧𝑖,𝑡
+   t
+XN1∼h (ri ) are fed into separate LSTM layers to learn temporal                   𝑟6         𝑟4
+dependency among features, as shown in Fig. 3 (a). First,
+LSTM1 (consists of three LSTM layers) takes Xti as input
+while LSTM2 (same structure as LSTM1) takes XtN1∼h (ri ) as
+input. Next, a GCN layer is used to convolve the information                           Fig. 4: Graph Convolution Network Layer.
+of local neighbors of ri (i.e., N1∼h (ri )), while respecting
+the traffic network structure. Then the learned representation
+of road segment ri (i.e., the output of LSTM1) and the                  ct , ht are the input vector, state vector and hidden vector
+local neighborhood information (i.e, the output of GCN)                 respectively, and ht−1 is the former output of ht . C     ft and
+are concatenated together as hlocal . To enable the resultant           Ct are the input state and output state of the memory cell,
+embeddings to distinguish whether ri is a source or a target            and Ct−1 is the former state of Ct . σ is a sigmoid function.
+in a propagation process, hlocal is fed into a FCN layer (i.e.,         Wix , Wf x , Wox , WCx are the weight matrices connecting xt
+FCN-src) to produce embedding of the source local proximity,            to the three gates and the cell input, Wih , Wf h , Woh , WCh
+while (1 − hlocal ) is fed into another FCN layer (i.e., FCN-           are the weight matrices connecting xt−1 to the three gates and
+trg) to learn the target local proximity. The outputs of LPE            the cell input, bi , bf , bo , bC are the bias terms of the three
+                                     trg
+component consist of elsrc i,t and eli,t , which are local source       gates and the cell gate.
+and target embedding for given road segment ri at time slice               2) GCN Layer: This component fuses the spatial corre-
+t. The specific structure of the model components of the LPE-           lations in the local neighborhood of up to h-hop neighbors.
+Source/Target is as follows.                                            With the latent feature vectors obtained from the LSTM
+   1) LSTM Structure: The architecture of the LSTM cell is              layers, a structure-aware GCN [36] is used to aggregate
+described with the following equations:                                 the local neighborhood information from both ri and all its
+            it = σ(Wix xt + Wih ht−1 + bi ),                            neighbors of up to h hops. This was shown to be efficient
+            ft = σ(Wf x xt + Wf h ht−1 + bf ),                          for capturing spatial correlations while preserving the structure
+                                                                        consistency for network embedding problems. Fig. 4 illustrates
+           ot = σ(Wox xt + Woh ht−1 + bo ),
+                                                                 (5)    how GCN works with an example, i.e., the traffic states of
+           Ct = tanh(WCx xt + WCh ht−1 + bC ),
+           f                                                            r5 ’s local neighborhood at time slice t. The latent feature
+           Ct = i t ∗ C
+                      ft + ft ∗ Ct−1 ,                                  vector ht,i (learned through LSTM1 for r5 ) and the latent
+                                                                        feature vectors ht,i0 (learned through LSTM2 for r5 ’s neigh-
+           ht = ot ∗ tanh(Ct ).
+                                                                        bors of up to h-hops N1∼h (ri )) are the inputs to the GCN
+where t denotes the t-th time slice, it , ft , ot refer to the output   component. The GCN network learns a latent feature vector
+                                                                              1    2              h             k
+of the input gate, forget gate and output gate respectively. xt ,       < zi,t  , zi,t , · · · , zi,t >, where zi,t incorporates the spatial
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015                                                                               7
+
+
+
+correlations within ri ’s neighborhood of up to k-hops at time         network). The GTE component includes three parts: 1) Propa-
+t. Specifically,                                                       gation Matrix Construction: A congestion propagation matrix
+                                                                       is constructed for each time slice, and then each propagation
+                   uti,i0 = σ((ht,i )T M (ht,i0 )),             (6)    matrix is approximated with multiple matrices, each focusing
+                                  KX
+                                   GCN                                 on specific temporal correlations. 2) Non-negative Matrix
+                  f (uti,i0 ) =          vl · pl (uti,i0 ),     (7)    Factorization (NMF). The NMF method is used to decompose
+                                  l=1                                  a propagation matrix into a source matrix S and a target
+                      h
+                                  X                                    matrix T such that the inner product of the two matrices
+                     zi,t =                   f (uti,i0 ),      (8)    (i.e., S · TT ) approximate the original matrix as much as
+                              ri0 ∈Nh (ri )
+                                                                       possible. Each row in the obtained source (or target) matrix
+where ht,i , ht,i0 ∈ Rc are input latent features of road ri           is an initial global embedding for the corresponding road
+and N1∼h (ri ) (i.e., outputs of LSTM1 and LSTM2, respec-              segment. 3) GTE-Source/Target component, which learns high-
+tively), (ht,i )T is the transposition of ht,i , M ∈ Rc×c is           order embeddings for the road segments based on their initial
+a matrix with c × c learnable parameters to measure the                embeddings and further adjust their dimensions.
+correlation between embedding vectors, σ(·) is the Sigmiod                1) Propagation Matrix Construction: To characterize the
+function, KGCN is the number of the truncated polynomials,             congestion propagations from the global view, a propagation
+{v1 , ..., vKGCN } are KGCN coefficients corresponding to the          matrix P M t is constructed to describe the congestion prop-
+Chebyshev polynomials {p1 (x), ..., pKGCN (x)}, and Nh (ri )           agations that occurred in time slice t. Given dynamic traffic
+represents the h−hop neighbors of ri . The convolution filter          graphs Gtd and the set of propagation paths at time slice t,
+is parameterized with learnable numerical parameters under             the P M t ∈ RN ×N (N is the number of road segments) is
+the guidance of the function approximation theory [36]. The            constructed in the following way. P M t (i, i0 ) = 1 if there
+                                                 1         h           exist a propagation path pa containing both ri and ri0 , and ri
+output of GCN module is a vector zi,t = hzi,t      , ..., zi,t i for
+              k
+ri , where zi,t contains the neighborhood information of ri ’s         appeared earlier than ri0 in path pa. P M t (i, i0 ) = 1 indicates
+neighbors of up to k-hops.                                             the existence of a congestion propagation from ri to ri0 at
+    3) FCN Layers: The LPE component relies on two dif-                time slice t. The P M t describes a sketch of all congestion
+ferent FCN layers to learn the source embedding and target             propagations at time slice t from the global perspective.
+embedding separately. Specifically, a FCN-src layer learns the            The urban traffic shows various temporal correlations at
+source embedding by taking xf = hlocal (i.e., hi,t ⊕ zi,t ) as         different granularities. Thus, we leverage multiple propagation
+input (⊕ is the concatenation operation), while a FCN-trg layer        matrices to better capture the temporal correlations among the
+learns the target embedding by taking xf = (1 − hlocal ) as            propagations, including near-recent dependency (similarity),
+input. The learned embedding (the output of the FCN layers)            daily repeatability, and weekly periodicity. The formation and
+is calculated as follows.                                              dispersion of traffic congestions are gradual, indicating that the
+                                                                       traffic states at recent time slices inevitably have influences
+                   lf = relu(Wf (xf ) + bf ),                   (9)    on the near future traffics. Thus, a propagation matrix is
+where lf is the output source/target embedding, Wf is the              calculated to capture the temporal dependency,
+weight matrix connecting neurons in FCN layer and xf , bf are                                        1 X
+                                                                                                         ls
+                                                                                              t
+the bias terms. In particular, the output of the FCN-src is the                            P Mre =       P M t−l                    (10)
+                                                                                                     ls
+source embedding elsrci,t ∈ R
+                              K1
+                                 of road ri at time slice t, while                                      l=1
+
+the output of FCN-trg is the target embedding eltrgi,t ∈ R
+                                                             K1
+                                                                of     where ls is the number of time slices considered in recent
+road ri at time slice t. They will be combined with the global         period. The traffic states repeat periodically due to periodic
+embeddings to obtain the final embedding.                              daily travel routines of most people, thus the congestion
+                                                                       propagations at a specific period are similar to that of the same
+B. Global Tendency Embedding (GTE)                                     period of the previous day or week [37]–[40]. To capture such
+                                                                       periodicity, the daily and weekly repeatability is also taken
+   The LPE component in the previous section only incorpo-             into account by constructing the following two propagation
+rated the local proximity information into embedding, which            matrices.
+is insufficient since the traffic congestion may propagate to                                          ld
+                                                                                             t      1 X
+a large area in a short time. For example, two distant road                              P Mda  =         P M t−T d∗l                (11)
+                                                                                                   ld
+segments could be involved in a propagation path, but the                                              l=1
+LPE fails to capture their correlations. On the other hand,            where T d is the number of time slices within a day (e.g.
+even if two distant road segments always show consistent               T d = 288 if time interval is 5 minutes), and ld is the number
+traffic states, they should not be mapped to close proximity           of previous days considered. Missing values in the above
+in the embedding space if they are not involved in the same            calculations will not be considered.
+propagation path. To address these issues, a global tendency              2) Non-negative Matrix Factorization: This module relies
+embedding (GTE) component is constructed to complement                 on Non-negative Matrix Factorization (NMF) to achieve asym-
+the LPE component. As such, the embeddings can capture both            metric embedding of global tendencies in congestion prop-
+the proximity over local area and the congestion propagation           agation. Specifically, NMF produces a global source matrix
+tendency from the global view (i.e., over the entire traffic           St ∈ RN ×K2 and a global target matrix Tt ∈ RK2 ×N such
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015                                                                                            8
+
+
+
+that their inner product St (Tt )T approximates the original            network modules LSTM-da and LSTM-we take the ith row
+matrix PMt as much as possible, where K2 is a parameter.                of matrices Stda and Stwe as inputs and produce embeddings
+After NMF, the ith row of St represents the initial source              egsrc,da
+                                                                           i,t     ∈ RK1 and egsrc,we
+                                                                                                   i,t    ∈ RK1 respectively. The LSTM
+embedding of ri while the jth column of Tt represents the               modules for processing matrices Ttda , Ttwe , and Ttwe are
+initial target embedding of rj , at time slice t. Then, the             defined in the same way. The target embeddings egtrg,re      i,t  ,
+tendency of congestion propagation from ri to rj at slice t             egtrg,da
+                                                                           i,t   ,  and eg  trg,we
+                                                                                            i,t     are generated   based  on the ith  rows
+(i.e., the element PMti,j ) can be approximated as the inner            of (Ttre )T , (Ttda )T , and (Ttwe )T , respectively. The resultant
+product of the ith row of St and jth column of Tt . The NMF             6 source and target embeddings are then fed into the Local-
+is achieved by solving the objective function in the form of            Global Fusion module to learn the final representations.
+           min kPMt − St (Tt )T k2 , s.t. St , Tt ≥ 0           (12)
+                                                                        C. Local-Global Fusion Module
+If there exists a propagation from ri to ri0 at time slice t, the
+element in the ith row and the i0 th column of PMt equals to               The fusion module learns the final source and tar-
+1. After matrix factorization, the inner product of the i − th          get embeddings by combining the obtained local/global
+row in matrix St and i0 th row in (St )T will approximate to 1          embeddings according to their significance. The attention
+as well, i.e. St (i)·(Tt )T (i0 ) ≈ 1. As such, the vector St (i) (or   mechanism is used to dynamically determine the signifi-
+(Tt )T (i0 )) indicates the possibility that ri (or ri0 ) is a source   cance of different input features. As shown in Fig. 3 (b),
+(or a target) in a propagation relationship.                            this module consists of two separate attention modules:
+                                                                        Attention-src takes the global/local source embeddings
+   As mentioned before, we constructed three propagation ma-                             src,re
+                                                                        (i.e., elsrc
+                                                                                 i,t , egi,t    , egsrc,da , egsrc,we     ) as inputs and produces
+trices (PMtre , PMtda and PMtwe ) to replace the propagation                                         i,t         i,t
+                                                                        the final source embedding esrc            for   road   segment ri at time
+matrix PMt in order to better capture the multi-fold temporal                                                i,t
+                                                                        slice t; while the Attention-trg takes the global/local
+correlations. Another reason for the replacement is that reliable
+                                                                        target embeddings (i.e., eltrg             trg,re
+                                                                                                         i,t , egi,t       , egtrg,da , egtrg,we   ) as
+PMt may not be available in real-time, due to missing data,                                                                     i,t         i,t
+
+noises, fluctuations, and communication delays. The above               inputs and produces the final target embedding etrg             i,t   for road
+matrices not only include the information in PMt but also               segment ri at time slice t. The two attention network modules
+reduces the impact of the unreliability of PMt . Thus, we               are of the same structure, and the one for source embedding is
+use the NMF method in [41] to decompose each of the three               described as follows (the one for target embedding is omitted).
+matrices as follows.
+                                                                                                         X
+                                                                                              esrc
+                                                                                                 i,t =       asrc
+                                                                                                               j     · (exsrc
+                                                                                                                            j )                   (16)
+     min kPMtre − Stre (Ttre )T k2 , s.t. Stre , Ttre ≥ 0       (13)                                      j
+
+                                                                                                             αjsrc
+     min kPMtda − Stda (Ttda )T k2 , s.t. Stda , Ttda ≥ 0       (14)                                 asrc
+                                                                                                      j   = P    src                             (17)
+                                                                                                             l αl
+    min kPMtwe − Stwe (Ttwe )T k2 , s.t. Stwe , Ttwe ≥ 0        (15)
+                                                                                             αjsrc = Wasrc (exsrc    src
+                                                                                                              j ) + ba                           (18)
+    After the NMF, six matrices are obtained (i.e., Stre , Ttre ,
+Sda , Ttda , Stwe , and Ttwe ), which incorporated the multi-
+  t                                                                       where i indicates the road segment ri , t indicates the
+fold temporal correlations in the source/target embedding for           time slice, exsrcj    ∈ RK1 are the local/global source fea-
+capturing the propagation behaviors. The rows in St represent           tures learned via the LPE and GTE modules. Specifically,
+                                                                                               src,re
+the initial source embeddings of the road segments while the            exsrc
+                                                                            j    ∈ {elsrc
+                                                                                      i,t , egi,t     , egsrc,da
+                                                                                                          i,t    , egsrc,we
+                                                                                                                     i,t    }, while extrg
+                                                                                                                                       j   ∈
+                                                                             trg   trg,re     trg,da      trg,we     src
+                                                                                                                          P    src
+rows in (Tt )T represent the initial target embeddings of the           {eli,t , egi,t , egi,t , egi,t           }. aj ( aj = 1) is the
+road segments. These initial embeddings are then fed into               learned weights of corresponding feature vector (i.e., exsrc     j )
+neural networks (denoted as GTE-Source/Target Component)                via an attention layer based on Eq. (17) and (18), Wasrc ∈ RK1
+to learn high-order representations (embeddings) before being           is the weight matrix connecting neurons in attention layer and
+fused with local embeddings.                                            exsrc     src
+                                                                            j , ba are the bias terms. The final embeddings are ei,t ,
+                                                                                                                                         src
+                                                                          trg     K1
+    3) GTE-Source/Target Component: The GTE-Source com-                 ei,t ∈ R .
+ponent consists of three separate LSTM modules, which learn
+the source embeddings of road segments based on the rows                D. Loss Function
+in matrices Stre , Stda , and Stwe , respectively. Specifically,
+the network modules LSTM-re, LSTM-da, and LSTM-we                          The loss function for training AE-LPGT is defined as:
+incorporate the recent, daily, and weekly temporal correlations,                            n
+                                                                                        1X
+respectively, as shown in Fig. 3 (c). The three LSTM modules                   L=−         ŷk · ln yk + (1 − ŷk ) · ln(1 − yk )                (19)
+                                                                                        n
+are of the same structure. Each LSTM module contains 3                                     k=1
+
+layers, and each layer contains 16 neurons, which is opti-              where n is the batch size of training examples during the
+mized by a two-stage parameter tuning method. For a road                training process, ŷk ∈ {0, 1} is the corresponding target value
+segment ri at time slice t, the ith row in matrix Stre is               (label) of propagation between the source and target road
+used as the input to the module LSTM-re to produce the                  segments. ŷk = 1 indicates that there exists a propagation from
+                             src,re
+global source embedding gi,t        ∈ RK1 that incorporated the         source to target road segment, and otherwise, ŷk = 0 . yk is
+short-term correlations of congestion propagations. Similarly,          the predicted value for the propagation of the corresponding
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015                                                                                    9
+
+
+
+sample. The yk is calculated based on the congestion propa-                                      VII. E XPERIMENTS
+gation model (which will be introduced in the next section),             A. Experiment Setup
+by taking the embeddings of source and target roads as input.
+                                                                            1) Dataset: Road Network: The road network is obtained
+                                                                         from OpenStreetMap1 . We used a rectangle area in Down-
+          VI. C ONGESTION P ROPAGATION M ODEL .                          town of Singapore (Southwest: 1.2718, 103.8002; Northeast:
+                                                                         1.3323, 103.8653), which contains 1858 road segments. This
+   The congestion propagation model relies on the obtained               is used to derive topological attributes of the road segments,
+source and target embeddings (esrc and etrg ) to estimate the            which include: types of road segments (e.g., primary, residen-
+probability that a congestion on road segment ri will propagate          tial, highway), number of lanes, length, availability of traffic
+to ri0 , for any ri , ri0 in the traffic network. As explained           signals at the end of road segments, and the number of bus
+earlier, congestions occur on some road segments first, and the          stops on the road segment.
+congested road segments are likely to affect their neighbors.            Traffic Speed Data: The traffic speed is calculated based on
+The newly congested road segments could also propagate the               historical bus trajectories derived from bus arrival data2 (which
+congestion states to their adjacent neighbors in a domino                contains the GPS location and timestamp of each bus service
+effect if the travel demands continue to increase. As such,              in operation, at the frequency of every minute). Similar to most
+the possibility that propagation occurs along a path can be              works, a speed record is generated for each road segment every
+described as follows. If ri and ri0 are adjacent road segments           5 minutes. Bus traffic data from Aug. 01 to Nov. 30, 2018,
+and ri is congested, then the likelihood that the propagation            are used in our experiment. Traffic data on the first 90 days
+occurs between ri and ri0 can be estimated as                            (75%) are used as the training set, and the remaining data are
+                                                                         used as the testing set.
+    P r(ri , ri0 ) = σ(EP (ri , ri0 )) = σ(esrc · (etrg T                Traffic Congestions: Similar to [3], a road segment is detected
+                                            i       i0 ) )       (20)
+                                                                         as congested at a time slice if its traffic speed is slower than
+where σ(·) is the Sigmiod function, EP (ri , ri0 ) = esrc     ·          a threshold value. Specifically, the threshold p is selected as
+                                                          i
+(etrg )T
+         . For a path pa =< r   → ... → r  0 >, the probability          different percentiles of traffic speeds of each road segment.
+  i0                          i          i
+that the propagation occurs along the path pa is calculated as           For example, p = 90% indicates that 90% of the road’s
+                                                                         historical speed values are higher than the threshold. With this
+                                      Y                                  threshold, 10% of the historical traffic speed will be identified
+  P r(pa) = σ(EP (pa)) = σ(                       EP (ra , rb )), (21)
+                                 <ra ,rb > ∈ pa
+                                                                         as congested. In other words, cti = 1 if ŝti is lower than
+                                                                         the threshold value. Then the traffic graphs Gtd , the set of
+where edge < ra , rb >∈ pa indicates that ra and rb are                  historical propagation paths, as well as the propagation matrix
+consecutive road segments in path pa.                                    P M t , are constructed for each time slice t. As existing works
+   In practice, there could be multiple paths between two road           have used different thresholds, we tested the performance
+segments ri and ri0 and they have heterogeneous impacts on               using a wide range of thresholds. Specifically, thresholds are
+the congestion propagation between ri and ri0 . Let SP(ri , ri0 )        set to p = 95%, 90%, 85%, 80%, 75%, 70%, 65%, and 60%,
+be the set of paths connecting ri and ri0 , and there are at             respectively. A larger threshold leads to fewer congestions
+least one path in SP(ri , ri0 ). Assume there are k paths, i.e.,         detected, e.g., p = 95% will detect fewer congestions (as well
+SP(ri , ri0 ) = {pa1 , ..., pak }. Then, the probability that the        as the propagations) than p = 90%.
+propagation occurs between ri and ri0 via the multiple paths             Congestion Propagation Samples: To train the model, both
+in SP(ri , ri0 ) can be calculated as follows.                           positive samples and negative samples are needed. The positive
+                                                                         sample set (SSpost ) is constructed in the following way: For
+                                     X                                   each road segment ri ∈ V+t at time t (ri ∈ V, 1 ≤ t ≤ T ), we
+          P r(SP (ri , ri0 )) = σ(        wj · EP (paj )),       (22)
+                                                                         include all the detected historical propagation paths between
+                                  1≤j6k
+                                                                         road pairs (single or multiple as defined in Section III) that
+where wj is the weight parameter indicating the importance               originated from ri into set SStpos . Then, the negative samples
+of path paj . wj is calculated based on occurence frequency of           are generated in the following way. For each path pa ∈ SStpos
+propagations along path paj in historical traffic data, and more         or path set SP(ri , ri0 ) ∈ SStpos , two different types of negative
+frequent propagation paths have larger impacts. For example,             samples are generated. The first type is called boundary nega-
+as shown in Fig. 1 (d), there are two paths connecting r2 and            tive sample (BNS), which captures the boundary of congestion
+r8 , i.e., pa1 = hr2 → r4 → r8 i and pa2 = hr2 → r5 → r8 i.              propagations. Specifically, the BNS sample corresponding to
+Based on Eq. 21, let EP (pa1 ) = (esrc            trg T       src        pa, denoted as pabnd , is obtained by replacing the last road
+                                         2,t · (e4,t ) ) · (e4,t ·
+   trg T                         src   trg T        src    trg T
+(e8,t ) ), while EP (pa2 ) = (e2,t · (e5,t ) ) · (e5,t · (e8,t ) ).      segment of pa with a non-congested road segment that is
+Then, P r(SP (r2 , r8 )) = σ(w1 · EP (pa1 ) + w2 · EP (pa2 )).           spatially connected with the second last road segment of pa.
+The congestion propagation model predicts that there will                Similarly, the last road segment of each path in SP(ri , ri0 ) will
+be a propagation from source ri to target road segment                   be replaced in the same way to get corresponding negative
+ri0 if P r(SP (r2 , r8 )) ≥ 0.5. Otherwise, it predicts that               1 https://www.openstreetmap.org/export
+there is no congestion propagation between ri and ri0 if                    2 https://www.mytransport.sg/content/mytransport/home/dataMall
+P r(SP (r2 , r8 )) < 0.5.                                                .html
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015                                                                             10
+
+
+
+sample. The second type is called inverse negative sample            the LPE component is directly used as the final embedding,
+(INS), which indicates that the propagation has a direction and      which means that the attention-based fusion module is also
+cannot simultaneously happen in the opposite direction. The          removed. 9) Our-woAT is another ablation version of our
+INS sample corresponding to pa, denoted as paivs , contains          method that does not consider the asymmetric transitivity of
+the same road segments as in pa but in reversed order. The           congestion propagation. In Our-woAT, each road segment has
+inverse negative samples of SP(ri , ri0 ) are generated in the       a single embedding, instead of a source embedding plus a
+same way. The resultant BNS samples form a set SStbns and            target embedding. Specifically, the NMF in GTE module is
+the resultant INS samples form a set SStins (1 ≤ t ≤ T ).            not used and the (rows/columns in the) original propagation
+   2) Evaluation Metrics: We apply widely used metrics to            matrix are used to replace the rows/columns in the resultant
+evaluate the performance of the embedding model and the              matrices S and TT .
+propagation model, which includes accuracy, F1 measurement,             The first two baselines are the most recent works investi-
+PR-curve, and ROC-curve. The PR-curve presents the tradeoff          gating similar problems. The subsequent four baselines are
+between precision and recall, while ROC-curve illustrates the        methods for link prediction based on network embedding.
+diagnostic ability for different thresholds of a binary classifier   Then, three ablation baselines are designed to verify the
+by plotting the true positive rate (TPR) against the false           impacts of model components. While there exist many efficient
+positive rate (FPR) at various threshold settings. In general,       methods for traffic state prediction, we did not include them as
+large accuracy, high F1 score, and large areas of PR-curve           baseline methods as they failed to produce good results. This
+and ROC-curve indicate high performance.                             is because traffic state prediction is a node prediction problem,
+   3) Baselines: The following baseline methods are used             while the congestion propagation problem is a link prediction
+for comparison. 1) STC [3] utilizes frequent subtree mining          problem. Thus, they require different techniques to boost the
+methods to extract frequently appearing congestion propaga-          prediction performance. Specifically, congestion propagation
+tion relationship as a tree structure (i.e., the node represents     has unique characteristics that are different from traffic state on
+road segment and edge indicates a propagation). Next, a              individual roads, e.g., the asymmetric transitivity of congestion
+Dynamic Bayesian Network (DBN) is constructed based on               propagations, the local proximity in congestion propagations,
+these frequent patterns to predict propagations. 2) Pro-Graph        and the dynamic global tendency of congestion propagations.
+[42] predicts congestion propagation patterns in the near future
+with a graph structure. Given a spatial and temporal network            4) Hyperparameters: We implement our model using Py-
+and congested road segments at the current time, it predicts         Torch framework on Intel(R) Xeon(R) CPU E5-1650 v2 @
+where those congestions will propagate to. 3) EvolveGCN              3.50GHz with 32G RAM. We perform a two-stage method
+[43] combines RNN and GCN, where RNN captures graph                  to tune the hyperparameters: the first stage obtains an initial
+dynamics to enable dynamic adjusting of the GCN parameters           parameter configuration with coarse-grained parameter val-
+so that GCN could generate varying node embedding in non-            ues, while the second stage further refines each parameter
+Euclidean domain according to evolving traffic conditions.           separately using a grid search method. In the first stage,
+Then, link prediction is obtained using fully connected neural       we adopt the Orthogonal Array based tuning method [47]
+networks by taking the embeddings of source and target               to jointly optimize hyperparameters of the AE-LPGT model.
+nodes as inputs. 4) Node2Bits [44] is a method for modeling          After testing the performance of each parameter combination
+the interactions among users in heterogeneous web networks           in the Orthogonal Array table, range analysis is performed to
+for personalization and recommendations of web services. It          optimize each factor and combines the optimal levels together.
+represents multi-dimensional features of node contexts with          Hence, the optimized hyper-parameter combination is not
+binary hashcodes, and predicts whether two users correspond          restricted to the existing Orthogonal Array table. Specifically,
+to the same entity (has a link) by considering temporal              10 hyperparameters are optimized whose values are set as
+dimension and dynamic attributes associated with each user.          follows (based on the Taguchi L32 type B orthogonal array):
+5) ANRL [45] proposes a network representation learning              the number of hops of local neighborhood in LPE module h
+framework, which incorporates node attributes with a neighbor        (2,4), the vector dimension K1 of the (1,2,4,8) dimension K2
+enhancement auto-encoder, and captures structure correlations        in NMF (1,2,4,8), dimension c in GCN (8, 16, 24,32), KGCN
+by an attribute-aware skip-gram model. 6) MMDNE [46] aims            in GCN (1,2,4,8), number of neurons in each LSTM layer (8,
+to capture micro- and macro-dynamics for temporal network            16, 32, 64), number of neurons in each FCN layer (8, 16, 32,
+embedding. It proposes a temporal attention point process            64), number of neurons in each attention layer (8, 16, 32, 64),
+to incorporate micro-level dynamics; for macro-level, it uses        the learning rate (0.0001, 0.0005, 0.001, 0.005), the batch size
+network embeddings to parameterize a dynamic equation to             (20, 40, 60, 80). After tuning, the initial parameters are set to
+impose high-level structure information. 7) Our-woLP is a            h = 4, K1 = 4, K2 = 1, c = 8, KGCN =, 16, 16, 16, 0.0001,
+version of our method without the local proximity embedding          40, respectively. Then, the above parameters are further tuned
+component. This baseline is used to verify the effectiveness         separately using grid search based on the initial configuration,
+of the LPE component. 8) Our-woGT is another version of              and the final configurations are as follows: h = 5, K1 = 5,
+our method without the global propagation tendency factors.          K2 = 1, c = 8, KGCN =, 16, 16, 12, 0.0001, 30, respectively.
+The LPE component incorporates both spatial and temporal             In addition, the parameters ls, ld, lw and W are set to 6, 7,
+correlations in the local neighborhood, which produces a single      4, and 6, respectively, based on settings from existing works
+feature vector of local proximity. As such, the output of            [48] as well as the time horizon of the data samples.
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015                                                                                                                        11
+
+
+
+                   TABLE I: Comparison of overall performance of all methods, in terms of accuracy and F1-score.
+                                                        Accuracy                                                                     F1-score
+                     95%     90%     85%             80%       75%    70%     65%           60%      95%      90%     85%         80%      75%       70%     65%         60%
+        STC          0.607   0.652   0.654          0.642     0.648   0.649   0.653         0.671    0.615    0.685   0.717       0.692    0.677     0.691   0.727       0.769
+     Pro-Graph       0.926   0.860   0.800           0.745    0.692   0.642   0.594         0.547    0.079    0.097   0.107       0.113    0.117     0.119   0.119       0.118
+    EvolveGCN        0.506   0.511   0.515          0.514     0.514   0.515   0.518         0.571    0.667    0.670   0.672       0.671    0.668     0.667   0.671       0.672
+     Node2Bits       0.492   0.498   0.502          0.508     0.512   0.514   0.517         0.514    0.601    0.614   0.621       0.634    0.642     0.651   0.657       0.647
+       ANRL          0.504   0.499   0.512          0.515     0.522   0.529   0.534         0.538    0.651    0.645   0.658       0.662    0.667     0.673   0.681       0.683
+     MMDNE           0.511    0.51   0.517          0.521     0.514   0.511    0.5          0.496    0.653    0.667    0.67       0.672    0.668     0.648   0.639       0.633
+     Our-woLP        0.861   0.810   0.786          0.750     0.751   0.745   0.744         0.737    0.824    0.760   0.720       0.659    0.660     0.645   0.642       0.616
+    Our-woGT         0.730   0.756   0.801          0.795     0.812   0.819   0.826         0.838    0.596    0.655   0.742       0.726    0.749     0.766   0.767       0.787
+    Our-woAS         0.499   0.502   0.523            0.5     0.501   0.493   0.496         0.496    0.601    0.636   0.679       0.667    0.632     0.577   0.590       0.617
+        Ours         0.886   0.873   0.867          0.8691    0.877   0.876   0.877         0.887    0.851    0.836   0.821       0.825    0.834     0.833   0.832       0.846
+
+
+
+             1.0 PR-curve under p = 90%               1.0 PR-curve under p = 80%               1.0 PR-curve under p = 70%               1.0 PR-curve under p = 60%
+             0.8                                      0.8                                      0.8                                      0.8
+     Precision
+
+
+
+
+                                              Precision
+
+
+
+
+                                                                                       Precision
+
+
+
+
+                                                                                                                                Precision
+             0.6                                      0.6                                      0.6                                      0.6
+             0.4      STC          MMDNE              0.4      STC          MMDNE              0.4      STC          MMDNE              0.4      STC          MMDNE
+                      PRO-GRAPH    Ours                        PRO-GRAPH    Ours                        PRO-GRAPH    Ours                        PRO-GRAPH    Ours
+             0.2      EvolveGCN
+                      Node2Bits
+                                   Our-woGT
+                                   Our-woLP           0.2      EvolveGCN
+                                                               Node2Bits
+                                                                            Our-woGT
+                                                                            Our-woLP           0.2      EvolveGCN
+                                                                                                        Node2Bits
+                                                                                                                     Our-woGT
+                                                                                                                     Our-woLP           0.2      EvolveGCN
+                                                                                                                                                 Node2Bits
+                                                                                                                                                              Our-woGT
+                                                                                                                                                              Our-woLP
+                      ANRL         Our-woAS                    ANRL         Our-woAS                    ANRL         Our-woAS                    ANRL         Our-woAS
+             0.00.0 0.2 0.4 0.6 0.8 1.0               0.00.0 0.2 0.4 0.6 0.8 1.0               0.00.0 0.2 0.4 0.6 0.8 1.0               0.00.0 0.2 0.4 0.6 0.8 1.0
+                            Recall                                   Recall                                   Recall                                   Recall
+Fig. 5: The PR-curve of all methods on scenarios with congestion thresholds of p = 90%, 80%, 70%, and 60%, respectively.
+
+
+B. Results                                                                                    (Node2Bits, EvolveGCN, and ANRL) with the same node
+                                                                                              features used in our method. The results show that our method
+Overall Performance: Table I compares the overall per-                                        significantly outperforms these four baselines. This could be
+formance between our proposed method and the baselines                                        explained by the fact that our proposed method has properly
+in terms of accuracy and F1-score. The results show that                                      learned multiple realistic properties of congestion propagations
+Pro-Graph is highly sensitive to the congestion threshold                                     in the low-dimensional road embeddings, i.e., local proximity,
+of p. For example, the prediction accuracy decreases rapidly                                  global propagation tendency, and asymmetric transitivity of
+when p decreases from 95% to 60%. Pro-Graph obtained                                          congestion propagations.
+promising accuracy when p = 95%, which is better than                                            The results show that any of the three ablation baselines
+other methods. This is because when p is 95%, only a small                                    leads to obvious performance degradation, which indicates
+amount of congestion propagations and their patterns are                                      that all three factors contribute significantly to the prediction.
+detected. These propagations are typically heavy congestions                                  It also shows that both Our-woLP and Our-woGT are
+that frequently occur, and is relatively easier to predict due                                sensitive to the congestion threshold p. Our-woLP obtains
+to high repeatability. Pro-Graph only focuses on such                                         better performance on scenarios with large p while Our-woGT
+propagations, thus it obtains good results when p is large.                                   obtains better performance on scenarios with small p. This
+When p decreases, more propagations with complex patterns                                     indicates that the local proximity (removed from Our-woLP)
+are detected, which makes the prediction more challenging,                                    is important for characterizing dense congestion traffics (i.e.,
+and hence Pro-Graph’s prediction accuracy decreases. In                                       with low p values such as 60%), while the global propagation
+fact, Pro-Graph tends to produce a large number of false-                                     tendency factors (removed from Our-woGT) is important for
+negative (FN) cases, i.e., high accuracy but very small F1-                                   characterizing sparse congestion traffic (i.e., with high p such
+scores. On the other hand, STC does not seem to be affected                                   as 90%). Our-woAS has poor performance compare with
+by the congestion thresholds (as reflected by both its accuracy                               Our-woLP and Our-woGT, which indicates that asymmetric
+and F1-score values). However, its performance is much                                        transitivity has the largest impact. In general, neither of
+worse even when comparing to our ablation versions, i.e.,                                     the three ablation methods can adequately characterize the
+Our-woLP and Our-woGT. The main reason is that, STC                                           propagations for all scenarios, i.e., with various congestion
+has not sufficiently considered various realistic characteristics                             thresholds.
+of congestion propagations. For example, it does not take                                        Fig. 5 and Fig. 6 show the PR-curve and ROC-curve of
+into account multi-fold temporal correlations and the global                                  all methods. In general, our method significantly outperforms
+tendency of the congestion propagations.                                                      all the baselines in both PR-curve and ROC-curve, in all
+   It is worth noting that baseline Node2Bits, EvolveGCN,                                     scenarios tested (i.e., with congestion threshold set to 90%,
+ANRL, and MMDNE predict links between two nodes rather                                        80%, 70%, and 60%, respectively). Fig. 5 shows that the
+than a path, and they do not incorporate asymmetry relation.                                  performances of our method, STC , and Our-woGT remain
+For fair comparison, we only considered 2-hop propagation                                     stable with the increasing density of traffic congestions (i.e.,
+paths as positive samples (accounting for 70% of all propaga-                                 decreasing threshold p), while the other three methods (Our-
+tion paths). We feed the methods that utilize node attributes                                 woLP, Pro-Graph and ANRL) tend to obtain better perfor-
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015                                                                                                                                                                            12
+
+
+
+
+                            1.0ROC-curve under p = 90%                              1.0ROC-curve under p = 80%                              1.0ROC-curve under p = 70%                              1.0ROC-curve under p = 60%
+     True Positive Rate (TPR)
+
+
+
+
+                                                             True Positive Rate (TPR)
+
+
+
+
+                                                                                                                     True Positive Rate (TPR)
+
+
+
+
+                                                                                                                                                                             True Positive Rate (TPR)
+                            0.8                                                     0.8                                                     0.8                                                     0.8
+                            0.6                                                     0.6                                                     0.6                                                     0.6
+                            0.4        STC        MMDNE                             0.4        STC        MMDNE                             0.4        STC        MMDNE                             0.4        STC        MMDNE
+                                       PRO-GRAPH  Ours                                         PRO-GRAPH  Ours                                         PRO-GRAPH  Ours                                         PRO-GRAPH  Ours
+                            0.2        EvolveGCN
+                                       Node2Bits
+                                                  Our-woGT
+                                                  Our-woLP                          0.2        EvolveGCN
+                                                                                               Node2Bits
+                                                                                                          Our-woGT
+                                                                                                          Our-woLP                          0.2        EvolveGCN
+                                                                                                                                                       Node2Bits
+                                                                                                                                                                  Our-woGT
+                                                                                                                                                                  Our-woLP                          0.2        EvolveGCN
+                                                                                                                                                                                                               Node2Bits
+                                                                                                                                                                                                                          Our-woGT
+                                                                                                                                                                                                                          Our-woLP
+                                       ANRL       Our-woAS                                     ANRL       Our-woAS                                     ANRL       Our-woAS                                     ANRL       Our-woAS
+                            0.00.0 0.2 0.4 0.6 0.8 1.0                              0.00.0 0.2 0.4 0.6 0.8 1.0                              0.00.0 0.2 0.4 0.6 0.8 1.0                              0.00.0 0.2 0.4 0.6 0.8 1.0
+                                False Positive Rate (FPR)                               False Positive Rate (FPR)                               False Positive Rate (FPR)                               False Positive Rate (FPR)
+Fig. 6: The ROC-curve of all methods on scenarios with congestion thresholds of p = 90%, 80%, 70%, and 60%, respectively.
+
+
+mance. EvolveGCN and Node2Bits are not sensitive to p                                                                                    degrade if KGCN continues to increase. This is because the
+value, while MMDNE has a generally decreasing trend in                                                                                   size of the model grows rapidly with redundant parameters,
+performance as p increased. However, the differences between                                                                             and the model overfits during training for the dataset. As such,
+our method and the baselines are significant. Fig. 6 shows that                                                                          KGCN is set to 5 in the second-stage of parameter tuning.
+both Our-woLP and Our-woGT can outperform the existing                                                                                   Evaluation on Efficiency: We evaluated the proposed methods
+methods STC and Pro-Graph and the four network embedding                                                                                 using different amounts of training data, i.e., using data of
+based baselines in the ROC-curve. The performance of our                                                                                 1, 2, 3, and 4 months, respectively. The results in Fig. 8
+methods is not sensitive to the changing p. Our-woGT, ANRL                                                                               (a) show that the performance increases with using more
+and Pro-Grpah tend to achieve better results on smaller p,                                                                               data, and there is a significant improvement when using the
+Our-woLP and MMDNE and exhibit performance degradation                                                                                   four-month dataset. This indicates that long-term temporal
+with decreasing p, while the other baselines are also not very                                                                           correlations are important, and it is necessary to employ long-
+sensitive to p.                                                                                                                          term traffic data (if available) to achieve reliable prediction
+Effect of Impact Factors: There are three critical param-                                                                                of congestion propagations. Fig .8 (b) shows that the training
+eters that control the feature vectors, which define the                                                                                 time of all methods. Since the baselines STC and Pro-Graph
+size/dimension of the intermediate feature vectors at different                                                                          are not machine learning methods (they first mine propagation
+stages of the embedding model. The three parameters include                                                                              patterns and then make predictions based on the obtained
+1) K1 defines the size of the LPE embedding, the GT                                                                                      patterns), the time for pattern mining is included in their
+embedding, as well as the final embedding (the fusion of the                                                                             training time. Our method is only obviously slower than one
+LPE and GTE embeddings); 2) K2 defines the dimension of                                                                                  baseline EvolveGCN. Even though the training time is rather
+the latent space for NMF in GTE module; 3) c defines the                                                                                 long, we can achieve efficient prediction during the testing
+dimension of feature vectors in GCN module. We also tested                                                                               phase. The prediction times for processing 1000 samples are
+the impact of the number of used truncated polynomials in                                                                                as follows: 1.48s, 1.27s, 0.97s, 0.94s, 0.89s, 0.29s and 6.92s,
+GCN module on the final embedding performance.                                                                                           for methods illustrated in Fig .8 (b).
+   Fig. 7 (a) evaluates the impact of K1 by testing the per-
+formance with K1 = 1, 2, · · · , 10. The results show that the                                                                                                 VIII. C ONCLUSION
+performance first increases, and then decreases with increasing                                                                             This work studied the congestion propagation behavior
+K1 values, and obtains the best results when K1 = 5.                                                                                     at the individual road segment level, and propose a novel
+This is because a small K1 weakened the representation                                                                                   machine learning framework to characterize and predict con-
+strength of the final embeddings, while a large K1 produces                                                                              gestion propagations in urban traffic networks. The proposed
+redundant representations that harm the performance. As such,                                                                            framework relies on AE-LPGT to learn representations of the
+K1 is further adjusted to 5 in the second stage of parameter                                                                             road segments and a propagation model to infer the likelihood
+optimization. Fig. 7 (b) shows that the performance generally                                                                            of congestion propagation based on the learned representa-
+decreases with increasing values of K2 (with some fluctua-                                                                               tions. AE-LPGT jointly incorporates multiple practical char-
+tions). As such, K2 is set to 1 in the second stage of parameter                                                                         acteristics of congestion propagations that have been neglected
+optimization. Fig. 7 (c) tested the impact of parameter c                                                                                by existing works. We also developed a propagation model that
+to the final prediction performance. The results show that,                                                                              estimates the probability of congestion propagations between
+c = 8 has the best performance during the second stage                                                                                   two road segments, which could be connected via multiple
+of parameter optimization. Fig. 7 (d) illustrates the impact                                                                             paths. The effectiveness of the AE-LPGT embedding model
+of parameter KGCN , which determines the number of the                                                                                   and the propagation model was verified on real traffic data.
+truncated polynomials to approximate the convolution filter.                                                                                In addition to the traffic congestion propagation problems
+By varying KGCN in range {1, 2, · · · , 10}, the performance                                                                             considered in this paper, our proposed methods for traffic con-
+first increases then decreases, and obtains the best results                                                                             gestion propagation can also be applied (with slight changes)
+when KGCN = 5. This is because when KGCN is small,                                                                                       to similar problems in other domains that require network em-
+increasing the number of polynomials improves the learning                                                                               bedding techniques. These include rumor spread (propagation)
+of the complex traffic situations of local neighbors. However,                                                                           in social network [49], citation trend modeling and impact
+when KGCN exceeds 5, the prediction performance tends to                                                                                 prediction in citation networks [50], user preference prediction
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015                                                                                                                                                                                                                              13
+
+
+
+                                  0.875                                                                                                                                                                                                           0.87
+                                  0.850                                                                                                0.88                                                                 1.0          c=6         c=12         0.86
+                                                                                                                                                                                                                         c=8         c=14
+                                  0.825                                                                                                0.86                                                                 0.9          c=10        c=16         0.85
+                                  0.800                                                                                                0.84                                                                                                       0.84
+                        Metircs
+
+
+
+
+                                                                                                                                 Metircs
+
+
+
+
+                                                                                                                                                                                                      Metrics
+
+
+
+
+                                                                                                                                                                                                                                            Metircs
+                                                                                                                                       0.82                                                                 0.8                                   0.83                  Accuracy
+                                  0.775                                                                                                                                                                                                                                 F1
+                                                                                                                                                                                                            0.7                                   0.82
+                                  0.750                                                                                                0.80                                                                                                       0.81
+                                  0.725                                                              Accuracy                          0.78                                                                 0.6                                   0.80
+                                  0.700                                                              F1                                0.76                  Accuracy                       F1                                                    0.79
+                                                      2                      4      6                 8                     10                          2           4           6           8    10         0.5 Accuracy            F1                   2   4    6      8    10
+                                                                                 (a) K1                                                                                 (b) K2                                            (c) c                              (d) KGCN
+                                                                                                       Fig. 7: The evaluation of hyperparameters K1, K2, c, and KGCN
+
+
+                                                                                                                        105                                                                           [10] J. Gregoire, X. Qian, E. Frazzoli, A. De La Fortelle, and T. Wongpirom-
+                                                           W U D L Q L Q J           W H V W L Q J
+                                                                                                                                                                                                           sarn, “Capacity-aware backpressure traffic signal control,” IEEE Trans.
+                                                                                                                        104
+                                                                                                                                                                                                              on Control of Netw. Syst., vol. 2, no. 2, pp. 164–173, 2014.
+    $ F F X U D F \
+
+
+
+
+                                                                                                           6 H F R Q G V
+
+
+
+
+                                                                                                                        103                                                                           [11] X. Di, Y. Xiao, C. Zhu, Y. Deng, Q. Zhao, and W. Rao, “Traffic
+                         
+                                                                                                                           102                                                                                congestion prediction by spatiotemporal propagation patterns,” in 2019
+                         
+                                                                                                                                                                                                              20th IEEE Intell. Conf. on Mob. Data Manag. (MDM). IEEE, 2019,
+                         
+                                                                                                                                          7        1  L W V  /          (  &               S K                pp. 298–303.
+                                                                                                                                    / 3 *  H * &  H  %  $ 1 5  0 0 ' 1  6 7  U R  * U D
+                                                                         R Q  H
+
+
+                                                                                           R Q  U
+                                 P  2 Q H
+
+
+                                                 P  7 Z R
+
+
+                                                                      P  7 K U H
+
+
+
+
+                                                                                                                              $ (   ( Y R O Y  1 R G
+                                                                                        P  ) R X
+                                         W K
+
+
+                                                         W K
+
+
+                                                                             W K
+
+
+                                                                                               W K
+
+
+
+
+                                                                                                                                                                                                         [12] Z. Wu, S. Pan, G. Long, J. Jiang, and C. Zhang, “Graph wavenet for deep
+                                    R Q
+
+
+                                                    R Q
+
+
+
+
+                                                                                                                                                                             3
+                                                           D                                                                                              E                                               spatial-temporal graph modeling,” arXiv preprint arXiv:1906.00121,
+                                                                                                                                                                                                              2019.
+Fig. 8: (a) Results on datasets of different sizes, (b) Compar-                                                                                                                                          [13] S. An, H. Yang, J. Wang, N. Cui, and J. Cui, “Mining urban recurrent
+                                                                                                                                                                                                              congestion evolution patterns from gps-equipped vehicle mobility data,”
+ison of training time (30 epoches on four-month dataset).                                                                                                                                                     Inform. Sciences, vol. 373, pp. 515–526, 2016.
+                                                                                                                                                                                                         [14] S. An, H. Yang, and J. Wang, “Revealing recurrent urban congestion
+                                                                                                                                                                                                              evolution patterns with taxi trajectories,” ISPRS Interl. J. of Geo-Inform.,
+                                                                                                                                                                                                              vol. 7, no. 4, p. 128, 2018.
+via social network influence modeling (with applications of                                                                                                                                              [15] Z. Chen, Y. Yang, L. Huang, E. Wang, and D. Li, “Discovering urban
+service recommendations in social media and online shopping                                                                                                                                                   traffic congestion propagation patterns with taxi trajectory data,” IEEE
+websites) [51], etc. In these problems, the propagation of                                                                                                                                                    Access, vol. 6, pp. 69 481–69 491, 2018.
+                                                                                                                                                                                                         [16] A. Keler, J. M. Krisp, and L. Ding, “Detecting traffic congestion
+information (e.g., rumor, preference) poses similar propagation                                                                                                                                               propagation in urban environments–a case study with floating taxi data
+characteristics such as asymmetric transitivity, local proximity,                                                                                                                                             (ftd) in shanghai,” J. of location Based services, vol. 11, no. 2, pp.
+and dynamic global tendency of propagations. The proposed                                                                                                                                                     133–151, 2017.
+                                                                                                                                                                                                         [17] Y. He, L. Wang, Y. Fang, and Y. Li, “Discovering congestion propagation
+embedding methods can also be applied partially to learn ef-                                                                                                                                                  patterns by co-location pattern mining,” in APAC Web (APWeb) and Web-
+ficient node/link embedding for network prediction problems,                                                                                                                                                  Age Inform. Manag. (WAIM) Joint Interl. Conf. on Web and Big Data.
+e.g., utilizing LPE module to learn spatiotemporal correlations                                                                                                                                               Springer, 2018, pp. 46–55.
+                                                                                                                                                                                                         [18] M. Treiber and A. Kesting, “Calibration and validation of models
+in local neighborhood, and GTE module to learn evolving                                                                                                                                                       describing the spatiotemporal evolution of congested traffic patterns,”
+multi-view global tendency in the entire network.                                                                                                                                                             arXiv preprint arXiv:1008.1639, 2010.
+                                                                                                                                                                                                         [19] M. Khajeh-Hosseini and A. Talebpour, “Back to the future: Predicting
+                                                                                                                                                                                                              traffic shockwave formation and propagation using a convolutional
+                                                                                                                                                                                                              encoder-decoder network,” in 2019 IEEE Intel. Trans. Syst. Conf. (ITSC).
+                                                                                    R EFERENCES                                                                                                               IEEE, 2019, pp. 1367–1372.
+                                                                                                                                                                                                         [20] L. Yang and L. Wang, “Mining traffic congestion propagation patterns
+ [1] A. Elkafoury, A. M. Negm, M. H. Aly, M. F. Bady, and T. Ichimura,                                                                                                                                        based on spatio-temporal co-location patterns,” Evol. Intell., pp. 1–13,
+     “Develop dynamic model for predicting traffic co emissions in urban                                                                                                                                      2019.
+     areas,” Environ. Sci. Pollut. Res., vol. 23, no. 16, pp. 15 899–15 910,                                                                                                                             [21] C. Li, W. Yue, G. Mao, and Z. Xu, “Congestion propagation based
+     2016.                                                                                                                                                                                                    bottleneck identification in urban road networks,” IEEE Trans. Veh.
+ [2] G. Weisbrod, D. Vary, and G. Treyz, “Measuring economic costs of                                                                                                                                         Technol., vol. 69, no. 5, pp. 4827–4841, 2020.
+     urban traffic congestion to business,” Transp. Res. Record., vol. 1839,                                                                                                                             [22] H. Gao, Y. Yang, L. Huang, Y. Wang, B. Jia, F. Yang, and Z. Zhu,
+     no. 1, pp. 98–106, 2003.                                                                                                                                                                                 “Trajectory data-driven pattern recognition of congestion propagation
+ [3] H. Nguyen, W. Liu, and F. Chen, “Discovering congestion propagation                                                                                                                                      in road networks,” in Interl. Conf. on Algorithms and Architectures for
+     patterns in spatio-temporal traffic data,” IEEE Trans. Big Data, vol. 3,                                                                                                                                 Parallel Process. Springer, 2018, pp. 199–211.
+     no. 2, pp. 169–180, 2016.                                                                                                                                                                           [23] J. Long, Z. Gao, H. Ren, and A. Lian, “Urban traffic congestion
+ [4] T. Anwar, C. Liu, H. L. Vu, and M. S. Islam, “Tracking the evolution of                                                                                                                                  propagation and bottleneck identification,” Science in China Series F:
+     congestion in dynamic urban road networks,” in Proceedings of the 25th                                                                                                                                   Inform. Sciences, vol. 51, no. 7, p. 948, 2008.
+     ACM Intell. Conf. on Inform. and Knowl. Manag., 2016, pp. 2323–2328.                                                                                                                                [24] C. Liu, Q.-p. Zhang, and X. Zhang, “Emergence and disappearance of
+ [5] T. Anwar, C. Liu, H. L. Vu, M. S. Islam, and T. Sellis, “Capturing the                                                                                                                                   traffic congestion in weight-evolving networks,” Simul. Model. Pract.
+     spatiotemporal evolution in road traffic networks,” IEEE Trans. Knowl.                                                                                                                                   Theory, vol. 17, no. 10, pp. 1566–1574, 2009.
+     and Data Eng., vol. 30, no. 8, pp. 1426–1439, 2018.                                                                                                                                                 [25] P. Cui, X. Wang, J. Pei, and W. Zhu, “A survey on network embedding,”
+ [6] T. Anwar, C. Liu, H. Le Vu, and C. Leckie, “Spatial partitioning of large                                                                                                                                IEEE Trans. Knowl. and Data Eng., vol. 31, no. 5, pp. 833–852, 2018.
+     urban road networks.” in EDBT, 2014, pp. 343–354.                                                                                                                                                   [26] J. Tang, M. Qu, M. Wang, M. Zhang, J. Yan, and Q. Mei, “Line: Large-
+ [7] J. Sun, Z. Ma, and X. Chen, “Some observed features of traffic flow                                                                                                                                      scale information network embedding,” in Proc. 24rd Int. Conf. World
+     phase transition at urban expressway diverge bottlenecks,” TRANSPORT-                                                                                                                                    Wide Web. (WWW), 2015, pp. 1067–1077.
+     METRICA B, vol. 6, no. 4, pp. 320–331, 2018.                                                                                                                                                        [27] B. Perozzi, R. Al-Rfou, and S. Skiena, “Deepwalk: Online learning of
+ [8] N. Song, “Research on traffic congestion propagation model based on                                                                                                                                      social representations,” in Proc. 20th ACM SIGKDD Int. Conf. Knowl.
+     rectangular method,” Mod. Transp., vol. 5, no. 1, 2019.                                                                                                                                                  Discov. Data Min. (SIGKDD), 2014, pp. 701–710.
+ [9] W. Yue, C. Li, and G. Mao, “Urban traffic bottleneck identification based                                                                                                                           [28] X. Wang, P. Cui, J. Wang, J. Pei, W. Zhu, and S. Yang, “Community
+     on congestion propagation,” in 2018 IEEE Intell. Conf. on Commun.                                                                                                                                        preserving network embedding,” in Thirty-first AAAI Conf. Artif. Intell.
+     (ICC). IEEE, 2018, pp. 1–6.                                                                                                                                                                              (AAAI), 2017.
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015                                                                                                        14
+
+
+
+[29] M. Ou, P. Cui, J. Pei, Z. Zhang, and W. Zhu, “Asymmetric transitivity                                   Yidan Sun received the B.Eng. degree from the
+     preserving graph embedding,” in Proc. 22th ACM SIGKDD Int. Conf.                                        School of Computer Science and Technology, Tian-
+     Knowl. Discov. Data Min. (SIGKDD), 2016, pp. 1105–1114.                                                 jin University, China. She is currently pursuing the
+[30] C. C. Paige and M. A. Saunders, “Towards a generalized singular value                                   Ph.D. degree with the School of Computer Science
+     decomposition,” SIAM J. Numer. Anal., vol. 18, no. 3, pp. 398–405,                                      and Engineering, Nanyang Technological University,
+     1981.                                                                                                   Singapore. Her research interests include energy effi-
+[31] L. Katz, “A new status index derived from sociometric analysis,”                                        cient MPSoC design, big data analytics in transport,
+     Psychometrika, vol. 18, no. 1, pp. 39–43, 1953.                                                         and urban computing.
+[32] L. A. Adamic and E. Adar, “Friends and neighbors on the web,” Soc.
+     networks, vol. 25, no. 3, pp. 211–230, 2003.
+[33] Y. Shen, C. Jin, and J. Hua, “Ttpnet: A neural network for travel time
+     prediction based on tensor decomposition and graph embedding,” IEEE
+     Trans. Knowl. and Data Eng., pp. 1–1, 2020.
+[34] Z. Zheng, Y. Yang, J. Liu, H.-N. Dai, and Y. Zhang, “Deep and embed-
+     ded learning approach for traffic flow prediction in urban informatics,”
+     IEEE Trans. Intell. Transp. Syst., vol. 20, no. 10, pp. 3927–3939, 2019.
+[35] B. Yu, H. Yin, and Z. Zhu, “Spatio-temporal graph convolutional
+     networks: A deep learning framework for traffic forecasting,” pp. 3634–                                 Guiyuan Jiang received the B.S. degree from
+     3640, 2018.                                                                                             Northwest University for Nationalities, China, the
+[36] J. Chang, J. Gu, L. Wang, G. Meng, S. Xiang, and C. Pan, “Structure-                                    M.Eng. degree from Tianjin Polytechnic University,
+     aware convolutional neural networks,” in Adv. Neural Inf. Process. Syst.                                China, and the doctoral degree from Tianjin Univer-
+     (NeurlPS), 2018, pp. 11–20.                                                                             sity (TJU), all in Computer Science and Technology.
+[37] Z. Hou and X. Li, “Repeatability and similarity of freeway traffic flow                                 Currently, he works as a research fellow at School
+     and long-term prediction under big data,” IEEE Trans. Intell. Transp.                                   of Computer Science and Engineering, Nanyang
+     Syst., vol. 17, no. 6, pp. 1786–1796, 2016.                                                             Technological University, Singapore. His research
+[38] M. Chen, X. Yu, and Y. Liu, “Pcnn: Deep convolutional networks for                                      interests include data analytics for citywide transport
+     short-term traffic congestion prediction,” IEEE Trans. Intell. Transp.                                  modeling and optimization, design methodologies
+     Syst., vol. 19, no. 11, pp. 3550–3559, 2018.                                                            for reconfigurable computing systems, resource op-
+[39] C.-H. Wu, J.-M. Ho, and D.-T. Lee, “Travel-time prediction with support       timization for datacenter and sensor networks. His research has led to over 60
+     vector regression,” IEEE Trans. Intell. Transp. Syst., vol. 5, no. 4, pp.     publications in top venues such as IEEE TC, IEEE TPDS, IEEE TITS, IEEE
+     276–281, 2004.                                                                TVLSI, IEEE TCAD, IEEE TIFS, IEEE-ACM TNET, IJCAI, DATE, SDM,
+[40] J. Tang, F. Liu, Y. Zou, W. Zhang, and Y. Wang, “An improved                  etc.
+     fuzzy neural network for traffic speed prediction considering periodic
+     characteristic,” IEEE Trans. Intell. Transp. Syst., vol. 18, no. 9, pp.
+     2340–2350, 2017.
+[41] D. D. Lee and H. S. Seung, “Algorithms for non-negative matrix
+     factorization,” in Adv. Neural Inf. Process. Syst. (NeurlPS), 2001, pp.
+     556–562.
+[42] H. Xiong, A. Vahedian, X. Zhou, Y. Li, and J. Luo, “Predicting
+     traffic congestion propagation patterns: A propagation graph approach,”                                Lam Siew Kei received his BASc, MEng and PhD
+     in Proc. 26th ACM SIGSPATIAL Int. Conf. Adv. Geogr. Inf. Syst.                                         from School of Computer Science and Engineering
+     (SIGSPATIAL), 2018, pp. 60–69.                                                                         (SCSE), NTU. He was a Visiting Research Fellow
+[43] A. Pareja, G. Domeniconi, J. Chen, T. Ma, T. Suzumura, H. Kanezashi,                                   in the Imperial College of London, University of
+     T. Kaler, T. Schardl, and C. Leiserson, “Evolvegcn: Evolving graph                                     Warwick, and RWTH Aachen, Germany. He is cur-
+     convolutional networks for dynamic graphs,” in Proceedings of the AAAI                                 rently an Assistant Professor in SCSE, NTU, and his
+     Conf. on Artif. Intell. (AAAI), vol. 34, no. 04, 2020, pp. 5363–5370.                                  research focuses on developing custom computing
+[44] D. Jin, M. Heimann, R. A. Rossi, and D. Koutra, “Node2bits: Compact                                    techniques to meet the challenging demands for
+     time-and attribute-aware node representations for user stitching,” in Joint                            performance, energy-efficiency, cost, reliability, and
+     Eur. Conf. on Mach. Learn. and Knowl. Discov. in Datab. (ECML-                                         security in edge intelligence. His current research
+     PKDD). Springer, 2019, pp. 483–506.                                                                    projects include secure and reliable edge computing
+[45] Z. Zhang, H. Yang, J. Bu, S. Zhou, P. Yu, J. Zhang, M. Ester, and             systems, design methodologies for domain-specific AI architectures, visual
+     C. Wang, “Anrl: Attributed network representation learning via deep           edge intelligence for autonomous systems, and distributed intelligence for
+     neural networks.” in Int. Conf. on Adv. in Geogr. Inf. Syst. (IJCAI),         smart mobility. His research has led to over 150 publications in top venues
+     vol. 18, 2018, pp. 3155–3161.                                                 such as IEEE TC, IEEE TVLSI, IEEE TCAD, IEEE TCAS, IEEE TCSVT,
+[46] Y. Lu, X. Wang, C. Shi, P. S. Yu, and Y. Ye, “Temporal network                IEEE TPDS, IEEE ITS, DATE, ASP-DAC, FPL, ICFPT, HASP@ISCA, etc.
+     embedding with micro-and macro-dynamics,” in CIKM, 2019, pp. 469–             He serves as the Associate Editor for the IET Circuits, Devices and Systems
+     478.                                                                          journal and is a Senior Member of the IEEE.
+[47] X. Zhang, X. Chen, L. Yao, C. Ge, and M. Dong, “Deep neural network
+     hyperparameter optimization with orthogonal array tuning,” in Neural
+     Inf. Process. Springer, 2019, pp. 287–295.
+[48] S. Guo, Y. Lin, N. Feng, C. Song, and H. Wan, “Attention based spatial-
+     temporal graph convolutional networks for traffic flow forecasting,” in
+     Thirty-Third AAAI Conf. Artif. Intell. (AAAI), vol. 33, 2019, pp. 922–
+     929.                                                                                                    Peilan He received the Bachelor degree of Manage-
+[49] M. Dong, B. Zheng, N. Quoc Viet Hung, H. Su, and G. Li, “Multiple                                       ment from School of Economics and Management,
+     rumor source detection with graph convolutional networks,” in Proceed-                                  Hainan University, Haikou, China, and the Master
+     ings of the 28th ACM Int. Conf. Inf. Knowl. Manag., 2019, pp. 569–578.                                  degree of Engineering from School of Computer
+[50] D. Cummings and M. Nassar, “Structured citation trend prediction using                                  Science and Technology, Tianjin University, China.
+     graph neural networks,” in ICASSP 2020-2020 IEEE Int. Conf. Acoust.,                                    She is currently working toward the PhD degree in
+     Speech, Signal Process. (ICASSP). IEEE, 2020, pp. 3897–3901.                                            the School of Computer Science and Engineering,
+[51] P. K. Sharma, S. Rathore, and J. H. Park, “Multilevel learning based                                    Nanyang Technological University, Singapore. Her
+     modeling for link prediction and users’ consumption preference in online                                research interests include machine learning based
+     social networks,” Future Gener. Comput. Syst., vol. 93, pp. 952–961,                                    method for combinatorial optimization, big data an-
+     2019.                                                                                                   alytics in transport, multi-modal journey planning.
+

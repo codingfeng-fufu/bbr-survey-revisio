@@ -1,0 +1,1538 @@
+%%
+%% Computer Networks submission — CAS single-column template
+%% Compiler: pdfLaTeX (TeX Live 2024)
+%% All figures must be in the SAME directory as this .tex file (no subfolders).
+%%
+
+\documentclass[a4paper,fleqn]{cas-sc}
+
+\usepackage[numbers,sort&compress]{natbib}
+
+%% Tables
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{makecell}
+\usepackage{threeparttable}
+
+%% Math
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+%% Figures
+\usepackage{subcaption}
+\usepackage{flafter}
+\usepackage{placeins}
+
+%% TikZ (PRISMA flowchart)
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric,arrows.meta,positioning,calc}
+
+\usepackage{url}
+\usepackage{ragged2e}
+
+%% Allow flexible line-breaking in table p{} columns (prevents overfull hbox)
+\renewcommand{\tabularxcolumn}[1]{>{\RaggedRight\arraybackslash}p{#1}}
+%% Give LaTeX extra stretch budget for hard-to-break lines
+\setlength{\emergencystretch}{3em}
+
+% ============================================================
+\begin{document}
+\let\WriteBookmarks\relax
+
+% Suppress the CAS template's empty "ORCID(s):" footnote until real ORCID IDs are provided.
+\ExplSyntaxOn
+\RenewDocumentCommand \printorcid { }
+  {
+    \seq_if_empty:NF \g_stm_orcid_seq
+      {
+        \group_begin:
+          \tex_let:D \thefootnote \relax \footnotetext
+          {
+            \raggedright
+            \textsc{orcid}(s):\c_space_token
+            \seq_use:Nn \g_stm_orcid_seq { ;~ }
+          }
+        \group_end:
+      }
+  }
+\ExplSyntaxOff
+
+%% Float placement parameters — keep figures near their citations
+\setcounter{topnumber}{4}
+\setcounter{bottomnumber}{2}
+\setcounter{totalnumber}{6}
+\renewcommand{\topfraction}{0.85}
+\renewcommand{\bottomfraction}{0.5}
+\renewcommand{\textfraction}{0.10}
+\renewcommand{\floatpagefraction}{0.70}
+
+\shorttitle{BBR Congestion Control: Applicability Boundaries and Fairness}
+\shortauthors{Xu et~al.}
+
+\title[mode=title]{Applicability Boundaries and Fairness Challenges of BBR
+  Congestion Control: A Three-Dimensional Framework, Version Evolution,
+  and Multi-Scenario Evaluation}
+
+\author[1]{Shouzheng Xu}\cormark[1]\fnmark[1]
+\credit{Conceptualization, Supervision, Project administration, Writing -- review \& editing}
+
+\author[1]{Ruohan Ma}\fnmark[1]
+\credit{Investigation, Writing -- original draft}
+
+\author[1]{Zonglin Feng}\fnmark[1]
+\credit{Investigation, Writing -- original draft}
+
+\author[1]{Xinyue Liu}\fnmark[1]
+\credit{Investigation, Writing -- original draft}
+
+\author[1]{Tingjia Liu}\fnmark[1]
+\credit{Investigation, Writing -- original draft}
+
+\affiliation[1]{organization={School of Information, Central University of
+    Finance and Economics},
+  city={Beijing}, postcode={100081}, country={China}}
+
+\cortext[1]{Corresponding author. E-mail: xu.shouzheng@email.cufe.edu.cn}
+\fntext[1]{All authors contributed equally to this work.}
+
+% ---------- Abstract ----------
+\begin{abstract}
+BBR congestion control estimates delivery rate and propagation delay to
+regulate transmission. Its throughput, latency, and fairness depend on the
+network conditions under which those estimates are obtained. This survey
+examines BBRv1--v3 and organizes published evidence using buffer depth,
+bandwidth-delay product (BDP), and loss source, together with implementation,
+queue policy, and flow count. The framework reports throughput, delay,
+fairness, and retransmissions separately rather than assign a single
+suitability score. A documented supplemental literature search is retained,
+with full-text eligibility screening still in progress.
+
+The revision adds 340 controlled two-flow runs spanning four implementation
+environments, equal- and unequal-RTT configurations, and an artificial-loss
+extension. The archived results show configuration-dependent bandwidth
+shares and fairness. A subsequent audit identifies differences between the
+planned post-warmup window and the primary full-run analysis, incomplete
+queue observation windows, and inconsistent buffer labels in four frozen
+validation cases. These measurements provide descriptive comparisons but
+do not establish complete independent validation of the framework.
+The evidence supports reporting explicit experimental conditions and
+implementation identity when discussing BBR applicability. Further validation
+requires reconciled inputs and measurement windows, completed source
+verification, and broader evaluations of heterogeneous network conditions.
+\end{abstract}
+
+\begin{highlights}
+\item Conditional evidence synthesis of BBRv1--v3 across network scenarios.
+\item Applicability inputs include buffer depth, BDP, loss source, and implementation.
+\item Archived two-flow experiments cover four implementation environments.
+\item Measurement audits identify limitations on fairness and framework validation.
+\end{highlights}
+
+\begin{keywords}
+BBR congestion control \sep fairness \sep high-BDP networks \sep
+wireless adaptation \sep LEO satellite \sep AI-assisted control \sep applicability boundary
+\end{keywords}
+
+\maketitle
+
+% ============================================================
+\section{Introduction}
+\label{sec:intro}
+% ============================================================
+
+\subsection{Background and Motivation}
+\label{sec:background}
+
+Building on Jacobson's congestion avoidance algorithm~\citep{jacobson1988congestion},
+loss-driven congestion control---represented by CUBIC~\citep{ha2008cubic} and
+Reno~\citep{fall1996simulation}---has dominated the Internet transport layer for
+decades. The fundamental limitation of such schemes is that their steady-state
+operating point lies to the right of Kleinrock's optimal power
+point~\citep{kleinrock1979power}: buffers are already full and queuing delay
+remains persistently high, a cost that is especially pronounced in backbone
+networks with high bandwidth-delay products (BDP). The Reno-like throughput approximation of Mathis et al.
+($\mathrm{BW}\propto\mathrm{MSS}/(\mathrm{RTT}\sqrt{p})$)~\citep{mathis1997macroscopic}
+illustrates the sensitivity to RTT and loss under its steady-state assumptions.
+CUBIC has a different window evolution, so this approximation cannot serve
+as its universal throughput bound.
+To overcome this constraint, Google proposed BBR (Bottleneck Bandwidth and
+Round-trip propagation time) in 2016~\citep{cardwell2017bbr}, replacing
+loss-signal-driven reactive control with direct measurement of the bottleneck
+bandwidth BtlBw and propagation delay RTprop, and demonstrating significant
+throughput advantages over CUBIC in large-scale deployments on Google's B4 WAN.
+BBR subsequently released BBRv2 in 2019 (introducing ECN support and in-flight
+upper-bound constraints)~\citep{cardwell2019bbrv2} and BBRv3 in 2023 (further
+tightening Startup exit conditions)~\citep{cardwell2023bbrv3}. Unlike BBRv1,
+which has entered the Linux mainline, BBRv2/BBRv3 continue to evolve primarily
+through drafts, implementation prototypes, and independent evaluations. Meanwhile,
+QUIC/HTTP~3, LEO satellite measurements, and CDN scenario studies have expanded
+BBR's influence beyond the traditional TCP
+stack~\citep{rfc9000,rfc9002,rfc9114,deutschmann2023starlink,kamel2024starquic}.
+
+Published evaluations show configuration-dependent throughput and fairness.
+In WLAN studies, pacing and sender queue constraints interact with frame
+aggregation; comparisons require the tested chipset, direction and queue
+configuration. RTT fairness likewise depends on probing, path estimates,
+queue policy and competing flows. The BDP identity describes an in-flight
+operating point and does not determine bandwidth shares. ECN availability
+changes the feedback signals available to BBRv2/v3 but does not erase their
+loss-driven updates or version-specific logic. Multi-RTT simulation results
+illustrate conditional differences among versions rather than a universal
+ranking\citep{rfc3168,rfc9330,rfc9331,rfc9332,piotrowska2024}. AI-assisted improvements, though demonstrating promise in controlled testbeds
+or simulation environments, face three substantial challenges: insufficient
+interpretability, structural Sim-to-Real gaps, and real-time inference overhead.
+
+The core reason these contradictions cannot be resolved within existing research
+frameworks is the absence of an analytical tool that systematically maps network
+environment characteristics to BBR's degree of applicability. Existing findings
+are scattered across different network conditions and cannot be integrated into
+actionable algorithm selection criteria for network operators, nor can the
+improvement potential of AI-assisted schemes be evaluated on a unified dimension.
+At the same time, BBR's engineering footprint continues to expand: BBRv1 has
+entered the Linux mainline and been widely tested; BBRv2/BBRv3 continue to be
+evaluated through IETF drafts, open-source implementations, and independent
+measurements; QUIC stacks and LEO satellite link research continually expand the
+scope of discussion~\citep{cardwell2017bbr,cardwell2019bbrv2,ietf_ccwg_bbr,abrol2026bbr,zeynali2024bbrv3}.
+This tension between expanding engineering influence and the absence of an
+analytical framework motivates an urgent systematic survey of BBR's performance
+boundaries.
+
+\subsection{Related Surveys and Positioning}
+\label{sec:related}
+
+Existing work has revealed BBR's advantages and deficiencies from various angles,
+but has not yet answered the three questions readers care most about: when BBR
+should be deployed, when it should be used with caution, and why three generations
+of evolution have not resolved fairness problems. Early independent evaluations
+focused primarily on BBRv1's performance in controlled wired scenarios:
+\citet{hock2017bbr} revealed RTT bias, \citet{cao2019bbr} identified the random
+loss ``cliff effect,'' and \citet{jaeger2019bbr} and \citet{scholz2018deeper}
+provided reproducible experimental baselines. Recent BBRv3 research has pushed
+the problem toward fairness and deployment boundaries: \citet{piotrowska2024}
+reported that v3's intra-protocol fairness regresses relative to v2 in
+large-buffer scenarios, \citet{gomez2024bbrv3} provided real-world broadband
+baselines, and \citet{zeynali2024bbrv3} and \citet{bless2025insights} further
+revealed extreme unfairness and self-induced queuing on public Internet paths and
+high-speed links.
+
+The gap in existing research is therefore not ``has anyone measured BBR,'' but
+rather the absence of a survey framework that can translate scattered measurement
+results into algorithm selection judgments. Existing surveys such as
+\citet{al2019survey} are limited by their publication date and do not cover
+BBRv2/v3, wireless, or satellite scenarios; \citet{abrol2026bbr}, while
+systematically revealing multi-flow QoS defects in 5G/6G controlled experiments,
+has not yet unified WiFi frame aggregation, high-dynamic routing, and LEO
+satellites within a boundary framework. Table~\ref{tab:survey_compare} compares
+the coverage of this paper with existing work: the goal here is not to pile up
+more cases, but to compress them into three tools readers can take away---an
+applicability boundary coordinate, a fairness root-cause chain, and an
+AI deployability tier.
+
+\begin{table}[pos=tbp]
+  \caption{Comparison with existing BBR-related surveys and systematic evaluations.}
+  \label{tab:survey_compare}
+  \footnotesize
+  \setlength{\tabcolsep}{3pt}
+  \begin{tabularx}{\tblwidth}{@{}p{3.2cm}p{1.4cm}p{1.1cm}p{0.9cm}p{1.0cm}p{1.2cm}p{0.55cm}p{0.55cm}p{0.9cm}p{1.1cm}@{}}
+    \toprule
+    \textbf{Work} & \textbf{Type} & \textbf{Ver.} & \makecell[l]{\textbf{Sce-}\\\textbf{narios}}
+      & \textbf{Fairness} & \makecell[l]{\textbf{Frame-}\\\textbf{work}} & \textbf{AI} & \textbf{Sat.}
+      & \makecell[l]{\textbf{Wire-}\\\textbf{less}} & \makecell[l]{\textbf{Meth-}\\\textbf{odol.}} \\
+    \midrule
+    \citet{hock2017bbr} (2017) & Meas. & v1 & 1 & Partial & None & No & No & No & No \\
+    \citet{cao2019bbr} (2019) & Meas. & v1 & 2 & Partial & None & No & No & No & No \\
+    \citet{jaeger2019bbr} (2019) & Meas. & v1 & 3 & $\checkmark$ & None & No & No & No & No \\
+    \citet{al2019survey} (2019) & Survey & v1 & 2 & Partial & None & No & No & No & No \\
+    \citet{piotrowska2024} (2024) & Simul. & v1--v3 & 1 & $\checkmark$ & None & No & No & No & No \\
+    \citet{gomez2024bbrv3} (2024) & Meas. & v3 & 1 & $\checkmark$ & None & No & No & No & No \\
+    \citet{abrol2026bbr} (2026) & Survey & v1--v3 & 4 & $\checkmark$ & None & No & No & 5G & No \\
+    \citet{zeynali2024bbrv3} (2024) & Meas. & v3 & 1 & $\checkmark$ & None & No & No & No & No \\
+    \citet{bless2025insights} (2025) & Meas. & v3 & 2 & Partial & None & No & No & No & No \\
+    \textbf{This paper} & \textbf{Survey} & \textbf{v1--v3} & \textbf{6}
+      & $\checkmark$ & \textbf{3-D} & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
+    \bottomrule
+  \end{tabularx}
+  \begin{tablenotes}
+    \small
+    \item ``Methodol.'' indicates whether an explicit literature search protocol is described;
+    ``5G'' in the Wireless column indicates coverage of 5G scenarios only.
+  \end{tablenotes}
+\end{table}
+
+\subsection{Literature Search and Evidence Verification}
+\label{sec:method}
+
+We distinguish the manuscript's existing citation baseline from the records
+of a supplemental search. A static audit identified 165 cited BibTeX keys
+with corresponding bibliography entries; this establishes citation consistency,
+not a completed systematic-review inclusion count.
+
+We froze the supplemental search protocol on 28 September 2026 and used
+OpenAlex and Crossref. Eight query groups cover BBR congestion control,
+BBRv2 and BBRv3, RTT fairness, buffering, loss and ECN, BDP-Veno,
+OVeno, wireless and satellite scenarios, and learning-based congestion control.
+The retained exports contain 2,618 records. Each query retained at most
+200 returned records; 12 of the 16 responses report more hits than were
+saved. These exports therefore represent a capped retrieval sample, not
+a complete enumeration of the indexed results. The broad Crossref queries
+also return many unrelated records, requiring explicit relevance review. A rule-based title/abstract triage assigned
+572 records to candidate inclusion, 297 to exclusion, and 1,749 to further
+full-text assessment. Preliminary deduplication of the candidate-inclusion
+records produced a queue of 400 records. A subsequent DOI-normalization
+audit identified 328 report groups, including 72 duplicate record pairs
+across sources. Including the uncertain records, normalization of the full
+export yields 1,916 report groups. The original automated triage forwarded
+1,698 groups to eligibility review; this is a historical stage count.
+The archived file named human screening was generated by keyword rules,
+so these counts do not establish independent manual screening.
+The 218 groups originally labelled excluded only by those rules were
+independently reassessed using their available indexed titles and abstracts.
+This reassessment retained 174 groups for full-text review and excluded
+44 groups at title/abstract level for documented scope or report-type reasons.
+\input{F22_screening_status_generated.tex}
+Current decisions and source locations are retained in the regenerated ledger.
+Twenty-five groups had conflicting source-record screening decisions.
+A subsequent title/abstract review retained all of them for full-text
+assessment; this stage resolution does not determine final eligibility.
+These are stage counts, not final
+included-study counts. The repository preserves the query log, raw exports,
+deduplication fields, and screening records.
+
+Eligibility requires relevance to BBR mechanisms, performance, fairness,
+network conditions, related transport designs, or the supporting standards
+and methods defined in the frozen protocol. Existing citation in this
+manuscript is not an eligibility criterion. We track unavailable reports
+separately and do not treat an index entry or an abstract as full-text evidence.
+Full-text screening, study/report linkage, and final inclusion remain
+incomplete. We therefore make no claim that the 165 cited references form
+a fully verified systematic-review corpus, or that searches in other databases
+have been reconstructed. Quantitative synthesis must identify the source
+and its experimental conditions rather than infer them from citation counts.
+
+For each eligible report, evidence assessment records source identity,
+publication status, implementation and platform, parameter disclosure,
+observation window, uncertainty reporting, and the location of each extracted
+result. Publication venue alone does not establish reproducibility or a
+universal performance guarantee. RFCs define protocol requirements and
+technical terms; their authority does not substitute for experimental
+performance measurements. Simulation, emulation, and deployed-network
+results are retained as distinct evidence types.
+
+Completed full-text extraction for \citet{piotrowska2024}, for example,
+records the ns-3 implementation limitations and the absence of ECN support.
+Other source assessments remain incomplete. The tables' pending appraisal
+labels identify work still required; they do not assign a completed quality
+grade. Quantitative claims require a source-located result and its conditions
+before final acceptance.
+
+The cited references are grouped thematically into five areas: BBR model
+boundary foundations~\citep{postel1981tcp,allman2009rfc5681,paxson2011rfc6298,rfc8312,rfc8257,brakmo1994vegas,floyd1993red,nichols2012codel,pan2013pie,gettys2011bufferbloat,kelly1998rate,padhye1998modeling,appenzeller2004sizing,dhamdhere2006buffer,wischik2005buffers,blanton2002reorder,jaiswal2007oos,paxson1999dynamics,medina2004transport,barakat2000tcp,zhang2001constancy,jain2002bandwidth,prasad2003bandwidth,dukkipati2006fct,tan2006compound,liu2008illinois,grieco2004westwood,handley2003tfrc,kuzmanovic2006tcplp},
+data center and programmable scheduling
+boundaries~\citep{alizadeh2010dctcp,alizadeh2013pfabric,bai2015pias,mittal2015timely,zhu2015dcqcn,handley2017ndp,cho2017credit,li2019hpcc,kumar2020swift,liu2021onramp,goyal2022bfc,wang2023poseidon,arslan2023bolt,dhamija2024dctcp,zhang2024lossless,wang2024pudica,zhang2024tecc,addanki2024credence,addanki2024reverie,agarwal2024provably,kumar2024chisel,wydrowski2024prequal,agarwal2024harmony,wang2024smuff,zhou2024augur,zhang2024habitus,du2025pred,liu2025pyrrha,chen2025etran,zhao2025whiteboxing,prasopoulos2025sird,ji2025mtp,zeng2025alibaba,chen2025clubheap,sharafzadeh2025scrr,alcoz2025scheduling,gao2024sifter},
+BBR version and independent
+evaluation~\citep{cardwell2016bbrqueue,kfoury2020bbrv2alpha,song2021bbrv2,scherrer2022modelbased,gomez2023fabric,pan2021bbracw,zhang2021gamma,yang2023pacinggain,ahsan2023bbrn,yang2019adaptivebbr,sarpkaya2025sharing},
+QUIC and deployment
+scenarios~\citep{langley2017quic,kakhki2017quic,deconinck2017mpquic,trevisan2021http3,rfc8684,raiciu2012mptcp,yuan2024sidekick,winstein2013sprout,zaki2015verus,xie2020pbecc,michel2022starlink,kassem2022starlink,lai2023starlink,khan2023leo,barbosa2023leo,laniewski2024wetlinks,laniewski2024road,izhikevich2023leo,cheng2024grace,meng2024hairpin},
+and learning-based congestion control and experimental
+platforms~\citep{dong2015pcc,yang2019adaptivebbr,yan2018pantheon,arun2018copa,narayan2018ccp,abbasloo2020orca,meng2020proteus,netravali2015mahimahi,lantz2010mininet,henderson2008ns3,boutaba2018ml}.
+
+\begin{figure}[pos=tbp]
+\centering
+\begin{tikzpicture}[
+  node distance=0.7cm,
+  box/.style={rectangle, draw=black, rounded corners=3pt,
+              text width=9.5cm, align=center,
+              minimum height=0.9cm, font=\small},
+  excl/.style={rectangle, draw=gray, dashed, rounded corners=3pt,
+               text width=4.0cm, align=left,
+               minimum height=0.9cm, font=\scriptsize, text=gray},
+  arr/.style={-{Stealth[length=5pt]}, thick},
+  exclarr/.style={-{Stealth[length=4pt]}, gray, dashed}
+]
+\node[box, fill=blue!8] (id)
+  {\textbf{Search Phase}\\
+   Supplemental search: OpenAlex and Crossref\\
+   Frozen protocol: 28 September 2026; eight query groups\\
+   Exported records: 2,618; historical citation baseline tracked separately};
+
+\node[box, fill=blue!5, below=of id] (screen)
+  {\textbf{Automated Title/Abstract Triage}\\
+   Rule labels: 572 candidate; 297 proposed exclusion; 1,749 uncertain\\
+   Candidate queue: 400 records; normalized report groups: 328};
+
+\node[box, fill=blue!5, below=of screen] (fulltext)
+  {\textbf{Full-Text Eligibility Review}\\
+   Full exported set: 1,916 normalized report groups\\
+   Original triage: 1,698 forwarded; 218 proposed exclusions\\
+   Reassessment: 174 restored; 44 stage exclusions\\
+   Full-text eligibility review ongoing; 25 conflicts resolved};
+
+\node[box, fill=green!10, below=of fulltext] (final)
+  {\textbf{Final inclusion pending}\\
+   No completed-corpus count is claimed at this stage};
+
+\node[excl, right=0.8cm of screen] (excl1)
+  {Screening decisions:\\
+   Reasons retained in the\\
+   record-level screening log};
+
+\node[excl, right=0.8cm of fulltext] (excl2)
+  {Full-text decisions:\\
+   Pending; unavailable reports\\
+   remain tracked separately};
+
+\draw[arr] (id) -- (screen);
+\draw[arr] (screen) -- (fulltext);
+\draw[arr] (fulltext) -- (final);
+\draw[exclarr] (screen.east) -- (excl1.west);
+\draw[exclarr] (fulltext.east) -- (excl2.west);
+
+\node[font=\scriptsize, text=gray, below=0.15cm of final, text width=10cm, align=left]
+  {Note: Counts describe the retained supplemental-search records and screening stages.
+   The 165 cited references are a separate static baseline (Section~\ref{sec:method}).};
+\end{tikzpicture}
+\caption{Recorded supplemental-search stages; full-text eligibility and final inclusion remain incomplete.}
+\label{fig:prisma}
+\end{figure}
+
+To further constrain quantitative claims, Table~\ref{tab:evidence_matrix} lists
+the evidence sources and applicable conditions for the paper's core numerical
+findings. Beyond data explicitly reported in the original papers, we do not
+extrapolate values from public talks, drafts, or secondary sources into general
+conclusions. Heterogeneity across studies---arising from differences in testbed
+type, statistical metrics, AQM configuration, and BBRv1 kernel version---is
+particularly notable for AQM configuration: \citet{pokhrel2025wifi} showed that
+FQ-CoDel can raise the inter-flow Jain fairness index between BBRv3 and CUBIC
+from approximately 0.6 to approximately 0.9. We annotate AQM configuration
+information in relevant scenario analyses; for papers that do not report
+configuration, caveats on the generalizability of their conclusions apply.
+
+\begin{table}[pos=tbp]
+  \caption{Evidence mapping for key quantitative claims.}
+  \label{tab:evidence_matrix}
+  \small
+  \begin{tabularx}{\tblwidth}{@{}p{4.2cm}p{2.8cm}Xp{1.5cm}@{}}
+    \toprule
+    \textbf{Quantitative claim} & \textbf{Source} & \textbf{Applicable conditions} & \textbf{Appraisal status} \\
+    \midrule
+    Backbone throughput improvements reported under source-specific path and host conditions &
+      \citet{cardwell2017bbr} &
+      Google production WAN with open receive buffers; not generalized to all public paths &
+      Pending \\
+    BBR shows throughput degradation or queuing anomalies under shallow-buffer/high-loss conditions &
+      \citet{cao2019bbr,jaeger2019bbr} &
+      Valid within controlled testbed parameter ranges; requires interpretation with buffer and loss source &
+      Pending \\
+    BBRv3/CUBIC throughput depends on the evaluated configuration &
+      \citet{gomez2024bbrv3} &
+      Real broadband testbed with reported AQM/path configuration; not representative of all broadband ISPs &
+      Pending \\
+    BBRv3+CUBIC coexistence can yield Jain index $\approx\!0.53$ and single-flow occupancy $>$99\% &
+      \citet{abrol2026bbr,zeynali2024bbrv3} &
+      Extreme fairness cases in large-buffer or specific real paths; used to illustrate risk boundaries &
+      Pending \\
+    Standard BBR may underperform CUBIC in WiFi frame-aggregation; BBRp partially mitigates loss &
+      \citet{grazia2020bbrp} &
+      802.11n/ac test conditions; not directly extrapolated to all WiFi~6/7 deployments &
+      Pending \\
+    BBR outperforms CUBIC on Starlink-class LEO links; QUIC+BBR handover optimization &
+      \citet{deutschmann2023starlink,kamel2024starquic} &
+      Specific satellite, geography, terminal, and handover mode; independent replication still needed &
+      Pending \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Contributions and Paper Organization}
+\label{sec:contrib}
+
+This paper focuses on four research questions that have not yet been
+systematically answered: (Q1) What network characteristics determine BBR's
+performance boundaries in typical scenarios, and how can the relative
+advantages of BBRv1--v3 and CUBIC be quantified? (Q2) What are the mechanistic
+roots of BBR's intra- and inter-protocol fairness contradictions, and to what
+extent have three iterations improved or failed to improve these problems?
+(Q3) What structural obstacles exist in engineering deployment that cannot be
+eliminated by algorithmic parameter adjustment? (Q4) What substantive challenges
+do AI-assisted schemes face in terms of engineering feasibility, and can current
+progress be deployed in production networks?
+
+The main contributions are threefold. First, we propose a three-dimensional
+applicability boundary framework with buffer depth $\times$ BDP magnitude
+$\times$ loss source as coordinate axes (\S\ref{sec:framework}), positioning
+six representative network scenarios within this coordinate system and performing
+a qualitative consistency check using the independent evaluation data of
+\citet{scholz2018deeper}. Second, we systematically incorporate three scenario
+types not covered by existing surveys---WiFi frame aggregation adaptation (BBRp),
+high-dynamic routing switching (SDN rerouting), and LEO satellite links
+(Starlink)---and, citing the latest empirical evidence from
+\citet{piotrowska2024}, reveal the hitherto underappreciated phenomenon that
+BBRv3's intra-protocol fairness regresses relative to v2 in large-buffer
+scenarios. Third, we establish a classification evaluation framework for
+AI-assisted congestion control, assessing representative approaches along three
+dimensions---limited-domain parameter tuning, policy-level deep reinforcement
+learning, and frontier architecture exploration---and identify four core open
+challenges (\S\ref{sec:deployment}).
+
+Paper organization: \S\ref{sec:algo} introduces BBR's algorithm design
+principles and core version differences; \S\ref{sec:framework} proposes the
+three-dimensional applicability framework and its external consistency check;
+\S\ref{sec:comparison} systematically evaluates performance boundaries across
+six scenarios; \S\ref{sec:fairness} analyzes the structural roots of two types
+of fairness contradictions; \S\ref{sec:deployment} assesses engineering obstacles
+and AI-enhanced directions; \S\ref{sec:conclusion} summarizes findings and
+identifies core open problems.
+
+% ============================================================
+\section{BBR Algorithm Foundations and Version Evolution}
+\label{sec:algo}
+% ============================================================
+
+\subsection{Measurement Model and Sending Control}
+\label{sec:design}
+
+Understanding BBR's applicability boundaries requires first understanding the
+network model on which its design rests---BBR's advantages and limitations both
+stem from the same set of measurement assumptions.
+
+BBR models the path using estimates of bottleneck bandwidth (BtlBw) and
+propagation delay (RTprop). Their product provides a reference in-flight
+volume for the ``just filling the pipe'' operating target
+\citep{cardwell2017bbr,kleinrock1979power}. In the BBRv1 design, delivery-rate
+samples feed a maximum filter over ten packet-timed rounds, and RTT samples
+feed a minimum filter with a ten-second window. These estimates can be
+biased by application or receiver limits, ACK timing, queueing and path
+changes; filtering does not guarantee recovery of the true path capacity
+or propagation delay. Filter horizons and update rules must be checked
+against the particular version and implementation rather than transferred
+unchanged to BBRv2 or BBRv3~\citep{cardwell2017bbr,cardwell2019bbrv2,paxson1999dynamics}.
+Figure~\ref{fig:optimal_point} illustrates this operating target and the
+underutilization/bufferbloat trade-off around the BDP point.
+
+\begin{figure}[pos=htbp]
+  \centering
+  \includegraphics[width=0.62\columnwidth]{optimal_operating_point.png}
+  \caption{BBR's optimal operating point based on Kleinrock's optimal power theory.}
+  \label{fig:optimal_point}
+\end{figure}
+
+A classical approximation for a Reno-like additive-increase,
+multiplicative-decrease flow is
+\begin{equation}
+  \label{eq:mathis}
+  \mathrm{BW}_{\mathrm{Reno}} \approx
+  \frac{C \cdot \mathrm{MSS}}{\mathrm{RTT}\cdot\sqrt{p}}.
+\end{equation}
+Here $p$ denotes loss probability and $C$ depends on modeling assumptions,
+including acknowledgment behavior~\citep{mathis1997macroscopic}. The
+approximation describes a restricted steady-state regime and does not
+account for all timeout, receiver-window or application limitations.
+It is not a general throughput bound for CUBIC, whose window evolution
+differs from Reno~\citep{ha2008cubic}. It motivates examining RTT and loss
+jointly; it does not predict a universal BBR/CUBIC throughput ratio.
+
+A simplified BBRv1 model relates pacing and the target congestion window
+to these estimates:
+\begin{gather*}
+  \mathrm{pacing\_rate}_{\mathrm{target}} =
+  \mathrm{BtlBw} \times \mathrm{pacing\_gain} \\[2pt]
+  \mathrm{cwnd}_{\mathrm{target}} \approx
+  \mathrm{BtlBw} \times \mathrm{RTprop} \times \mathrm{cwnd\_gain}.
+\end{gather*}
+These are controller targets, not exact identities for the instantaneous
+Linux congestion window. Recovery, minimum-window rules, packetization,
+ACK aggregation and host limits can change the realized behavior.
+Pacing spreads transmissions in time~\citep{aggarwal2000pacing}, while the
+congestion window limits outstanding data~\citep{semke1998buffer}; neither
+mechanism guarantees that a shallow queue will avoid overflow.
+
+The BBRv1 design has four principal modes (Figure~\ref{fig:bbr_arch}).
+Startup seeks additional delivery rate; its full-bandwidth test checks
+whether estimated bandwidth has grown by at least 25\% over three
+consecutive packet-timed rounds. Drain reduces the excess in-flight data
+accumulated during Startup. ProbeBW varies pacing gain to probe and drain,
+and ProbeRTT temporarily reduces the congestion window to obtain a less
+queue-inflated RTT sample~\citep{cardwell2017bbr}. These modes do not all
+recur periodically, and ProbeRTT does not guarantee a queue-free sample.
+Later versions revise the probing and in-flight constraints. ECN response
+must likewise be identified from the specific implementation and actual
+configuration; support for an ECN mechanism does not prove that it was
+enabled in a reported experiment~\citep{rfc3168,cardwell2019bbrv2}.
+
+\begin{figure}[pos=htbp]
+  \centering
+  \includegraphics[width=\columnwidth]{bbr_architecture.png}% filename confirmed
+  \caption{BBRv1 control architecture: three-layer structure of measurement signals,
+    model estimation, and pacing control, with ProbeBW and ProbeRTT dual probing loops
+    (adapted from \citealt{cardwell2017bbr}).}
+  \label{fig:bbr_arch}
+\end{figure}
+
+\subsection{Core Differences Across Three Versions}
+\label{sec:evolution}
+
+BBR's evolution from BBRv1 in 2016~\citep{cardwell2017bbr}, through BBRv2 in
+2019~\citep{cardwell2019bbrv2}, to the BBRv3 draft in
+2023~\citep{cardwell2023bbrv3}, exhibits the characteristic of
+\textbf{incremental patching rather than structural reconstruction}, advancing
+along three main lines: tightening Startup exit conditions, restructuring
+ProbeBW, and tuning ProbeRTT parameters. Figure~\ref{fig:version_compare}
+provides the visual summary, while Table~\ref{tab:versions} compares the key
+parameters.
+
+\paragraph{Startup Exit Conditions}
+BBRv1's full-bandwidth test uses insufficient estimated bandwidth growth
+across non-application-limited packet-timed rounds. Later versions add
+congestion-related exit conditions~\citep{cardwell2019bbrv2,cardwell2023bbrv3}.
+In the inspected BBRv3 source, the loss-based check requires a Recovery
+round boundary, at least six loss-marking events in that round and an
+excessive in-flight loss indication. Six events are not simply six lost
+packets. The ECN-based check requires an eligible connection and two
+consecutive rounds meeting the configured CE-ratio threshold. These checks
+cannot be reduced to an unconditional packet-count trigger or a claim of
+improved fairness without measurements.
+
+\paragraph{ProbeBW Structure}
+BBRv1 uses an eight-phase gain sequence (1.25, 0.75, 1.0$\times$6).
+Phase duration depends on elapsed minimum-RTT time, in-flight data and loss
+conditions; it is not exactly eight packet-timed rounds. BBRv2/v3 restructure this into four sub-phases---Refill/Up/Down/Cruise---introducing
+two dynamic bounds $\mathrm{inflight\_hi}$ and
+$\mathrm{inflight\_lo}$~\citep{cardwell2019bbrv2}. The inspected BBRv3 source sets the Down gain with the integer expression
+$\lfloor256\times91/100\rfloor/256=232/256$. This differs from a rounded
+0.9 description, and a change in gain alone does not establish improved
+coexistence or reduced starvation~\citep{cardwell2023bbrv3}.
+
+\paragraph{ProbeRTT}
+ProbeRTT entry depends on the implementation's RTT-sample freshness and
+state conditions; a filter window is not an unconditional periodic timer.
+The inspected BBRv3 source distinguishes a ten-second minimum-RTT filter
+from a five-second ProbeRTT sampling window, with a half-BDP target
+subject to the minimum congestion window. These parameters do not by
+themselves establish how much bandwidth a competing CUBIC flow obtains.
+The exact source revision and runtime conditions must accompany a
+version-specific comparison~\citep{cardwell2019bbrv2,cardwell2023bbrv3}.
+
+Additionally, the BBR+QUIC (RFC~9000) combination has become the mainstream
+choice for modern Internet applications: QUIC bypasses the OS TCP stack, allowing
+applications to directly control the congestion control algorithm without
+requiring kernel updates~\citep{rfc9000}. BBR's behavior specification in QUIC is
+now maintained by the IETF CCWG working group
+draft~\citep{ietf_ccwg_bbr}. However, the QUIC+BBR combination also introduces
+new fairness issues, as multiple QUIC connections are treated by the OS as
+independent UDP flows whose aggregate behavior differs from native TCP
+flows~\citep{abrol2026bbr}.
+
+\begin{figure}[pos=htbp]
+  \centering
+  \includegraphics[width=\columnwidth]{version_comparison.png}% filename confirmed
+  \caption{Comprehensive comparison of BBRv1/v2/v3: design objectives, key mechanisms,
+    loss response, fairness performance, and engineering deployment
+    (adapted from \citealt{cardwell2017bbr,cardwell2019bbrv2,cardwell2023bbrv3}).}
+  \label{fig:version_compare}
+\end{figure}
+
+\begin{table}[pos=tbp]
+  \caption{Key parameter comparison of BBRv1/v2/v3
+    \citep{cardwell2017bbr,cardwell2019bbrv2,cardwell2023bbrv3,abrol2026bbr}.}
+  \label{tab:versions}
+  \small
+  \begin{threeparttable}
+  \begin{tabularx}{\tblwidth}{@{}p{2.8cm}XXX@{}}
+    \toprule
+    \textbf{Parameter} & \textbf{BBRv1} & \textbf{BBRv2} & \textbf{BBRv3} \\
+    \midrule
+    Startup exit &
+      BW gain ${<}25\%$ (3 rounds) &
+      BW-growth test plus conditional loss/ECN exits; 8 loss events in inspected alpha source &
+      BW-growth test plus conditional loss/ECN exits; 6 loss events in inspected source \\
+    \midrule
+    ProbeBW structure &
+      8-phase sequence (1.25, 0.75, 1.0$\times$6) &
+      Refill/Up/Down/Cruise sub-phases &
+      Four sub-phases; Down gain is revision-dependent \\
+    \midrule
+    ProbeRTT target     & 4\,MSS    & $\max(4\,\mathrm{MSS},\mathrm{BDP}/2)$ & $\max(4\,\mathrm{MSS},\mathrm{BDP}/2)$ \\
+    ProbeRTT freshness window & 10\,s (v1 design) & 5\,s (inspected alpha source) & 5\,s (inspected source)  \\
+    $\mathrm{cwnd\_gain}$ & 2.0 (baseline) & State-dependent & State-dependent \\
+    $\mathrm{pacing\_gain}$ (Down) & 0.75 & 0.75 & $232/256$ (inspected source) \\
+    ECN support & None & Implemented; disabled by default in inspected alpha source & Conditional on ECN eligibility \\
+    $\mathrm{inflight\_hi}$ constraint & None & Yes & Yes \\
+    Primary goal & Baseline & Fairness \& ECN & Reduce queue; relieve starvation \\
+    \bottomrule
+  \end{tabularx}
+  \begin{tablenotes}
+    \small
+    \item For BBRv2/v3, ECN marking provides an additional network-side signal (RFC~3168~\citep{rfc3168}).
+    In both inspected source snapshots, the loss counter counts marking events, not lost packets.
+    These source defaults are not attestations of the experiment builds.
+    ECN sender eligibility additionally checks negotiated capability and an RTT condition.
+    Filter and freshness windows are not unconditional ProbeRTT entry intervals.
+    When ECN marking is unavailable, ECN-derived feedback is absent, but loss-driven
+    bound updates and the associated state-control logic remain active. The absence
+    of ECN alone therefore does not imply reversion to BBRv1; parameter values and
+    behavior remain implementation- and state-dependent.
+  \end{tablenotes}
+  \end{threeparttable}
+\end{table}
+
+\FloatBarrier
+
+% ============================================================
+\section{Three-Dimensional Applicability Framework}
+\label{sec:framework}
+% ============================================================
+
+Understanding why the design evolution from BBRv1 to v3 has not eliminated all
+performance limitations requires an analytical tool that can systematically
+characterize scenario differences. This section proposes the three-dimensional
+applicability boundary framework, transforming the empirical judgment of ``under
+what conditions does BBR outperform CUBIC'' into quantifiable, falsifiable
+coordinate predictions, providing a structured reference for the scenario
+analysis in \S\ref{sec:comparison}.
+
+\subsection{Framework Design Motivation}
+
+BBR's strong dependence on network conditions indicates that a single-dimensional
+performance metric cannot effectively predict its behavior in unknown environments.
+Measurements by \citet{medina2004transport} show that transport protocol behavior
+varies greatly with network environment evolution; \citet{barakat2000tcp} further
+reveals that TCP behavior is highly dependent on path characteristics in
+heterogeneous networks. We therefore propose a BBR applicability boundary
+analysis framework composed of three orthogonal physical dimensions, mapping BBR's
+behavioral characteristics under different network conditions to a unified
+coordinate space.
+
+\subsection{Three-Dimensional Definitions and Physical Meaning}
+\label{sec:framework_dim}
+
+All three dimensions of the framework are rooted in BBR's core design
+assumptions, not derived from empirical induction.
+
+\textbf{Buffer depth} (measured in BDP units; this paper uses working bins of
+shallow $<1.5\times$BDP, medium $1.5$--$10\times$BDP, and deep $>10\times$BDP)
+is an analysis dimension rather than a universal physical boundary. The theoretical
+basis comes from Kleinrock's optimal power theory~\citep{kleinrock1979power}: BBR
+targets ``just-full pipe'' sending, periodically reducing cwnd during ProbeRTT to
+obtain queue-free RTprop estimates, and the relative cost of this active
+yielding depends on queue depth, RTT, competing traffic and implementation.
+Shallow buffers can expose probing-induced loss, while larger buffers can
+increase queueing delay. Neither buffer depth nor ProbeRTT alone fixes the
+resulting bandwidth shares~\citep{appenzeller2004sizing,dhamdhere2006buffer,wischik2005buffers}.
+Queue management and per-flow scheduling, including FQ-CoDel,
+change these interactions~\citep{hoeiland2018fq}.
+
+\textbf{BDP magnitude} (measured by the $\mathrm{BW}\times\mathrm{RTT}$ product;
+the working bins in this review use low $<1$\,MB and high $>10$\,MB) organizes
+capacity and delay conditions. Paths with the same BDP may have different
+RTTs, capacities, loss processes and controller behavior. The Reno-like
+approximation in Eq.~(\ref{eq:mathis}) therefore does not establish a BDP-only
+throughput ceiling or a guaranteed advantage for BBR.
+
+\textbf{Loss source} (congestion-induced / random / mixed) matters because
+packet loss alone does not identify its cause. BBRv1 primarily regulates
+sending through its delivery-rate and propagation-delay model, while
+BBRv2 and BBRv3 also use loss-related constraints. TCP recovery remains
+necessary in all versions. Random loss can reduce delivered goodput and
+increase retransmission overhead; its effect depends on implementation,
+queueing, link-layer recovery and workload. The WiFi experiments of
+\citet{grazia2020bbrp} further show why sender location, chipset and host
+queue settings must accompany a wireless comparison. These observations
+do not establish that all BBR versions ignore loss or that parameter and
+queue-management changes cannot improve a particular configuration.
+
+\paragraph{Theoretical Basis for Thresholds}
+The threshold values are working bins anchored to prior measurements and
+theoretical reasoning, rather than universal cutoffs. The buffer-depth bins
+summarize patterns reported by \citet{cao2019bbr} and \citet{jaeger2019bbr};
+their effects depend on version, queue management, RTT, and flow count. BDP
+magnitude thresholds of 1\,MB (low) and 10\,MB (high) are also working bins,
+not universal boundaries. They organize the discussion and are not derived
+as performance transition points from Eq.~(\ref{eq:mathis}). A numerical
+transition requires evidence for the specified version, workload and path.
+
+\subsection{Six-Scenario Positioning}
+\label{sec:framework_pos}
+
+Table~\ref{tab:framework} maps the six representative scenarios covered in this
+paper to the three-dimensional coordinate system.
+
+\begin{table}[pos=tbp]
+  \caption{Positioning of six network scenarios in the three-dimensional
+    applicability boundary framework.}
+  \label{tab:framework}
+  \small
+  \begin{tabularx}{\tblwidth}{@{}p{2.1cm}p{1.3cm}p{1.2cm}p{1.5cm}p{1.6cm}X@{}}
+    \toprule
+    \textbf{Scenario} & \makecell[l]{\textbf{Buffer}\\\textbf{depth}} & \textbf{BDP}
+      & \makecell[l]{\textbf{Loss}\\\textbf{source}} & \makecell[l]{\textbf{Suit-}\\\textbf{ability}}
+      & \textbf{Key constraint} \\
+    \midrule
+    High-BDP WAN & Medium & High & Congestion & High & Recv.\ buffer $\geq$ BDP \\
+    Shallow-buf.\ wired & Shallow & Low & Congestion & Medium & Retransmission surge \\
+    Broadband multi-flow & Medium & Medium & Congestion & High & Fairness reversal if deep \\
+    High-loss wireless & Medium & Low--Med & Random & Low--Med & WiFi frame aggregation \\
+    High-dynamic routing & Medium & Medium & Mixed & Medium & Multi-path fairness TBD \\
+    LEO satellite & Med--Deep & High & Rnd+Cong & Medium & RTT spikes, BW asymmetry \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Decision Rules and Known Limitations}
+\label{sec:framework_rules}
+
+The framework is used as a conditional screening procedure rather than an
+automatic protocol selector. Its inputs are bottleneck capacity, the reference
+RTT used for BDP, absolute buffer size, loss source, BBR version, queue
+management, and flow count. For heterogeneous flows, the reference RTT and each
+flow's RTT are reported separately. Its outputs are four separate assessments:
+throughput, delay, bandwidth fairness, and retransmission cost. A missing input
+or insufficient evidence produces ``undetermined'' rather than a forced rating.
+The working buffer bins are shallow $<1.5\times$BDP, medium
+$1.5$--$10\times$BDP, and deep $>10\times$BDP; these bins organize the reviewed
+evidence and are not universal physical thresholds.
+
+Based on these conditional rules, Table~\ref{tab:decision_rules} summarizes
+scenario-level expectations and known counter-examples. The entries are evidence
+summaries, not guarantees for an arbitrary deployment.
+
+\begin{table}[pos=tbp]
+  \caption{Three-dimensional framework decision rules and known counter-examples.}
+  \label{tab:decision_rules}
+  \small
+  \begin{tabularx}{\tblwidth}{@{}p{3.8cm}p{1.0cm}p{1.3cm}p{1.6cm}Xp{1.3cm}@{}}
+    \toprule
+    \textbf{Typical condition} & \textbf{Buf.} & \textbf{BDP} & \makecell[l]{\textbf{Loss}\\\textbf{source}}
+      & \textbf{Conditional expectation} & \makecell[l]{\textbf{Source}\\\textbf{appraisal}} \\
+    \midrule
+    High-BDP backbone (recv.\ buf.\ $\geq$BDP) & Med & $>$10\,MB & Cong.
+      & Throughput advantage is plausible when receive buffer $\geq$BDP; delay, fairness, and retransmission require separate checks & Pending \\
+    \midrule
+    Wired multi-flow (1--$10\times$BDP buf.) & Med & Med & Cong.
+      & Throughput may improve; fairness remains conditional on RTT, queue, version, and flow count & Pending \\
+    \midrule
+    Deep-buffer wired ($>10\times$BDP) & Deep & Any & Cong.
+      & Deep buffers can change the BBR/CUBIC share and increase queueing delay; exact fairness is configuration-dependent & Pending \\
+    \midrule
+    WiFi 802.11n/ac (standard BBR) & Med & Low--Med & Random
+      & Pacing, TSQ, chipset, direction and queue policy affect frame aggregation; a scalar BBR/CUBIC ratio is not signed off & Pending \\
+    \midrule
+    LEO satellite (Starlink-class) & M--D & High & Mixed
+      & High-BDP benefit may be offset by RTT variation, random loss, and path dynamics; evidence is insufficient for a fixed rating & Pending \\
+    \midrule
+    Shallow-buf.\ wired ($<1.5\times$BDP) & Shal & Low & Cong.
+      & Bandwidth share and retransmissions require source-specific queue/RTT conditions & Pending \\
+    \bottomrule
+  \end{tabularx}
+  \begin{tablenotes}
+    \small
+    \item The ``framework prediction fails'' row (WiFi) marks a known framework boundary:
+    802.11 frame aggregation is a protocol-layer constraint that cannot be mapped to the
+    three physical dimensions; variants such as BBRp can partially remedy this through
+    controlled bursts.
+  \end{tablenotes}
+\end{table}
+
+\subsection{External Consistency Check of the Framework}
+\label{sec:framework_valid}
+
+To assess external consistency, we derive \textbf{testable propositions} from
+the coordinate system and compare them with datasets outside the main analysis.
+This is a qualitative consistency check, not an independent predictive
+validation, because the external data were not held out when the working bins
+and propositions were formulated.
+
+Three propositions are used as external consistency checks. P1---when BDP magnitude is high ($>10$\,MB) and loss source
+is congestion-induced, BBR single-flow throughput should be no less than $2\times$
+CUBIC and this multiple should increase with BDP; when BDP is low ($<0.1$\,MB),
+the gap should be negligible ($<20\%$). P2---when buffer depth exceeds
+$10\times$BDP, BBR's bandwidth share in single-flow competition with CUBIC should
+fall below 40\%; beyond $20\times$BDP, CUBIC should dominate ($>60\%$ bandwidth).
+P3---from low to high BDP, the BBR/CUBIC throughput ratio should be
+monotonically increasing with no non-monotonic jumps.
+
+Using \citet{scholz2018deeper} as an external comparison dataset---a study
+that systematically measured BBR and CUBIC behavior under different bottleneck
+bandwidths (10--1000\,Mbps) and RTTs (1--100\,ms) in a controlled physical
+testbed---the external data is broadly consistent with all three propositions: on
+a 1000\,Mbps $\times$ 100\,ms path (BDP $\approx$ 12.5\,MB), BBR significantly
+outperforms CUBIC; on a 10\,Mbps $\times$ 8\,ms path (BDP $\approx$ 10\,KB),
+the difference is negligible ($<20\%$), consistent with P1; deep-buffer BBR
+bandwidth share continuously decreases, qualitatively consistent with P2; and the
+BBR/CUBIC throughput ratio generally increases with the BW$\times$RTT product,
+with no non-monotonic jump sufficient to refute P3.
+
+This external comparison also reveals several limitations worth acknowledging: the
+three dimensions are not strictly orthogonal (high-BDP paths often co-occur with
+deep buffers in practice); treating loss source as a static attribute is imprecise
+near boundaries; and the framework does not currently include flow count as a
+dimension, whereas \citet{scholz2018deeper} shows that BBR's behavior in
+multi-flow competition differs significantly from single-flow---the primary
+extension direction, addressed in \S\ref{sec:fairness}.
+
+% ============================================================
+\section{Multi-Scenario Performance Evaluation}
+\label{sec:comparison}
+% ============================================================
+
+BBR performance depends on both network conditions and implementation.
+Wired backbone measurements and WLAN experiments use different link,
+queue, pacing and host configurations, so their throughput ratios are
+not interchangeable. This section examines six scenario groups while
+retaining those source-specific conditions. Source-specific
+measurements are reported in the corresponding scenario subsections and
+Table~\ref{tab:summary}; high-dynamic routing is treated
+qualitatively because comparable version-by-version throughput ratios are not
+available.
+
+\subsection{Scenario 1: High-BDP Wide-Area Networks}
+\label{sec:wan}
+
+High-BDP WANs can expose differences between path-model-based and
+loss-driven congestion control. Their performance depends on RTT, loss,
+receiver-window limits and implementation, rather than BDP alone.
+\citet{cardwell2017bbr} report improvements for BBR in their backbone
+measurements. Those measurements must be interpreted with their path and
+host conditions; Eq.~(\ref{eq:mathis}) cannot establish a universal CUBIC
+ceiling of 15\,Mbps or a fixed BBR throughput multiplier.
+
+An important precondition that is rarely emphasized is that this advantage has a
+prerequisite: the OS receive buffer must be at least as large as the path BDP.
+The original paper's controlled experiment shows that once the receive window is
+limited, BBR's algorithmic advantage is masked by the receiver bottleneck and
+throughput drops to levels comparable to CUBIC~\citep{cardwell2017bbr}.
+
+\subsection{Scenario 2: Shallow-Buffer Wired Networks}
+\label{sec:shallow}
+
+Shallow-buffer comparisons must report absolute queue size, capacity,
+reference RTT, implementation and flow count together. A queue size in
+kilobytes cannot be compared across studies without those conditions.
+The cited Cao and Jaeger studies use different configurations, so their
+observations are not combined into a single queue-sweep table here
+\citep{cao2019bbr,jaeger2019bbr}.
+
+The inspected Jaeger author manuscript reports a configuration-dependent
+relationship between buffer size and BBR/CUBIC shares. Its Figure~10 uses
+both common-RTT and asymmetric-RTT experiments; those observations do
+not establish a universal retransmission multiplier or a fixed suitability
+rating. When interpreting competition, distinguish the TCP recovery logic
+from the congestion controller's response to loss, and report receiver
+goodput separately from retransmission counts. Applications with different
+latency, delivery and retransmission requirements may assess the same
+configuration differently.
+
+\citet{cao2019bbr} further reveals a ``cliff point'' at approximately 20\% random
+loss: below 20\%, BBR goodput is nearly unaffected; beyond 20\%, it plunges.
+
+\FloatBarrier
+
+\subsection{Scenario 3: Stable Broadband Multi-Flow (BBRv3 Benchmark)}
+\label{sec:bbr3}
+
+\citet{gomez2024bbrv3} evaluate BBRv3 using distinct emulated and
+hardware configurations. The reported comparisons vary with loss, RTT,
+buffer size, competing flows and queue management; they should not be
+summarized as a fixed throughput multiplier over CUBIC.
+
+In the emulated loss sweep (Section~5.4, Figure~7), the study uses a
+1-Gbps bottleneck, a reported 20-ms propagation delay, a BDP-sized buffer,
+and ten 120-s runs per loss rate. BBRv2 and BBRv3 throughput declines
+noticeably above 0.1\% loss and reaches about 60\% of its maximum at
+0.5\% loss. The reported throughput remains above 20\% until loss exceeds
+1\%; this does not imply full throughput at 1\% loss. These approximate
+source-reported values describe that configuration rather than universal
+loss thresholds.
+
+In the separate low-RTT hardware experiment, two VMs communicate over a
+100-Gbps link without an emulated bottleneck or artificial loss. Each
+configuration runs for 120 s and is repeated ten times, with parallel-stream
+counts and MTUs varied. Figure~13 reports higher CUBIC throughput than
+BBRv3 in the tested configurations. This observation is conditional on that
+high-capacity, low-delay setup and does not contradict potential benefits
+under different loss or delay conditions.
+
+Figure~5 compares two same-version BBR flows with reported 20-ms and
+100-ms delays. For BBRv3, replacing Tail Drop with FQ-CoDel yields
+near-equal throughput and a Jain index close to one across the plotted
+buffer sizes. FQ-CoDel combines per-flow scheduling with CoDel, so this
+comparison does not isolate the effect of CoDel alone or establish
+inter-protocol fairness with CUBIC. The source uses both RTT and
+propagation-delay terminology for these delay values.
+
+The study's buffer-dependent fairness and AQM observations likewise need
+their corresponding configuration and metric definitions. A buffer interval
+reported in one experiment is not a universal suitability zone, and a BDP
+identity does not prove that AQM cannot improve the observed RTT fairness.
+
+\subsection{Scenario 4: High-Loss Wireless Networks (WiFi/Cellular)}
+\label{sec:wireless_loss}
+
+The core argument for wireless scenarios is that BBR's suitability is not
+determined by the wireless channel's random loss rate alone, but by the
+\emph{protocol-layer characteristics} of the loss source---cellular and WiFi
+impose fundamentally different constraints on BBR due to different physical layer
+mechanisms. In real LTE cellular networks, BBRv1 downlink average throughput
+outperforms CUBIC with lower RTT~\citep{atxutegi2018cellular}; in IEEE~802.11n/ac
+WiFi results depend on the sender location, wireless chipset, bottleneck
+position, queue discipline, and TCP Small Queues (TSQ) settings.
+\citet{grazia2020bbrp} study an Arch Linux 4.19 physical testbed with
+IEEE~802.11n/ac links and distinguish upload from download experiments.
+The study uses Flent and repeats each experiment ten times. Each test
+lasts 40 s, with TCP traffic active during the central 30 s and ICMP
+probes before and after that interval. The reported box summaries show
+medians and the 10th/90th percentiles across repetitions.
+Single-direction tests and the mixed four-upload/four-download RRUL
+workload are evaluated separately. Their BBRp modification makes the
+ProbeBW probing gain configurable;
+the tested gain of 1.5 replaces the original 1.25. It is a pacing modification,
+not evidence that all BBR variants require the same change.
+
+The authors show that pacing and local queue constraints can limit frame
+aggregation. In their download comparison, the sender is on the wired side,
+so sender-local TSQ is not varied as the wireless bottleneck parameter.
+Loss-based CUBIC and NewReno approach the tested wireless capacity at a
+higher RTT, while BBRp improves the throughput--latency tradeoff relative
+to the standard BBR implementation. The reported comparisons remain specific to the tested direction, chipset,
+queue policy and TSQ configuration; they do not establish a fixed
+BBRp-to-CUBIC throughput multiplier.
+
+\FloatBarrier
+
+\subsection{Scenario 5: High-Dynamic Routing (SDN Rerouting/Link Fluctuation)}
+\label{sec:sdn}
+
+BBR exhibits sub-RTT bandwidth sensing advantage in high-dynamic routing scenarios,
+but the ProbeRTT mechanism simultaneously introduces a periodic oscillation cost
+beyond framework predictions. \citet{miyazawa2018cyclic}'s simulation quantifies
+the convergence difference: when bandwidth drops suddenly, BBR detects the new
+BtlBw within approximately one RTT via the max-filter mechanism; CUBIC requires
+multiple loss events and AIMD contraction to converge, with recovery delays
+reaching several seconds.
+
+However, \citet{miyazawa2020mechanism} further reveals the root of approximately
+10-second periodic throughput oscillation: the ProbeRTT phase periodically reduces
+inflight to 4 packets, giving CUBIC an opportunity to seize bandwidth; after
+exiting ProbeRTT, BBR rapidly reclaims bandwidth, forming a cyclic oscillation.
+The framework predicts ``medium'' suitability for this scenario; but the
+$\approx$10-second periodic oscillation induced by ProbeRTT is a dynamic effect
+not fully captured by the medium-buffer classification, suggesting that
+\textbf{bandwidth change frequency} should be incorporated as a supplementary
+dimension.\footnote{Preliminary ns-3 simulation~\citep{sologon2025thesis} (thesis, not
+independently peer-reviewed) suggests BBRv3 retains substantially higher
+throughput after bottleneck switches than CUBIC; specific figures are not
+reproduced here pending independent replication.}
+
+\subsection{Scenario 6: LEO Satellite Networks (Starlink-Class)}
+\label{sec:leo}
+
+LEO satellite networks concentrate the framework's explanatory power and
+boundaries: high BDP magnitude gives BBR a path-modeling advantage, but periodic
+RTT spikes and mixed-type loss jointly pull the practical suitability from a
+theoretical ``high'' down to ``medium.'' \citet{deutschmann2023starlink}'s
+systematic measurements on real Starlink links show BBR downlink throughput at
+approximately 200\,Mbps, significantly outperforming CUBIC's 50--100\,Mbps;
+\citet{claypool2021satellite} found comparable steady-state throughput on another
+commercial satellite link, but BBR's bitrate during Startup is significantly
+higher, relevant to the ``first fill'' scenario under high-dynamic LEO conditions.
+
+Starlink's unique challenge is the periodic RTT spikes from satellite handovers
+and mixed-type loss. BBR's 5-second RTprop estimation window provides some
+robustness to such spikes but also creates estimation lag. \citet{wang2024bbr_leo}
+propose dynamically adjusting the RTprop estimation window, improving throughput
+stability by approximately 18\% relative to standard BBR in ICCNC~2024 tests, but
+independent replication on real Starlink links is needed. \citet{kamel2024starquic}
+design StarQUIC, exploiting the fixed timing pattern of Starlink handovers (at
+seconds 12, 27, 42, and 57 of each minute) to freeze the QUIC congestion window
+during predictable handover windows, reducing BBRv3+QUIC flow completion time by
+approximately 35\%.
+
+\begin{table}[pos=htbp]
+  \caption{BBR version selection matrix across six scenarios
+    (with three-dimensional coordinates and deployment criteria).}
+  \label{tab:summary}
+  \small
+  \small
+  \begin{tabularx}{\tblwidth}{@{}p{2.0cm}p{1.5cm}Xp{2.0cm}X@{}}
+    \toprule
+    \textbf{Scenario} & \makecell[l]{\textbf{3-D}\\\textbf{coords}} & \textbf{Key evidence}
+      & \makecell[l]{\textbf{Deployment}\\\textbf{criterion}} & \textbf{Risk and reference} \\
+    \midrule
+    High-BDP WAN & M/H/Cong & Source-specific throughput observations; numerical ratios pending verification &
+      recv.\ buffer $\geq$ BDP & High; constrained by receive window~\citep{cardwell2017bbr} \\
+    \midrule
+    Shallow-buffer wired & Sh/L/Cong & Source-specific share/retransmission observations; no fixed multiplier &
+      Assess retx budget first & Medium; CUBIC overtakes in deep buffers~\citep{cao2019bbr,jaeger2019bbr} \\
+    \midrule
+    Broadband multi-flow & M/M/Cong & No fixed throughput gain; source-specific buffer/RTT/AQM conditions &
+      Combine AQM + buffer config & High; verify fairness if buffer deep~\citep{gomez2024bbrv3} \\
+    \midrule
+    High-loss wireless & M/L--M/Rnd & Cellular/WLAN results require separate source conditions; pacing and aggregation interact &
+      Check frame aggr.\ / AQM & Low--Med; std BBR not default for WiFi~\citep{atxutegi2018cellular,grazia2020bbrp} \\
+    \midrule
+    High-dynamic routing & M/M/Mix & BBR $\approx$1 RTT BW sensing; CUBIC needs seconds &
+      Monitor switch frequency & Medium; ProbeRTT induces oscillation~\citep{miyazawa2018cyclic} \\
+    \midrule
+    LEO satellite & MD/H/Mix & Starlink: BBR $\approx$200\,Mbps, CUBIC $\approx$50--100\,Mbps &
+      Monitor RTT spikes + terminal & Medium; BBRv3 data insufficient~\citep{deutschmann2023starlink,kamel2024starquic} \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\FloatBarrier
+
+% ============================================================
+\section{Structural Analysis of Fairness Challenges}
+\label{sec:fairness}
+% ============================================================
+
+BBRv3's intra-protocol fairness remains sensitive to buffer depth and RTT
+heterogeneity. In the multi-RTT simulation of \citet{piotrowska2024}, the
+reported Jain index varies across BBR versions and buffer settings; for the
+nine-path access-link scenario, all link rates are 100 Mbps and RTTs range
+from 8 to 204 ms. Table~8 reports BBRv3 Jain indices of 0.70, 0.62, 0.81,
+and 0.86 at buffer sizes of 0.5, 1, 2, and 10 times the BDP, respectively,
+where the BDP is referenced to the mean RTT of 100 ms. These results are conditional on that
+simulation's topology and RTT distribution. This finding does not establish a
+universal ranking of versions or buffer sizes.
+The identity $\mathrm{BDP}=\mathrm{BtlBw}\times\mathrm{RTprop}$ determines an
+in-flight amount associated with a measured operating point, but does not by
+itself determine bandwidth allocation. Observed shares also depend on probing
+dynamics, queue depth, version, queue management, and flow count.
+
+This section analyzes the roots of BBR's two types of fairness contradictions and
+assesses how far existing remedies can go. \textbf{Intra-protocol fairness} refers
+to the systematic bandwidth bias triggered by RTT differences when multiple BBR
+flows share a bottleneck, rooted in the measurement model's multiplicative
+structure. \textbf{Inter-protocol fairness} refers to the bandwidth imbalance
+arising from BBR and CUBIC coexistence due to fundamentally different responses to
+loss/ECN. Figure~\ref{fig:fairness_mech} shows the propagation path of both
+contradictions; Table~\ref{tab:fairness_versions} summarizes the improvement
+trajectory and residual defects across three versions.
+
+\begin{figure}[pos=htbp]
+  \centering
+  \includegraphics[width=\columnwidth]{fairness_mechanism.png}
+  \caption{Mechanism analysis of two types of BBR fairness issues:
+    (top) intra-protocol RTT bias---RTT-dependent bandwidth shares under the
+    stated version, queue, and flow conditions;
+    (bottom) inter-protocol unfairness---fundamentally different responses to loss
+    signals between BBR and CUBIC cause bandwidth competition imbalance
+    (based on \citealt{hock2017bbr,jaeger2019bbr}).}
+  \label{fig:fairness_mech}
+\end{figure}
+
+\subsection{Formal Fairness Metrics}
+\label{sec:fairness_metric}
+
+Quantitative fairness assessment requires explicit metrics. The Jain Fairness
+Index (JFI) proposed by \citet{jain1984fairness} is the primary tool for
+measuring multi-flow bandwidth allocation in this paper:
+\begin{equation}
+  \label{eq:jfi}
+  J(\mathbf{x}) = \frac{\left(\sum_{i=1}^{n} x_i\right)^2}{n \cdot \sum_{i=1}^{n} x_i^2}
+\end{equation}
+where $\mathbf{x}$ is the throughput vector of $n$ flows, $J=1$ indicates perfect
+fairness, and $J=1/n$ indicates single-flow monopoly. In BBR analysis, JFI must
+be combined with per-flow absolute throughput: when the number of flows is large,
+the index may mask starvation of low-bandwidth flows~\citep{abrol2026bbr}.
+
+\subsection{Intra-Protocol Fairness under Heterogeneous RTTs}
+\label{sec:rtt_skew}
+
+When multiple BBR flows compete at the same bottleneck, RTT heterogeneity can
+produce unequal throughput shares, often disadvantaging short-RTT flows under
+the conditions reported in prior measurements---a phenomenon commonly called
+``RTT bias.'' \citet{hock2017bbr} first systematically reported this problem: at
+$0.8\times$BDP buffer, short-RTT flows have a slight advantage; at $8\times$BDP,
+long-RTT flow throughput can be several times that of short-RTT flows.
+\citet{tao2018rtt} analyze RTT fairness using a queueing model. Any
+predicted throughput ratio or fairness threshold depends on that model's
+assumptions and must be checked against the experiment's queue, probing
+and flow conditions. It is not interpreted here as a rule that an RTT
+ratio above two inevitably produces a particular Jain index.
+
+The per-flow BDP calculation relates two measured quantities:
+\begin{equation}
+  \label{eq:bdp}
+  \mathrm{BDP}_i = \mathrm{BtlBw}_i \times \mathrm{RTprop}_i
+\end{equation}
+The longer-RTT flow has a larger $\mathrm{RTprop}_i$, so the in-flight amount
+associated with a given measured delivery rate is larger. This relationship does
+not by itself determine the flow's bandwidth share: probing duration, queue depth,
+max-filter dynamics, version, queue management, and competing flow count also
+matter. Within BBR's existing ``BtlBw$\times$RTprop'' measurement model,
+adjusting gain parameters may change the observed bias under particular
+conditions, but the equation alone is not a proof of inevitable long-RTT
+dominance. A stronger mitigation may require changes to path-delay estimation or
+additional network-side signals such as scalable ECN.
+
+\begin{figure}[pos=htbp]
+  \centering
+  \includegraphics[width=\columnwidth]{rtt_skew_mechanism.png}
+  \caption{Formation mechanism of BBR intra-protocol RTT bias:
+    (a) mechanism schematic of two flows with different RTTs competing at the same bottleneck;
+    (b) relationship between BDP and in-flight data---$\mathrm{BDP}_2 > \mathrm{BDP}_1$
+    under the stated measurements does not alone determine bandwidth share;
+    (c) illustrative queue dynamics simulation; (d) illustrative throughput allocation
+    (values are illustrative, not measured)
+    (based on \citealt{tao2018rtt,hock2017bbr}).}
+  \label{fig:rtt_mechanism}
+\end{figure}
+
+BBRv2 attempts to mitigate intra-protocol unfairness by limiting inflight
+when ECN marking or loss feedback exceeds a threshold~\citep{cardwell2019bbrv2}.
+Without ECN marking, the ECN-derived component is unavailable, but loss-driven
+updates and the associated state logic remain. BBRv3 further changes the
+ProbeBW Down pacing behavior~\citep{cardwell2023bbrv3}. In Piotrowska's
+multi-RTT evaluation, the BBRv3 Jain index varies across buffer settings and is
+not uniformly higher than BBRv2; the exact values are conditional on that study's
+topology and RTT distribution. These results support a conditional fairness
+limitation, not a universal claim that one version always dominates another.
+
+\begin{figure}[pos=htbp]
+\centering
+\captionsetup[subfigure]{skip=2pt}
+\begin{subfigure}{0.48\columnwidth}
+    \includegraphics[width=\linewidth]{rtt_skew_rtt5ms.png}
+    \caption{Longer-flow $\mathrm{RTT}_{\min}=5$\,ms ($\Delta$RTT\,=\,0\,ms, baseline)}
+    \label{fig:rtt_a}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.48\columnwidth}
+    \includegraphics[width=\linewidth]{rtt_skew_rtt20ms.png}
+    \caption{Longer-flow $\mathrm{RTT}_{\min}=20$\,ms ($\Delta$RTT\,=\,15\,ms)}
+    \label{fig:rtt_b}
+\end{subfigure}
+
+\vspace{1em}
+
+\begin{subfigure}{0.48\columnwidth}
+    \includegraphics[width=\linewidth]{rtt_skew_rtt40ms.png}
+    \caption{Longer-flow $\mathrm{RTT}_{\min}=40$\,ms ($\Delta$RTT\,=\,35\,ms)}
+    \label{fig:rtt_c}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.48\columnwidth}
+    \includegraphics[width=\linewidth]{rtt_skew_rtt80ms.png}
+    \caption{Longer-flow $\mathrm{RTT}_{\min}=80$\,ms ($\Delta$RTT\,=\,75\,ms)}
+    \label{fig:rtt_d}
+\end{subfigure}
+
+\caption{Queuing delay of the shorter-RTT flow under BBR two-flow competition.
+  The shorter flow has $\mathrm{RTT}_{\min}$ fixed at 5\,ms; the longer flow's
+  $\mathrm{RTT}_{\min}$ varies from 5\,ms to 80\,ms, giving RTT differences of
+  0, 15, 35, and 75\,ms respectively.
+  Redrawn based on data from \citet{hock2017bbr}.}
+\label{fig:rtt_skew}
+\end{figure}
+
+\subsection{Inter-Protocol Unfairness: Coexistence with CUBIC}
+\label{sec:inter_fair}
+
+When BBR and CUBIC coexist, buffer size, RTT configuration, and flow count
+can affect their bandwidth shares. In the emulation study of
+\citet{jaeger2019bbr}, Figure~10a varies the buffer with both flows at
+50 ms RTT, Figure~10b varies their common RTT at a 2.3-BDP buffer,
+and Figure~10c holds one flow at 50 ms while varying the other.
+The reported fairness measure is the authors' throughput-based $F_{tp}$;
+it should not be interchanged with Jain's index.
+
+For that tested implementation, the authors report persistent BBR-induced
+loss at buffer sizes up to about 1.5 BDP, approximately balanced shares
+near the intermediate buffer range, and increasing CUBIC share as the
+buffer grows further. These observations support a configuration-specific
+buffer effect. They do not establish a universal 1.5- or 3-BDP threshold
+for BBRv2, BBRv3, other queue policies, or arbitrary flow populations.
+The cited survey literature provides context for these coexistence problems,
+but a quantitative comparison requires the original study, implementation,
+flow configuration, and metric definition to be identified.
+\citet{zeynali2024bbrv3} further observed more extreme
+results on real Internet paths: a single BBRv3 flow can occupy over 99\% of link
+bandwidth (vs.\ 5 CUBIC flows) when ECN is enabled, and disabling ECN only
+marginally reduces unfairness~\citep{zeynali2024bbrv3}.
+
+\begin{figure}[pos=htbp]
+  \centering
+  \includegraphics[width=0.8\columnwidth]{fairness_vs_buffer.png}
+  \caption{Fairness variation of BBRv3 and CUBIC coexistence as a function of
+    bottleneck buffer size \citep{abrol2026bbr}.}
+  \label{fig:fairness}
+\end{figure}
+
+\subsection{Existing Remedies and Their Limits}
+\label{sec:improvement}
+
+For \textbf{intra-protocol fairness}, BBQ~\citep{ma2017fairness}\footnote{Published
+as an arXiv preprint (arXiv:1706.09115); formal publication not confirmed at time
+of review. Cross-validate with \citet{tao2018rtt}.} reduces probe cycles for
+long-RTT flows; DA-BBR~\citep{kim2019delay} introduces a correction factor for
+per-flow BDP; FaiRTT~\citep{abrol2024fairtt} achieves a Jain index of 0.98 in
+ns-3 simulation, but robustness in real wireless networks is yet to be verified.
+These approaches change probing, estimated operating points or window
+limits. Their effectiveness must be assessed under the tested implementation
+and network conditions. Equation~\ref{eq:bdp} alone does not establish an
+upper bound on their fairness improvements. Changes to estimators and
+network-side signals provide additional design choices that require their
+own comparisons and deployment assumptions.
+
+For \textbf{inter-protocol fairness}, Modest-BBR~\citep{zhang2018modest} scales
+the congestion window after loss; BBR-CWS~\citep{song2020bbrcws} dynamically
+adjusts the congestion window during loss recovery, but lacks response to
+non-loss congestion signals (ECN). The IETF L4S standard~\citep{rfc9330}
+represents another technical path: introducing a dual-queue structure and scalable
+ECN congestion signals at the network side to support both low latency and high
+throughput---complementary to, rather than a replacement for, end-side algorithm
+iteration.
+
+Table~\ref{tab:fairness_versions} summarizes version-specific mechanisms
+and reported fairness limitations. It does not demonstrate that parameter
+optimization is saturated or that only two mitigation paths remain.
+Estimator design, probing dynamics, loss responses and queue management
+should be evaluated jointly with per-flow rates and explicit measurement
+conditions.
+
+\begin{table}[pos=htbp]
+  \caption{Summary of fairness improvement trajectory across BBRv1/v2/v3.}
+  \label{tab:fairness_versions}
+  \small
+  \begin{tabularx}{\tblwidth}{@{}p{1.0cm}p{2.3cm}p{2.3cm}p{2.0cm}X@{}}
+    \toprule
+    \textbf{Version} & \textbf{Intra-protocol} & \textbf{Inter-protocol}
+      & \textbf{Key improvement} & \textbf{Residual defect} \\
+    \midrule
+    BBRv1 & RTT-dependent shares under reported queue/probing conditions &
+      BBR/CUBIC shares vary with buffer, RTT and flow count & --- &
+      Cwnd-derived inflight limit remains; loss response differs from v2/v3 \\
+    \midrule
+    BBRv2 & Conditional improvement under the reported configurations &
+      Improved under some ECN-enabled configurations &
+      ECN triggers $\mathrm{inflight\_hi}$ constraint &
+      ECN-derived feedback is unavailable on non-ECN paths; loss-driven logic remains \\
+    \midrule
+    BBRv3 & \textbf{Fairness remains configuration-dependent in large buffers} &
+      No universal improvement over v2 established &
+      Version-specific probing and loss-response changes &
+      Reported fairness limitations require their tested implementation and queue conditions \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\FloatBarrier
+
+% ============================================================
+\section{Engineering Obstacles and AI-Enhanced Directions}
+\label{sec:deployment}
+% ============================================================
+
+\subsection{Engineering Deployment and Structural Obstacles}
+\label{sec:engineering}
+
+Fairness evaluation must account for differences between the controller's
+measurement assumptions and the deployed network. Parameter changes,
+estimator changes and network-side mechanisms require comparisons under
+explicit conditions; the surveyed observations do not prove that all
+end-host parameter changes are ineffective.
+
+BBR has moved from experimental scheme to large-scale engineering deployment since
+2016: Google B4 and YouTube/CDN public observations show it can improve
+utilization, reduce latency, and alleviate
+Bufferbloat~\citep{cardwell2017bbr}; the Linux kernel and IETF drafts drive v1--v3
+continuous evolution~\citep{cardwell2017bbr,cardwell2019bbrv2,ietf_ccwg_bbr,abrol2026bbr};
+and Starlink-class link measurements show BBR has potential advantages on LEO
+satellite paths, but with strong dependence on terminal, tunnel, and switching
+conditions~\citep{deutschmann2023starlink,kamel2024starquic}.
+
+Deployment assessment should examine feedback availability, wireless
+measurement conditions and application requirements separately.
+
+A deployment consideration is the availability of explicit congestion
+feedback. ECN marking requires support at the endpoints and along the path,
+and L4S additionally depends on its queueing and endpoint requirements
+\citep{rfc3168,rfc9330,rfc9331,rfc9332}. Without marking, the ECN-derived
+component is unavailable, but BBRv2/v3 retain loss-driven updates and
+version-specific state logic. Performance under that configuration must be
+measured; absence of ECN does not establish reversion to BBRv1 or a fixed
+loss of fairness.
+
+The second obstacle is \textbf{multiple incompatibilities in wireless environments},
+each with a different root cause, making a single fix insufficient. RTprop
+underestimation causes systematic BDP underestimation and throughput
+collapse~\citep{abrol2026bbr}; the fundamental conflict between WiFi frame
+aggregation and BBR's uniform pacing makes standard BBR underperform CUBIC in
+802.11n/ac (see \S\ref{sec:wireless_loss}); and the time-scale mismatch between
+wireless/LEO link variation and BBR's multi-RTT probing windows can cause
+measurement model estimates to lag channel state changes~\citep{wang2024bbr_leo,kamel2024starquic,laniewski2024road}.
+
+The third obstacle is the \textbf{absence of heterogeneous flow QoS guarantees}.
+Bandwidth fairness alone does not establish latency or reliability guarantees
+for heterogeneous applications. Claims about URLLC suitability require
+application-level deadlines, loss budgets and scheduling conditions;
+a bulk two-flow result does not supply those guarantees.
+
+\subsection{Classification Evaluation of AI-Enhanced Approaches}
+\label{sec:ai}
+
+Evidence on learning-assisted control should distinguish the action space
+and evaluation environment. \citet{xiao2019tcpdrinc} learn congestion-window
+actions in ns-3 using a goodput--delay utility difference. In their dynamic
+simulation, Table~2 reports a mean Jain index of 0.8058 and a 95\%
+confidence interval of [0.7233, 0.8882]. The baseline intervals overlap,
+and the table alone does not establish statistically superior fairness.
+The authors also report that performance is best near the training
+parameters. These observations motivate explicit tests of transfer and
+inference cost; they do not demonstrate an online BBRv3 controller or
+an advantage over BBR, which is absent from that table's baseline set.
+
+
+AI cannot directly ``fix'' BBR's structural defects; the more realistic question
+is which failure modes can be assisted by learning methods, and which require
+network-side signals or protocol structural changes.
+
+\begin{table}[pos=tbp]
+  \caption{Comparison of representative AI-assisted congestion control approaches
+    ($\bigstar$: BBR-specific works).
+    Remy~\citep{winstein2013remy}; PCC~Vivace~\citep{dong2018vivace};
+    Aurora~\citep{jay2019aurora}; OI-BBR~\citep{kim2020ml};
+    Symbolic-PCC~\citep{sharan2022symbolic}; MARLIN~\citep{galliera2023marlin};
+    Mutant~\citep{pappone2025mutant}; RL-BBR~\citep{ketabi2023drl}.}
+  \label{tab:aicc}
+  \footnotesize
+  \setlength{\tabcolsep}{2pt}
+  \begin{tabularx}{\tblwidth}{@{}p{2.1cm}p{1.8cm}p{0.9cm}p{1.1cm}p{0.7cm}XX@{}}
+    \toprule
+    \textbf{Method} & \makecell[l]{\textbf{AI paradigm}} & \makecell[l]{\textbf{Ctrl}\\\textbf{level}}
+      & \makecell[l]{\textbf{Testbed}} & \makecell[l]{\textbf{In-}\\\textbf{terp.}}
+      & \textbf{Key contribution} & \textbf{Main limitation} \\
+    \midrule
+    Remy & Offline opt. & Policy & Sim & Low & Auto-generated CC policy & Requires prior distribution \\
+    PCC Vivace & Online learning & Policy & R+S & Low & Utility-driven control & Slow convergence \\
+    Aurora & DRL & Policy & Sim & Low & Multi-scenario generalization & Sim2Real gap \\
+    $\bigstar$ OI-BBR & Decision tree & Assist & Mininet & \textbf{High} & Interpretable rule learning & Discrete decisions only \\
+    Symbolic-PCC & DRL+sym.\ distill. & Param & Sim+tb & Med & Symbolic rules from NN & Limited expressiveness \\
+    MARLIN & Max-ent.\ RL & Policy & R+S & Low & Mitigates Sim2Real gap & High complexity \\
+    $\bigstar$ Mutant & Online RL+imit. & Policy & Real & Low & No offline training & Stability concerns \\
+    $\bigstar$ RL-BBR & DRL & Param & DC & Low & DC throughput optimization & Narrow scope \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Viewed by failure mode, AI is best suited to intervene in limited-domain
+estimation and local decision-making: \citet{ketabi2023drl} use DRL to adjust
+pacing\_gain and cwnd\_gain; OI-BBR~\citep{kim2020ml} uses a decision tree to
+learn ``when to yield to CUBIC.'' These methods' advantage is low invasiveness
+and reasonable interpretability, suitable for RTprop estimation calibration, WiFi
+frame aggregation identification, or ProbeRTT timing adjustment; their applicability depends on the available signals, action space and
+evaluation conditions. Local parameter learning should be tested against
+fixed heuristics and broader policy changes; the BDP identity does not
+prove that such learning cannot improve a measured fairness outcome.
+
+Policy-level learning schemes (Remy, PCC Vivace, Aurora, MARLIN, Mutant) can
+explore a wider control space but their deployment maturity is jointly limited by
+Sim-to-Real gaps, inference latency, and
+stability~\citep{winstein2013remy,dong2018vivace,jay2019aurora,galliera2023marlin,pappone2025mutant}.
+Network-level coordination schemes such as GraphCC~\citep{bernardez2025graphcc}
+and LLM-CC~\citep{huang2024llm} are more suited as offline configuration, policy
+generation, or datacenter centralized control tools; they cannot enter the
+sub-RTT real-time congestion control loop in the near term.
+
+\subsection{Core Open Challenges}
+\label{sec:ai_challenges}
+
+The current contribution ceiling of AI schemes is improving BBR's local
+estimation, not bypassing its structural defects. This ceiling is jointly defined
+by four unsolved problems. First, virtually all existing schemes optimize for
+throughput or delay as a single objective; no scheme can simultaneously address
+cross-algorithm fairness and differentiated service requirements. Second, DRL
+policies perform well on testbeds but their decision processes cannot be audited;
+operators have no reason to deploy black-box controllers in production networks.
+Third, ns-3 and Mininet cannot reproduce real-path routing fluctuations and
+heterogeneous background flows~\citep{jiang2021mlcc}; models trained in simulation
+often perform worse in real networks. Fourth, wireless and LEO channel conditions
+can change faster than typical offline models' validity periods~\citep{jiang2021mlcc,kamel2024starquic,laniewski2024road}; online learning faces the
+contradiction of convergence speed vs.\ catastrophic forgetting. These four
+problems are mutually independent; a breakthrough in any one AI direction does not
+automatically solve the other three.
+
+\subsection{Technical Roadmap}
+\label{sec:ai_roadmap}
+
+Combining engineering obstacles with the AI evaluation, two paths are most worth
+pursuing. The near-term path is a ``model-driven + limited data-driven'' hybrid
+framework: keep the BBR state machine auditable, and limit learning modules to
+local sub-problems such as RTprop calibration, WiFi frame aggregation detection,
+or ProbeRTT timing adjustment. The medium-to-long-term path is L4S/Prague
+protocol stack co-evolution: L4S dual queues and scalable ECN
+(RFC~9330~\citep{rfc9330}) can provide more reliable explicit congestion feedback
+for BBRv2/v3 fairness mechanisms. The former improves end-side measurement
+accuracy, the latter improves network-side signal quality; they are complementary,
+not alternatives.
+
+% ============================================================
+\input{F20_controlled_experiments_candidate.tex}
+
+\section{Conclusion}
+\label{sec:conclusion}
+% ============================================================
+
+This survey organizes evidence on BBR version evolution, network conditions,
+and fairness using buffer depth, BDP magnitude, and loss source as descriptive
+inputs. Capacity, reference RTT, absolute queue size, protocol implementation,
+queue management, and flow count are needed to interpret the resulting
+categories. The working bins summarize available evidence; they do not
+establish universal deployment thresholds.
+
+Published studies and the controlled experiments show that throughput and
+fairness depend on network configuration. The BDP identity describes an
+in-flight operating point but does not determine the division of bandwidth
+between competing flows. Probing dynamics, queue occupancy, loss responses,
+and implementation details must also be considered. The archived four-implementation
+comparison supports condition-specific observations rather than a universal
+version ranking or a proof of an unmeasured internal mechanism.
+
+The experiments add reproducible logs and analysis, while their audit identifies
+limits on validation: full-run averages differ from the planned post-warmup
+window, queue snapshots do not cover complete transfers, and some frozen E3
+queue labels do not match the physical reference BDP. These issues prevent a
+claim that the three-dimensional framework has passed complete independent
+validation. Full-text eligibility screening also remains incomplete. Further
+work should reconcile those measurements, extend the evaluated topologies,
+and assess learning-based control with explicit evidence on runtime overhead,
+interpretability, and transfer to deployment conditions.
+
+% ============================================================
+\section*{Acknowledgements}
+This research did not receive any specific grant from funding agencies in the
+public, commercial, or not-for-profit sectors.
+% Replace with actual funding information if applicable.
+
+\section*{Declaration of competing interest}
+The authors declare that they have no known competing financial interests or
+personal relationships that could have appeared to influence the work reported
+in this paper.
+
+\section*{Data availability}
+The revision includes new controlled-network measurements alongside published
+studies. Raw per-run configurations and logs, implementation manifests,
+analysis scripts, condition summaries, frozen predictions, and subsequent
+audit records are retained in the project repository. A persistent public
+archive and access statement remain to be finalized before submission.
+
+\section*{Declaration of generative AI and AI-assisted technologies in the
+manuscript preparation process}
+% Original draft named ChatGPT/GPT-5.5 and several uses, but those facts
+% have not been confirmed by the authors or original figure creators.
+\textbf{Working-draft disclosure pending author confirmation.}
+AI assistance was used in this revision workflow for source organization,
+analysis-code preparation, and candidate manuscript editing. The authors'
+actual tools, model identifiers, uses in the original manuscript and figures,
+and final manual verification must be confirmed before this declaration is
+finalized. This working statement is not a signed author disclosure.
+
+\printcredits
+
+\bibliographystyle{elsarticle-num-names}
+\bibliography{refs}
+
+\end{document}

@@ -1,0 +1,1674 @@
+% ============================================================
+%  refs.bib — BBR综述参考文献库
+%  编码：UTF-8
+%  说明：从 \thebibliography 迁移而来，保留原始 bibkey 不变。
+%        新增文献请直接追加到本文件末尾。
+%        编译流程：xelatex → bibtex → xelatex → xelatex
+% ============================================================
+
+% ── TCP 基础与经典算法 ──────────────────────────────────────
+
+@article{jacobson1988congestion,
+  author    = {Jacobson, Van},
+  title     = {Congestion avoidance and control},
+  journal   = {ACM SIGCOMM Computer Communication Review},
+  year      = {1988},
+  volume    = {18},
+  number    = {4},
+  pages     = {314--329},
+  doi       = {10.1145/52325.52356}
+}
+
+@article{fall1996simulation,
+  author    = {Fall, Kevin and Floyd, Sally},
+  title     = {Simulation-based comparisons of {Tahoe}, {Reno} and {SACK} {TCP}},
+  journal   = {ACM SIGCOMM Computer Communication Review},
+  year      = {1996},
+  volume    = {26},
+  number    = {3},
+  pages     = {5--21},
+  doi       = {10.1145/235160.235162}
+}
+
+@article{ha2008cubic,
+  author    = {Ha, Sangtae and Rhee, Injong and Xu, Lisong},
+  title     = {{CUBIC}: A new {TCP}-friendly high-speed {TCP} variant},
+  journal   = {ACM SIGOPS Operating Systems Review},
+  year      = {2008},
+  volume    = {42},
+  number    = {5},
+  pages     = {64--74},
+  doi       = {10.1145/1400097.1400105}
+}
+
+@article{mathis1997macroscopic,
+  author    = {Mathis, Matthew and Semke, Jeffrey and Mahdavi, Jamshid and Ott, Teunis},
+  title     = {The macroscopic behavior of the {TCP} congestion avoidance algorithm},
+  journal   = {ACM SIGCOMM Computer Communication Review},
+  year      = {1997},
+  volume    = {27},
+  number    = {3},
+  pages     = {67--82},
+  doi       = {10.1145/263932.264023}
+}
+
+@inproceedings{brakmo1994vegas,
+  author    = {Brakmo, Lawrence S. and O'Malley, Sean W. and Peterson, Larry L.},
+  title     = {{TCP} {Vegas}: New techniques for congestion detection and avoidance},
+  booktitle = {Proceedings of ACM SIGCOMM},
+  year      = {1994},
+  pages     = {24--35},
+  doi       = {10.1145/190314.190317}
+}
+
+@inproceedings{winstein2013remy,
+  author    = {Winstein, Keith and Balakrishnan, Hari},
+  title     = {{TCP} ex machina: Computer-generated congestion control},
+  booktitle = {Proceedings of ACM SIGCOMM},
+  year      = {2013},
+  pages     = {123--134},
+  doi       = {10.1145/2534169.2486020}
+}
+
+% ── BBR 核心论文 ────────────────────────────────────────────
+
+@article{cardwell2017bbr,
+  author    = {Cardwell, Neal and Cheng, Yuchung and Gunn, C. Stephen and Yeganeh, Soheil Hassas and Jacobson, Van},
+  title     = {{BBR}: Congestion-based congestion control},
+  journal   = {Communications of the ACM},
+  year      = {2017},
+  volume    = {60},
+  number    = {2},
+  pages     = {58--66},
+  doi       = {10.1145/3009824}
+}
+
+@misc{cardwell2019bbrv2,
+  author    = {Cardwell, Neal and Cheng, Yuchung and Yeganeh, Soheil Hassas and others},
+  title     = {{BBRv2}: A model-based congestion control},
+  howpublished = {IETF 105th Meeting, ICCRG Session},
+  year      = {2019},
+  note      = {\url{https://datatracker.ietf.org/doc/slides-105-iccrg-bbr-v2-a-model-based-congestion-control/}}
+}
+
+@misc{cardwell2023bbrv3,
+  author    = {Cardwell, Neal and Cheng, Yuchung and Yang, Kevin and others},
+  title     = {{BBRv3}: Algorithm bug fixes and public internet deployment},
+  howpublished = {IETF 117th Meeting, CCWG Session},
+  year      = {2023},
+  note      = {\url{https://datatracker.ietf.org/doc/slides-117-ccwg-bbrv3-algorithm-bug-fixes-and-public-internet-deployment/}}
+}
+
+@misc{ietf_ccwg_bbr,
+  author    = {Cardwell, Neal and Cheng, Yuchung and Hassas Yeganeh, Soheil and others},
+  title     = {{BBR} congestion control},
+  howpublished = {Internet-Draft draft-ietf-ccwg-bbr-05, IETF},
+  year      = {2024},
+  note      = {\url{https://datatracker.ietf.org/doc/draft-ietf-ccwg-bbr/}}
+}
+
+% ── BBR 评测与分析 ──────────────────────────────────────────
+
+@article{abrol2026bbr,
+  author    = {Abrol, Akshita and Murali Mohan, Purnima and Truong-Huu, Tram and Gurusamy, Mohan},
+  title     = {{BBR} congestion control algorithms: Evolution, challenges and future directions},
+  journal   = {ACM Computing Surveys},
+  year      = {2026},
+  volume    = {58},
+  number    = {9},
+  pages     = {Article 236},
+  doi       = {10.1145/3793537}
+}
+
+@inproceedings{hock2017bbr,
+  author    = {Hock, Mario and Bless, Roland and Zitterbart, Martina},
+  title     = {Experimental evaluation of {BBR} congestion control},
+  booktitle = {2017 IEEE 25th International Conference on Network Protocols (ICNP)},
+  year      = {2017},
+  pages     = {1--10},
+  doi       = {10.1109/ICNP.2017.8117540}
+}
+
+@inproceedings{scholz2018deeper,
+  author    = {Scholz, Dominik and Jaeger, Benedikt and Scheinert, Dominik and others},
+  title     = {Towards a deeper understanding of {TCP BBR} congestion control},
+  booktitle = {Proceedings of the 14th International Conference on Emerging Networking EXperiments and Technologies (CoNEXT)},
+  year      = {2018},
+  pages     = {1--12},
+  doi       = {10.23919/IFIPNetworking.2018.8696830}
+}
+
+@inproceedings{tao2018rtt,
+  author    = {Tao, Yiding and Jiang, Jianxin and Ma, Shao and others},
+  title     = {Unraveling the {RTT}-fairness problem for {BBR}: A queueing model},
+  booktitle = {2018 IEEE Global Communications Conference (GLOBECOM)},
+  year      = {2018},
+  pages     = {1--6},
+  doi       = {10.1109/GLOCOM.2018.8647260}
+}
+
+@article{piotrowska2024,
+  author    = {Piotrowska, Anna},
+  title     = {Performance evaluation of {TCP BBRv3} in networks with multiple round trip times},
+  journal   = {Applied Sciences},
+  year      = {2024},
+  volume    = {14},
+  number    = {12},
+  pages     = {5053},
+  doi       = {10.3390/app14125053}
+}
+
+@article{jaeger2019bbr,
+  author    = {Jaeger, Benedikt and Scholz, Dominik and Raumer, Daniel and others},
+  title     = {Reproducible measurements of {TCP BBR} congestion control},
+  journal   = {Computer Communications},
+  year      = {2019},
+  volume    = {144},
+  pages     = {31--43},
+  doi       = {10.1016/j.comcom.2019.05.011}
+}
+
+@inproceedings{cao2019bbr,
+  author    = {Cao, Yu and Jain, Arpit and Sharma, Kaushik and others},
+  title     = {When to use and when not to use {BBR}: An empirical analysis and evaluation study},
+  booktitle = {Proceedings of ACM Internet Measurement Conference (IMC)},
+  year      = {2019},
+  pages     = {130--136},
+  doi       = {10.1145/3355369.3355579}
+}
+
+@article{gomez2024bbrv3,
+  author    = {Gomez, Jorge and Kfoury, Elie F. and Crichigno, Jorge},
+  title     = {Evaluating {TCP BBRv3} performance in wired broadband networks},
+  journal   = {Computer Communications},
+  year      = {2024},
+  volume    = {222},
+  pages     = {198--208},
+  doi       = {10.1016/j.comcom.2024.04.037}
+}
+
+% ── BBR 公平性与变体 ────────────────────────────────────────
+
+@article{al2019survey,
+  author    = {Al-Saadi, Rasool and Armitage, Grenville and But, Jason and others},
+  title     = {A survey of delay-based and hybrid {TCP} congestion control algorithms},
+  journal   = {IEEE Communications Surveys \& Tutorials},
+  year      = {2019},
+  volume    = {21},
+  number    = {4},
+  pages     = {3609--3638},
+  doi       = {10.1109/COMST.2019.2904994}
+}
+
+@inproceedings{zhang2018modest,
+  author    = {Zhang, Yifan and Cui, Lin and Tso, Fung Po},
+  title     = {Modest {BBR}: Enabling better fairness for {BBR} congestion control},
+  booktitle = {2018 IEEE Symposium on Computers and Communications (ISCC)},
+  year      = {2018},
+  pages     = {646--651},
+  doi       = {10.1109/ISCC.2018.8538521}
+}
+
+@article{song2020bbrcws,
+  author    = {Song, Young-Jin and Kim, Gyu-Hyeon and Cho, You-Ze},
+  title     = {{BBR-CWS}: Improving the inter-protocol fairness of {BBR}},
+  journal   = {Electronics},
+  year      = {2020},
+  volume    = {9},
+  number    = {5},
+  pages     = {862},
+  doi       = {10.3390/electronics9050862}
+}
+
+@misc{ma2017fairness,
+  author    = {Ma, Shao and Jiang, Jianxin and Wang, Wei and Li, Baochun},
+  title     = {Fairness of congestion-based congestion control: Experimental evaluation and analysis},
+  howpublished = {arXiv preprint arXiv:1706.09115},
+  year      = {2017},
+  note      = {\url{https://arxiv.org/abs/1706.09115}}
+}
+
+@article{kim2019delay,
+  author    = {Kim, Gyu-Hyeon and Cho, You-Ze},
+  title     = {Delay-aware {BBR} congestion control algorithm for {RTT} fairness improvement},
+  journal   = {IEEE Access},
+  year      = {2020},
+  volume    = {8},
+  pages     = {4099--4109},
+  doi       = {10.1109/ACCESS.2019.2962213}
+}
+
+@inproceedings{abrol2024fairtt,
+  author    = {Abrol, Anurag and Mohan, P. Murali and Truong-Huu, Tram},
+  title     = {{FaiRTT}: An empirical approach for enhanced {RTT} fairness and bottleneck throughput in {BBR}},
+  booktitle = {2024 IEEE International Conference on Communications Workshops (ICC Workshops)},
+  year      = {2024},
+  pages     = {673--678},
+  doi       = {10.1109/ICCWorkshops59551.2024.10615947}
+}
+
+@inproceedings{sarpkaya2025sharing,
+  author    = {Sarpkaya, Fatih Berkay and Srivastava, Ashutosh and Fund, Fraida and Panwar, Shivendra},
+  title     = {{BBR}'s sharing behavior with {CUBIC} and {Reno}},
+  booktitle = {Proceedings of the 24th International IFIP TC6 Networking Conference (NETWORKING)},
+  year      = {2025},
+  address   = {Limassol, Cyprus},
+  doi       = {10.48550/arXiv.2505.07741},
+  url       = {https://networking.ifip.org/2025/images/Net25_papers/1571127277.pdf},
+  note      = {arXiv:2505.07741}
+}
+
+@inproceedings{bless2025insights,
+  author    = {Bless, Roland and Lihotzki, Lukas and Zitterbart, Martina},
+  title     = {Insights into {BBRv3}'s performance and behavior by experimental evaluation},
+  booktitle = {Proceedings of the 24th International IFIP TC6 Networking Conference (NETWORKING)},
+  year      = {2025},
+  address   = {Limassol, Cyprus},
+  publisher = {IEEE},
+  doi       = {10.5445/IR/1000182022},
+  url       = {https://publikationen.bibliothek.kit.edu/1000182022}
+}
+
+% ── BBR 无线与移动网络 ──────────────────────────────────────
+
+@article{atxutegi2018cellular,
+  author    = {Atxutegi, Eneko and Liberal, Fidel and Haile, Habtegebreil Kassaye and others},
+  title     = {On the use of {TCP BBR} in cellular networks},
+  journal   = {IEEE Communications Magazine},
+  year      = {2018},
+  volume    = {56},
+  number    = {3},
+  pages     = {172--179},
+  doi       = {10.1109/MCOM.2018.1700725}
+}
+
+@article{grazia2020bbrp,
+  author    = {Grazia, Carlo Augusto and Klapez, Martin and Casoni, Maurizio},
+  title     = {{BBRp}: Improving {TCP BBR} performance over {WLAN}},
+  journal   = {IEEE Access},
+  year      = {2020},
+  volume    = {8},
+  pages     = {43344--43354},
+  doi       = {10.1109/ACCESS.2020.2977834}
+}
+
+@misc{pokhrel2025wifi,
+  author    = {Shrestha, Shyam Kumar and Kua, Jonathan and Pokhrel, Shiva Raj},
+  title     = {Understanding {BBRv3} performance in {AQM}-enabled {WiFi} networks},
+  howpublished = {arXiv preprint arXiv:2509.06245},
+  year      = {2025},
+  doi       = {10.48550/arXiv.2509.06245},
+  url       = {https://arxiv.org/abs/2509.06245},
+  note      = {arXiv:2509.06245}
+}
+
+% ── BBR 卫星与 LEO 网络 ─────────────────────────────────────
+
+@inproceedings{claypool2021satellite,
+  author    = {Claypool, Steve and Chung, Joshua and Claypool, Mark},
+  title     = {Measurements comparing {TCP CUBIC} and {TCP BBR} over a satellite network},
+  booktitle = {2021 IEEE 18th Annual Consumer Communications \& Networking Conference (CCNC)},
+  year      = {2021},
+  pages     = {1--4},
+  doi       = {10.1109/CCNC49032.2021.9369602}
+}
+
+@inproceedings{deutschmann2023starlink,
+  author    = {Deutschmann, Jan and Jahandar, Sina and Hielscher, Kai-Steffen and others},
+  title     = {Internet via satellite: {GEO} vs.\ {LEO}, {OpenVPN} vs.\ {WireGuard}, and {CUBIC} vs.\ {BBR}},
+  booktitle = {Proceedings of the 1st ACM MobiCom Workshop on Satellite Networking and Computing (SatCom)},
+  year      = {2023},
+  pages     = {19--24},
+  doi       = {10.1145/3614454.3622998}
+}
+
+@inproceedings{wang2024bbr_leo,
+  author    = {Wang, Zixuan and Zhao, Yanwei and Han, Wei and others},
+  title     = {An improved {BBR} algorithm with adaptive congestion control for {LEO} satellite networks},
+  booktitle = {2024 International Conference on Computing, Networking and Communications (ICCNC)},
+  year      = {2024},
+  doi       = {10.1109/ICCNC63989.2024.00013}
+}
+
+@inproceedings{kamel2024starquic,
+  author    = {Kamel, Valerian and Zhao, Jinwei and Li, Dan and others},
+  title     = {{StarQUIC}: Tuning congestion control algorithms for {QUIC} over {LEO} satellite networks},
+  booktitle = {Proceedings of the 2nd International Workshop on LEO Networking and Communication (LEO-NET)},
+  year      = {2024},
+  doi       = {10.1145/3697253.3697271}
+}
+
+% ── BBR 周期性波动 ──────────────────────────────────────────
+
+@inproceedings{miyazawa2018cyclic,
+  author    = {Miyazawa, Keita and Sasaki, Keiichi and Yamaguchi, Shingo},
+  title     = {Cyclic performance fluctuation of {TCP BBR}},
+  booktitle = {2018 IEEE 42nd Annual Computer Software and Applications Conference (COMPSAC)},
+  year      = {2018},
+  doi       = {10.1109/COMPSAC.2018.00132}
+}
+
+@inproceedings{miyazawa2020mechanism,
+  author    = {Miyazawa, Keita and Yamaguchi, Shingo and Kobayashi, Akira},
+  title     = {Mechanism of cyclic performance fluctuation of {TCP BBR} and {CUBIC TCP} communications},
+  booktitle = {2020 IEEE 44th Annual Computer Software and Applications Conference (COMPSAC)},
+  year      = {2020},
+  doi       = {10.1109/COMPSAC48688.2020.0-103}
+}
+
+% ── AI/ML 与拥塞控制 ────────────────────────────────────────
+
+@inproceedings{pappone2025mutant,
+  author    = {Pappone, Lorenzo and Sacco, Alessio and Esposito, Flavio},
+  title     = {Mutant: Learning congestion control from existing protocols via online reinforcement learning},
+  booktitle = {22nd USENIX Symposium on Networked Systems Design and Implementation (NSDI 25)},
+  year      = {2025},
+  address   = {Philadelphia, PA},
+  pages     = {1507--1522},
+  publisher = {USENIX Association},
+  url       = {https://www.usenix.org/conference/nsdi25/presentation/pappone}
+}
+
+@inproceedings{ketabi2023drl,
+  author    = {Ketabi, Sina and Chen, Hao and Dong, Huacheng and others},
+  title     = {A deep reinforcement learning framework for optimizing congestion control in data centers},
+  booktitle = {IEEE/IFIP Network Operations and Management Symposium (NOMS)},
+  year      = {2023},
+  pages     = {1--7},
+  doi       = {10.1109/NOMS56928.2023.10154411}
+}
+
+@inproceedings{kim2020ml,
+  author    = {Kim, Gyu-Hyeon and Song, Young-Jin and Cho, You-Ze},
+  title     = {Improvement of inter-protocol fairness for {BBR} congestion control using machine learning},
+  booktitle = {2020 International Conference on Artificial Intelligence in Information and Communication (ICAIIC)},
+  year      = {2020},
+  pages     = {501--504},
+  doi       = {10.1109/ICAIIC48513.2020.9065259}
+}
+
+@inproceedings{sharan2022symbolic,
+  author    = {Sharan, S. P. and Zheng, Wenqing and Hsu, Kuo-Feng and Xing, Jiarong and Chen, Ang and Wang, Zhangyang},
+  title     = {Symbolic distillation for learned {TCP} congestion control},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  year      = {2022},
+  volume    = {35},
+  url       = {https://proceedings.neurips.cc/paper_files/paper/2022/hash/4574ac9854d4defe3bf119d07b817084-Abstract-Conference.html}
+}
+
+@inproceedings{galliera2023marlin,
+  author    = {Galliera, Raffaele and Morelli, Andrea and Fronteddu, Raimondo and others},
+  title     = {{MARLIN}: Soft actor-critic based reinforcement learning for congestion control in real networks},
+  booktitle = {IEEE/IFIP Network Operations and Management Symposium (NOMS)},
+  year      = {2023},
+  doi       = {10.1109/NOMS56928.2023.10154210}
+}
+
+@article{bernardez2025graphcc,
+  author    = {Bern{\'a}rdez, Guillermo and Su{\'a}rez-Varela, Jos{\'e} and Shi, Xiang and others},
+  title     = {{GraphCC}: A practical graph learning-based approach to congestion control in datacenters},
+  journal   = {Computer Networks},
+  year      = {2025},
+  doi       = {10.1016/j.comnet.2024.110981}
+}
+
+@article{huang2024llm,
+  author    = {Huang, Yingying and Du, Hongli and Zhang, Xi and others},
+  title     = {Large language models for networking: Applications, enabling techniques, and challenges},
+  journal   = {IEEE Network},
+  year      = {2025},
+  doi       = {10.1109/MNET.2024.3435752}
+}
+
+@article{jiang2021mlcc,
+  author    = {Jiang, Huiling and Li, Qing and Jiang, Yong and Shen, Gengbiao and Sinnott, Richard O. and Tian, Chen and Xu, Mingwei},
+  title     = {When machine learning meets congestion control: A survey and comparison},
+  journal   = {Computer Networks},
+  year      = {2021},
+  volume    = {192},
+  pages     = {108033},
+  doi       = {10.1016/j.comnet.2021.108033}
+}
+
+@article{boutaba2018ml,
+  author    = {Boutaba, Raouf and Salahuddin, Mohammad A. and Limam, Noura and others},
+  title     = {A comprehensive survey on machine learning for networking: Evolution, applications and research challenges},
+  journal   = {Journal of Internet Services and Applications},
+  year      = {2018},
+  volume    = {9},
+  number    = {1},
+  pages     = {16},
+  doi       = {10.1186/s13174-018-0087-2}
+}
+
+@inproceedings{dong2018vivace,
+  author    = {Dong, Mo and Meng, Tong and Zarchy, Doron and Arslan, Engin and Gilad, Yossi and Godfrey, Brighten and Schapira, Michael},
+  title     = {{PCC} {Vivace}: Online-learning congestion control},
+  booktitle = {15th USENIX Symposium on Networked Systems Design and Implementation (NSDI)},
+  year      = {2018},
+  pages     = {343--356},
+  address   = {Renton, WA},
+  publisher = {USENIX Association},
+  url       = {https://www.usenix.org/conference/nsdi18/presentation/dong}
+}
+
+@inproceedings{jay2019aurora,
+  author    = {Jay, Nathan and Rotman, Noga and Godfrey, Brighten and Schapira, Michael and Tamar, Aviv},
+  title     = {A deep reinforcement learning perspective on internet congestion control},
+  booktitle = {Proceedings of the 36th International Conference on Machine Learning (ICML)},
+  year      = {2019},
+  series    = {Proceedings of Machine Learning Research},
+  volume    = {97},
+  pages     = {3050--3059},
+  publisher = {PMLR},
+  url       = {https://proceedings.mlr.press/v97/jay19a.html}
+}
+
+% ── QUIC 与传输层 ───────────────────────────────────────────
+
+@misc{rfc9000,
+  author    = {Iyengar, Jana and Thomson, Martin},
+  title     = {{QUIC}: A {UDP}-based multiplexed and secure transport},
+  howpublished = {RFC 9000, Internet Engineering Task Force},
+  year      = {2021},
+  doi       = {10.17487/RFC9000}
+}
+
+% ── AQM 与网络基础 ──────────────────────────────────────────
+
+@misc{rfc9330,
+  author    = {Briscoe, Bob and De Schepper, Koen and Bagnulo, Marcelo and others},
+  title     = {Low latency, low loss, and scalable throughput ({L4S}) internet service},
+  howpublished = {RFC 9330, Internet Engineering Task Force},
+  year      = {2023},
+  doi       = {10.17487/RFC9330}
+}
+
+@misc{hoeiland2018fq,
+  author    = {H{\o}iland-J{\o}rgensen, Toke and McKenney, Paul E. and T{\"{a}}ht, Dave and others},
+  title     = {The flow queue {CoDel} packet scheduler and active queue management algorithm},
+  howpublished = {RFC 8290, Internet Engineering Task Force},
+  year      = {2018},
+  doi       = {10.17487/RFC8290}
+}
+
+@misc{rfc3168,
+  author    = {Ramakrishnan, K. K. and Floyd, Sally and Black, David},
+  title     = {The addition of explicit congestion notification ({ECN}) to {IP}},
+  howpublished = {RFC 3168, Internet Engineering Task Force},
+  year      = {2001},
+  doi       = {10.17487/RFC3168}
+}
+
+% ── 公平性度量 ──────────────────────────────────────────────
+
+@techreport{jain1984fairness,
+  author      = {Jain, Raj and Chiu, Dah-Ming and Hawe, William R.},
+  title       = {A quantitative measure of fairness and discrimination for resource allocation in shared computer systems},
+  institution = {Digital Equipment Corporation},
+  number      = {DEC-TR-301},
+  year        = {1984}
+}
+
+% ── 网络理论基础 ────────────────────────────────────────────
+
+@inproceedings{kleinrock1979power,
+  author    = {Kleinrock, Leonard},
+  title     = {Power and deterministic rules of thumb for probabilistic problems in computer communications},
+  booktitle = {International Conference on Communications (ICC)},
+  year      = {1979},
+  pages     = {43.1.1--43.1.10}
+}
+
+% ── BBR 与 QUIC 结合 / 应用网研 ─────────────────────────────
+
+@inproceedings{zeynali2024bbrv3,
+  author    = {Zeynali, Daniyar and Weyulu, Enoch Ntenga and Fathalli, Shirin and others},
+  title     = {{BBRv3} in the public {Internet}: A boon or a bane?},
+  booktitle = {Proceedings of the 2024 Applied Networking Research Workshop (ANRW)},
+  year      = {2024},
+  pages     = {97--99},
+  doi       = {10.1145/3673422.3674889}
+}
+
+% ── 论文 / 学位论文 ─────────────────────────────────────────
+
+@misc{sologon2025thesis,
+  author  = {{\c{S}}ologon, Alexandru Mihai},
+  title   = {Simulating and analyzing the performance of {TCP} under extreme conditions: Impact of {SDN}-induced routing changes on {TCP BBR}},
+  howpublished = {Bachelor thesis, CSE3000 Research Project, Delft University of Technology},
+  year    = {2025},
+  address = {Delft, Netherlands},
+  url     = {https://resolver.tudelft.nl/uuid:34ebd7ff-d122-49a1-acbc-c66d8fa4dc85}
+}
+
+% ============================================================
+%  以下为扩充区域 —— 同学们请在此处追加新 \bibitem 对应的
+%  BibTeX 条目，格式与上方保持一致。
+%  建议从 Google Scholar / DBLP 直接导出 BibTeX 后粘贴。
+% ============================================================
+% ── 成员A新增：§2 BBR基础与版本演进 / §3 三维适用边界框架 ──
+
+@inproceedings{aggarwal2000pacing,
+  author    = {Aggarwal, Amit and Savage, Stefan and Anderson, Thomas},
+  title     = {Understanding the performance of {TCP} pacing},
+  booktitle = {Proceedings of IEEE INFOCOM},
+  year      = {2000},
+  volume    = {3},
+  pages     = {1157--1165},
+  doi       = {10.1109/INFCOM.2000.832483}
+}
+
+@inproceedings{cardwell2000latency,
+  author    = {Cardwell, Neal and Savage, Stefan and Anderson, Thomas},
+  title     = {Modeling {TCP} latency},
+  booktitle = {Proceedings of IEEE INFOCOM},
+  year      = {2000},
+  volume    = {3},
+  pages     = {1742--1751},
+  doi       = {10.1109/INFCOM.2000.832574}
+}
+
+@inproceedings{semke1998buffer,
+  author    = {Semke, Jeffrey and Mahdavi, Jamshid and Mathis, Matthew},
+  title     = {Automatic {TCP} buffer tuning},
+  booktitle = {Proceedings of ACM SIGCOMM},
+  year      = {1998},
+  pages     = {315--323},
+  doi       = {10.1145/285243.285292}
+}
+
+@inproceedings{jain2002bandwidth,
+  author    = {Jain, Manish and Dovrolis, Constantine},
+  title     = {End-to-end available bandwidth: Measurement methodology,
+               dynamics, and relation with {TCP} throughput},
+  booktitle = {Proceedings of ACM SIGCOMM},
+  year      = {2002},
+  pages     = {295--308},
+  doi       = {10.1145/964725.633054}
+}
+
+@article{prasad2003bandwidth,
+  author    = {Prasad, Ravi S. and Murray, Murray and Dovrolis, Constantine
+               and Claffy, Kimberly},
+  title     = {Bandwidth estimation: Metrics, measurement techniques, and tools},
+  journal   = {IEEE Network},
+  year      = {2003},
+  volume    = {17},
+  number    = {6},
+  pages     = {27--35},
+  doi       = {10.1109/MNET.2003.1248658}
+}
+
+@article{paxson1999dynamics,
+  author    = {Paxson, Vern},
+  title     = {End-to-end {Internet} packet dynamics},
+  journal   = {IEEE/ACM Transactions on Networking},
+  year      = {1999},
+  volume    = {7},
+  number    = {3},
+  pages     = {277--292},
+  doi       = {10.1109/90.779192}
+}
+
+@article{dukkipati2006fct,
+  author    = {Dukkipati, Nandita and McKeown, Nick},
+  title     = {Why flow-completion time is the right metric for congestion control},
+  journal   = {ACM SIGCOMM Computer Communication Review},
+  year      = {2006},
+  volume    = {36},
+  number    = {1},
+  pages     = {59--62},
+  doi       = {10.1145/1111322.1111336}
+}
+
+@inproceedings{tan2006compound,
+  author    = {Tan, Kun and Song, Jingmin and Zhang, Qian and Srikant, Rayadurgam},
+  title     = {A compound {TCP} approach for high-speed and long distance networks},
+  booktitle = {Proceedings of IEEE INFOCOM},
+  year      = {2006},
+  doi       = {10.1109/INFOCOM.2006.188}
+}
+
+@article{liu2008illinois,
+  author    = {Liu, Shao and Ba{\c{s}}ar, Tamer and Srikant, Rayadurgam},
+  title     = {{TCP-Illinois}: A loss- and delay-based congestion control
+               algorithm for high-speed networks},
+  journal   = {Performance Evaluation},
+  year      = {2008},
+  volume    = {65},
+  number    = {6--7},
+  pages     = {417--440},
+  doi       = {10.1016/j.peva.2007.12.007}
+}
+
+@article{grieco2004westwood,
+  author    = {Grieco, Luigi A. and Mascolo, Saverio},
+  title     = {Performance evaluation and comparison of {Westwood+},
+               {New Reno}, and {Vegas} {TCP} congestion control},
+  journal   = {ACM SIGCOMM Computer Communication Review},
+  year      = {2004},
+  volume    = {34},
+  number    = {2},
+  pages     = {25--38},
+  doi       = {10.1145/997150.997155}
+}
+
+@misc{handley2003tfrc,
+  author       = {Handley, Mark and Padhye, Jitendra and Floyd, Sally},
+  title        = {{TCP} Friendly Rate Control ({TFRC}): Protocol Specification},
+  howpublished = {RFC 3448, Internet Engineering Task Force},
+  year         = {2003},
+  doi          = {10.17487/RFC3448}
+}
+
+@article{kuzmanovic2006tcplp,
+  author    = {Kuzmanovic, Aleksandar and Knightly, Edward W.},
+  title     = {{TCP-LP}: Low-priority service via end-point congestion control},
+  journal   = {IEEE/ACM Transactions on Networking},
+  year      = {2006},
+  volume    = {14},
+  number    = {4},
+  pages     = {739--752},
+  doi       = {10.1109/TNET.2006.879702}
+}
+
+@article{wischik2005buffers,
+  author    = {Wischik, Damon and McKeown, Nick},
+  title     = {Part {I}: Buffer sizes for core routers},
+  journal   = {ACM SIGCOMM Computer Communication Review},
+  year      = {2005},
+  volume    = {35},
+  number    = {3},
+  pages     = {75--78},
+  doi       = {10.1145/1070873.1070884}
+}
+
+@inproceedings{appenzeller2004sizing,
+  author    = {Appenzeller, Guido and Keslassy, Isaac and McKeown, Nick},
+  title     = {Sizing router buffers},
+  booktitle = {Proceedings of ACM SIGCOMM},
+  year      = {2004},
+  pages     = {281--292},
+  doi       = {10.1145/1015467.1015499}
+}
+
+@article{dhamdhere2006buffer,
+  author    = {Dhamdhere, Amogh and Dovrolis, Constantine},
+  title     = {Open issues in router buffer sizing},
+  journal   = {ACM SIGCOMM Computer Communication Review},
+  year      = {2006},
+  volume    = {36},
+  number    = {1},
+  pages     = {87--92},
+  doi       = {10.1145/1111322.1111342}
+}
+
+@article{blanton2002reorder,
+  author    = {Blanton, Ethan and Allman, Mark},
+  title     = {On making {TCP} more robust to packet reordering},
+  journal   = {ACM SIGCOMM Computer Communication Review},
+  year      = {2002},
+  volume    = {32},
+  number    = {1},
+  pages     = {20--30},
+  doi       = {10.1145/510726.510728}
+}
+
+@article{jaiswal2007oos,
+  author    = {Jaiswal, Shashi and Iannaccone, Gianluca and Diot, Christophe
+               and Kurose, Jim and Towsley, Don},
+  title     = {Measurement and classification of out-of-sequence packets
+               in a tier-1 {IP} backbone},
+  journal   = {IEEE/ACM Transactions on Networking},
+  year      = {2007},
+  volume    = {15},
+  number    = {1},
+  pages     = {54--66},
+  doi       = {10.1109/TNET.2006.890117}
+}
+
+@article{medina2004transport,
+  author    = {Medina, Alberto and Allman, Mark and Floyd, Sally},
+  title     = {Measuring the evolution of transport protocols in the {Internet}},
+  journal   = {ACM SIGCOMM Computer Communication Review},
+  year      = {2005},
+  volume    = {35},
+  number    = {2},
+  pages     = {37--52},
+  doi       = {10.1145/1064413.1064418}
+}
+
+@article{barakat2000tcp,
+  author    = {Barakat, Chadi and Altman, Eitan and Dabbous, Walid},
+  title     = {On {TCP} performance in a heterogeneous network: {A} survey},
+  journal   = {IEEE Communications Magazine},
+  year      = {2000},
+  volume    = {38},
+  number    = {1},
+  pages     = {40--46},
+  doi       = {10.1109/35.815451}
+}
+
+@inproceedings{zhang2001constancy,
+  author    = {Zhang, Yin and Duffield, Nick and Paxson, Vern and Shenker, Scott},
+  title     = {On the constancy of {Internet} path properties},
+  booktitle = {Proceedings of the 1st ACM SIGCOMM Workshop on
+               Internet Measurement (IMW)},
+  year      = {2001},
+  pages     = {197--211},
+  doi       = {10.1145/505202.505228}
+}
+
+% ============================================================
+%  Quality-first expansion: standards, top venues, and recent
+%  transport/networking literature for the revised survey.
+% ============================================================
+
+% -- TCP standards, AQM, ECN/L4S, and theory ------------------
+
+@misc{postel1981tcp,
+  author       = {Postel, Jon},
+  title        = {Transmission Control Protocol},
+  howpublished = {RFC 793, Internet Engineering Task Force},
+  year         = {1981},
+  doi          = {10.17487/RFC0793}
+}
+
+@misc{allman2009rfc5681,
+  author       = {Allman, Mark and Paxson, Vern and Blanton, Ethan},
+  title        = {{TCP} Congestion Control},
+  howpublished = {RFC 5681, Internet Engineering Task Force},
+  year         = {2009},
+  doi          = {10.17487/RFC5681}
+}
+
+@misc{paxson2011rfc6298,
+  author       = {Paxson, Vern and Allman, Mark and Chu, Jerry and Sargent, Matt},
+  title        = {Computing {TCP}'s Retransmission Timer},
+  howpublished = {RFC 6298, Internet Engineering Task Force},
+  year         = {2011},
+  doi          = {10.17487/RFC6298}
+}
+
+@misc{rfc8312,
+  author       = {Rhee, Injong and Xu, Lisong and Ha, Sangtae and Zimmermann, Alexander and Eggert, Lars and Scheffenegger, Richard},
+  title        = {{CUBIC} for Fast Long-Distance Networks},
+  howpublished = {RFC 8312, Internet Engineering Task Force},
+  year         = {2018},
+  doi          = {10.17487/RFC8312}
+}
+
+@misc{rfc8257,
+  author       = {Bensley, Steve and Thaler, Dave and Balasubramanian, Praveen and Eggert, Lars and Judd, Glenn},
+  title        = {Data Center {TCP} ({DCTCP}): {TCP} Congestion Control for Data Centers},
+  howpublished = {RFC 8257, Internet Engineering Task Force},
+  year         = {2017},
+  doi          = {10.17487/RFC8257}
+}
+
+@misc{rfc9002,
+  author       = {Iyengar, Jana and Swett, Ian},
+  title        = {{QUIC} Loss Detection and Congestion Control},
+  howpublished = {RFC 9002, Internet Engineering Task Force},
+  year         = {2021},
+  doi          = {10.17487/RFC9002}
+}
+
+@misc{rfc9114,
+  author       = {Bishop, Mike},
+  title        = {{HTTP/3}},
+  howpublished = {RFC 9114, Internet Engineering Task Force},
+  year         = {2022},
+  doi          = {10.17487/RFC9114}
+}
+
+@misc{rfc9331,
+  author       = {De Schepper, Koen and Briscoe, Bob and Bondarenko, Olga},
+  title        = {The Explicit Congestion Notification ({ECN}) Protocol for Low Latency, Low Loss, and Scalable Throughput ({L4S})},
+  howpublished = {RFC 9331, Internet Engineering Task Force},
+  year         = {2023},
+  doi          = {10.17487/RFC9331}
+}
+
+@misc{rfc9332,
+  author       = {De Schepper, Koen and Briscoe, Bob and White, Greg},
+  title        = {Dual-Queue Coupled Active Queue Management ({AQM}) for Low Latency, Low Loss, and Scalable Throughput ({L4S})},
+  howpublished = {RFC 9332, Internet Engineering Task Force},
+  year         = {2023},
+  doi          = {10.17487/RFC9332}
+}
+
+@article{gettys2011bufferbloat,
+  author    = {Gettys, Jim and Nichols, Kathleen},
+  title     = {Bufferbloat: Dark buffers in the {Internet}},
+  journal   = {ACM Queue},
+  year      = {2011},
+  volume    = {9},
+  number    = {11},
+  pages     = {40--54},
+  doi       = {10.1145/2063166.2071893}
+}
+
+@article{nichols2012codel,
+  author    = {Nichols, Kathleen and Jacobson, Van},
+  title     = {Controlling queue delay},
+  journal   = {ACM Queue},
+  year      = {2012},
+  volume    = {10},
+  number    = {5},
+  pages     = {20--34},
+  doi       = {10.1145/2208917.2209336}
+}
+
+@inproceedings{pan2013pie,
+  author    = {Pan, Rong and Natarajan, Preethi and Piglione, Chiara and others},
+  title     = {{PIE}: A lightweight control scheme to address the bufferbloat problem},
+  booktitle = {2013 IEEE 14th International Conference on High Performance Switching and Routing (HPSR)},
+  year      = {2013},
+  pages     = {148--155},
+  doi       = {10.1109/HPSR.2013.6602305}
+}
+
+@article{floyd1993red,
+  author    = {Floyd, Sally and Jacobson, Van},
+  title     = {Random early detection gateways for congestion avoidance},
+  journal   = {IEEE/ACM Transactions on Networking},
+  year      = {1993},
+  volume    = {1},
+  number    = {4},
+  pages     = {397--413},
+  doi       = {10.1109/90.251892}
+}
+
+@article{kelly1998rate,
+  author    = {Kelly, Frank P. and Maulloo, Aman K. and Tan, David K. H.},
+  title     = {Rate control for communication networks: Shadow prices, proportional fairness and stability},
+  journal   = {Journal of the Operational Research Society},
+  year      = {1998},
+  volume    = {49},
+  number    = {3},
+  pages     = {237--252},
+  doi       = {10.1057/palgrave.jors.2600523}
+}
+
+@article{padhye1998modeling,
+  author    = {Padhye, Jitendra and Firoiu, Victor and Towsley, Donald and Kurose, Jim},
+  title     = {Modeling {TCP} throughput: A simple model and its empirical validation},
+  journal   = {ACM SIGCOMM Computer Communication Review},
+  year      = {1998},
+  volume    = {28},
+  number    = {4},
+  pages     = {303--314},
+  doi       = {10.1145/285237.285291}
+}
+
+% -- Datacenter and wide-area transport -----------------------
+
+@inproceedings{alizadeh2010dctcp,
+  author    = {Alizadeh, Mohammad and Greenberg, Albert and Maltz, David A. and others},
+  title     = {Data center {TCP} ({DCTCP})},
+  booktitle = {Proceedings of ACM SIGCOMM},
+  year      = {2010},
+  pages     = {63--74},
+  doi       = {10.1145/1851182.1851192}
+}
+
+@inproceedings{alizadeh2013pfabric,
+  author    = {Alizadeh, Mohammad and Yang, Shuang and Sharif, Milad and others},
+  title     = {{pFabric}: Minimal near-optimal datacenter transport},
+  booktitle = {Proceedings of ACM SIGCOMM},
+  year      = {2013},
+  pages     = {435--446},
+  doi       = {10.1145/2486001.2486031}
+}
+
+@inproceedings{bai2015pias,
+  author    = {Bai, Wei and Chen, Li and Chen, Kai and Han, Dongsu and Tian, Chen and Wang, Hao},
+  title     = {Information-agnostic flow scheduling for commodity data centers},
+  booktitle = {12th USENIX Symposium on Networked Systems Design and Implementation (NSDI 15)},
+  year      = {2015},
+  pages     = {455--468}
+}
+
+@inproceedings{mittal2015timely,
+  author    = {Mittal, Radhika and Dukkipati, Nandita and Blem, Emily and others},
+  title     = {{TIMELY}: {RTT}-based congestion control for the datacenter},
+  booktitle = {Proceedings of ACM SIGCOMM},
+  year      = {2015},
+  pages     = {537--550},
+  doi       = {10.1145/2785956.2787510}
+}
+
+@inproceedings{zhu2015dcqcn,
+  author    = {Zhu, Yibo and Eran, Haggai and Firestone, Daniel and others},
+  title     = {Congestion control for large-scale {RDMA} deployments},
+  booktitle = {Proceedings of ACM SIGCOMM},
+  year      = {2015},
+  pages     = {523--536},
+  doi       = {10.1145/2785956.2787484}
+}
+
+@inproceedings{handley2017ndp,
+  author    = {Handley, Mark and Raiciu, Costin and Agache, Alexandru and others},
+  title     = {Re-architecting datacenter networks and stacks for low latency and high performance},
+  booktitle = {Proceedings of ACM SIGCOMM},
+  year      = {2017},
+  pages     = {29--42},
+  doi       = {10.1145/3098822.3098825}
+}
+
+@inproceedings{cho2017credit,
+  author    = {Cho, Inho and Jang, Keon and Han, Dongsu},
+  title     = {Credit-scheduled delay-bounded congestion control for datacenters},
+  booktitle = {Proceedings of ACM SIGCOMM},
+  year      = {2017},
+  pages     = {239--252},
+  doi       = {10.1145/3098822.3098840}
+}
+
+@inproceedings{li2019hpcc,
+  author    = {Li, Yuliang and Miao, Rui and Kim, Changhoon and Yu, Minlan},
+  title     = {{HPCC}: High precision congestion control},
+  booktitle = {Proceedings of ACM SIGCOMM},
+  year      = {2019},
+  pages     = {44--58},
+  doi       = {10.1145/3341302.3342085}
+}
+
+@inproceedings{kumar2020swift,
+  author    = {Kumar, Gautam and Dukkipati, Nandita and Jang, Keon and others},
+  title     = {Swift: Delay is simple and effective for congestion control in the datacenter},
+  booktitle = {Proceedings of ACM SIGCOMM},
+  year      = {2020},
+  pages     = {514--528},
+  doi       = {10.1145/3387514.3406591}
+}
+
+@inproceedings{liu2021onramp,
+  author    = {Liu, Shiyu and Ghalayini, Ahmad and Alizadeh, Mohammad and Prabhakar, Balaji and Rosenblum, Mendel and Sivaraman, Anirudh},
+  title     = {Breaking the transience-equilibrium nexus: A new approach to datacenter packet transport},
+  booktitle = {18th USENIX Symposium on Networked Systems Design and Implementation (NSDI 21)},
+  year      = {2021},
+  pages     = {47--63}
+}
+
+@inproceedings{goyal2022bfc,
+  author    = {Goyal, Prateesh and Shah, Preey and Zhao, Kevin and others},
+  title     = {Backpressure flow control},
+  booktitle = {19th USENIX Symposium on Networked Systems Design and Implementation (NSDI 22)},
+  year      = {2022},
+  pages     = {779--805}
+}
+
+@inproceedings{wang2023poseidon,
+  author    = {Wang, Weitao and Moshref, Masoud and Li, Yuliang and Kumar, Gautam and Ng, T. S. Eugene and Cardwell, Neal and Dukkipati, Nandita},
+  title     = {Poseidon: Efficient, robust, and practical datacenter {CC} via deployable {INT}},
+  booktitle = {20th USENIX Symposium on Networked Systems Design and Implementation (NSDI 23)},
+  year      = {2023},
+  pages     = {255--274},
+  publisher = {USENIX Association},
+  url       = {https://www.usenix.org/conference/nsdi23/presentation/wang-weitao}
+}
+
+@inproceedings{arslan2023bolt,
+  author    = {Arslan, Serhat and Li, Yuliang and Kumar, Gautam and Dukkipati, Nandita},
+  title     = {Bolt: {Sub-RTT} congestion control for ultra-low latency},
+  booktitle = {20th USENIX Symposium on Networked Systems Design and Implementation (NSDI 23)},
+  year      = {2023},
+  pages     = {219--236},
+  publisher = {USENIX Association},
+  url       = {https://www.usenix.org/conference/nsdi23/presentation/arslan}
+}
+
+@inproceedings{dhamija2024dctcp,
+  author    = {Dhamija, Abhishek and Madhavan, Balasubramanian and Li, Hechao and Meng, Jie and Khare, Shrikrishna and Rao, Madhavi and Brakmo, Lawrence and Spring, Neil and Kannan, Prashanth and Sundaresan, Srikanth and Ghorbani, Soudeh},
+  title     = {A large-scale deployment of {DCTCP}},
+  booktitle = {21st USENIX Symposium on Networked Systems Design and Implementation (NSDI 24)},
+  year      = {2024},
+  pages     = {239--252},
+  address   = {Santa Clara, CA},
+  publisher = {USENIX Association},
+  url       = {https://www.usenix.org/conference/nsdi24/presentation/dhamija}
+}
+
+@inproceedings{zhang2024lossless,
+  author    = {Zhang, Yiran and Meng, Qingkai and Hu, Chaolei and Ren, Fengyuan},
+  title     = {Revisiting congestion control for lossless {Ethernet}},
+  booktitle = {21st USENIX Symposium on Networked Systems Design and Implementation (NSDI 24)},
+  year      = {2024},
+  pages     = {131--148},
+  publisher = {USENIX Association},
+  url       = {https://www.usenix.org/conference/nsdi24/presentation/zhang-yiran}
+}
+
+@inproceedings{wang2024pudica,
+  author    = {Wang, Shibo and Yang, Shusen and Kong, Xiao and others},
+  title     = {Pudica: Toward near-zero queuing delay in congestion control for cloud gaming},
+  booktitle = {21st USENIX Symposium on Networked Systems Design and Implementation (NSDI 24)},
+  year      = {2024},
+  pages     = {113--129},
+  publisher = {USENIX Association},
+  url       = {https://www.usenix.org/conference/nsdi24/presentation/wang-shibo}
+}
+
+@inproceedings{zhang2024tecc,
+  author    = {Zhang, Jiaxing and Yang, Furong and Liu, Ting and others},
+  title     = {{TECC}: Towards efficient {QUIC} tunneling via collaborative transmission control},
+  booktitle = {21st USENIX Symposium on Networked Systems Design and Implementation (NSDI 24)},
+  year      = {2024},
+  pages     = {253--266},
+  publisher = {USENIX Association},
+  url       = {https://www.usenix.org/conference/nsdi24/presentation/zhang-jiaxing}
+}
+
+@inproceedings{addanki2024credence,
+  author    = {Addanki, Vamsi and Pacut, Maciej and Schmid, Stefan},
+  title     = {Credence: Augmenting datacenter switch buffer sharing with {ML} predictions},
+  booktitle = {21st USENIX Symposium on Networked Systems Design and Implementation (NSDI 24)},
+  year      = {2024},
+  pages     = {613--634},
+  publisher = {USENIX Association},
+  url       = {https://www.usenix.org/conference/nsdi24/presentation/addanki-credence}
+}
+
+@inproceedings{addanki2024reverie,
+  author    = {Addanki, Vamsi and Bai, Wei and Schmid, Stefan and Apostolaki, Maria},
+  title     = {Reverie: Low pass filter-based switch buffer sharing for datacenters with {RDMA} and {TCP} traffic},
+  booktitle = {21st USENIX Symposium on Networked Systems Design and Implementation (NSDI 24)},
+  year      = {2024},
+  pages     = {651--668},
+  publisher = {USENIX Association},
+  url       = {https://www.usenix.org/conference/nsdi24/presentation/addanki-reverie}
+}
+
+@inproceedings{agarwal2024provably,
+  author    = {Agarwal, Anup and Arun, Venkat and Ray, Devdeep and Martins, Ruben and Seshan, Srinivasan},
+  title     = {Towards provably performant congestion control},
+  booktitle = {21st USENIX Symposium on Networked Systems Design and Implementation (NSDI 24)},
+  year      = {2024},
+  pages     = {951--978},
+  publisher = {USENIX Association},
+  url       = {https://www.usenix.org/conference/nsdi24/presentation/agarwal-anup}
+}
+
+@inproceedings{kumar2024chisel,
+  author    = {Kumar, Abhishek Vijaya and Owens, Bill and Bj{\o}rner, Nikolaj and others},
+  title     = {{CHISEL}: An optical slice of the wide-area network},
+  booktitle = {21st USENIX Symposium on Networked Systems Design and Implementation (NSDI 24)},
+  year      = {2024},
+  pages     = {859--875},
+  publisher = {USENIX Association},
+  url       = {https://www.usenix.org/conference/nsdi24/presentation/kumar}
+}
+
+@inproceedings{wydrowski2024prequal,
+  author    = {Wydrowski, Bartek and Kleinberg, Robert and Rumble, Stephen M. and Archer, Aaron},
+  title     = {Load is not what you should balance: Introducing {Prequal}},
+  booktitle = {21st USENIX Symposium on Networked Systems Design and Implementation (NSDI 24)},
+  year      = {2024},
+  pages     = {1285--1299},
+  publisher = {USENIX Association},
+  url       = {https://www.usenix.org/conference/nsdi24/presentation/wydrowski}
+}
+
+@inproceedings{agarwal2024harmony,
+  author    = {Agarwal, Saksham and Cai, Qizhe and Agarwal, Rachit and Shmoys, David and Vahdat, Amin},
+  title     = {Harmony: A congestion-free datacenter architecture},
+  booktitle = {21st USENIX Symposium on Networked Systems Design and Implementation (NSDI 24)},
+  year      = {2024},
+  pages     = {329--343},
+  publisher = {USENIX Association},
+  url       = {https://www.usenix.org/conference/nsdi24/presentation/agarwal-saksham}
+}
+
+@inproceedings{wang2024smuff,
+  author    = {Wang, Chengke and Wang, Hao and Zhou, Yuhan and Ni, Yunzhe and Qian, Feng and Xu, Chenren},
+  title     = {{SMUFF}: Towards line rate {Wi-Fi} direct transport with orchestrated on-device buffer management},
+  booktitle = {21st USENIX Symposium on Networked Systems Design and Implementation (NSDI 24)},
+  year      = {2024},
+  pages     = {1369--1383},
+  publisher = {USENIX Association},
+  url       = {https://www.usenix.org/conference/nsdi24/presentation/wang-chengke}
+}
+
+@inproceedings{zhou2024augur,
+  author    = {Zhou, Yuhan and Wang, Tingfeng and Wang, Liying and others},
+  title     = {{AUGUR}: Practical mobile multipath transport service for low tail latency in real-time streaming},
+  booktitle = {21st USENIX Symposium on Networked Systems Design and Implementation (NSDI 24)},
+  year      = {2024},
+  pages     = {1901--1916},
+  publisher = {USENIX Association},
+  url       = {https://www.usenix.org/conference/nsdi24/presentation/zhou-yuhan}
+}
+
+@inproceedings{zhang2024habitus,
+  author    = {Zhang, Anlan and Wang, Chendong and Hu, Yuming and others},
+  title     = {Habitus: Boosting mobile immersive content delivery through full-body pose tracking and multipath networking},
+  booktitle = {21st USENIX Symposium on Networked Systems Design and Implementation (NSDI 24)},
+  year      = {2024},
+  pages     = {1677--1695},
+  publisher = {USENIX Association},
+  url       = {https://www.usenix.org/conference/nsdi24/presentation/zhang-anlan}
+}
+
+@inproceedings{du2025pred,
+  author    = {Du, Xinle and Li, Tong and Zhou, Guangmeng and others},
+  title     = {{PRED}: Performance-oriented random early detection for consistently stable performance in datacenters},
+  booktitle = {22nd USENIX Symposium on Networked Systems Design and Implementation (NSDI 25)},
+  year      = {2025},
+  pages     = {1--20},
+  publisher = {USENIX Association},
+  url       = {https://www.usenix.org/conference/nsdi25/presentation/du}
+}
+
+@inproceedings{liu2025pyrrha,
+  author    = {Liu, Kexin and Zhang, Zhaochen and Liu, Chang and others},
+  title     = {Pyrrha: Congestion-root-based flow control to eliminate head-of-line blocking in datacenter},
+  booktitle = {22nd USENIX Symposium on Networked Systems Design and Implementation (NSDI 25)},
+  year      = {2025},
+  pages     = {379--405},
+  publisher = {USENIX Association},
+  url       = {https://www.usenix.org/conference/nsdi25/presentation/liu-kexin}
+}
+
+@inproceedings{chen2025etran,
+  author    = {Chen, Zhongjie and Meng, Qingkai and Lao, ChonLam and others},
+  title     = {{eTran}: Extensible kernel transport with {eBPF}},
+  booktitle = {22nd USENIX Symposium on Networked Systems Design and Implementation (NSDI 25)},
+  year      = {2025},
+  pages     = {407--425},
+  publisher = {USENIX Association},
+  url       = {https://www.usenix.org/conference/nsdi25/presentation/chen-zhongjie}
+}
+
+@inproceedings{zhao2025whiteboxing,
+  author    = {Zhao, Chenxingyu and Min, Jaehong and Liu, Ming and Krishnamurthy, Arvind},
+  title     = {White-boxing {RDMA} with packet-granular software control},
+  booktitle = {22nd USENIX Symposium on Networked Systems Design and Implementation (NSDI 25)},
+  year      = {2025},
+  pages     = {427--449},
+  publisher = {USENIX Association},
+  url       = {https://www.usenix.org/conference/nsdi25/presentation/zhao-chenxingyu}
+}
+
+@inproceedings{prasopoulos2025sird,
+  author    = {Prasopoulos, Konstantinos and Kosta, Ryan and Bugnion, Edouard and Kogias, Marios},
+  title     = {{SIRD}: A sender-informed, receiver-driven datacenter transport protocol},
+  booktitle = {22nd USENIX Symposium on Networked Systems Design and Implementation (NSDI 25)},
+  year      = {2025},
+  pages     = {451--471},
+  publisher = {USENIX Association},
+  url       = {https://www.usenix.org/conference/nsdi25/presentation/prasopoulos}
+}
+
+@inproceedings{ji2025mtp,
+  author    = {Ji, Tao and Vardekar, Rohan and Vamanan, Balajee and Stephens, Brent E. and Akella, Aditya},
+  title     = {{MTP}: Transport for in-network computing},
+  booktitle = {22nd USENIX Symposium on Networked Systems Design and Implementation (NSDI 25)},
+  year      = {2025},
+  pages     = {959--977},
+  publisher = {USENIX Association},
+  url       = {https://www.usenix.org/conference/nsdi25/presentation/ji}
+}
+
+@inproceedings{zeng2025alibaba,
+  author    = {Zeng, Xuan and Xu, Haoran and Chen, Chen and others},
+  title     = {Learning production-optimized congestion control selection for Alibaba Cloud {CDN}},
+  booktitle = {22nd USENIX Symposium on Networked Systems Design and Implementation (NSDI 25)},
+  year      = {2025},
+  pages     = {827--845},
+  publisher = {USENIX Association},
+  url       = {https://www.usenix.org/conference/nsdi25/presentation/zeng}
+}
+
+@inproceedings{chen2025clubheap,
+  author    = {Chen, Zhikang and Song, Haoyu and Zhang, Zhiyu and Xu, Yang and Liu, Bin},
+  title     = {{ClubHeap}: A high-speed and scalable priority queue for programmable packet scheduling},
+  booktitle = {22nd USENIX Symposium on Networked Systems Design and Implementation (NSDI 25)},
+  year      = {2025},
+  pages     = {1421--1436},
+  publisher = {USENIX Association},
+  url       = {https://www.usenix.org/conference/nsdi25/presentation/chen-zhikang}
+}
+
+@inproceedings{sharafzadeh2025scrr,
+  author    = {Sharafzadeh, Erfan and Matson, Raymond and Tourrilhes, Jean and Sharma, Puneet and Ghorbani, Soudeh},
+  title     = {Self-clocked round-robin packet scheduling},
+  booktitle = {22nd USENIX Symposium on Networked Systems Design and Implementation (NSDI 25)},
+  year      = {2025},
+  pages     = {1437--1465},
+  publisher = {USENIX Association},
+  url       = {https://www.usenix.org/conference/nsdi25/presentation/sharafzadeh}
+}
+
+@inproceedings{alcoz2025scheduling,
+  author    = {Alcoz, Albert Gran and Vass, Bal{\'a}zs and Namyar, Pooria and Arzani, Behnaz and Retvari, Gabor and Vanbever, Laurent},
+  title     = {Everything matters in programmable packet scheduling},
+  booktitle = {22nd USENIX Symposium on Networked Systems Design and Implementation (NSDI 25)},
+  year      = {2025},
+  pages     = {1467--1485},
+  publisher = {USENIX Association},
+  url       = {https://www.usenix.org/conference/nsdi25/presentation/alcoz}
+}
+
+% -- BBR, BBRv2/v3, and BBR variants -------------------------
+
+@article{cardwell2016bbrqueue,
+  author    = {Cardwell, Neal and Cheng, Yuchung and Gunn, C. Stephen and Yeganeh, Soheil Hassas and Jacobson, Van},
+  title     = {{BBR}: Congestion-based congestion control},
+  journal   = {ACM Queue},
+  year      = {2016},
+  volume    = {14},
+  number    = {5},
+  pages     = {20--53},
+  doi       = {10.1145/3012426.3022184}
+}
+
+@article{kfoury2020bbrv2alpha,
+  author    = {Kfoury, Elie F. and Gomez, Jose and Crichigno, Jorge and Bou-Harb, Elias},
+  title     = {An emulation-based evaluation of {TCP BBRv2 Alpha} for wired broadband},
+  journal   = {Computer Communications},
+  year      = {2020},
+  volume    = {161},
+  pages     = {212--224},
+  doi       = {10.1016/j.comcom.2020.07.018}
+}
+
+@article{song2021bbrv2,
+  author    = {Song, Yeong-Jun and Kim, Geon-Hwan and Mahmud, Imtiaz and Seo, Won-Kyeong and Cho, You-Ze},
+  title     = {Understanding of {BBRv2}: Evaluation and comparison with {BBRv1} congestion control algorithm},
+  journal   = {IEEE Access},
+  year      = {2021},
+  volume    = {9},
+  pages     = {37131--37145},
+  doi       = {10.1109/ACCESS.2021.3061696}
+}
+
+@inproceedings{scherrer2022modelbased,
+  author    = {Scherrer, Simon and Legner, Markus and Perrig, Adrian and Schmid, Stefan},
+  title     = {Model-based insights on the performance, fairness, and stability of {BBR}},
+  booktitle = {Proceedings of the 22nd ACM Internet Measurement Conference (IMC)},
+  year      = {2022},
+  pages     = {519--537},
+  doi       = {10.1145/3517745.3561420}
+}
+
+@inproceedings{gomez2023fabric,
+  author    = {Gomez, Jose and Kfoury, Elie F. and Crichigno, Jorge and Srivastava, Gautam},
+  title     = {Understanding the performance of {TCP BBRv2} using {FABRIC}},
+  booktitle = {2023 IEEE International Black Sea Conference on Communications and Networking (BlackSeaCom)},
+  year      = {2023},
+  pages     = {1--7},
+  doi       = {10.1109/BlackSeaCom58138.2023.10299749}
+}
+
+@article{pan2021bbracw,
+  author    = {Pan, Wansu and Tan, Haibo and Li, Xiru and Li, Xiaofeng},
+  title     = {Improved {RTT} fairness of {BBR} congestion control algorithm based on adaptive congestion window},
+  journal   = {Electronics},
+  year      = {2021},
+  volume    = {10},
+  number    = {5},
+  pages     = {615},
+  doi       = {10.3390/electronics10050615}
+}
+
+@article{zhang2021gamma,
+  author    = {Zhang, Yuxin and Zhang, Zhen and Xie, Xia and others},
+  title     = {Improvement of {RTT} fairness problem in {BBR} congestion control algorithm by gamma correction},
+  journal   = {Sensors},
+  year      = {2021},
+  volume    = {21},
+  number    = {12},
+  pages     = {4128},
+  doi       = {10.3390/s21124128}
+}
+
+@article{yang2023pacinggain,
+  author    = {Yang, Shuang and Tang, Yuquan and Pan, Wansu and Wang, Huadong and Rong, Dandan and Zhang, Zhirong},
+  title     = {Optimization of {BBR} congestion control algorithm based on pacing gain model},
+  journal   = {Sensors},
+  year      = {2023},
+  volume    = {23},
+  number    = {9},
+  pages     = {4431},
+  doi       = {10.3390/s23094431}
+}
+
+@article{ahsan2023bbrn,
+  author    = {Ahsan, Muhammad and Muhammad, Sajid S.},
+  title     = {{TCP BBR-n}: Increased throughput for wireless-{AC} networks},
+  journal   = {PLOS ONE},
+  year      = {2023},
+  volume    = {18},
+  number    = {12},
+  pages     = {e0295576},
+  doi       = {10.1371/journal.pone.0295576}
+}
+
+@inproceedings{yang2019adaptivebbr,
+  author    = {Yang, Ming and Yang, Peng and Wen, Chao and others},
+  title     = {Adaptive-{BBR}: Fine-grained congestion control with improved fairness and low latency},
+  booktitle = {2019 IEEE Wireless Communications and Networking Conference (WCNC)},
+  year      = {2019},
+  pages     = {1--6},
+  doi       = {10.1109/WCNC.2019.8885527}
+}
+
+% -- QUIC, HTTP/3, and multipath transport --------------------
+
+@inproceedings{langley2017quic,
+  author    = {Langley, Adam and Riddoch, Alistair and Wilk, Alyssa and others},
+  title     = {The {QUIC} transport protocol: Design and {Internet}-scale deployment},
+  booktitle = {Proceedings of ACM SIGCOMM},
+  year      = {2017},
+  pages     = {183--196},
+  doi       = {10.1145/3098822.3098842}
+}
+
+@inproceedings{kakhki2017quic,
+  author    = {Kakhki, Arash Molavi and Jero, Samuel and Choffnes, David and Nita-Rotaru, Cristina and Mislove, Alan},
+  title     = {Taking a long look at {QUIC}: An approach for rigorous evaluation of rapidly evolving transport protocols},
+  booktitle = {Proceedings of the 2017 ACM Internet Measurement Conference (IMC)},
+  year      = {2017},
+  pages     = {290--303},
+  doi       = {10.1145/3131365.3131368}
+}
+
+@inproceedings{deconinck2017mpquic,
+  author    = {De Coninck, Quentin and Bonaventure, Olivier},
+  title     = {Multipath {QUIC}: Design and evaluation},
+  booktitle = {Proceedings of the 13th International Conference on Emerging Networking EXperiments and Technologies (CoNEXT)},
+  year      = {2017},
+  pages     = {160--166},
+  doi       = {10.1145/3143361.3143370}
+}
+
+@inproceedings{trevisan2021http3,
+  author    = {Trevisan, Martino and Giordano, Danilo and Drago, Idilio and Khatouni, Ali Safari},
+  title     = {Measuring {HTTP/3}: Adoption and performance},
+  booktitle = {2021 Mediterranean Communication and Computer Networking Conference (MedComNet)},
+  year      = {2021},
+  pages     = {1--8},
+  doi       = {10.1109/MedComNet52149.2021.9501274}
+}
+
+@misc{rfc8684,
+  author       = {Ford, Alan and Raiciu, Costin and Handley, Mark and Bonaventure, Olivier and Paasch, Christoph},
+  title        = {{TCP} Extensions for Multipath Operation with Multiple Addresses},
+  howpublished = {RFC 8684, Internet Engineering Task Force},
+  year         = {2020},
+  doi          = {10.17487/RFC8684}
+}
+
+@inproceedings{raiciu2012mptcp,
+  author    = {Raiciu, Costin and Paasch, Christoph and Barre, S{\'e}bastien and others},
+  title     = {How hard can it be? Designing and implementing a deployable multipath {TCP}},
+  booktitle = {9th USENIX Symposium on Networked Systems Design and Implementation (NSDI 12)},
+  year      = {2012},
+  pages     = {399--412}
+}
+
+% -- Wireless, cellular, and LEO satellite networks -----------
+
+@inproceedings{winstein2013sprout,
+  author    = {Winstein, Keith and Sivaraman, Anirudh and Balakrishnan, Hari},
+  title     = {Stochastic forecasts achieve high throughput and low delay over cellular networks},
+  booktitle = {10th USENIX Symposium on Networked Systems Design and Implementation (NSDI 13)},
+  year      = {2013},
+  pages     = {459--471}
+}
+
+@inproceedings{zaki2015verus,
+  author    = {Zaki, Yasir and P{\"o}tsch, Thomas and Chen, Jay and Subramanian, Lakshmi and G{\"o}rg, Carmelita},
+  title     = {Adaptive congestion control for unpredictable cellular networks},
+  booktitle = {Proceedings of ACM SIGCOMM},
+  year      = {2015},
+  pages     = {509--522},
+  doi       = {10.1145/2785956.2787498}
+}
+
+@inproceedings{xie2020pbecc,
+  author    = {Xie, Yaxiong and Yi, Fan and Jamieson, Kyle},
+  title     = {{PBE-CC}: Congestion control via endpoint-centric, physical-layer bandwidth measurements},
+  booktitle = {Proceedings of ACM SIGCOMM},
+  year      = {2020},
+  pages     = {451--464},
+  doi       = {10.1145/3387514.3405880}
+}
+
+@inproceedings{michel2022starlink,
+  author    = {Michel, Fran{\c{c}}ois and Trevisan, Martino and Giordano, Danilo and Bonaventure, Olivier},
+  title     = {A first look at {Starlink} performance},
+  booktitle = {Proceedings of the 22nd ACM Internet Measurement Conference (IMC)},
+  year      = {2022},
+  pages     = {130--136},
+  doi       = {10.1145/3517745.3561416}
+}
+
+@inproceedings{kassem2022starlink,
+  author    = {Kassem, Mohamed M. and Raman, Aravindh and Perino, Diego and Sastry, Nishanth},
+  title     = {A browser-side view of {Starlink} connectivity},
+  booktitle = {Proceedings of the 22nd ACM Internet Measurement Conference (IMC)},
+  year      = {2022},
+  pages     = {151--158},
+  doi       = {10.1145/3517745.3561457}
+}
+
+@inproceedings{lai2023starlink,
+  author    = {Lai, Zeqi and Li, Han and Deng, Qian and others},
+  title     = {Network characteristics of {LEO} satellite constellations: A {Starlink}-based measurement from end users},
+  booktitle = {IEEE INFOCOM 2023 - IEEE Conference on Computer Communications},
+  year      = {2023},
+  pages     = {1--10},
+  doi       = {10.1109/INFOCOM53939.2023.10228912}
+}
+
+@article{khan2023leo,
+  author    = {Khan, F{\'a}tima and Hervella, Cristina and Diez, Luis and others},
+  title     = {Realistic assessment of transport protocols performance over {LEO}-based communications},
+  journal   = {Computer Networks},
+  year      = {2023},
+  volume    = {236},
+  pages     = {110008},
+  doi       = {10.1016/j.comnet.2023.110008}
+}
+
+@inproceedings{barbosa2023leo,
+  author    = {Barbosa, George C. G. and Theeranantachai, Sirapop and Zhang, Beichuan and Zhang, Lixia},
+  title     = {A comparative evaluation of {TCP} congestion control schemes over low-earth-orbit ({LEO}) satellite networks},
+  booktitle = {Proceedings of the 2nd International Workshop on LEO Networking and Communication (LEO-NET)},
+  year      = {2023},
+  pages     = {11--16},
+  doi       = {10.1145/3630590.3630603}
+}
+
+@inproceedings{laniewski2024wetlinks,
+  author    = {Laniewski, Dominic and Lanfer, Eric and Meijerink, Bernd and Van Rijswijk-Deij, Roland and Aschenbruck, Nils},
+  title     = {{WetLinks}: A large-scale longitudinal {Starlink} dataset with contiguous weather data},
+  booktitle = {TMA 2024 - Proceedings of the 8th Network Traffic Measurement and Analysis Conference},
+  year      = {2024},
+  doi       = {10.23919/TMA62044.2024.10558998}
+}
+
+@inproceedings{laniewski2024road,
+  author    = {Laniewski, Dominic and Lanfer, Eric and Beginn, Simon and D{\"u}nker, Jan and D{\"u}ckers, Michael and Aschenbruck, Nils},
+  title     = {{Starlink} on the road: A first look at mobile {Starlink} performance in Central Europe},
+  booktitle = {TMA 2024 - Proceedings of the 8th Network Traffic Measurement and Analysis Conference},
+  year      = {2024},
+  doi       = {10.23919/TMA62044.2024.10559110}
+}
+
+@misc{izhikevich2023leo,
+  author    = {Izhikevich, Katherine and others},
+  title     = {Democratizing {LEO} satellite network measurement},
+  howpublished = {arXiv preprint arXiv:2306.07469},
+  year      = {2023},
+  note      = {\url{https://arxiv.org/abs/2306.07469}}
+}
+
+% -- Learned, verifiable, and experimental congestion control --
+
+@inproceedings{dong2015pcc,
+  author    = {Dong, Mo and Li, Qingxi and Zarchy, Doron and Godfrey, P. Brighten and Schapira, Michael},
+  title     = {{PCC}: Re-architecting congestion control for consistent high performance},
+  booktitle = {12th USENIX Symposium on Networked Systems Design and Implementation (NSDI 15)},
+  year      = {2015},
+  pages     = {395--408},
+  address   = {Oakland, CA},
+  publisher = {USENIX Association},
+  url       = {https://www.usenix.org/conference/nsdi15/technical-sessions/presentation/dong}
+}
+
+@inproceedings{yan2018pantheon,
+  author    = {Yan, Francis Y. and Ma, Jestin and Hill, Greg D. and Raghavan, Deepti and Wahby, Riad S. and Levis, Philip and Winstein, Keith},
+  title     = {Pantheon: The training ground for {Internet} congestion-control research},
+  booktitle = {2018 USENIX Annual Technical Conference (USENIX ATC 18)},
+  year      = {2018},
+  pages     = {731--743},
+  address   = {Boston, MA},
+  publisher = {USENIX Association},
+  url       = {https://www.usenix.org/conference/atc18/presentation/yan-francis}
+}
+
+@inproceedings{arun2018copa,
+  author    = {Arun, Venkat and Balakrishnan, Hari},
+  title     = {Copa: Practical delay-based congestion control for the {Internet}},
+  booktitle = {15th USENIX Symposium on Networked Systems Design and Implementation (NSDI 18)},
+  year      = {2018},
+  pages     = {329--342},
+  publisher = {USENIX Association},
+  url       = {https://www.usenix.org/conference/nsdi18/presentation/arun}
+}
+
+@inproceedings{narayan2018ccp,
+  author    = {Narayan, Akshay and Cangialosi, Frank and Goyal, Prateesh and others},
+  title     = {The case for moving congestion control out of the datapath},
+  booktitle = {Proceedings of the 16th ACM Workshop on Hot Topics in Networks (HotNets)},
+  year      = {2017},
+  pages     = {101--107},
+  doi       = {10.1145/3152434.3152438}
+}
+
+@inproceedings{abbasloo2020orca,
+  author    = {Abbasloo, Soheil and Yen, Chen-Yu and Chao, H. Jonathan},
+  title     = {Classic meets modern: A pragmatic learning-based congestion control for the {Internet}},
+  booktitle = {Proceedings of ACM SIGCOMM},
+  year      = {2020},
+  pages     = {632--647},
+  doi       = {10.1145/3387514.3405892}
+}
+
+@inproceedings{meng2020proteus,
+  author    = {Meng, Tong and Schiff, Neta Rozen and Godfrey, P. Brighten and Schapira, Michael},
+  title     = {{PCC Proteus}: Scavenger transport and beyond},
+  booktitle = {Proceedings of ACM SIGCOMM},
+  year      = {2020},
+  pages     = {615--631},
+  doi       = {10.1145/3387514.3405891}
+}
+
+@inproceedings{gao2024sifter,
+  author    = {Gao, Peixuan and Dalleggio, Anthony and Liu, Jiajin and Peng, Chen and Xu, Yang and Chao, H. Jonathan},
+  title     = {Sifter: An {Inversion-Free} and {Large-Capacity} Programmable Packet Scheduler},
+  booktitle = {21st USENIX Symposium on Networked Systems Design and Implementation (NSDI 24)},
+  year      = {2024},
+  pages     = {75--95},
+  address   = {Santa Clara, CA},
+  publisher = {USENIX Association},
+  url       = {https://www.usenix.org/conference/nsdi24/presentation/gao-peixuan}
+}
+
+@inproceedings{cheng2024grace,
+  author    = {Cheng, Yihua and Zhang, Ziyi and Li, Hanchen and Arapin, Anton and Zhang, Yue and Zhang, Qizheng and Liu, Yuhan and Du, Kuntai and Zhang, Xu and Yan, Francis Y. and Mazumdar, Amrita and Feamster, Nick and Jiang, Junchen},
+  title     = {{GRACE}: {Loss-Resilient} {Real-Time} Video through Neural Codecs},
+  booktitle = {21st USENIX Symposium on Networked Systems Design and Implementation (NSDI 24)},
+  year      = {2024},
+  pages     = {509--531},
+  address   = {Santa Clara, CA},
+  publisher = {USENIX Association},
+  url       = {https://www.usenix.org/conference/nsdi24/presentation/cheng}
+}
+
+@inproceedings{meng2024hairpin,
+  author    = {Meng, Zili and Kong, Xiao and Chen, Jing and Wang, Bo and Xu, Mingwei and Han, Rui and Liu, Honghao and Arun, Venkat and Hu, Hongxin and Wei, Xue},
+  title     = {Hairpin: Rethinking Packet Loss Recovery in Edge-based Interactive Video Streaming},
+  booktitle = {21st USENIX Symposium on Networked Systems Design and Implementation (NSDI 24)},
+  year      = {2024},
+  pages     = {907--926},
+  address   = {Santa Clara, CA},
+  publisher = {USENIX Association},
+  url       = {https://www.usenix.org/conference/nsdi24/presentation/meng}
+}
+
+@inproceedings{yuan2024sidekick,
+  author    = {Yuan, Gina and Sotoudeh, Matthew and Zhang, David K. and Welzl, Michael and Mazi{\`e}res, David and Winstein, Keith},
+  title     = {Sidekick: {In-Network} Assistance for Secure {End-to-End} Transport Protocols},
+  booktitle = {21st USENIX Symposium on Networked Systems Design and Implementation (NSDI 24)},
+  year      = {2024},
+  pages     = {1813--1830},
+  address   = {Santa Clara, CA},
+  publisher = {USENIX Association},
+  url       = {https://www.usenix.org/conference/nsdi24/presentation/yuan}
+}
+
+@inproceedings{netravali2015mahimahi,
+  author    = {Netravali, Ravi and Sivaraman, Anirudh and Das, Somak and Goyal, Ameesh and Winstein, Keith and Mickens, James and Balakrishnan, Hari},
+  title     = {Mahimahi: Accurate record-and-replay for {HTTP}},
+  booktitle = {2015 USENIX Annual Technical Conference (USENIX ATC 15)},
+  year      = {2015},
+  pages     = {417--429},
+  address   = {Santa Clara, CA},
+  publisher = {USENIX Association},
+  url       = {https://www.usenix.org/conference/atc15/technical-session/presentation/netravali}
+}
+
+@inproceedings{lantz2010mininet,
+  author    = {Lantz, Bob and Heller, Brandon and McKeown, Nick},
+  title     = {A network in a laptop: Rapid prototyping for software-defined networks},
+  booktitle = {Proceedings of the 9th ACM SIGCOMM Workshop on Hot Topics in Networks (HotNets)},
+  year      = {2010},
+  pages     = {19:1--19:6},
+  doi       = {10.1145/1868447.1868466}
+}
+
+@inproceedings{henderson2008ns3,
+  author    = {Henderson, Thomas R. and Lacage, Mathieu and Riley, George F. and Dowell, C. and Kopena, Joseph},
+  title     = {Network simulations with the {ns-3} simulator},
+  booktitle = {Proceedings of the ACM SIGCOMM Demonstration Conference},
+  year      = {2008}
+}
+
+% DOI metadata verified against saved Crossref response; mainrefs.bib merge/key collision check pending.
+@article{xiao2019tcpdrinc,
+  author = {Xiao, Kefan and Mao, Shiwen and Tugnait, Jitendra K.},
+  title = {TCP-Drinc: Smart Congestion Control Based on Deep Reinforcement Learning},
+  journal = {IEEE Access},
+  volume = {7},
+  pages = {11892-11904},
+  year = {2019},
+  doi = {10.1109/ACCESS.2019.2892046}
+}
+
+@article{biswal2024bdpveno,
+  author  = {Biswal, Subhra Priyadarshini and Patel, Sanjeev},
+  title   = {A bandwidth delay product based modified Veno for high-speed networks: {BDP-Veno}},
+  journal = {Journal of Network and Computer Applications},
+  volume  = {231},
+  pages   = {103983},
+  year    = {2024},
+  doi     = {10.1016/j.jnca.2024.103983},
+
+}
+
+@article{biswal2025oveno,
+  author  = {Biswal, Subhra Priyadarshini and Patel, Sanjeev},
+  title   = {Optimization of Veno parameter based on stochastic approximation: {OVeno}},
+  journal = {Simulation Modelling Practice and Theory},
+  volume  = {142},
+  pages   = {103121},
+  year    = {2025},
+  doi     = {10.1016/j.simpat.2025.103121},
+
+}

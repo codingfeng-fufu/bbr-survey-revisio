@@ -1,0 +1,782 @@
+Received December 28, 2021, accepted January 9, 2022, date of publication February 4, 2022, date of current version February 22, 2022.
+Digital Object Identifier 10.1109/ACCESS.2022.3148998
+
+
+
+
+RBBR: A Receiver-Driven BBR in QUIC for
+Low-Latency in Cellular Networks
+HABTEGEBREIL HAILE , KARL-JOHAN GRINNEMO , (Senior Member, IEEE),
+PER HURTIG , AND ANNA BRUNSTROM , (Member, IEEE)
+Department of Mathematics and Computer Science, Karlstad University, 65188 Karlstad, Sweden
+Corresponding author: Habtegebreil Haile (habtegebreil.haile@kau.se)
+
+
+
+
+  ABSTRACT BBR is a promising new congestion control algorithm (CCA) that has been shown to result
+  in significantly lower latency compared to conventional loss-based CCAs. However, in cellular networks,
+  where there is a high variability in the available rate, BBR does not perform as well as expected. In such
+  scenarios, BBR tends to overestimate the available capacity and create queues that cause longer packet
+  delays. In this work, we propose Receiver-driven BBR (RBBR), a modified version of BBR that uses rate
+  estimates made at the receiver side rather than at the sender side. We employ a Kalman filter to make a more
+  accurate estimate of the available bandwidth, and we implement the algorithm in QUIC. An evaluation of
+  the proposed CCA is done through extensive 4G trace-based emulations, real 4G network tests and mmWave
+  trace-based emulations representing a 5G scenario. The results show that RBBR is able to achieve an RTT
+  reduction of up to 80% with a worst-case throughput loss of about 30%. The results also show that in real
+  4G networks, RBBR flows experience a more predictable and consistent RTT than what BBR flows do.
+
+
+  INDEX TERMS 4G, 5G, BBR, congestion control, Kalman filter, QUIC, RTT, throughput.
+
+
+I. INTRODUCTION                                                                                the bottleneck bandwidth and the minimum round trip prop-
+Transport layer protocols and congestion control algo-                                         agation time. However, the bottleneck bandwidth estimation
+rithms (CCAs) are important components of data commu-                                          mechanism of BBR can be prone to overestimation and cause
+nication over the Internet. These protocols and CCAs can                                       packets to experience longer delays. This overestimation
+enable or limit an application from meeting its throughput and                                 is noticeable in current 4G cellular networks, where the
+delay requirements. In fact, an ill-suited protocol or algorithm                               available rate is often highly variable. The variability is also
+can prevent an application from meeting its performance                                        likely to increase in 5G networks.
+goals despite the underlying network being able to support                                        In this work we present a novel, latency-aware CCA for
+the application’s requirements. QUIC [1] and BBR [2]                                           cellular networks – Receiver-driven BBR (RBBR). RBBR is
+(Bottleneck Bandwidth and Round-trip propagation time) are                                     a modification to BBR that is implemented in QUIC, and that
+promising transport solutions for overcoming some of the                                       uses a Kalman-filtered rate feedback loop from the receiver
+limitations of TCP [3] and loss-based CCAs. QUIC is a                                          to more accurately estimate the bottleneck bandwidth. In our
+transport protocol implemented in user-space that supports                                     previous work [4], we have illustrated that it is possible
+multiple features not present in TCP, for example, fast                                        to improve BBR’s delay response in cellular networks
+connection setup and support for multi-streaming. Since                                        with long-term variations in the available bandwidth. The
+QUIC is implemented at the user level, it is possible to update                                long-term variations in the available bandwidth can be
+QUIC when updating the application using it, making it an                                      due to signal quality deterioration, extended blockage,
+interesting option for incorporating new features.                                             mobility, or steady changes in network load. In this work,
+   BBR is a CCA proposed by Google that operates by                                            we demonstrate that BBR can also be susceptible to variations
+building a model of the network path to control its sending                                    occurring over small time scales. We provide a complete
+behavior. BBR builds the network path model by estimating                                      design for RBBR that incorporates a measured rate filtering
+                                                                                               mechanism that makes BBR less vulnerable to short-time
+   The associate editor coordinating the review of this manuscript and                         scale rate bursts and dips. The detailed contributions of this
+approving it for publication was Francisco Rafael Marques Lima                .                work are:
+
+                     This work is licensed under a Creative Commons Attribution 4.0 License. For more information, see https://creativecommons.org/licenses/by/4.0/
+VOLUME 10, 2022                                                                                                                                                       18707
+                                                                     H. Haile et al.: Receiver-Driven BBR in QUIC for Low-Latency in Cellular Networks
+
+
+
+
+  •  An extension to a selected QUIC framework for
+     reducing the impact of short-term rate variations that
+     uses a Kalman filter for available bandwidth estimation
+     from delivery rate samples at the RBBR receiver.
+   • A signaling mechanism to notify the RBBR receiver
+     to suspend the rate estimation when the RBBR sender
+     reduces its sending rate to probe for the minimum RTT.
+     The signaling mechanism prevents the use of erroneous
+     samples in the available bandwidth estimation.
+   • Extended 4G and mmWave trace emulations, as well as                FIGURE 1. Comparison of the TCP and QUIC stacks.
+     real 4G network evaluations with results showing that
+     RBBR achieves a noticeable reduction in RTT compared
+     to BBR in cellular 4G and 5G scenarios. The evaluations               QUIC payload is carried inside predefined frames, each
+     over real 4G networks also show that RBBR has a more               containing a frame-type identifier as well as other fields that
+     consistent RTT performance that is less susceptible to             vary depending on the frame type. QUIC has gone through
+     temporal changes.                                                  many iterations of development, with features continuously
+                                                                        being added to the protocol. At the time of writing, QUIC
+   The remainder of this paper is organized as follows.
+                                                                        has become an IETF Request for Comment (RFC) with a
+Section II gives a brief overview of QUIC, BBR and rate
+                                                                        proposed standard status. During its evolution, the number
+variability in cellular networks. Next, we give a description
+                                                                        of defined frames in the QUIC RFC has more than doubled
+of the components of RBBR in Section III. The evaluation
+                                                                        and nowadays the RFC includes frame types that transport
+setup is given in Section IV. In Section V, the results of the
+                                                                        a lot of different types of connection-related data between
+evaluation are presented and discussed. Finally, we conclude
+                                                                        the communicating peers. QUIC’s version negotiation phase
+the paper in Section VII.
+                                                                        allows peers to identify supported features and agree on a
+                                                                        communication format. The frame-based structure of QUIC
+II. BACKGROUND                                                          packets provides a convenient way for extending QUIC and to
+In this section, we give a brief background on QUIC and                 integrate new features that can enable improved performance.
+BBR, which are the transport technologies that this work is             In this work, we take advantage of the frame-based structure
+based on. We also present the challenges of dealing with the            of QUIC and employ it as a way to exchange delivery rate
+high variability in data transfer rate that is present in cellular      information between the peers that is relevant for congestion
+networks and that motivated this work.                                  control.
+
+A. QUIC                                                                 B. BBR
+QUIC [1] is a transport protocol that is intended to overcome           Loss-based CCAs have been shown to be responsible for
+several of the shortcomings of the Transmission Control                 large queuing delays and bufferbloat [7]. The bufferbloat
+Protocol (TCP) [3]. One of TCP’s main shortcomings,                     phenomenon is likely to occur in networks with large
+addressed by QUIC, is Head-of-Line (HOL) blocking.                      buffers, unless some in-network mechanism is available to
+In TCP, HOL blocking can happen when multiple HTTP/2 [5]                complement the CCA [8]. On the other hand, delay-based
+streams are being multiplexed over a single TCP connection,             CCAs find it difficult to compete with loss based dittos, and
+and a loss of a packet from one stream delays the delivery              might fail to fully utilize available capacity. The shortcomings
+of packets from a different stream to the application layer.            of loss-based and delay-based CCAs have driven researchers
+QUIC solves this problem by creating multiple independent               to look into other types of congestion-control approaches.
+streams. In addition, QUIC facilitates a fast connection                One such approach is model-based congestion control.
+startup by saving and reusing configurations of frequent                   BBR [2] is arguably the most popular model-based CCA.
+connections and also use transport-layer encryption for                 The algorithm has managed to achieve wide-scale implemen-
+secure communication. Figure 1 shows that QUIC is a                     tation and deployment for Google’s services. It has gained
+user-level protocol that works on top of the User Datagram              popularity because of it’s ability to achieve equal or higher
+Protocol (UDP) [6]. The fact that QUIC is an encrypted                  throughput than loss-based CCAs with lower self-inflicted
+transport implemented in user-space makes it relatively easy            delay [19]. BBR operates by controlling the pacing rate and
+to upgrade the protocol as new versions of the protocol                 the congestion window by building a model of the network
+appear. It also enables the addition of new features that               path using estimates of the bottleneck bandwidth (BtlBW)
+are not part of the mainstream specification. Therefore, fast           and the round-trip propagation time (RTT) at the sender.
+updates of the QUIC implementation can be made as part of               Figure 2 shows the dynamics of the RTT and delivery rate
+application updates. This can be particularly advantageous to           as the amount of in flight data increases and the optimal
+self-contained services that are delivered through third-party          point that BBR tries to acquire as the model of the network
+applications.                                                           path.
+
+18708                                                                                                                                 VOLUME 10, 2022
+H. Haile et al.: Receiver-Driven BBR in QUIC for Low-Latency in Cellular Networks
+
+
+
+
+                                                                                    FIGURE 3. BtlBW estimates and RTT of BBR in a constant rate scenario vs.
+                                                                                    a variable rate scenario with a mean rate equal to the constant rate
+                                                                                    scenario (minRTT = 30 ms).
+
+
+                                                                                    CCA used for applications over cellular networks is likely
+                                                                                    to increase. In such cases, BBR’s maximum-filter-based,
+                                                                                    sender-side rate estimation mechanism could significantly
+                                                                                    overestimate the available bottleneck bandwidth. Figure 3
+FIGURE 2. Optimal network path model.
+                                                                                    gives the performance of BBR in emulated networks, based
+                                                                                    on rate traces collected from a 4G network. The figure gives
+                                                                                    the RTT experienced by packets in an emulated network
+   BBR calculates the receiver’s delivery rate at the sender                        configured with the highly variable rate trace and with a
+for every arriving acknowledgement (ACK), and uses that                             constant rate that has the same average rate as the variable
+in the BtlBW estimation. The algorithm employs a new                                trace. The RTT in the highly variable setup is notably larger
+delivery-rate estimation mechanism that is proposed together                        than the RTT in the constant rate configuration. The plot
+with the CCA [9]. BBR removes noisy delivery measure-                               in Figure 3a shows that the BtlBw estimates of BBR fails
+ments that could lead to an underestimation of the BtlBW by                         to closely track the highly variable capacity. On the other
+passing them through a max filter over a prescribed number                          hand, BBR does a good job of estimating the available
+of RTTs (10 RTTs). The final BtlBW estimate is computed                             capacity of the constant rate capacity. This allows BBR
+as the minimum of the max-filtered delivery rates and the                           to maintain a lower RTT in such scenario. But Figure 3b
+sending rate. Since the BtlBW and RTT of a connection                               shows that the RTT can increase and become variable when
+can vary throughout the lifetime of the connection, BBR                             the available capacity varies. A more detailed look into the
+contains mechanisms that continuously probe for changes in                          challenge rate variability in cellular networks presents to
+the path as represented by the BBR model. The original BBR                          making a more practical rate measurement is given in the next
+algorithm probes for available bandwidth in a bandwidth                             subsection.
+probing cycle, which is referred as ProbeBW, by increasing
+the pacing rate by 25% every 8th RTT. To probe for                                  C. RATE VARIABILITY IN CELLULAR NETWORKS
+the minimum RTT, the algorithm significantly reduces the                            The majority of the technological advances introduced in
+amount of in-flight data every RTprop, which is set to                              current cellular networks (4G/5G) are intended to improve
+10 seconds, provided a minimum RTT estimate that is lower                           the capability of the access network to accommodate a
+than the current estimate has not been detected within this                         large number of users with different throughput and delay
+10-second interval. The CCA is said to be in the ProbeRTT                           requirements.
+state when it reduces the in-flight data to detect changes in                          However, the need for an increased and efficient use of
+the minimum RTT. Another important component of BBR                                 radio frequency resources has resulted in cellular networks
+is the mechanism to counter the effect of ACK aggregation.                          becoming more complex and dynamic in their behavior.
+This mechanism tries to estimate the level of aggregation                           The complex mechanisms of 4G and 5G technologies can
+by using the difference between the amount of ACKed data                            introduce some difficulties that can become challenging to
+and the expected amount of data to be ACKed. In a similar                           handle in higher layers of the Internet protocol stack. Some
+way as in the BtlBw computation, the max filter is applied                          of these complications are variability due to sudden resource
+over multiple RTTs to give an extra amount of data to                               reallocations to accommodate services with higher priorities
+be added to the computed congestion window (CWND).                                  and/or latency requirements, increased retransmissions from
+Therefore, this mechanism is closely tied to the BtlBw                              using sensitive frequency ranges, and variable delays caused
+estimation, and it could result in longer packet delays as it                       by reconfigurations from frequent handovers between small
+implies injecting possibly excessive amounts of data into the                       cells.
+network.                                                                               These types of issues can be particularly difficult to
+   With the increased use of the more volatile mmWave bands                         handle for transport-layer CCAs that are used by applications
+in cellular networks, and the deployment of a high number                           that require high throughput and low delay. As exemplified
+of devices that communicate sporadically (IoT) in those net-                        by BBR, there has been an increased interest in CCAs
+works, the scale of short-term variability observed by a BBR                        that rely on estimating the state of the network and that
+
+VOLUME 10, 2022                                                                                                                                      18709
+                                                                   H. Haile et al.: Receiver-Driven BBR in QUIC for Low-Latency in Cellular Networks
+
+
+
+
+use these estimates as a basis for a model of the path.                Algorithm 1 Rate Estimation and Feedback at the QUIC
+The increased bandwidth variability experienced in cellular            Receiver
+networks makes the task of network-state estimation and                 Set rate sampling duration 1t
+modeling in these networks a more difficult task, something             while connection is open do
+which could negatively impact the performance of model-                     if Ack scheduled then
+based CCAs. Therefore, it is important to keep track of the                     Attach rate to packet
+possible performance pitfalls of CCAs in the increasingly                       Send packet to sender
+variable cellular networks, and propose solutions that could                if Sender limited then
+help the CCAs mitigate the issues arising from the highly                       Suspend estimation
+variable available bandwidth.                                               else
+   To ensure that a rate-based CCA responds quickly to                          if interval > 1t then
+changes in the network state, the rate measurements need                             Reset timer
+to be made at a reasonably high frequency to make a                                  Sample rate
+swift response to changes in the network capacity possible.                          Filter rate
+In cellular networks, the rate achieved by a user primarily
+depends on the signal quality between the user and the
+cellular access point, the amount of load in the network, and
+the type of scheduler used at the base station. Therefore, it is      based on an adaptive Kalman filter, a QUIC extension for
+reasonable to think that if those conditions are stable then          rate feedback, and a reverse (sender-to-receiver) signaling to
+the rate achieved by a user should remain the same as well.           inform the receiver to suspend rate estimation when the BBR
+However, unless we measure the rate over very long time               sender is in the ProbeRTT state. The adaptive Kalman filter
+intervals, it is highly unlikely that we observe the same rate        rate estimation mechanism extracts a viable rate from the
+over successive time intervals. The variations in the measured        receiver-side rate measurements. The rate feedback through a
+rate could happen for a number of reasons, e.g., channel              newly defined frame extension transports the rate estimation
+variations, scheduling, loss, retransmissions, or aggregation.        back to the sender. Algorithm 1 gives a simplified view of the
+As a result, two intervals with temporal proximity could              rate estimation and feedback process at the QUIC receiver.
+experience vastly different rates without actual, significant         The reverse signaling helps the receiver avoid using invalid
+changes in the state of the network.                                  rate samples in the rate estimation process.
+   Since a short-interval rate sample might greatly differ from
+the long-term rate of a user, using the unprocessed rate              A. ADAPTIVE KALMAN FILTER
+measurements can lead to an undesired performance, such               The Kalman filter is an optimal-state estimator for a
+as higher RTT or underutilization. This is especially true for        linear process with Gaussian noise. Given an unreliable
+connections with longer RTTs. In such cases, it could take            measurement that is corrupted by Gaussian noise with known
+a while until a rate sample is received by the sender, and in         co-variance, the basic Kalman filter is able to extract the
+the mean time the transient rate might have changed a lot.            correct state of a system that is characterized by a linear
+Using unprocessed, transient rate samples could also affect           state-space model given in Equation 1. In the equation, xk is
+the rate samples we get in future measurements. For example,          the actual value of the state to be estimated at time k, xk−1 is
+using a very low transient rate sample as the sending rate at         the previous value of the state at time k − 1, and A is the state
+the sender could limit the rate that can be detected over the         transition model. The term Buk represents the external input,
+following time intervals. To this end, we need a mechanism            and wk is the process noise. In addition to the state-space
+that can identify and remove the transient variations, while          model, the Kalman filter also requires a linear measurement
+keeping track of the long-term variations of the rate.                model. The measurement model can be represented as given
+                                                                      in Equation 2, where yk is the measured quantity, xk is the
+III. RBBR DESIGN                                                      state of the system, C is the measurement gain, and vk is the
+The core idea behind RBBR is to replace the sender-                   measurement noise.
+side max-filter based bottleneck bandwidth estimate used
+in BBR by a Kalman-filter based rate estimate made at                                        xk = Axk−1 + Buk + wk                              (1)
+the receiver. The receiver-side rate estimate is then sent                                   yk = Cxk + vk                                      (2)
+back to the sender inside a newly defined QUIC feedback
+frame (fbk_frame). RBBR builds on the initial proposal for               The standard Kalman filter goes through two stages to
+a receiver and feedback-based BBR in [4], and aims to make            acquire the final estimate. The first is the prediction stage
+RBBR more robust to small time-scale rate variations. These           that uses the state-space model to make an a priory state
+variations can occur in cellular networks due to a number             estimate xk− (Equation 3), and update the co-variance, p− ,
+of lower-layer mechanisms. In this section, we describe               that determines the uncertainty in the estimate (Equation 4).
+the three main components that work together to enable                The co-variance of the process noise Q should be known to
+RBBR. These components are a rate-estimation mechanism                make the prediction. The second stage updates the prediction
+
+18710                                                                                                                               VOLUME 10, 2022
+H. Haile et al.: Receiver-Driven BBR in QUIC for Low-Latency in Cellular Networks
+
+
+
+
+TABLE 1. The predict and update stages of a standard Kalman filter.
+
+
+
+
+                                                                                    FIGURE 4. The QUIC feedback frame.
+
+
+
+
+                                                                                    is located in the type-dependent field of the feedback frame as
+using the measurement value. This is done by first calculating
+                                                                                    shown in Figure 4. The rate feedback frame is scheduled by
+the Kalman gain K , which requires the co-variance of the
+                                                                                    default whenever an ACK is scheduled, thus having the same
+measurement noise R as shown in Equation 5. The Kalman
+                                                                                    frequency as the ACKs. However, it is possible to schedule
+gain then determines the contribution of the measurement to
+                                                                                    the feedback frame to be sent every few ACKs, or periodically
+the final estimate (Equation 6) and the co-variance of the final
+                                                                                    with a specified time interval.
+estimate (Equation 7). Table 1 summarizes the predict and
+update stages of the standard Kalman filter.
+                                                                                    C. SIGNALING FOR RATE LIMITED CASES
+   To be able to use the Kalman filter, it is necessary to have
+knowledge of the co-variances of the process and measure-                           One of the core parts of BBR is the ProbeRTT phase.
+ment noise. However, when applying the Kalman filter for                            In this phase, the BBR sender reduces its congestion window
+the purpose of estimating the rate of a cellular network, these                     to a very low value to allow the sender to get a new
+values are hard to acquire. In addition, characteristics of the                     estimate of the minimum RTT. This poses a problem for the
+noise experienced during measurement and prediction might                           receiver-side delivery rate estimation mechanism of RBBR
+change with time, as explained in [10]. To overcome this                            since the rate measured in the ProbeRTT (or any other sender-
+problem, we apply the adaptive measurement and process                              limited case) is not determined by the available capacity
+noise co-variance computation method proposed in [11].                              over the bottleneck. If the receiver does not know about the
+Equations 8 and 9 show the computation of the process                               reduced sending rate at the sender, then it might take the
+and measurement noise co-variances, respectively. In the                            sender-limited rate sample as a bandwidth-limited sample and
+equations, k is the residual and dk is the innovation at time                      feed it back to the sender. To prevent that from happening,
+k, and α determines how fast the co-variances are updated.                          we define a signaling frame that is sent from the sender when
+                                                                                    the sender is in the ProbeRTT phase.
+            Rk = αRk−1 + (1 − α)(k kT + Cp−  T
+                                            k C )                        (8)           Every time the CCA goes into the probeRTT phase, we set
+            Qk =    αQk−1 + (1 − α)(Kk dk dkT K T )                      (9)        a value, suspendRemote, in mvfst that is checked during
+                                                                                    feedback frame construction. If suspendRemote is set, the
+   In our system, we use a simple state transition xk =                             feedback frame will also serve as a signaling frame, otherwise
+xk−1 + wk and a simple measurement model yk = xk +                                  the feedback frame will be a standard feedback frame. The
+vk . The measured sample, yk , is obtained as shown in                              process for signaling the remote receiver to suspend rate
+Equation 10, where Sk and Sk−1 are the total amount of data                         sampling is given in Algorithm 2. At the other side, when
+received at successive measurement time instants tk and tk−1 ,                      a feedback frame is received, it is checked whether it is
+respectively. The final estimate, xk , of each interval is then                     a regular feedback frame or a feedback frame that also
+sent in the feedback frame to be used as an estimate of the                         signals a suspension of rate estimation. If it is the latter,
+bottleneck bandwidth by the RBBR sender.                                            then the rate estimation process is suspended until a regular
+                                Sk − Sk−1                                           feedback frame is received. The process for suspending the
+                            yk =                                        (10)
+                                    1t                                              rate sampling and estimation at the receiver is given in
+                           1t = tk − tk−1                               (11)        Algorithm 3. By allowing rate feedback in the signaling
+                                                                                    frame, we are able to avoid having two different frames for
+B. RATE FEEDBACK                                                                    rate feedback and signaling the sender limited case in the
+The rate estimated in the above steps is sent back to the                           same packet. This is particularly important for a receiver that
+sender. To be able to send the estimated rate as feedback                           only has ACKs to send in a unidirectional downlink data
+from the receiver to the sender, we extend QUIC by defining                         transfer, and therefore will never reach the full bottleneck
+a new frame as described in [4]. We implement the new                               bandwidth. Therefore, in this case, the sender will avoid
+frame in the mvfst QUIC implementation from Facebook [12]                           making the rate estimation calculations.
+by adding the necessary code to encode and decode the
+frame into a QUIC packet. According to the specification of                         IV. EXPERIMENTAL SETUP
+a standard QUIC frame, the frame contains an 8-bit frame                            We evaluate the proposed modified CCA through emulation
+identifier and 8 bytes type-dependent field. The rate feedback                      of 4G and 5G link scenarios as well as through real 4G
+
+VOLUME 10, 2022                                                                                                                              18711
+                                                                  H. Haile et al.: Receiver-Driven BBR in QUIC for Low-Latency in Cellular Networks
+
+
+
+
+ Algorithm 2 Procedure for Notifying Remote Node to
+ Suspend Rate Estimation
+  while connection is open do
+     if RBBR transits to probeRTT or Startup then
+          set suspendRemote
+     if RBBR transits to probeBW then
+          unset suspendRemote
+     if suspendRemote then                                           FIGURE 6. Fine-grained 4G traces.
+          send suspend_fbk_frame
+     else
+          send regular_fbk_frame                                     and bottleneck buffer size. The RTT is set to a minimum of
+                                                                     30 ms for all experiments, and we allocate a very large buffer
+                                                                     for the experiments where the impact of the buffer size is
+                                                                     not being tested. We vary the available rate based on cellular
+ Algorithm 3 Procedure for Suspending and Resuming                   network traces from commercial 4G networks and mmWave
+ Rate Estimation                                                     links. We use a hierarchical token bucket (HTB) traffic shaper
+  while connection is open do                                        to configure the downlink rate, and netem [14] to configure
+      if fbk_frame received then                                     the delay and buffer size at the appropriate interfaces of the
+           if fbk_frame_type == suspend_fbk_frame then               middle node.
+                set isSuspended                                         The 4G traces that are used to configure the traffic shaper
+           else                                                      are acquired by sending constant bit rate (CBR) UDP traffic
+                unset isSuspended
+                                                                     through commercial 4G networks and logging the reception
+           if isSuspended then                                       of each UDP datagram. We collect two types of traces
+                Stop rate sampling
+                                                                     to evaluate the CCA. The first trace is collected from a
+                Freeze rate estimation
+           else                                                      test setup with a static mobile node stationed at an office
+                Resume rate sampling and estimation                  in the university, while the second trace is collected by
+                                                                     walking around in the university buildings. To ensure that
+                                                                     the bottleneck is fully utilized when collecting the trace data,
+                                                                     we configure the CBR sender to send at a very high rate. The
+                                                                     UDP receiver will also acknowledge the reception of each
+                                                                     datagram, which we use to compute an estimate of the RTT.
+                                                                     We check the RTT data to confirm that it is kept at a much
+                                                                     higher value throughout the duration of the CBR transfer than
+                                                                     the lowest recorded RTT. From the datagram reception log,
+                                                                     we calculate the rate samples at 1t = 10 ms intervals, and
+FIGURE 5. Emulation setup.                                           use this rate trace to configure the traffic shaper to exhibit a
+                                                                     similar rate pattern. We believe that by configuring the HTB
+                                                                     traffic shaper in this way, we obtain a realistic emulation
+network tests. We use the tperf tool that is available in mvfst      setup that captures the bursty nature of cellular access links,
+with only minor changes to allow for external configuration          while at the same time minimize any possible adverse effects
+of some CCA parameters. The tool provides a client/server            from the frequent rate reconfigurations taking place in these
+setup for transferring data for a period of time and to report       tests. In Figure 6, we show two representative 4G rate traces
+the throughput. We use the tool by creating a single stream          from among the ones used in our evaluations. The traces are
+that continuously sends data from a QUIC server to a QUIC            for a static device and a mobility scenario that is created by
+client using a selected CCA. The tperf tool and the CCAs             walking around the university building. For each scenario,
+used in our experiments are from the May 2020 commit of              we plot a 10 ms-interval trace and a 200 ms-interval trace.
+mvfst.                                                               We use the 10 ms-interval trace in our experiments since that
+                                                                     trace better emulates the burstiness of the channel, however,
+A. EMULATION ENVIRONMENT                                             we show the 200 ms-interval trace for better visibility of the
+The emulation environment is composed of two Linux end               general capacity variation.
+nodes that serve as sender and receiver, and a middle node              In addition to the fine-grained (10 ms-interval) 4G traces,
+that connects the two end nodes. We set up the emulation             we also provide initial evaluations over coarse-grained
+configuration in CloudLab [13]. Figure 5 illustrates the             mmWave traces that sample a rate about every 250 ms. The
+emulation environment. The middle node serves as a traffic           coarse-grained mmWave traces are shown in Figure 7. The
+shaper to vary the rate available to send data between the           mmWave traces are based on the traces from [15], and were
+end nodes. The middle node is also used to control the RTT           also used in [4]. The coarse-grained mmWave traces might
+
+18712                                                                                                                              VOLUME 10, 2022
+H. Haile et al.: Receiver-Driven BBR in QUIC for Low-Latency in Cellular Networks
+
+
+
+
+FIGURE 7. Coarse-grained mmWave traces.
+
+
+
+
+not give an altogether realistic representation of the amount of
+short-term burstiness experienced in real 5G access networks,
+but we still think they properly show that the modified CCA
+is capable of performing well at the high rates of 5G. We use
+the given mmWave traces because we do not have access to
+a commercial 5G network for trace collection. Similar to the
+4G case, we use both static and mobility mmWave traces in
+our evaluations.
+
+B. 4G TEST SETUP
+To evaluate the performance of RBBR in 4G networks,
+we send QUIC traffic that employ different CCAs to receivers
+                                                                                    FIGURE 8. 4G test setup.
+connected to three different mobile network operators. The
+receivers used in the experiments are MONROE nodes [16]
+that use a Debian-based Linux operating system. The tperf
+client is deployed as a container in the MONROE node,                               parameter α for most experiments unless specified otherwise.
+while the tperf server is located in an office at the university,                   The RTT is configured to 30 ms to make it comparable
+and accesses the Internet through a high-speed Ethernet                             to the minimum RTT we observed in the 4G networks on
+connection at the university. The 4G test setup is illustrated                      which we performed live tests. For each given combination
+in Figure 8. One of the MONROE nodes is connected to                                of CCA, buffer size, and loss rate, we repeat the experiment
+two different operator networks. However, when we perform                           at least 10 times on every trace. For RBBR, in addition to the
+tests on one network, we disconnect the node from the other                         above, we also perform at least eight iterations for each filter
+network.                                                                            parameter and sampling interval.
+
+V. RESULTS                                                                          1) THROUGHPUT AND RTT
+In this section, we present the results from our emulations                         The throughput and RTT of RBBR, BBR, and CUBIC from
+and real 4G network tests. We provide throughput and RTT                            the 4G trace based emulation experiments on a bottleneck
+results comparing RBBR to BBR and CUBIC [17] from                                   with a large buffer (> 4×BDP) are given in Tables 2 and 3.
+emulation experiments using fine-grained 4G and coarse-                             Example traces from the tables are also plotted in Figure 9.
+grained 5G traces. We also give results from tests that evaluate                    In Figure 9b and 9d, it can be seen that RBBR achieves
+the performance of RBBR by varying the configuration of                             a significantly lower RTT than standard BBR and CUBIC
+some relevant network and algorithm parameters. We also                             without losing much throughput in Figures 9a and 9c. The
+present real network measurement results from 4G networks                           longer RTT of BBR is caused by the rate overestimation of
+of three different Swedish operators.                                               the sender-side mechanism and the extra packets injected
+                                                                                    by the aggregation compensation mechanism. From the
+A. 4G TRACE RESULTS                                                                 RTT results, it is evident that BBR greatly exceeds the
+The emulation results given here compare the performance                            1.5×BDP buffer that it is expected to maintain [18]. With
+of RBBR with BBR and CUBIC using identical traces                                   the minimum RTT configured to be 30 ms, BBR’s mean RTT
+and conditions to test each CCA. We include CUBIC in                                values of mostly more than 100 ms is likely the result of
+some of the experiments to add some perspective for the                             an average queue that is at least 2×BDP of buffer. On the
+performance of a widely used loss-based CCA that is                                 other hand, RBBR’s mean RTTs of mostly below 77 ms
+also the default in Linux [17]. We also use emulations to                           indicates an average queue that is around or below the target
+evaluate the performance of RBBR for different variables:                           buffer size.
+filter parameter, sampling interval, buffer size, and loss rate.                       The figure also gives the throughput and RTT for BBR
+We use a middle value of 0.6 for the adaptive Kalman filter                         with the aggregation compensation mechanism turned off
+
+VOLUME 10, 2022                                                                                                                               18713
+                                                                             H. Haile et al.: Receiver-Driven BBR in QUIC for Low-Latency in Cellular Networks
+
+
+
+
+FIGURE 9. Throughput and mean RTT of RBBR, BBR, BBRw/oAgg, and CUBIC for 4G static and 4G mobility traces.
+
+
+TABLE 2. Throughput and RTT of CCAs for different traces collected in static scenario from three different operators.
+
+
+
+
+TABLE 3. Throughput and RTT of CCAs for different mobility traces from a
+walking pace.
+
+
+
+
+(BBRw/oAgg). We can see the advantage offered by the                            FIGURE 10. Throughput and mean RTT of RBBR, BBR and BBRw/oAgg in a
+estimation mechanism of RBBR by making comparisons                              bottleneck with different buffer sizes (around 1BDP to >> 4BDP).
+with BBRw/oAgg, where the overestimation of BBR’s
+sender side mechanism is the main culprit for the observed                      rate bursts and follow a more accurate progression of the
+longer RTTs. It should be stated that BBR’s aggregation                         steady-state rate.
+compensation mechanism plays an important role in some                             The extra queue accumulated from the overestimation
+networks like WiFi, where the level of ACK aggregation                          and aggregation compensation mechanism could explain the
+is very high. The aggregation compensation mechanism of                         slightly higher throughput of BBR as shown in Figure 9. The
+BBR is closely tied to the sender-side estimation mechanism,                    accumulated packets could be available for instances where
+therefore it would have behaved unpredictably if it had been                    the capacity increases instantly and significantly, allowing
+used in RBBR. To use RBBR in networks with high level                           BBR to achieve a slightly better throughput. We use multiple
+of ACK aggregation, a different aggregation compensation                        traces to evaluate RBBR. As can be seen from Tables 2 and 3,
+mechanism must be applied.                                                      the sometimes slightly lower throughput obtained with RBBR
+   In the figures, BBR and BBRw/oAgg experience a                               is more than compensated for by a significantly lower RTT
+noticeably higher RTT in the mobility scenario compared to                      than BBR. The 95 percent confidence intervals for the mean
+the static scenario. From the trace in Figure 6b, it can be seen                values given in the tables are omitted as they are small and
+that the rate in the mobility scenario is most of the times lower               similar to the values shown in Figure 9.
+than in the static scenario, however, it can also be seen that it
+exhibits large increases from time to time. These sudden rate                   2) LOW BUFFER SCENARIO
+increases are interpreted as the long-term, available rate by                   RBBR is intended to reduce the delay caused by BBR in
+BBR’s max filter, which causes BBR to oversend resulting                        cellular networks with a highly variable rate and large bottle-
+in larger queues and longer RTTs. In contrast, RBBR avoids                      neck buffers. Still, we also need to know the performance of
+the increase in RTT in the mobility scenario that is observed                   RBRR outside of its target scenarios. In Figure 10b, we show
+for BBR. Particularly, RBBR is able to filter out the transient                 the evaluation results of RBBR, BBR and CUBIC over a
+
+18714                                                                                                                                         VOLUME 10, 2022
+H. Haile et al.: Receiver-Driven BBR in QUIC for Low-Latency in Cellular Networks
+
+
+
+
+                                                                                    FIGURE 12. RRBR throughput for different ACK loss rates and rate
+FIGURE 11. Throughput and mean RTT of RBBR without filter                           sampling intervals.
+(RBBR-nofilter), RBBR with EWMA filter (RBBR-ewma), and RBBR with
+Kalman filter (RBBR-kalman) in a small buffer (1 BDP).
+                                                                                    However, through follow-up experiments, we have confirmed
+                                                                                    that in addition to worsening the RTT performance of BBR,
+variable rate bottleneck with different buffer sizes. It can be                     short-term variation also tend to cause a decrease in the
+seen that the reduction in RTT compared to BBR experienced                          throughput achieved by the unfiltered rate feedback. This can
+with RBBR disappears as the buffer size becomes 65 packets                          be caused by the system being locked in to a low-sending-
+(around 1×BDP) or lower. The throughput obtained with                               rate interval until the next probing occurs after detecting
+the evaluated CCAs for different buffer sizes is given in                           a few successive low rate samples. Figure 11 shows that
+Figure 10a. As shown, a decrease of the buffer size below                           this happens in small-buffer scenarios, with the unfiltered
+2×BDP results in RBBR’s throughput becoming much lower                              mechanism being particularly more sensitive in small buffer
+than that of BBR. However, it also follows that with such                           scenarios. This throughput performance degradation is the
+small buffers, BBR’s throughput falls below the available                           main motivation behind applying filtering. It should be
+capacity.                                                                           noted that the filter parameter has no role in the results
+   The low throughput of RBBR when the buffers are small is                         for the unfiltered rate feedback. In the figure, the results
+likely due to the limit the buffer puts on the range of rates that                  for the unfiltered rate feedback are repeated for different
+could be sampled. The rate estimation mechanism will only                           filter parameters along with results of methods that employ
+get proper rate samples that reflect the available rate when                        filtering to allow convenient comparison.
+the available rate is low. When the available rate increases                           One method that can be used to remove transient rate
+beyond what is supported by the buffer, the receiver will                           variations is the EWMA filter, which is given in Equation 12,
+not be able to get the proper rate samples, thus biasing the                        where rt is the rate measured at time t, α is the EWMA
+estimate to a lower rate than the actual available capacity.                        filtering parameter, and Rt and Rt−1 are the rate estimates
+As a solution to this problem, a Kalman filter that is adjusted                     at time t and t − 1 respectively. EWMA is a simple and
+for biased samples can be used or one can compensate for                            widely used method for smoothing out a range of variable
+the underestimation of the available capacity with additional                       quantities. Therefore, it is reasonable to ask why the more
+packets when the buffer size is low. In general, obtaining                          complicated adaptive Kalman filter is to be preferred over
+an accurate sample of the available rate is a challenging                           EWMA. The figure shows that for lower values of α, the
+task since a small buffer will bias the rate sampling towards                       EWMA mechanism results in a performance that is similar
+lower samples. This is not just a problem experienced by                            to the Kalman-filter-based system. However, as the α value
+RBBR, but by any system that relies on rate measurements                            increases the performance of EWMA becomes more similar
+in variable networks such as BBR, which evidently also                              to the low throughput results observed with the unfiltered
+underutilizes the variable bottleneck when the buffer is                            mechanism. This is to be expected since as α increases the
+small.                                                                              contribution of the previous estimate to the next estimate
+                                                                                    disappears while the contribution of the current measurement
+3) ALTERNATIVE FILTERING                                                            is increased. The Kalman-filter, on the other hand, produces
+In this part, we compare the performance of the Kalman                              a more consistent and predictable performance as the α value
+filter-based estimation mechanism with unfiltered rates                             changes. This can make filter parameter selection easier with
+and an exponentially weighted moving average (EWMA),                                lower chance of misconfiguration.
+an alternative filtering mechanism that is routinely used to
+remove the effect of transient variations. Figure 11 compares                                       Rt = α × rt + (1 − α) × Rt−1                       (12)
+the throughput and RTT of the three receiver-side rate
+estimation mechanisms.                                                                Based on the results given in Figure 11, one might opt
+   In our previous work [4], it was shown that replacing                            to choose to use a more efficient EWMA filter with a
+BBR’s sender-side rate estimation with unfiltered rate                              lower α instead of the adaptive Kalman-filter, which requires
+feedback from the receiver can result in an improved RTT                            more computations per estimate. However, a lower EWMA
+performance. The evaluations were done on traces that only                          parameter value would mean a higher level of filtering, which
+emulate the long-term variation experienced in 5G networks.                         might be good for a highly variable network but might make
+
+VOLUME 10, 2022                                                                                                                                        18715
+                                                                        H. Haile et al.: Receiver-Driven BBR in QUIC for Low-Latency in Cellular Networks
+
+
+
+
+FIGURE 13. Throughput and mean RTT of RBBR, BBR, BBRw/oAgg and CUBIC in three different operators.
+
+
+
+
+FIGURE 14. RTT CDFs for RBBR, BBR and BBRw/oAgg in three diffrerent operators.
+
+
+
+the system slow to adapt if the bottleneck should change to                We also added a few CUBIC results for comparison. Each
+less variable links.                                                       data transfer over a specific operator’s network with one
+                                                                           of the evaluated CCAs is done for a period of 60 seconds.
+4) ACK LOSS AND SAMPLING INTERVAL                                          We perform an RBBR data transfer between a data transfer
+Beyond the buffer size and filter parameter α, there are                   using BBR without aggregation compensation and a data
+other variables that could potentially affect the performance              transfer using standard BBR.
+of RBBR. In this part, we explore the impact of variables                     The results of the 4G experiments show that RBBR is
+like uplink loss rate and rate sampling interval. The                      able to maintain a much lower and consistent average RTT
+default implementation of RBBR sends the rate feedback                     than BBR and BBR without aggregation compensation. The
+frame whenever an ACK is scheduled. Therefore, it would                    impact of the RBBR rate estimation mechanism can be
+be good to know how robust the algorithm is to ACK                         observed from the RTT difference between RBBR and BBR
+losses, i.e., losses of the rate feedback. We evaluate this                without aggregation compensation. An interesting general
+scenario and present the results in Figure 12a. From the                   trend is that the difference in RTT seems to increase as the
+figure, it can be seen that RBBR’s performance does not                    throughput decreases. Most of the experiments that resulted
+show much difference between different uplink loss rates.                  in the highest throughput for BBR and RBBR were performed
+In our evaluations, we also evaluate the robustness of the                 at night time when there is less competition and a user is
+algorithm for different sampling rates and present the results             most likely to be given consistently the maximum amount of
+in Figure 12b. The results show that the CCA achieves                      resources that it could get for its signal quality. At other times
+consistent throughput performance for different rate sampling              of the day, the throughput was lower as the number of users
+intervals. However, using smaller sampling intervals could                 was larger, and the scheduling was likely to be more bursty,
+be a better option in access networks with a more variable                 which increased the risk of BBR doing an overestimation of
+available rate than the one given in the trace used in this                the bandwidth.
+experiment.                                                                   In most cases, BBR and BBR without aggregation
+                                                                           compensation achieve a slightly better throughput, while
+B. 4G NETWORK RESULTS                                                      RBBR’s throughput can be seen to be close to the BBR
+Here we present results from our experiments done in the 4G                throughput and better than the throughput achieved by
+networks of three mobile network operators. In Figure 13,                  CUBIC in all operators. In all three operators, it can be seen
+we present the throughput and RTT achieved by RBBR, BBR                    that there is a considerable difference in the RTT of BBR
+and BBR without aggregation compensation. We performed                     and BBR without aggregation compensation without much
+40 iterations with each CCA through four experiment                        gain in throughput. This indicates that BBR’s aggregation
+campaigns carried out on different days and at different times.            compensation mechanism could be further improved. The
+
+18716                                                                                                                                    VOLUME 10, 2022
+H. Haile et al.: Receiver-Driven BBR in QUIC for Low-Latency in Cellular Networks
+
+
+
+
+FIGURE 15. Throughput and mean RTT of RBBR, BBR and BBR w/o agg and CUBIC for a coarse-grained mmWave static and mmWave mobility and
+blocking traces.
+
+
+
+
+CDF of the RTT of the CCAs is given in Figure 14 for                                VI. RELATED WORK
+each operator. From the CDF figures it can be seen that the                         At the time of writing, the first version of BBR has been
+RTT improvement for operator two and three is noticeably                            around for about six years. Following it’s initial release,
+higher than the improvement in operator one. Based on the                           several performance studies have been performed and a
+results of the CUBIC transfers over operator one, we deduce                         number of evaluations and proposals have also discovered
+that the bottleneck for the connections through operator                            scenarios where the algorithm seems to underperform.
+one is likely on a link with a lower buffer than the other                          The performance of BBR was compared with CUBIC’s
+operators. This in turn reduces the amount of accumulated                           performance on the highway in [19]. The paper found
+queue and the RTT experienced by the CCAs. Figure 14                                that BBR can achieve comparable throughput to CUBIC
+also shows that the slope of the CDF for RBBR is steeper                            with lower self-inflicted delay. Wang et al. [20] evaluate
+than the slope of the CDF of BBR and BBR without                                    the performance of TCP in high-speed rails (HSR) and
+aggregation compensation, suggesting flows with RBBR                                found out that BBR is more handover-agnostic and carrier-
+could experience less jitter.                                                       agnostic. The paper also revealed that BBR can experience
+                                                                                    suboptimal throughput performance due to an inflexible
+C. mmWave TRACE RESULTS                                                             and conservative round-trip propagation time estimation
+Millimeter wave (mmWave) is a crucial part of 5G that                               mechanism. In addition to evaluating BBR, a number
+uses the high frequency spectrum (30 GHz and 300 GHz)                               of works have also proposed modifications to improve
+for wireless data transfer. mmWave is one of the core                               throughput [20], [21]. Grazia et al. [21] target to improve the
+technologies for achieving the high data rates delivered by                         throughput performance of BBR in high-aggregation WLAN
+5G. The use of mmWave, however, introduces complications,                           networks by increasing the 25% probing pacing gain of BBR
+such as signal attenuation and increased rate variability. Thus,                    to a higher value. The BBR modification for HSR in [20]
+we also tested the system on the coarse-grained mmWave                              alters the pacing gain values for the BBR ProbeBW cycle for
+traces. Figure 15 gives the results of the mmWave trace                             more frequent probing and uses a dynamic RTprop interval.
+evaluations. The figure shows that there is a noticeable                            There have also been a few proposals focusing on BBR’s
+improvement in the RTT and the throughput loss is negligible.                       fairness [22], [23]. BBRv2 [24], a second version of BBR has
+It can also be seen that the RTT improvement is bigger                              also been released by Google. However, the second version is
+for the mobility case (Figure 15d). RBBR achieves a more                            mainly concerned with BBR’s fairness and response to high
+consistent RTT between the static and the mobility scenarios                        loss, and keeps the bottleneck bandwidth estimation method
+(63.2 ms for static and 63.53 ms for mobility). That means                          used in the first version of BBR largely unchanged.
+that the improvement in RTT for the mobility case comes                                On the other hand, queuing delay resulting from rate
+from the slight increase in the RTT of BBR in the mobility                          overestimation is the main focus of a few recent papers [4],
+scenario (89.37 ms for BBR and 79.57 ms for BBRw/oAgg)                              [25]–[27]. Su et al. [26] suggest a method of avoiding
+when compared to the static scenario (79.74 ms for BBR and                          spurious rate bursts by delaying the rate update until the
+72.4 ms for BBRw/oAgg).                                                             rate is found to be consistent. Their method was evaluated
+   The RTT and throughput difference between RBBR and                               over a simulated link with a constant rate. Vargas et al. [25]
+BBR in the coarse-grained mmWave traces is, however, not                            found that router burstiness can cause BBR to overestimate
+as big as the difference observed in the fine-grained 4G traces                     the bottleneck rate and cause poor QoE for DASH by build-
+and live network results. When using coarse-grained traces,                         ing long queues. A history-based solution, BBR-sampled
+BBR is less likely to experience frequent sporadic bursts of                        (BBR-S), that collects samples over a period of time and takes
+rate, while RBBR will be better at converging to a new steady                       the rate at the 85th percentile is proposed. This approach is
+state rate. Thus, we anticipate bigger differences in RTT                           tested on both LANs and WANs, however, it’s performance
+and throughput in future experiments with more fine-grained                         in a variable and bursty cellular environment is yet to be
+mmWave traces.                                                                      tested. Another BBR modification, which incidentally is
+
+VOLUME 10, 2022                                                                                                                              18717
+                                                                H. Haile et al.: Receiver-Driven BBR in QUIC for Low-Latency in Cellular Networks
+
+
+
+
+also called BBR-S, has been proposed in [27]. This BBR-S           REFERENCES
+modification replaces the max filter of standard BBR with           [1] J. Iyengar and M. Thomson, QUIC: A UDP-Based Multiplexed and Secure
+an adaptive Kalman filter. However, in contrast to our work,            Transport, document RFC 9000, May 2021.
+                                                                    [2] N. Cardwell, Y. Cheng, C. S. Gunn, S. H. Yeganeh, and V. Jacobson, ‘‘BBR:
+for BBR-S, the rate samples are calculated at the sender from           Congestion-based congestion control,’’ Queue, vol. 14, no. 5, pp. 20–53,
+RTT information and the performance of this modification                Oct. 2016.
+is evaluated through ns-3 simulations. The work in [4] is           [3] Transmission Control Protocol, document RFC 793, Sep. 1981.
+a precursor to this work showing the advantage of using             [4] H. Haile, K.-J. Grinnemo, S. Ferlin, P. Hurtig, and A. Brunstrom, ‘‘WIP:
+                                                                        Leveraging QUIC for a receiver-driven BBR for cellular networks,’’ in
+receiver side rate feedback for BBR in QUIC. Our work                   Proc. IEEE 22nd Int. Symp. World Wireless, Mobile Multimedia Netw.
+builds on that to produce a more robust CCA by integrating              (WoWMoM), Jun. 2021, pp. 252–255.
+a Kalman filter for rate estimation and signaling for sender        [5] M. Belshe, R. Peon, and M. Thomson Hypertext Transfer Protocol Version
+                                                                        2 (HTTP/2), document RFC 7540, May 2015.
+limited cased. This work also provides a more extended              [6] User Datagram Protocol, document RFC 768, Aug. 1980.
+evaluation with multiple traces and in real 4G networks.            [7] J. Gettys, ‘‘Bufferbloat: Dark buffers in the internet,’’ ACM Queue-
+                                                                        Virtualization, vol. 9, pp. 40–54, Nov. 2011.
+                                                                    [8] K. Nichols and V. Jacobson, ‘‘Controlling queue delay: A modern AQM
+                                                                        is just one piece of the solution to bufferbloat,’’ Queue, vol. 10, no. 5,
+                                                                        pp. 20–34, May 2012.
+VII. CONCLUSION                                                     [9] Y. Cheng. (Jul. 2017). Delivery Rate Estimation Internet-Draft Draft-
+In this work, we propose RBBR, a modified version of BBR                Cheng-ICCRG-Delivery-Rate-Estimation. Accessed: Oct. 7, 2021.
+                                                                        [Online]. Available: https://datatracker.ietf.org/doc/html/draft-cheng-
+for QUIC that uses filtered, receiver-side rate measurements            iccrg-delivery-rate-estimation-00
+as estimates of the bottleneck bandwidth, and which let its        [10] H. Haile, P. Hurtig, and K.-J. Grinnemo, ‘‘Rate measurement over short
+sending rate and congestion window be governed by these                 time scales in stationary cellular receivers,’’ in Proc. Netw. Traffic Meas.
+                                                                        Anal. Conf., 2019, pp. 203–208.
+measurements. The receiver-side estimates replace BBR’s
+                                                                   [11] S. Akhlaghi, N. Zhou, and Z. Huang, ‘‘Adaptive adjustment of noise
+sender-side estimates that tend to overestimate the available           covariance in Kalman filter for dynamic state estimation,’’ in Proc. IEEE
+rate in cellular networks. The rate estimates are made at               Power Energy Soc. Gen. Meeting, Jul. 2017, pp. 1–5.
+the receiver by applying a Kalman filter to raw delivery           [12] Facebookincubator. Mvfst. Accessed: Oct. 7, 2021. [Online]. Available:
+                                                                        https://github.com/facebookincubatormvfst
+rate measurements to remove temporary fluctuations. The            [13] D. Duplyakin, R. Ricci, A. Maricq, and G. Wong, ‘‘The design and
+receiver-side rate estimates are transmitted to the sender              operation of CloudLab,’’ in Proc. Annu. Tech. Conf. (ATC), Jul. 2019,
+through a feedback frame that is an extension to standard               pp. 1–14.
+                                                                   [14] Tcnetem(8) Linux Manual Page. Accessed: Oct. 7, 2021. [Online].
+QUIC.                                                                   Available: https://man7.org/linux/man-pages/man8/tc-netem.8.html
+   Our evaluations of RBBR on fine-grained 4G and                  [15] A. Srivastava, F. Fund, and S. S. Panwar, ‘‘An experimental evaluation of
+course-grained mmWave traces show a notable improvement                 low latency congestion control for mmWave links,’’ in Proc. IEEE Conf.
+                                                                        Comput. Commun. Workshops, Jul. 2020, pp. 352–357.
+in RTT with a limited loss in throughput. We also test RBBR
+                                                                   [16] O. Alay, ‘‘MONROE: Measuring mobile broadband networks in Europe,’’
+on static nodes in multiple 4G networks, and our observations           in Proc. IRTF ISOC Workshop Res. Appl. Internet Meas. (RAIM), 2015,
+show that RBBR is robust and consistent in 4G networks. Our             pp. 1–34.
+observations also show that the delay experienced by BBR           [17] S. Ha, I. Rhee, and L. Xu, ‘‘CUBIC: A new TCP-friendly high-speed
+                                                                        TCP variant,’’ ACM SIGOPS Oper. Syst. Rev., vol. 42, no. 5, pp. 64–74,
+can vary depending on the trace used for emulation, time of             Jul. 2008.
+real 4G network test, and location and mobility of the mobile      [18] D. Scholz, B. Jaeger, L. Schwaighofer, D. Raumer, F. Geyer, and
+device. In general, the RTT performance of BBR becomes                  G. Carle, ‘‘Towards a deeper understanding of TCP BBR congestion con-
+                                                                        trol,’’ in Proc. IFIP Netw. Conf. (IFIP Networking) Workshops, May 2018,
+worse when the overall rate becomes low, and in indoor                  pp. 1–9.
+mobility scenarios. Our performance results show that RBBR         [19] F. Li, J. W. Chung, X. Jiang, and M. Claypool, ‘‘TCP CUBIC versus BBR
+is able to maintain a lower and more consistent RTT in real             on the highway,’’ in Passive and Active Measurement Cham, Switzerland:
+                                                                        Springer, 2018, pp. 269–280.
+4G networks, with only a very small penalty in throughput
+                                                                   [20] J. Wang, Y. Zheng, Y. Ni, C. Xu, F. Qian, W. Li, W. Jiang, Y. Cheng,
+compared to standard BBR, a penalty that is eclipsed by the             Z. Cheng, Y. Li, X. Xie, Y. Sun, and Z. Wang, ‘‘An active-passive
+reduction in RTT.                                                       measurement study of TCP performance over LTE on high-speed rails,’’
+   There still exists multiple avenues for future work.                 in Proc. 25th Annu. Int. Conf. Mobile Comput. Netw., Aug. 2019,
+                                                                        pp. 1–9.
+The Kalman filter employed by RBBR operates on the                 [21] C. A. Grazia, M. Klapez, and M. Casoni, ‘‘BBRp: Improving TCP
+assumption of system linearity. We intend to extensively                BBR performance over WLAN,’’ IEEE Access, vol. 8, pp. 43344–43354,
+test the performance of RBBR in situations where the                    2020.
+                                                                   [22] Y. Zhang, L. Cui, and F. P. Tso, ‘‘Modest BBR: Enabling better fairness for
+linearity assumption does not hold. The results from the                BBR congestion control,’’ in Proc. IEEE Symp. Comput. Commun. (ISCC),
+coarse-grained mmWave traces are promising. But we also                 Jun. 2018, pp. 646–00651.
+intend to perform more evaluations using fine-grained 5G           [23] G.-H. Kim and Y.-Z. Cho, ‘‘Delay-aware BBR congestion control algo-
+                                                                        rithm for RTT fairness improvement,’’ IEEE Access, vol. 8, pp. 4099–4109,
+traces, as well as live measurement campaigns in actual                 2020.
+5G networks. Intra and inter CCA fairness analysis and             [24] N. Cardwell. BBR V2: A Model-Based Congestion Control.
+evaluations can also be done to assess RBBR’s friendliness.             Accessed: Oct. 7, 2021. [Online]. Available: https://datatracker.
+RBBR can also be vulnerable to greedy-receiver attacks.                 ietf.org/meeting/104/materials/slides-104-iccrg-an-update-on-bbr-00
+                                                                   [25] S. Vargas, R. Drucker, A. Renganathan, A. Balasubramanian, and
+Future works can explore for ways to prevent these types of             A. A. Gandhi, BBR Bufferbloat in DASighway Video. New York, NY, USA:
+attacks for receiver-driven algorithms.                                 Association for Computing Machinery, 2021, pp. 329–341.
+
+18718                                                                                                                              VOLUME 10, 2022
+H. Haile et al.: Receiver-Driven BBR in QUIC for Low-Latency in Cellular Networks
+
+
+
+
+[26] B. Su, X. Jiang, G. Jin, and H. Chen, ‘‘Rethinking the rate estimation                                 PER HURTIG received the M.Sc. and Ph.D.
+     of BBR congestion control,’’ Electron. Lett., vol. 56, no. 5, pp. 239–241,                             degrees in computer science from Karlstad Univer-
+     Mar. 2020.                                                                                             sity, Sweden, in 2006 and 2012, respectively. He is
+[27] F. Chiariotti, A. Zanella, S. Kucera, and H. Claussen, ‘‘BBR-S: A low-                                 currently an Associate Professor with the Depart-
+     latency BBR modification for fast-varying connections,’’ IEEE Access,                                  ment of Computer Science, Karlstad University.
+     vol. 9, pp. 76364–76378, 2021.                                                                         His research interests include transport protocols,
+                                                                                                            lowlatency internet communication, multi-path
+                                                                                                            transport, and network emulation. He has partici-
+                                                                                                            pated in several international research projects and
+                                                                                                            is also involved in internet standardization within
+                          HABTEGEBREIL HAILE received the M.Sc.                                             the IETF.
+                          degree in telecommunications engineering from
+                          the University of Trento, Italy, in 2014, and in
+                          embedded computing from Åbo Akademi Univer-
+                          sity, Finland, in 2016. He is currently pursuing
+                          the Ph.D. degree with Karlstad University. His
+                          current research interests include fulfilling the
+                          requirements of a diverse set of applications and
+                          services in existing and future cellular networks.
+
+                                                                                                             ANNA BRUNSTROM (Member, IEEE) received
+                                                                                                             the B.Sc. degree in computer science and math-
+                                                                                                             ematics from Pepperdine University, CA, USA,
+                                                                                                             in 1991, and the M.Sc. and Ph.D. degrees in
+                          KARL-JOHAN GRINNEMO (Senior Member,                                                computer science from the College of William &
+                          IEEE) received the Ph.D. degree in computer                                        Mary, VA, USA, in 1993 and 1996, respectively.
+                          science from Karlstad University, in 2006. He has                                  She joined the Department of Computer Science,
+                          worked almost 15 years as an Engineer in the                                       Karlstad University (KAU), Sweden, in 1996,
+                          telecom industry, first at Ericsson and then as                                    where she is currently a Full Professor and the
+                          a Consultant at Tieto. A large part of his work                                    Research Manager of the Distributed Systems
+                          has been related to Ericsson’s signaling system           and Communications Research Group. Her research interests include
+                          in the mobile core and radio access network.              internet architectures and protocols, techniques for low latency internet
+                          Since Fall 2014, he has been a Senior Lecturer            communication, multi-path communication, and performance evaluation
+                          with Karlstad University. He has authored and             of mobile broadband systems, including 5G. She is currently the KAU
+coauthored around 70 conferences and journal articles. His research interests       Principal Investigator within the EU H2020 Project 5GENESIS. She
+targets application- and transport-level service quality. In recent years, his      has authored/coauthored over 200 international journals and conference
+research has to a large degree focused on the use of multipath transport            papers. She is the Co-Chair of the RTP Media Congestion Avoidance
+protocols, such as multipath TCP to increase reliability and throughput and         Techniques (RMCAT) Working Group within the IETF.
+decrease latency in IP networks.
+
+
+
+
+VOLUME 10, 2022                                                                                                                                          18719
+

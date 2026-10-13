@@ -1,0 +1,62 @@
+% Integrated candidate; input from cas-sc-template_F05_applied.tex.
+% Archived measurements remain descriptive; audit restrictions are explicit.
+\section{Controlled Experiments}
+\label{sec:controlled_experiments}
+
+\subsection{Implementation identity and experimental design}
+The archived experiments comprise 340 two-flow runs: 60 each for the
+Ubuntu in-tree baseline, the separately loaded BBRv1 module, BBR2, and
+BBRv3; 80 E3 runs; and 20 artificial-loss runs. The manifests identify
+BBRv3 by the 6.13.7-bbr3 kernel, source marker BBR\_VERSION=3, and runtime
+name \texttt{bbr}. The BBRv1 module registers as \texttt{bbr1} and uses
+a recorded compatibility patch for an unexported TSO helper. BBR2 uses
+a separate 5.13.12-bbr2alpha kernel and runtime name \texttt{bbr2}.
+The in-tree baseline remains a distinct implementation label.
+Different kernel environments and the module patch limit causal
+attribution of performance differences to algorithm version alone.
+
+The E1/E2 matrix uses a 100-Mbps bottleneck, a 20-ms first-flow RTT,
+second-flow RTTs of 20, 40, or 80 ms for the same-algorithm comparison,
+and equal-RTT BBR/CUBIC competition. Queue targets are 0.5, 2, or 10
+times the reference BDP. Each condition has five 180-s repetitions,
+with ECN disabled. Receiver-side iperf3 summaries provide the archived
+full-run goodput. Jain fairness and flow shares are derived from those
+per-flow rates.
+
+The configuration declares a 30-s warmup, but the primary archived
+analysis does not exclude it. A separate sensitivity analysis uses
+complete receiver intervals within the configured 30--180-s window,
+without estimating bytes in boundary intervals. Across 68 condition
+summaries, the largest absolute changes in mean total goodput, Jain
+index, and second-flow share are 1.313 Mbps, 0.02949, and 0.01678,
+respectively. These are sensitivity results rather than revised
+acceptance thresholds.
+
+Loaded RTT measurements are sequential early ping samples from the two
+senders. Queue counters were sampled before the transfers completed.
+They therefore do not share the goodput observation window, and a zero
+counter in a saved snapshot does not establish zero drops over 180 s.
+The experiment records cannot reconstruct the missing end-of-run
+queue counters or a simultaneous post-warmup RTT window.
+
+\input{F15_cross_version_results_candidate.tex}
+\input{F13_E3_results_candidate.tex}
+
+\subsection{Artificial loss and experimental limitations}
+The artificial-loss extension compares BBRv3 and CUBIC at configured
+loss probabilities of zero and 0.1\% on a separate access link,
+using five runs per algorithm and setting. Archived full-run mean total
+goodput changes from 93.87 to 94.25 Mbps for BBRv3 and from 95.58 to
+81.06 Mbps for CUBIC. The small BBRv3 increase is a descriptive observation
+and is not evidence that loss improves performance. The loss generator's
+seed was not exposed in the retained configuration; this setup does not
+represent correlated wireless or satellite errors.
+
+The additional equal-RTT cases extend the capacity and RTT settings of
+the main matrix. Their physical queue sizes are reported explicitly in
+Table~\ref{tab:e3_candidate}. Because four cases differ from the intended
+buffer labels, we use these results as an additional empirical comparison,
+rather than as a validation of the original buffer-category predictions.
+The experiments evaluate goodput and bandwidth sharing under controlled
+conditions; they do not establish universal suitability thresholds or
+isolate the causal effect of an individual controller mechanism.

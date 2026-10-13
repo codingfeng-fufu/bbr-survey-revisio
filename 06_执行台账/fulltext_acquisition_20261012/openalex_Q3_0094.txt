@@ -1,0 +1,412 @@
+                                This advance publication article will be replaced by the finalized version
+                                after proofreading.
+                                                                                                                                    IEICE Communications Express, Vol.12, No.1, 1–4
+
+
+
+
+LETTER
+A New BBR with Moderate Delivery Rate
+Ryosuke Minami A1, a) , Shotaro Ishikura1 , and Miki Yamamoto2
+
+
+
+Abstract BBR has been proposed as congestion-based congestion control
+by Google. It was originally designed to operate around optimal operating
+
+
+
+
+                                                                                    ")&+,)*-./0%) /1'2345*+645+7)
+                                                                                                                        !"#           !"#$!%&!'(()*
+point where maximum throughput is obtained without incurring increase of
+roundtrip delay. In this paper, with simple analysis and detailed simulation
+results, we show that BBR increases its delivery rate even though BBR ﬂows
+sharing the same bottleneck link fully utilize available bandwidth. From
+                                                                                                                           !"#$%&'()*+%,'-&+      !)#.,//0")/1+,%12)&'-3+%,'-&+
+simple analysis results, we propose a new BBR delivery rate calculation
+algorithm which regulates delivery rate moderately, BMR. Our simulation
+results show that our proposed BMR operates around the optimal operating
+point.
+Keywords: Congestion Control, BBR
+Classiﬁcation: Internet
+
+                                                                                                                                !"#$%&'(
+1.    Introduction
+
+As available network bandwidth in the current Internet has                                                          Fig. 1: Operating point of congestion control
+increased, routers are increasingly designed with large buﬀer                  we analyze estimated available bandwidth for this ﬂow just
+sizes. With loss-based TCP, such as CUBIC [1], router                          after the seek phase and reveal that it increases 10/9th higher.
+buﬀer is fully occupied at the timing of congestion detection                  These analysis results also show that BBR ﬂows increases
+at the end host. Large queue size at the intermediate router                   their delivery rates even though their total rate reaches bot-
+on the end-to-end path causes large end-to-end delay, which                    tleneck bandwidth. Injected packets over bottleneck band-
+is a well-known technical problem of “buﬀerbloat” [2].                         width are stored at the bottleneck router, which ﬁnally cases
+   Google proposed a new type of congestion con-                               buﬀerbloat. Based on our analysis results, in this paper, we
+trol, congestion-based congestion control, BBR(Bottleneck                      propose a new BBR algorithm which regulates its delivery
+Bandwidth and Round-trip-time) in 2016 [3], which is ex-                       rate moderately, BBR with Moderate delivery Rate (BMR).
+pected to resolve buﬀerbloat. BBR aims to operate at the                          Our contributions in this paper are, (1) with simple anal-
+optimal operating point proposed by Kleinrock [4](for de-                      ysis [7], we show that delivery rate of BBR increases ten
+tails, see Sec.2). BBR is reported to be second place in                       ninths(10/9) higher just after seek phase even though bot-
+deployment of TCP variants and accounts for more than                          tleneck bandwidth is fully utilized, (2) we evaluate detailed
+40% volume of the Internet traﬃc [5]. Even though BBR is                       performance of BBR’s delivery rate which increases just af-
+originally designed to operate at the optimal operating point,                 ter seek phase by computer simulation(M.Hock et al. [6] just
+M.Hock et al. [6] claim that BBR continues to increase its                     show experimental evaluation results without detailed ones),
+delivery rate even after total rate excesses bottleneck band-                  (3) based on these analysis results, we propose a new BBR
+width. They also analyze delivery rate of BBR and reveal                       algorithm, BMR, which resolves buﬀerbloat in BBR.
+that when gain cycles of BBR ﬂows are asynchronous, BBR
+inﬂight increases until it reaches inﬂight cap deﬁned as twice
+                                                                               2. BBR
+of BDP (Bandwidth Delay Product). This means BBR which
+is originally designed to resolve buﬀerbloat, surprisingly                     BBR is designed to operate around the optimal operating
+might cause buﬀerbloat.                                                        point proposed by Kleinrock [4] which is depicted as blue
+   In this paper, we simply analyze BBR delivery rate just                     points in Fig.1. With increase of inﬂight packets, until it
+after seek phase (gain = 1.25) [7]. In this analysis, we ﬁrst                  reaches BDP, delivery rate increases linearly. RTT has ﬁxed
+assume that two ﬂows share the bottleneck link fairly. Then,                   value of propagation delay because no packets are stored in
+  1                                                                            the bottleneck router. After it reaches BDP, delivery rate
+    Graduate School of Science and Engineering, Kansai Univer-
+    sity, Suita-shi, Osaka 564-8680, Japan
+                                                                               does not increase and inﬂight packets over BDP is stored
+  2 Faculty of Engineering Science, Kansai University, Suita-shi,              at the bottleneck router. So, RTT increases linearly with
+    Osaka 564-8680, Japan                                                      increase of queueing delay. At the optimal operating point,
+ a) k074459@kansai-u.ac.jp                                                     the maximum delivery rate can be obtained with minimum
+                                                                               RTT.
+© IEICE
+DOI:     2023
+     10.1587/comex.XX.XXXXXXXX                                                    BBR is congestion-based congestion control because it
+DOI: 10.23919/comex.2023COL0018
+Received  March 1, 2023
+ReceivedMarch
+Accepted   July 11, 2023
+                1, 2023
+                                                                               is designed to operate at the optimal operating point where
+Accepted January
+Publicized July 31, 12,
+                    20232023                                                   maximum throughput can be obtained without congestion.
+Copyedited MM DD, YYYY
+
+                                                                                                                                                                                  1
+                                 This work is licensed under a Creative Commons Attribution NonCommercial, No Derivatives 4.0 License.
+                      Copyright © 2023 The Institute of Electronics, Information and Communication Engineers
+                                                                                             IEICE Communications Express, Vol.12, No.1, 1–4
+
+
+Because available network bandwidth dynamically changes,                           !"#$"%                     %"&"'("%
+BBR needs to search the “current” optimal operating point.             )*'#+0-1/
+For this purpose, BBR measures two parameters 𝑅𝑇 𝑝𝑟𝑜 𝑝,
+minimum ﬁltered RTT for 10seconds, and 𝐵𝑡𝑙 𝐵𝑤, maxi-
+mum ﬁltered delivery rate for 10RTprop. At every ACK
+reception, BBR measures the amount of acknowledged data                )*'#+,-./                  #
+                                                                                                   &'(
+                                                                                                                       !
+                                                                                                                        !"#$%#
+                                                                                         !                             "
+                                                                                                  "
+volume for 1RTT. And delivery rate is calculated as average                              !
+                                                                                         !
+acknowledged data volume in 1RTT. 𝐵𝑡𝑙 𝐵𝑤 is the maximum
+delivery rate over 10RTprop.
+   The sending rate of BBR is calculated by 𝐵𝑡𝑙 𝐵𝑤 × 𝑔𝑎𝑖𝑛.                )*'#+0
+By increasing or decreasing gain, BBR can search maximum                             2                             2
+ﬁltered delivery rate without excess queueing. The gain is
+decided through the following BBR four states.                               Fig. 2: Time sequence of gain cycles
+   • Startup: Startup is initial state quickly adjusting send-
+     ing rate to available bandwidth. In this state, gain
+     is set to 2/ln2 and rate increases exponentially like        calculate the transition from a situation where both
+     slow-start phase in TCP. Without increase of 𝐵𝑡𝑙 𝐵𝑤          ﬂows have a fair allocation of bottleneck link bandwidth
+     in 3RTTs, upper-bound bandwidth might be obtained.           (𝐵𝑡𝑙 𝐵𝑤 𝐴=𝐵𝑡𝑙 𝐵𝑤 𝐵 = 𝐵𝑤2 ) and there is no stored packets in
+     So, BBR exits this Startup phase and enters the next         the bottleneck router. In BBR, the initial gain cycle is ran-
+     phase, “Drain”.                                              domly selected from other than the drain cyble(gain = 0.75).
+   • Drain: This state is for eliminating packets in the bot-     In other words, since the gain transition is asynchronous for
+     tleneck queue built at the Startup phase, and pacing         each ﬂow with high probability, in this analysis, we calculate
+     gain is the inverse of the value used at Start up(=ln2/2).   the transition from the state where the gain cycles of ﬂows
+   • probeBW: probeBW is a steady state of BBR. The aim           A and B are 1.25 and 1, respectively.
+     of this phase is a search for further available bandwidth.      The interval when the sending rate of ﬂow A is
+     The gain is changed in a cyclic fashion and has 8 cy-        1.25×𝐵𝑡𝑙 𝐵𝑤 𝐴 lasts for the RTprop. That is, the amount
+     cles of gaincycle={1.25,0.75,1,1,1,1,1,1}. Each gain-        of data sent by Flow A during this period is obtained as
+     term basically continues for RTprop. The seek cycle of       follows.
+     gain=1.25 is for searching more available bandwidth,                        5                        5
+                                                                                   𝐵𝑡𝑙 𝐵𝑤 𝐴 × 𝑅𝑇 𝑝𝑟𝑜 𝑝 = 𝐵𝐷𝑃,                (1)
+     and the drain cycle of gain=0.75 is for absorbing pack-                     4                        8
+     ets accumulated in the queue in the seek cycle. In a         where 𝐵𝐷𝑃=𝐵𝑤 × 𝑅𝑇 𝑝𝑟𝑜 𝑝. The amount of data sent in
+     cycle with gain=1, delivery rate is just maintained．         this interval by ﬂow B is 𝐵𝐷2 𝑃 ，and 98 𝐵𝐷𝑃 is totally sent
+   • probeRTT: The probeRTT phase is also one of two BBR          from both ﬂows within this interval.
+     steady states. When RTprop has not been updated for             Now, we would like to induce the amount of data acknowl-
+     10 seconds, BBR enters this phase. cwnd(congestion           edged by ACKs within the round-trip delay(amount of data
+     window size) is reduced to 4 and held for 200 ms to          acknowledged by the red arrow ACKs in Fig.2) of our fo-
+     completely absorb the queue at the bottleneck router.        cusing last packet of the seek phase. The round-trip delay
+     By removing packets in the router buﬀer, the mini-           is equal to the delay in which the above total data volume is
+     mum RTT, RTprop, can be correctly re-measured. As            transferred by the bottleneck bandwidth, 𝐵𝑤,
+     described in the original paper of BBR [3], when mul-
+                                                                                         8 𝐵𝐷𝑃
+                                                                                         9
+     tiple BBR ﬂows share the same bottleneck link, the                                          9
+                                                                                                   𝑅𝑇 𝑝𝑟𝑜 𝑝.
+                                                                                                   =                     (2)
+     probeRTT phase is synchronized for these ﬂows. Af-                                 𝐵𝑤       8
+     ter 200ms have passed in the probeRTT phase, BBR             By equation (1) and (2), new 𝐵𝑡𝑙 𝐵𝑤 𝐴 which is max-ﬁltered
+     returns to the probeBW phase.                                with newly obtained available bandwidth estimation, is
+BBR is basically rate-based, but to avoid injecting the exces-    slightly increased as follows.
+sive data in the network, the upper limit of inﬂight, called
+                                                                               8 𝐵𝐷𝑃
+                                                                               5
+inﬂight cap, is set to 2BDP.                                                                     5                 𝐵𝑤
+                                                                                             =     𝐵𝑤 > 𝐵𝑡𝑙 𝐵𝑤 𝐴 =    .                 (3)
+                                                                             8 𝑅𝑇 𝑝𝑟𝑜 𝑝
+                                                                             9                   9                  2
+3.   Simple analysis and Preliminary evaluation of BBR
+                                                                     Before entering the seek cycle, available delivery rate of
+3.1 Simple analysis                                               ﬂow A, 𝐵𝑡𝑙 𝐵𝑤 𝐴, is 𝐵𝑤/2. After entering the seek cycle,
+In this paper, we ﬁrst simply analyze 𝐵𝑡𝑙 𝐵𝑤 behavior in the      it increases continuously and ﬁnally just after reception of
+probeBW phase. The seek cycle (gain = 1.25) plays an im-          the ACK of the last packet in the seek cycle, it is 5𝐵𝑤/9(as
+portant role for increase of 𝐵𝑡𝑙 𝐵𝑤. So, we focus on the last     shown in equation 3). This means for ﬂow A, its available
+packet sent in the seek cycle and induce mathematical equa-       delivery rate increases ten ninths(10/9) higher, as follows.
+
+                                                                                                 9 𝐵𝑤
+tions in terms of the amount of data acknowledged during                                         5
+                                                                                                            10
+the round-trip delay of this focused packet.                                                      𝐵𝑤
+                                                                                                        =      .                        (4)
+                                                                                                   2
+                                                                                                            9
+   We ﬁrst assume that two ﬂows A and B with equal
+RTT (=𝑅𝑇 𝑝𝑟𝑜 𝑝) share the same bottleneck link. We                Thus, 𝐵𝑡𝑙 𝐵𝑤 𝐴 estimated in the seek cycle(gain=1.25) is
+                                                                  slightly increased even though the seek cycle starts in the
+
+                                                                                                                                          2
+                                                                                                                                                        IEICE Communications Express, Vol.12, No.1, 1–4
+
+
+                                                                                                               12
+                   !3
+                   12
+                                      '#()"                                                                    10
+                   !"
+                   10
+                                          %&'()!      !"#$          *"+$             !
+                        (8                                                                                             8
+
+
+
+
+                                                                                                         Rate [Mbps]
+      )*+,-./012
+              Rate [Mbps]
+
+
+
+
+                        &6            !"#$&                                                                            6
+
+                        $4            !"#$%                                                                            4
+                                                     %&'()!                                                                                    !"#!$!            !"#!$"          %&"'#
+                        32                                                         BtlBwA
+                                                              7-./012'3145 4&61 BtlBwB                                 2                                                                     BtlBwA
+                                                                                    Total
+                                                                           measuredrateA                                                     ()*+,-#./-01+0'"-            !)*+,-#./-01+0'"-  BtlBwB
+                                                                                                                                                                                               Total
+                                                              ,-./012'3145/4&61
+                        "0                                                 measuredrateB                                                                                              measuredrateA
+                                                                                                                                                                                      measuredrateB
+                        !"#$
+                         10.4                 !"#%
+                                              10.5     !"#&
+                                                       10.6              !"#'
+                                                                          10.7              !"#(
+                                                                                             10.8                      0
+                                                      Time [s]                                                          10.5 11 11.5 12 12.5 13 13.5 14 14.5 15
+                                                     456,-12                                                                                                      Time [s]
+
+
+                                                                                                        Fig. 5: 𝐵𝑡𝑙 𝐵𝑤 and delivery rate of two BBR ﬂows
+    Fig. 3: 𝐵𝑡𝑙𝐵𝑤 and delivery rate of two BBR ﬂows
+                                                                                                                        (long-term range)
+                   (short-term range)
+
+                                                                                                                                        80
+                                30
+                                                                                                                                        70
+                                25                                                                                                      60
+
+
+
+
+                                                                                                                           queue[pkt]
+                                20                                                                                                      50
+                   queue[pkt]
+
+
+
+
+                                                                                                                                        40
+                                15
+                                                                                                                                        30
+                                10                                                                                                      20
+
+                                 5                                                                                                      10
+                                                                                                                                         0 10.5 11 11.5 12 12.5 13 13.5 14 14.5 15
+                                 0
+                                 10.4 10.45 10.5 10.55 10.6 10.65 10.7 10.75 10.8                                                                                  Time [s]
+                                                     Time [s]
+
+                                                                                                                                             Fig. 6: Bottleneck queue length
+                                     Fig. 4: Bottleneck queue length
+                                                                                                                                                     (long-term range)
+                                            (short-term range)
+
+                                                                                                    to the increase in measured data delivery rate(𝐵𝑡𝑙 𝐵𝑤 𝐴 is
+situation that two ﬂows just fully utilize the bottleneck link,
+                                                                                                    max-ﬁltered), indicating that the sum of 𝐵𝑡𝑙 𝐵𝑤(light green
+i.e. 𝐵𝑡𝑙 𝐵𝑤 𝐴 + 𝐵𝑡𝑙 𝐵𝑤 𝐵 = 𝐵𝑤. This leads to the increase
+                                                                                                    line) exceeds 𝐵𝑤 (10Mbps).
+in the amount of inﬂight. Finally, inﬂight might reach the
+                                                                                                       Figures 4 and 6 show queue length at the bottleneck router.
+inﬂight cap, and after that BBR operates at inﬂight cap.
+                                                                                                    The former ﬁgure shows short-term characteristics(10.4-
+   The reason why the measured delivery rate increases
+                                                                                                    10.8s) and the latter shows long-term one(10.4-15s). As
+through the seek cycle is that total volume of data pack-
+                                                                                                    shown in Fig. 4, queue length grows during the seek cy-
+ets increases with the seek gain(1.25) and on the other hand,
+                                                                                                    cle(until 10.65) and slightly decreases during the drain cycle.
+round-trip delay is not so much increased(for example, in
+                                                                                                    And it grows constantly after the drain cycle. This is because
+our simple analysis case, nine eighths higher). The reason
+                                                                                                    total delivery rate of the two ﬂows exceeds the bottleneck
+of smaller increase of round-trip delay is the other ﬂow does
+                                                                                                    bandwidth. As shown in Fig. 6 queue length continuously
+not increase its delivery rate(due to gain=1) and traﬃc load
+                                                                                                    increases until BBR reaches the inﬂight cap.
+to the bottleneck link does not increase as high as the fo-
+                                                                                                       The cause of this increase in the bottleneck queue length
+cused ﬂow(traﬃc volume of the focused ﬂow increases one
+                                                                                                    is slight increase of measured data delivery rate, and this ten-
+and quarter times). This means asynchronous gain cycle is
+                                                                                                    tative increase of the measured data delivery rate(as shown
+the root cause of measured delivery rate increase.
+                                                                                                    in Fig. 3, measured data delivery rate of ﬂow A decreases
+                                                                                                    just after it has tentative maximum value) is maintained for
+3.2 Preliminary evaluation
+                                                                                                    10RTTs by the max-ﬁlter. Figure 5 shows long-term mea-
+We evaluate detailed BBR behavior around the seek phase
+                                                                                                    sured data delivery rates and max ﬁltered 𝐵𝑡𝑙 𝐵𝑤 of the two
+(gain=1.25) by computer simulation using ns3. In our sim-
+                                                                                                    ﬂows. After decrease of measured data delivery rate of ﬂow
+ulation model, RTT is 60[ms], 𝐵𝑤 is 10[Mbps], and packet
+                                 6 ×0.06                                                            A(just after 10.7s as shown in Fig. 3), measured data de-
+size is 1500[bytes]. 𝐵𝐷𝑃= 10×10
+                              8×1500     =50[pkt].                                                  livery rate of ﬂow A tentatively increases several times with
+   Figure 3 shows measured data delivery rates (light red                                           the seek cycles. As shown in Fig. 5, for example, at 10.9s,
+and blue lines) and max-ﬁltered 𝐵𝑡𝑙 𝐵𝑤(red and blue lines)                                          11.1s, 11.3s and so on, measured data delivery rate has tenta-
+of the two ﬂows. In this simulation experiment, probeRTT                                            tively maximum values. These slight increases of measured
+phase ends at 10.43s. And after eliminating the buﬀer in the                                        data delivery rate cause higher value of max-ﬁltered 𝐵𝑡𝑙𝐵𝑤 𝐴
+probeRTT phase, the probeBW phase starts and both ﬂows                                              beeing kept for longer periods (than 10RTTs). This mecha-
+share bandwidth fairly with gain=1(10.43-10.55s), then at                                           nism prevents BBR from operating at the optimal operating
+10.55s ﬂow A starts the seek cycle(gain=1.25). After en-                                            point. From these analysis and simulation results, we came
+tering the drain cycle (gain=0.75), 𝐵𝑡𝑙 𝐵𝑤 𝐴 is updated due                                         up with the idea that the delivery rate of BBR is to be set
+
+                                                                                                                                                                                                       3
+                                                                                                                                             IEICE Communications Express, Vol.12, No.1, 1–4
+
+
+                                                                                                                                   80
+                   12                                       BtlBwA             Aʼs delivery rate                                   70
+                                                            BtlBwB             Bʼs delivery rate
+                   10                                         Total
+                                                                                                                                   60
+     Rate [Mbps]
+
+
+
+
+                                                                                                                      queue[pkt]
+                    8                                                                                                              50
+
+                    6                                                                                                              40
+                                                                                                                                   30
+                    4
+                                                                                                                                   20
+                    2           BtlBwA           Total                A’s Delivery Rate
+                                BtlBwB                                B’s Delivery Rate                                            10
+                     0                                                                                                              0 10.5 11 11.5 12 12.5 13 13.5 14 14.5 15
+                     2                                                                 Aʼs gain                                                      Time [s]
+                   1.5                                                                 Bʼs gain
+     gain
+
+
+
+
+                     1                                                                                        Fig. 8: Bottleneck queue length of BMR(𝛼=0.9)
+                   0.5                    A’s gain               B’s gain
+                     0
+                         10.5    11      11.5    12      12.5 13        13.5      14        14.5   15
+                                                         Time [s]                                       goal of BBR. From queueing theory, full utilization is quite
+                                                                                                        risky for stable system behavior and this is also the case for
+                   Fig. 7: 𝐵𝑡𝑙 𝐵𝑤 and delivery rate of BMR(𝛼=0.9)                                       BBR congestion control. We believe that our proposed BMR
+                                                                                                        which moderately regulates transmission rate just below the
+                                                                                                        full utilization, is quite a reasonable approach.
+slightly lower than max-ﬁltered 𝐵𝑡𝑙𝐵𝑤.
+
+4.         BMR:BBR with Moderate delivery Rate                                                          5. Conclusion
+
+                                                                                                        In this paper, we focus on intra-protocol behaviors of BBR
+As described above, we would like to propose a new de-
+                                                                                                        congestion control. Our simple analysis and preliminary
+livery rate calculation algorithm for BBR, BMR(BBR with
+                                                                                                        evaluation results show that although BBR is designed to
+Moderate delivery Rate). As shown in our simple analysis
+                                                                                                        operate at the optimal operating point, BBR is operating at
+results, tentative delivery rate just after the seek phase in-
+                                                                                                        inﬂight cap, not at the optimal operating point. And our
+creases 19 of the former value when the ﬂow exits its seek
+                                                                                                        simple analysis reveals that delivery rate of a ﬂow increases
+cycle. We would like to prevent the transmission rate of BBR                                            10
+from excessing the bottleneck bandwidth. So, we propose                                                  9 higher just after the seek cycle in the ProbeBw phase
+                                                                                                        of BBR. Based on these results, we propose a new BBR
+a simple method of setting the transmission rate of BBR to
+                                                                                                        available rate calculation algorithm, BMR, which reduces
+𝛼 × 𝐵𝑡𝑙𝐵𝑤, where 𝛼 should be less than or equal to 10   9
+                                                          .
+                                                                                                        max-ﬁltered available bandwidth by multiplying the weight
+   We evaluate our proposed BMR with the same simulation                                                            9
+                                                                                                        (less than 10 ). Our evaluation results for BMR show that
+model used in chapter 3. Figure 7 shows 𝐵𝑡𝑙 𝐵𝑤, mea-
+                                                                                                        BMR can operate around the optimal operating point without
+sured data delivery rate and gain cycles of BMR for the case
+                                                                                                        increase of inﬂight packets.
+of 𝛼 = 0.9. Light green line shows sum of 𝐵𝑡𝑙 𝐵𝑤 𝐴 and
+𝐵𝑡𝑙𝐵𝑤 𝐵 . And Fig. 8 shows queue length of BMR for 𝛼 =
+                                                                                                        Acknowledgments
+0.9. As shown in Fig. 7, gain cycles of two ﬂows are not
+synchronized. As we discussed in section 3.1, asynchrony
+                                                                                                        This work was partly supported by JSPS KAKENHI Grant
+of gain cycle causes increase of measured delivery rate of
+                                                                                                        Number 21H03434.
+BBR. Measured delivery rates of ﬂow A and B increase just
+after their seek cycle. And 𝐵𝑡𝑙 𝐵𝑤 𝐴 and 𝐵𝑡𝑙 𝐵𝑤 𝐵 are max-                                              References
+ﬁltered with these delivery rates. In our proposed BMR,
+transmission rate of each ﬂow is moderately regulated to                                                [1] S.Ha, I. Rhee, and L. Xu, “CUBIC: A New TCP-friendly High-speed
+0.9-times 𝐵𝑡𝑙 𝐵𝑤 𝐴 and 𝐵𝑡𝑙 𝐵𝑤 𝐵 for ﬂow A and B, recpec-                                                    TCP Variant” ACM SIGOPS(Oper. Syst. Rev.), vol.42, no.5 pp. 64-
+tively.1 With this moderate regulation to transmission rate,                                                74, July 2008. doi:10.1145/1400097.1400105
+                                                                                                        [2] J. Gettys and K. Nichols, “Buﬀerbloat: Dark Buﬀers in the
+max-ﬁltered measured delivery rate, 𝐵𝑡𝑙 𝐵𝑤 𝐴 and 𝐵𝑡𝑙 𝐵𝑤 𝐵                                                   Internet,” ACM Queue, vol.9, no.11, pp.40-54, Nov. 2011.
+is stable without any increase. And total transmission rate                                                 doi:10.1145/2063166.2071893
+is 0.9-times (𝐵𝑡𝑙𝐵𝑤 𝐴 + 𝐵𝑡𝑙 𝐵𝑤 𝐵 ), i.e., it is slightly lower                                          [3] N. Cardwell, Y. Cheng, C. Gunn, S. Yeganeh, and V. Jacobson, “BBR:
+than 10Mbps(0.9-times higher value of the light green line                                                  Congestion-Based Congestion Control: Measuring Bottleneck Band-
+is slightly below 10Mbps). Because of slight lower trans-                                                   width and Round-Trip Propagation Time,” ACM Queue, Vol. 14, No.
+                                                                                                            5, pp. 20 ‒ 53, Sept. 2016. https://doi.org/10.1145/3012426.3022184
+mission rate than 10Mbps bandwidth, queue length is also                                                [4] L. Kleinrock, “Power and Deterministic Rules of Thumb for Probabilis-
+stable without any increase(of course, there are some spike                                                 tic Problems in Computer Communications,” IEEE ICC 79, Boston,
+due to the seek cycle).                                                                                     MA, U.S.A., pp. 43.1.1-43.1.10, June 1979.
+   As total delivery rate is close to 𝐵𝑤(although slightly                                              [5] A. Mishra, X. Sun , A. Jain , S. Pande, R. Joshi, and B. Leong, “The
+smaller than 𝐵𝑤 due to weight of 𝛼) and queue length is                                                     Great Internet TCP Congestion Control Census,” In Proc. ACM Meas.
+                                                                                                            Anal. Comput. Syst., Vol. 3, no.3, Dec. 2019. doi:10.1145/3366693
+not reduced to 0, bottleneck link is ideally utilized without                                           [6] M. Hock, R. Bless, and M.Zitterbart, “Experimental evaluation of
+buﬀerbloat. This means our proposed BMR can operate                                                         BBR congestion control,” IEEE International Conference on Network
+around the optimal operating point which is the original                                                    Protocols, Toronto, Canada, Oct. 2017.
+                                                                                                        [7] R. Minami, S. Ishikura, and M. Yamamoto, “A Study on Probed Bot-
+ 1   Exactly, for ﬂow A, transmission rate is 𝐵𝑡𝑙𝐵𝑤 𝐴 × 𝑔𝑎𝑖𝑛 × 𝛼.                                           tleneck Bandwidth for Competing BBR Flows,” IEICE 2023 General
+     In our discussion here, “gain” is omitted for simple and easy                                          Conference, B-6-9, Mar. 2023.
+     explanations.
+
+                                                                                                                                                                                          4
+

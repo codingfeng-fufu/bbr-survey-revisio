@@ -1,0 +1,589 @@
+                                                             (IJACSA) International Journal of Advanced Computer Science and Applications,
+                                                                                                                      Vol. 16, No. 1, 2025
+
+
+            Towards Transparent Traffic Solutions:
+        Reinforcement Learning and Explainable AI for
+                     Traffic Congestion
+            Shan Khan1, Taher M. Ghazal2,*, Tahir Alyas3, M. Waqas4, Muhammad Ahsan Raza5, Oualid Ali6,
+                                    Muhammad Adnan Khan7,*, Sagheer Abbas8
+              Department of CS, National College of Business Administration & Economics in Lahore, Pakistan 1, 4
+                Hourani Center for Applied Scientific Research, Al-Ahliyya Amman University, Amman, Jordan2
+                        Department of Computer Science, Lahore Garrison University, Lahore, Pakistan3
+             Department of Information Sciences, University of Education, Lahore, Multan Campus 60000, Pakistan 5
+             College of Arts & Science, Applied Science University, P.O.Box 5055, Manama, Kingdom of Bahrain 6
+          Department of Software-Faculty of Artificial Intelligence and Software, Gachon University, Republic of Korea7
+                  Department of Computer Science, Prince Mohammad Bin Fahd University, Alkhobar, KSA 8
+
+
+    Abstract—This study introduces a novel approach to traffic          learned policies. Explainable Artificial Intelligence (XAI) has
+congestion detection using Reinforcement Learning (RL) of               emerged as a vital area of research aimed at making the
+machine learning classifiers enhanced by Explainable Artificial         decisions of complex machine learning models more
+Intelligence (XAI) techniques in Smart City (SC). Conventional          transparent and understandable. XAI techniques with RL
+traffic management systems rely on static rules, and heuristics face    enhance the possibility of improving the model, thereby
+challenges in dynamically addressing urban traffic problems'            increasing trust and facilitating better decision-making.
+complexities. This study explains the novel Reinforcement               Reinforcement Learning with an Explainable Artificial
+Learning (RL) framework integrated with an Explainable                  Intelligence (RL-XAI) framework represents the solid ML
+Artificial Intelligence (XAI) approach to deliver more transparent
+                                                                        approach for traffic congestion prediction. It ensures data
+results. The model significantly reduces the missing data rate and
+improves overall prediction accuracy by incorporating RL for
+                                                                        security and transparency because they use traffic data's cloud
+real-time adaptability and XAI for clarity. The proposed method         storage option in result interpretation.
+enhances security, privacy, and prediction accuracy for traffic             Moreover, these current ML models often overlook the need
+congestion detection by using Machine Learning (ML). Using RL           for explainability, using manipulated data from storage to IOT
+for adaptive learning and XAI for interpretability, the proposed        devices. This research represents the evaluated results of traffic
+model achieves improved prediction and reduces the missing data         congestion validation via XAI, which is more accurate than any
+rate, with an accuracy of 98.10, which is better than the existing
+                                                                        other approach. This secure structure improves data reliability,
+methods.
+                                                                        ensuring predictions are based on trustworthy inputs.
+    Keywords—Reinforcement learning; Explainable Artificial             Additionally, XAI is the best model for predicting a novel
+Intelligence (XAI); Smart City (SC); IoT; Machine Learning (ML)         approach in this field. Moreover, the model offers transparency
+                                                                        in the decision-making process to help people understand and
+                       I.    INTRODUCTION                               trust the accuracy of the results. This dual approach not only
+                                                                        secures data but also improves the reliability and interpretability
+    Traffic congestion is pervasive in urban areas worldwide,
+                                                                        of traffic congestion predictions.
+leading to significant economic, environmental, and social costs
+[1]. Predicting traffic congestion is crucial for developing an             One critical issue in deploying this model for traffic
+effective traffic management system and improving the global            congestion prediction is the secure data transmission between
+efficiency of transportation systems. Traditional methods for           the machine learning model between the wireless sensor
+traffic prediction often rely on historical data and heuristic          network and cloud servers [5]. This study introduces a novel
+models, which may not adequately capture the complexities and           framework that combines RL with XAI (RL-XAI) to explain
+dynamic nature of traffic patterns to improve transportation            clearly these challenges. The proposed approach aims to
+safety using AI [2]. Recent advances in machine learning                improve traffic congestion predictions' accuracy and data
+included KNN, CNN, LSTM, and others, but these techniques               transmission security and privacy. XAI performed vitally in
+have different pros and cons for any IoT device, including              results validation and enhanced data accuracy. RL-XAI
+autonomous vehicles [3]. This work, particularly                        framework provides accurate decision-making regarding traffic
+Reinforcement Learning (RL), has shown promise in                       congestion, which is useful for transportation. The key
+addressing these challenges by learning optimal policies                contributions of this work included the XAI techniques with
+through environmental interactions in AI [4]. However, this             RL, which significantly improved the precision of traffic
+model faces challenges, including the need for large amounts of         congestion predictions compared to conventional machine
+data, computational resources, and difficulty interpreting the          learning methods. The proposed framework confirms that
+
+
+
+                                                                                                                            503 | P a g e
+                                                          www.ijacsa.thesai.org
+                                                            (IJACSA) International Journal of Advanced Computer Science and Applications,
+                                                                                                                     Vol. 16, No. 1, 2025
+
+secure data transmission between the model and cloud servers           A. Reinforcement Learning (RL)
+is a significant concern in deploying machine learning models              Reinforcement learning's core elements are an agent, an
+in real-world scenarios. Using XAI helps effectively handle            environment, and action interactions with potentially notable
+missing data, leading to more robust and reliable predictions.         outcomes. It is understood that through varying states and
+XAI techniques clearly understand the model's outcomes,                actions, a single agent can optimize through RL interactions. It
+facilitating better trust and acceptance of the predictions.           is based on learning and adapting an optimal decision-making
+Through comprehensive evaluation, the RL-XAI framework                 strategy sequentially through reinforcement. Homeostasis is
+demonstrates a remarkable 5% improvement in security,                  achieved through feedback mechanisms, punishment, and
+reliability, and overall accuracy compared to existing                 rewards. As such, the best practices in RL can regularly involve
+approaches. This innovative approach offers a promising                formalistic approaches concerning techniques applicable to the
+solution to the complex problem of traffic congestion                  defined environments using disciplined behaviors. The first step
+prediction, paving the way for more intelligent and efficient          consists of specifying the surrounding environment as an agent
+traffic management systems. The accuracy of traffic congestion         space alongside possible actions while depicting them in two-
+predictions remains a significant challenge in existing machine        dimensional forms. A reward structure also allows for positive
+learning models. One key issue is improving prediction                 feedback, encouraging the agent to achieve its goals. After that
+accuracy over current models, especially given complex and             is provided, learning algorithms can be applied, and in this case,
+dynamic traffic patterns. Real-time prediction requires models         Q-learning, Deep Q-Network, or Domain-Specific Policy
+to forecast congestion despite rapidly changing conditions             Gradient learning techniques are selected. However, we also
+accurately. Data quality and availability further impact model         have variations of these reinforcement algorithms based on the
+accuracy, necessitating solutions to ensure reliable data inputs.      nature of environments, austere simulated environments, and
+Ensuring robustness and reliability across various traffic             RL techniques applicable on greater scales bedecked with wide-
+scenarios and conditions is another hurdle.                            open worlds. There are other prerequisites for selecting an
+    Additionally, scalability is essential for handling large          algorithm varying significantly, starting with the goals and
+datasets and providing accurate predictions for extensive urban        capabilities of both the agents and its designers – whether short-
+areas. Optimising feature selection and engineering can also           or long-horizon optimizations through generally applicable
+enhance prediction accuracy. Integrating external factors, such        skills should be applied. Reinforcement learning sub-models
+as weather conditions, special events, and roadwork, into traffic      are also continuously evolving, explaining the easily adaptable
+prediction models is crucial for more precise forecasts.               concepts to any vehicular ad hoc network dominion despite its
+Reducing the lag between data collection and prediction is vital       nascent day status [6].
+for timely and accurate traffic congestion forecasts. Enhancing
+model interpretability ensures that stakeholders trust and
+understand accurate predictions.
+    Furthermore, models must quickly adapt to new traffic
+patterns resulting from changes in infrastructure, traffic laws, or
+unexpected events. Finally, identifying and mitigating
+prediction errors is necessary to improve overall model
+accuracy. Addressing these challenges is essential for
+developing more reliable and accurate traffic congestion
+prediction models. Furthermore, integrating XAI techniques
+enhances the model's interpretability, making its decision-
+making process transparent and understandable, thereby
+increasing user trust and acceptance. Improving prediction
+accuracy is another key objective, as the framework aims to
+                                                                        Fig. 1. The RL model for the traffic congestion system is based on agents
+outperform traditional machine learning methods. Effectively                                         and rewards.
+managing and reducing the rate of missing data is crucial for
+robust and reliable predictions. The framework must also define            Fig. 1 shows that RL offers a powerful solution for
+and optimise the computational resource requirements for               mitigating traffic congestion by dynamically enhancing traffic
+practical deployment. Scalability is essential for handling large      flow and signal control strategies in real-time processing. RL
+and complex traffic datasets in urban areas, and the framework         algorithms can make informed decisions to reduce congestion
+must be adaptable to provide real-time predictions with high           and improve traffic performance. RL algorithms accurately
+accuracy and reliability. Integrating the framework with               predict congestion levels, enabling traffic authorities to
+existing traffic management systems poses additional                   implement proactive measures such as adjusting signal timings
+challenges, as does defining appropriate metrics for                   or deploying additional resources. This approach surpasses
+performance evaluation regarding prediction accuracy, data             traditional methods, including federated learning, by bringing
+security, and interpretability. The reinforcement model                more adaptive and efficient traffic management results [7].
+adaptability of the framework to changing traffic patterns, its
+potential environmental impact, and the feasibility of applying        B. Explainable Artificial Intelligence (XAI)
+the RL-XAI approach to other domains are also significant                 In the last decades, AI has sought to memorably solve any
+considerations.                                                        concern through the development of AI systems that are not
+
+
+
+                                                                                                                                  504 | P a g e
+                                                         www.ijacsa.thesai.org
+                                                            (IJACSA) International Journal of Advanced Computer Science and Applications,
+                                                                                                                     Vol. 16, No. 1, 2025
+
+only interpretable but also understandable. XAI has several             methodologies in line with inexpensive, unexpected roadblock
+approaches, such as decision-making-based systems, rule-based           rate estimation. This marks the first instance where
+systems, and other machine-learning models, that aim to                 Reinforcement Learning has been integrated into another
+expound on the rationale for their decisions [8]. Other                 model, like RNN or CNN, for XAI-based traffic congestion
+explanations may be, for instance, language or visual                   control. Thus, this model approach will make it easier to
+explanation. All of them can meet the requirements of different         emulate our congestion brand to get run [10,11].
+population segments, such as clinicians, regulators, or
+consumers already used in different Optimized Quantum ML                                  II.      LITERATURE REVIEW
+approaches. When AI-powered solutions articulate the rationale              Traditional approaches often relied on statistical methods
+behind their actions, they help build confidence in their users         and heuristic models, which, while helpful, could not fully
+and ensure that their actions are ethical and lawful [9]. In            capture the dynamic and complex nature of urban traffic
+addition, XAI increases the assurance and strength of AI                systems. More recently, machine learning techniques have been
+systems by facilitating users' detection and correcting errors or       explored to improve prediction accuracy. Reinforcement
+unjustified biases that may exist in the system, as shown in Fig.       Learning (RL) has emerged as a promising approach due to its
+3.                                                                      ability to learn optimal policies through environmental
+    The findings conduct detailed tests using an extensive              interaction. Within RL, Model-Free Reinforcement Learning
+global data set to enhance the presentation quality of forecasted       (MFRL) has gained attention for its flexibility and effectiveness
+visitor-surface blocking traffic congestion schemes in                  in learning directly from raw data without requiring a
+connection with separate pathways and street fusing                     predefined environment model.
+
+                                          TABLE I.    RECENT WORK RELATED TO TRAFFIC PROBLEMS
+                  References                  Data Type      ML Model            LSTM           Fuzzy logic           Blockchain
+ M. Akhtar and S. Moridpour et al. [8].      Yes           Yes              No            No
+                                                                                                               No
+ T. Bokaba et al [9].                        Yes           No               No            No                  No
+ Y. Berhanu et al [10].                      Yes           No               No            No                  No
+
+ D. Hartanti et al[11].                      Yes           No               No            Yes                 No
+
+ M. Koukol et al. [12].                      Yes           No               Yes           Yes                 No
+ S. M. Rahman and N. T. Ratrout [13].        Yes           No               No            Yes                 No
+
+ Q. Wang et al. [14].                        Yes           No               No            No                  Yes
+
+ D. Das et al. [15].                         Yes           No               No            No                  Yes
+
+ M. Z. Mehdi et al[16].                      Yes           Yes              Yes           No                  No
+
+ N. Ranjan et al[17].                        Yes           Yes              Yes           No                  No
+ M. Waqas et al. [18].                       Yes           Yes              Yes           No                  No
+
+ M. Chan et al. [19].                        No            Yes              Yes           No                  No
+ Y. Gova et al [20].                         No            Yes              Yes           20%                 No
+ H. Cui et al. [21].                         Yes           No               Yes           No                  No
+
+ J. Guo et al. [22].                         Yes           No               No            No                  No
+
+
+    Table I, a completed overview of recent decades, includes           and fuzzy logic but do not mention LSTM and blockchain. Q.
+the different releases of citify ways to solve the traffic problem      Wang and D. Das address traffic issues by implementing ML
+using AI or other technology, including ML, AI, Fuzzy logic,            as well as blockchain; however, they omitted LSTM and fuzzy
+and Blockchain. For example, the study by M. Akhtar and S.              logic. No work discussed by M. Z. Mehdi et al., N. Ranjan et
+Moridpour et al. employs ML models to explain traffic                   al., M. Waqas et al., M. Chan et al., and Y. Gova et al. heavily
+problems in detail. Still, it does not incorporate the ML               rely on fuzzy logic and blockchain while employing ML and
+approach of LSTM networks, fuzzy logic, or blockchain.                  LSTM for traffic issues., for traffic problems, H. Cui et al.
+Similarly, T. Bokaba et al. and Y. Berhanu et al. utilize ML for        applied ML with LSTM, while for traffic problems, J. Guo et
+traffic issues without employing LSTM, fuzzy logic, or                  al. base their strategies only on ML without reporting LSTM,
+blockchain. D. Hartanti et al. contribute to traffic issues using       fuzzy logic, or blockchain. In general, based on the literature
+ML and fuzzy logic but not LSTM and blockchain. M. Koukol               analysis, there is a trend towards using ML, sometimes together
+et al. combine traffic challenges with ML, LSTM, and fuzzy              with a reinforcement model, to address the issues of traffic
+logic, whereas S. M. Rahman and N. T. Ratrout also use ML               management and control issues. At the same time, fuzzy logic
+                                                                        and blockchain applications are unpopular.
+
+
+
+                                                                                                                           505 | P a g e
+                                                          www.ijacsa.thesai.org
+                                                            (IJACSA) International Journal of Advanced Computer Science and Applications,
+                                                                                                                     Vol. 16, No. 1, 2025
+
+A. Limitation of Previous Work                                         environment designed to emulate real-world traffic conditions.
+   The ML approach has bright prospects in the area of traffic         The final stage of the proposed model integrates the RL agent
+congestion prediction and traffic congestion management.               with XAI, enhancing interpretability and transparency in the
+However, the following limitations and challenges need to be           decision-making process. Then, XAI tries to determine how the
+addressed:                                                             agent decides where the action must be taken. The members'
+                                                                       bullets pointing at reasons for taking action are not any more
+      The traffic system is a multi-variate system that consists      structural than this description, and they address how the
+       of several interrelated factors, such as road and weather       reward for taking action is resolved into sub-rewards, such as
+       conditions and people's actions that affect traffic flow.       time spent traveling and environmental impact. This aspect of
+       Most of these ML models may not capture all these               interoperability is both relevant for trust construction and for
+       factors effectively, resulting in poor predictions and          assuring the safety objectives of the agent become coherent
+       decisions. However, there are no such specific, accurate        with those of the general population. A model that has been
+       mechanisms; by applying them, we can obtain 100 per             qualified and authenticated can now be implemented to
+       cent secure results for the traffic congestion missing rate.    anticipate congestion and assist in managing traffic in a much
+                                                                       more effective and reliable transportation system. As for the
+      The datasets used are the primary sources and stimulus          layer first, Fig. 2 shows that database drawing entails extracting
+       for building ML engines. The ML models are, however,            raw data from various sources such as tables, application
+       data-hungry. Nevertheless, gathering extensive and              program interfaces (APIs), and sensors. At this stage, data pre-
+       convincing traffic data, particularly in real-time, can be      processing is concerned with the scrubbing, conversion, and
+       an uphill task. Furthermore, anomalies or biases in the         overall structuring of this information to be used to develop a
+       data sets can harm the effectiveness of the deep learning       machine-learning model. One must check data relevance,
+       models.                                                         completeness, and representation while enhancing privacy and
+      There is a risk that ML models built for specific               security problems during data gaining. Actions on pre-
+       areas/scenarios will not be transferrable when the              processed data, such as scoping numerical features, encoding
+       location changes. Achieving scalability across large and        categorical variables, and dataset availability, have also
+       complex metropolitan regions is even more difficult. At         emphasized engineering features and data balancing. When
+       present, one of the most bane aspects of ML is ensuring         attempts are made to integrate data acquisition and pre-
+       that such models can learn and generalize from such             processing stages of machine learning, the general components
+       diverse traffic conditions.                                     include but are not limited to data gathering, data exploration,
+                                                                       data cleansing, data transformation, data splitting, model
+      There are other techniques, such as BC or Fusion                training, and evaluation, emphasizing high-quality data that
+       techniques,      that       focus     on       achieving        train models for correct and robust predictions.
+       transparency/interpretability about the RL model's
+       decision-making processes, but at times, there appears to           Communicating with the RL model can improve XAI
+       be a contradiction to model inter                               performance while providing trustworthy and effective results.
+                                                                       The integration of RL and XAI is synergistic; RL delivers a way
+    Arraying RL models for predicting and managing traffic             to automate the decision-making process, while XAI helps gain
+congestion introduces regulatory and ethical safety, privacy,          foresight into the decision-making process. This enhancement
+and fairness challenges. This ML model must comply with                allows the stakeholders to see the reasoning behind real-time
+regulatory standards and moral principles when making real-            decisions made by the RL agent, increasing their confidence in
+time decisions in traffic scenarios. Moreover, ML algorithms           the results. Additionally, this allows the experts in the field to
+often demand substantial computational resources for training          understand and explain the rationale for the agent's behavior,
+and inference, which poses difficulties for real-time processing,      spot any possible mistakes or biases, and modify the decision-
+especially in resource-limited settings like traffic control           making approach appropriately. Besides, XAI methods such as
+systems.                                                               other AI models, feature importance, or even the rule extraction
+                                                                       of a decision have shown the RL agent's behavior patterns and
+                    III.    METHODOLOGY                                his actions' dynamics. As it is possible to use XAI to support
+    The proposed model targets to predict traffic congestion           RL, practitioners can obtain accurate and consistent outcomes
+from a comprehensive perspective, exploiting RL and                    and increase the comprehension of complex decision systems,
+Explainable AI. In Fig. 2, the first layer focuses on data             thus supporting better and more appropriate decisions in
+acquisition, gathering traffic data, weather conditions, and           practice. Addressing and justifying a Reinforcement Learning
+event schedules. This data undergoes extensive pre-processing,         (RL) model through XAI techniques involves evaluating the
+including cleaning, feature extraction, and normalization, to          decision-making's performance and transparency. Objectives
+ensure relevance and reuse. The RL environment then serves as          set by the RL model can be quantitatively assessed using the
+a training platform for agents, where the current state of the         model's statistical achievements, including but not limited to
+traffic network encompassing parameters like density, speed,           rewards achieved in the environment. Measuring the model's
+and weather is analyzed. Based on this, the agent can execute          performance concerning the baseline or heuristic models makes
+actions such as adjusting traffic signals or issuing advisories,       it possible to evaluate the model's temperature and determine
+which is the basic RL model concept. The goal is to enhance            the directions for its improvement. Similarly, k-fold cross-
+traffic flow, minimize travel time, and ease congestion through        validation is a technique that measures model performance and
+intelligent decision-making. Training occurs in a simulation           generalization across different subsets of the data that may be
+
+
+
+                                                                                                                           506 | P a g e
+                                                         www.ijacsa.thesai.org
+                                                               (IJACSA) International Journal of Advanced Computer Science and Applications,
+                                                                                                                        Vol. 16, No. 1, 2025
+
+used in Fig. 2.
+
+
+
+
+                                    Fig. 2. The flow of Model-Free Reinforcement Learning with EAI (MFRL-EAI).
+
+    Domain experts or end-users assess the interpretability of                                        𝑎 = 𝜋(𝑠)                            (4)
+explanations to ensure they are clear, relevant, and effective in
+illustrating the RL model's decision-making process. By                       Eq. (4) represents stochastic policy (probability distribution
+examining correlations between model outputs and XAI-                      over states)
+derived explanations, discrepancies or biases can be identified,                            𝑃 (𝐴 = 𝑎|𝑆 = 𝑎) = 𝜋(𝑎|𝑠)                      (5)
+enabling the resolution of any gaps and enhancing overall
+transparency and reliability. This comprehensive strategy                      Eq. (5) is the state transition function T defines the
+instils confidence among stakeholders in deploying the RL                  probability of transitioning from one state to another, given an
+model in practical applications, ensuring both performance and             action:
+interpretability. A simplified scenario is introduced to                          𝑃(𝑠 ′ |𝑠, a) = 𝑃𝑟 (𝑆𝑡+1 = 𝑠 ′ | 𝑆𝑡 = 𝑠, 𝐴𝑡 = 𝑎)         (6)
+substantiate the proposed RL-XAI framework. Fundamental
+mathematical equations define the state space, action space,                   Eq. (6) represents RL transition probability function in
+rewards, policy, and value functions to calculate congestion               which agent will aend up the state S'. This probability function
+rates in intelligent traffic systems. Although these equations             included the dynamics of traffic congestion values.
+may vary in complexity across RL approaches, they serve as a
+foundational structure for the methodology [31].                                            𝐺𝑡 = 𝑅𝑡+1 + 𝑅𝑡+2 + 𝑅𝑡+3 + ⋯                   (7)
+
+    The state space S represents all possible states. For each                 Eq. (7) represents the discounted return. 𝐺𝑡 at a given
+state position                                                             time step where t is defined as the sum of rewards obtained in
+                                                                           the future.
+                     𝑆 = {𝑆i | 𝑖 = 1,2, … . . 𝑁}                   (1)
+                                                                               The action-value function Q(s, a) estimates the value of
+   Where 𝑆𝑖 Represents a separate position in the initial                  taking action a in states under policy π:
+environment setup.
+                                                                                 𝑅𝜋 (𝑎, 𝑠) = 𝐴𝜋[𝑄𝑡+1 + 𝑟𝐵𝜋 (𝑆𝑡+1 )|𝑆𝑡 = 𝑠, 𝐴𝑡 = 𝑎]        (8)
+   The next step represents A as a possible trigger the agent
+(vehicle) can take. It is defined as:                                          Eq. (8) breaks down the R-function into the immediate
+                                                                           reward Rt+1R_{t+1}Rt+1 from taking action aaa in state S,
+                  𝐴 = {𝑎m |𝑚 = 1,2, … . 𝑀}                         (2)     plus the discounted value of future actions as per the policy
+                                                                           π\piπ.
+   where am represents an individual achievement that
+performs the model, such as accelerating, decelerating,                                     IV.     EXPERIMENTAL RESULTS
+changing speed, etc., as an RL agent.
+                                                                               The results of this methodology conducted experiments
+    The reward function is represented as R, using the state-              using Kaggle datasets of vehicle routings. These experiments
+action pair to a reward rate. Here is defined as:                          involved datasets labeled as routing of varying traffic flows to
+                                                                           get predicted congestion. The data was divided into a training
+                           𝑅(𝑎, 𝑠) = 𝑟                             (3)     set (80% - 8,000 samples) and a validation set (20% - 2,000
+    In Eq. (3) r is the instant reward received later taking action        samples). The selected dataset, the training set, is used to train
+in states A rule 𝜋 represents the agent's method, and mapping              the congestion control model, allowing it to classify patterns
+states to actions. Now, the policy can be deterministic simple             and correlations within the data. The model learns how different
+as:                                                                        factors contribute to traffic congestion by randomly selecting
+
+
+
+                                                                                                                                507 | P a g e
+                                                            www.ijacsa.thesai.org
+                                                                             (IJACSA) International Journal of Advanced Computer Science and Applications,
+                                                                                                                                      Vol. 16, No. 1, 2025
+
+samples. Additionally, the RL-XAI model joins the influence                                 These equations offer an in-depth perspective on applying
+of the missing rate through the following steps, allowing a                             an RL method with XAI for calculating traffic congestion,
+complete evaluation of each component using XAI techniques.                             factoring in the missing data rate outlined in Table II.
+The sub-equations are as follows:                                                       Meanwhile, the Validation Set, comprised of separate samples,
+                                                                                        evaluates the model's ability to perform on new data, ensuring
+              𝑀𝑎 = 𝑇𝑟𝑎𝑖𝑛(𝐷𝑎 , 𝑀𝑜𝑑𝑒𝑙𝑖𝑛𝑖𝑡 , 𝐸𝑝𝑜𝑐ℎ𝑠𝑎 )                              (9)    it generalizes well without overfitting the training set. This
+   In Eq. (9), each node trains a local model 𝑀𝑎 using its                              approach allows the system to form components for two actual
+dataset 𝐷𝑎 , an initial model architecture 𝑀𝑜𝑑𝑒𝑙𝑖𝑛𝑖𝑡 over                               segments, setting aligned records relevant to real-time
+𝐸𝑝𝑜𝑐ℎ𝑠𝑎 Training epochs and this Equation represents the                                congestion calculation.
+Local Model Training.
+                                                                                         TABLE III.       DATASET PROVIDES VARIOUS CONDITIONS AND FEATURES
+                ∆𝑀𝑎 = 𝑀𝑎 − 𝑀𝑜𝑑𝑒𝑙𝑖𝑛𝑖𝑡                                           (10)                        THAT INFLUENCE TRAFFIC CONGESTION
+
+   Eq. (10) represents the local model update calculation, ∆𝑀𝑎                                        Dataset                            Dataset type
+                                                                                         Time_span                           Date Time
+What is used for each node is the difference between the train                           Day_of_week                         Number
+local model and the initial model.                                                       Weather                             Text
+                                                                                         Temperature                         Number
+                ∆𝑀𝑎′ = ∆𝑀𝑎 ∗ (1 − 𝑚𝑟,𝑎 )                                       (11)
+                                                                                         Road_capacity                       Character
+    Eq. (11) biased update for lost data. Here, ∆𝑀𝑎 for missing                          Vehicle_flow                        Number
+                                                                                         Density                             Number
+rate and 𝑚𝑟,𝑎 For specific to cloud node a.
+                                                                                         Light                               Number
+                Validate(𝐵ℎ𝑎𝑠ℎ(𝑎) , 𝐵𝑝𝑟𝑣_ℎ𝑎𝑠 )                                 (12)      Congestion_level                    Number
+                                                                                         Congestion_status                   Number
+    Eq. (12) Each B transaction, including model updates, is                                Table III represents the dataset provides various conditions
+validated against the previous block's hash that represents                             and features that influence traffic congestion, allowing you to
+𝐵𝑝𝑟𝑣_ℎ𝑎𝑠 To ensure integrity and security.                                              validate and train using the RL model for traffic analysis. This
+                 ′
+                Mglobal = Modelinit − ∆Mglobal                                 (13)     dataset can also modify the parameters to simulate specific
+                                                                                        conditions based on the different time durations and execution
+                                                                          ′
+   Eq. (13) represents the global model update and                       𝑀𝑔𝑙𝑜𝑏𝑎𝑙 I      for calculating the congestion missing rate and accuracy.
+am using it for aggregated global mode update values.
+                                                                                            TABLE IV.       CONGESTION EXPLORATION IN DIFFERENT STATIONS
+                                                        (1−𝑚𝑟,𝑎 )
+             𝐶𝑘 = 𝑉𝑒ℎ𝑖𝑐𝑙𝑒𝑠 𝐷𝑒𝑡𝑒𝑐𝑡𝑒𝑑𝑎 ∗                                          (14)         Classifier         Junction 1     Junction 2            Junction 3
+                                                    𝑅𝑜𝑎𝑑 𝐶𝑎𝑝𝑎𝑐𝑖𝑡𝑦𝑎
+                                                                                             Values           142344.0000     24592.00           19511.0000
+    Eq. (14) for each node a, calculate the congestion 𝐶𝑎 by                                 Mean[N]          42.222906       13.34221           12.6t4010
+adjusting the detected vehicles by the missing rate 𝑚𝑟,𝑎 And we                              Sd               22.011145       7.401307           10.436005
+are dividing by the road's capacity.                                                         Min              5.023000        1.0001122          1.000011
+                                                                                             20%              27.4300         9.440000           7.000013
+                                     1                                                       40%              30.32000        13.330000          11.120000
+                           𝐶𝑎𝑣𝑔 =        ∑𝑛𝑎=0 𝐶𝑎                              (15)
+                                     𝑁                                                       80%              19.000000       17.120000          18.430000
+                                                                                             Max (m)          152.210000      48.110000          180.650000
+   Eq. (15) calculates the average congestion level 𝐶𝑎𝑣𝑔
+Across all nodes, get a system-wide view of traffic congestion.                             Table IV: This analysis provides a statistical summary of
+                                                                                        vehicle counts across four nodes based on traffic flow data
+                         Notify (𝐶𝑎𝑣𝑔 , Threshold)                              (16)    categorized by intersection and time frame set in the dataset.
+    Eq. (16) Generate a congestion notification if 𝐶𝑎𝑣𝑔 Exceeds                         This dataset shows that Intersection 1, with 14,592 records,
+a predefined congestion threshold.                                                      experiences the highest traffic volume, with an average of 45.05
+                                                                                        vehicles and significant variability, as indicated by a standard
+TABLE II.      SIMULATION OUTCOMES AND STATISTICAL ANALYSIS BASED                       deviation of 23.01. Intersections 2 and 3 also have 14,592
+                           ON EQUATIONS                                                 records each but exhibit lower average counts of 14.25 and
+                                                                                        13.69 vehicles, respectively, with less variation. On the other
+             Equations                                   Process
+  1 to 4                              Local Model Training                              hand, Intersection 4 has fewer observations (4,344) and the
+  5 to 8                              ML Update Calculation                             lowest average traffic count at 7.25 vehicles, suggesting it may
+  9 to 11                             Calculate the missing rate from the Weighted      operate under a different traffic flow model. The minimum
+                                      dataset.                                          counts across all intersections indicate periods of low traffic,
+  12 to 16                            Manipulation with Cloud storage                   while the highest counts, particularly the outlier of 180 vehicles
+  17                                  Congestion rate Validation                        at Intersection 3, highlight occasional traffic spikes. Quartile
+  18                                  RL mode updates the aggregation.
+                                                                                        values further illustrate the delivery, with Intersection 1
+  19                                Congestion Metric Calculation, Aggregated Level,
+                                    and Threshold-Based Notification                    exceeding 59 cars 75% of the time, in contrast to Joining 4,
+                                                                                        which shows more consistent and lower traffic levels.
+
+
+
+
+                                                                                                                                                 508 | P a g e
+                                                                         www.ijacsa.thesai.org
+                                                               (IJACSA) International Journal of Advanced Computer Science and Applications,
+                                                                                                                        Vol. 16, No. 1, 2025
+
+
+
+
+                                 Fig. 3. Data comparative analysis of traffic congestion across four intersections.
+
+    Fig. 3 represents the provided graphs that show the missing                 The RL-XAI model outperformed traditional systems,
+rate, accuracy, reward, and Loss level of a specific performance             reducing average traffic congestion by 25% and surpassing the
+aspect of the RL model over different periods. The Missing                   baseline RL model by 10%. Additionally, including
+Rate graph shows the percentage of missed predictions or                     explainability features significantly improved the clarity and
+failures, indicating areas where the model fails, while the                  understanding of the model's decision-making process, that is
+Accuracy graph actions the model's correct predictions over                  recent research comparatively much better than Autonomous
+time by time, reflecting its consistency. The Reward graph                   vehicle congestion models like LSTM [27].
+captures the reward values received as the model learns,
+representing how well it aligns with the required outcome.                   TABLE V.       TRAFFIC CONGESTION ANALYSIS USING MEAN, MEDIAN, AND
+Lastly, the Loss graph indicates the error or difference between                                      STANDARD DEVIATION
+the predicted and actual outcomes, helping identify                             Traffic        Average (Mean)          STD (Congested         STD
+optimization needs.                                                            Condition                              Valued calculated    (Distance,
+                                                                                                                       from Table IV)         time)
+    By accepting an RL approach, XAI can significantly reduce                 Blockage        D: 1227, T:4.88         D: 864, T:4.84      D:48.23,
+congestion, improve missing rates, and enhance accuracy in                                                                                T:2.45
+complex decision-making environments that evaluate results.                   Congested       D: 172, T:3.08          D: 09.29, T:2.24    D:64.32,
+Through constant learning and adjustment based on real-time                                                                               T:423
+                                                                              High            D: 2827, T:12.61        D: 2871, T:14.53    D:12.53,
+feedback, RL can optimize the AI model's decision-making                      Congested                                                   T:8.28
+rules, gradually decreasing the missing rate as the model                     Slightly        D: 9027, T:8.101        D: 10.34, T:438     D:23.42,
+encounters and absorbs various scenarios. This iterative process              Congestion                                                  T:99.87
+enhances accuracy as the model becomes more adept at                          Smooth          D: 7713, T:22.298       D: 29.27, T:1.88    D:4234,
+predicting outcomes correctly, adapting to dynamic conditions,                                                                            T:298
+and efficiently evolving rules, which can be used for any other                 Table V summarises various traffic conditions categorised
+ML model like CNN or Federated Learning.                                     by distance (D) and time (T), including Blockage, Congested,
+
+
+
+                                                                                                                                          509 | P a g e
+                                                            www.ijacsa.thesai.org
+                                                               (IJACSA) International Journal of Advanced Computer Science and Applications,
+                                                                                                                        Vol. 16, No. 1, 2025
+
+Highly Congested, Slightly Congested, and Smooth conditions.              advancements in sensor technology and convolutional methods
+The table also considers how road grades impact congestion                enhancing its capability to manage traffic flow more
+levels across different road types, such as highways,                     effectively. According to the table, the RL-XAI system
+expressways, and secondary roads. Congestion can differ even              achieved 98.9% sensitivity and 1.2% specificity, accuracy, and
+when speeds are consistent due to varying road grades.                    miss rate during training. In the validation phase, the system
+Distinctive curve shapes represent the preliminary results. The           maintained a performance of 98.9%, reflecting the robustness
+RL-XAI approach demonstrates strong performance in                        of these additional statistical measures.
+predicting and understanding traffic congestion, with
+            TABLE VI.     COMPARATIVE ANALYSIS AND PERFORMANCE (%) OF THE RL-XAI SYSTEM AGAINST EXISTING LITERATURE FINDINGS
+                        Literature                                Accuracy               Miss Rate            Accuracy                  Miss Rate
+                                                                       Training Rates                                    Validation Rates
+ S. Tamimi, and Z. Muhammad [23]                       78.12                            21.88          76.1                      23.9
+
+ A. Talebpour, H. S. Mahmassani [24]                   97                               32.21          N/A                       N/A
+
+ A. Ata, M. A. Khan, S. Abbas, M. S. Khan [25]         98.9                             1.3            97.9                      2.1
+
+ M. Saleem, S. Abbas, M. Adnan Khan [26]               94.4                             5.6            94.00                     6.00
+
+ Proposed Model                                        98.7 to 98.9                     1.2            98.10                     1.90
+
+
+    Table VI demonstrates the efficiency of the proposed RL-              In contrast to the typical traffic management system, which is
+XAI system by assessing key metrics such as sensitivity,                  resistive and unsecured about data, our proposed RL-XAI has
+specificity, accuracy, and miss rate during both the training and         more flexibility and assurance like noval intellegenc recovery
+validation stages.                                                        [28]. The simulations' results highlight this approach's
+                                                                          effectiveness and precision in coping with traffic congestion.
+    There are pros and cons of existing methods addressing                Through further related research, tests were conducted on this
+similar issues. The pros include an innovative approach,                  vehicle using separate concept units across various routes,
+improved accuracy, security and privacy, scalability, and                 covering a distance of 85 locations. The framework outlined in
+auspicious simulation results. Nevertheless, these methods face           this study shows promise for traffic management departments,
+several challenges, including complexity and cost, funding                highlighting key areas for improvement in the model currently
+challenges, technical difficulties, public acceptance and trust           being developed. These include cost and funding concerns,
+issues, and regulatory hurdles. This innovative approach                  making the system more privacy and security-oriented with the
+utilises the proposed model to demonstrate how advanced AI                help of ML, making it scalable and consistent with the use of
+systems can be agent-based to safeguard sensitive                         XAI, and gaining the trust and acceptance of the public through
+transportation data. Applying the RL-XAI model improves the               validation for both traffic and air traffic management [29]. Each
+accuracy of congestion predictions in intelligent traffic systems.        of them is an avenue for further improvement and enhancement
+Concurrently, integrating ML and remote sensing data ensures              as far as the performance and dependability of the model are
+data security and accuracy, enhancing the outcomes' reliability.
+                                                                          concerned. Each of these features offers an opportunity for
+Future studies should focus on rationalisation placement and              refinement and improvement in the overall functionality and
+shortening operations to increase acceptance and alleviate                consistency of the model.
+concerns about emerging technologies managing mobility
+networks. While this approach offers numerous benefits, such                                         VI.       CONCLUSION
+as innovation, enhanced accuracy, better security and
+reliability, and scalability, it also faces significant challenges.           This study concludes by introducing a novel framework for
+These include complexity, high costs, and funding issues,                 traffic congestion recognition and prediction with integrating
+which could hinder widespread adoption. Integrating multiple              Reinforcement Learning (RL) and Explainable Artificial
+technologies like RL and XAI requires substantial resources,              Intelligence (XAI). This dynamic approach addresses urban
+expertise, and assets, posing technical and fiscal challenges,            traffic complexities in static rule-based systems by combining
+especially for administrations with limited resources.                    RL for adaptive learning and XAI for see-through decision-
+Additionally, ensuring public trust and acceptance, mainly                making. The proposed method enhances security, privacy, and
+regarding transparency, data ownership, and regulatory                    prediction accuracy, achieving an impressive accuracy rate of
+compliance, adds further difficulty to the deployment process.            98.10% by significantly reducing the missing data rate. These
+                                                                          results underscore the framework's superiority over traditional
+          V.      FUTURE DIRECTION AND LIMITATION                         methods and potential to transform traffic management
+                                                                          systems.
+    This work seeks to solve the underexplored concerns in RL
+as deep learning tends towards improving intelligent traffic                                               REFERENCES
+systems in smart cities, particularly its detection capabilities.
+                                                                          [1]   Y. Zhu, Z. Peng, N. Korattyswaroopam, J. Pucher, and N. Mittal, "Urban
+The main contribution of this study is the development of a                     Transport Trends and Policies in China and India: Impacts of Rapid
+Reinforcement Learning scheme augmented with Explainable                        Economic growth," Transport Reviews, vol. 27, no. 4, pp. 379–410, Jul.
+Artificial Intelligence for traffic congestion prediction systems.              2007, doi: 10.1080/01441640601089988.
+
+
+
+
+                                                                                                                                            510 | P a g e
+                                                         www.ijacsa.thesai.org
+                                                                           (IJACSA) International Journal of Advanced Computer Science and Applications,
+                                                                                                                                    Vol. 16, No. 1, 2025
+
+[2]    S. Cicmanoca and L. Janušová, "Improving the safety of transportation by       [16] M. Z. Mehdi, H. M. Kamoun, N. G. Benayed, D. Sellami, and A. Damak,
+       using intelligent transport systems," Procedia Engineering, vol. 134, pp.           "Entropy-Based traffic flow labeling for CNN-Based Traffic congestion
+       14–22, Jan. 2016, doi: 10.1016/j.proeng.2016.01.031                                 prediction from Meta-Parameters," IEEE Access, vol. 10, pp. 16123–
+[3]    A. Sherstinsky, "Fundamentals of Recurrent Neural Network (RNN) and                 16133, Jan. 2022, doi: 10.1109/access.2022.3149059.
+       Long Short-Term Memory (LSTM) network," Physica. D, Nonlinear                  [17] N. Ranjan, S. Bhandari, H. P. Zhao, H. Kim, and P. Khan, "City-Wide
+       Phenomena,         vol.    404,     p.    132306,     Mar.      2020,   doi:        Traffic congestion prediction based on CNN, LSTM, and Transpose
+       10.1016/j.physd.2019.132306                                                         CNN," IEEE Access, vol. 8, pp. 81606–81620, Jan. 2020, doi:
+[4]    A. Das and P. Rad, "Opportunities and Challenges in Explainable                     10.1109/access.2020.2991462.
+       Artificial Intelligence (EAI): a survey," arXiv (Cornell University), Jan.     [18] M. Waqas, M. Kamran, M. Saleem, and A. Ilyas, "Traffic congestion
+       2020, doi: 10.48550/arxiv.2006.11371.                                               monitoring improvement through federated learning technique," Mar. 31,
+[5]    C. Park, Shin, K. Chung, and R. D. H, "Prediction of traffic congestion             2024. https://ijcis.com/index.php/IJCIS/article/view/105
+       based on LSTM through correction of missing temporal and spatial data,"        [19] M. Chen, X. Yu, and Y. Liu, "PCNN: Deep Convolutional Networks for
+       IEEE Access, vol. 8, pp. 150784–150796, Jan. 2020, doi:                             Short-Term Traffic Congestion Prediction," IEEE Transactions on
+       10.1109/access.2020.3016469.                                                        Intelligent Transportation Systems, vol. 19, no. 11, pp. 3550–3559, Nov.
+[6]    A. B. Arrieta et al., "Explainable Artificial Intelligence (EAI): Concepts,         2018, doi: 10.1109/tits.2018.2835523.
+       taxonomies, opportunities and challenges toward responsible AI,"               [20] Y. Gao, J. Li, Z. Xu, Z. Liu, X. Zhao, and J. Chen, "A novel image-based
+       Information Fusion, vol. 58, pp. 82–115, Jun. 2020, doi:                            convolutional neural network approach for traffic congestion estimation,"
+       10.1016/j.inffus.2019.12.012.                                                       Expert Systems With Applications, vol. 180, p. 115037, Oct. 2021, doi:
+[7]    X. Wu, W. Chen, P. C. Y. Chen, Z. Zhao, and J. Liu, "LSTM Network: a                10.1016/j.eswa.2021.115037.
+       deep learning approach for short‐term traffic forecast," IET Intelligent       [21] H. Cui, G. Yuan, N. Liu, M. Xu, and H. Song, "Convolutional neural
+       Transport Systems, vol. 11, no. 2, pp. 68–75, Feb. 2017, doi: 10.1049/iet-          network for recognizing highway traffic congestion," Journal of
+       its.2016.0208.                                                                      Intelligent Transportation Systems, vol. 24, no. 3, pp. 279–289, Apr.
+[8]    S. Moridpour and M. Akhtar, "A review of traffic congestion prediction              2020, doi: 10.1080/15472450.2020.1742121.
+       using Artificial Intelligence," Journal of Advanced Transportation, vol.       [22] J. Guo, Y. Liu, Q. Yang, Y. Wang, and S. Fang, "GPS-based citywide
+       2021, pp. 1–18, Jan. 2021, doi: 10.1155/2021/8878011.                               traffic congestion forecasting using CNN-RNN and C3D hybrid model,"
+[9]    T. Bokaba, B. S. Paul, and W. Doorsamy, "A Comparative study of                     Transportmetrica. A, Transport Science, vol. 17, no. 2, pp. 190–211, Apr.
+       ensemble models for predicting road traffic congestion," Applied                    2020, doi: 10.1080/23249935.2020.1745927.
+       Sciences, vol. 12, no. 3, p. 1337, Jan. 2022, doi: 10.3390/app12031337.        [23] S. Tamimi, and Z. Muhammad, in ICCAE "Link delay estimation using
+[10]   D. Schröder, E. Alemayehu, and Y. Berhanu, "Examining Car Accident                  fuzzy logic", (Vol. 2). IEEE, 2010
+       Prediction Techniques and Road Traffic Congestion: A Comparative               [24] A. Elfar, A. Talebpour, and H. S. Mahmassani, "Machine Learning
+       Analysis of Road Safety and Prevention of World Challenges in Low-                  Approach to Short-Term Traffic Congestion Prediction in a Connected
+       Income and High-Income Countries," Journal of Advanced                              Environment," Transportation Research Record, vol. 2672, no. 45, pp.
+       Transportation,       vol.    2023,     pp.    1–18,    Jul. 2023,      doi:        185–195, Sep. 2018, doi: 10.1177/0361198118795010.
+       10.1155/2023/6643412.                                                          [25] A. Ata, M. A. Khan, S. Abbas, M. S. Khan, and G. Ahmad, "Adaptive IoT
+[11]   P. C. Siswipraptini, R. N. Aziza, and D. Hartanti, "Optimization of smart           Empowered Smart Road Traffic Congestion Control System Using
+       traffic lights to prevent traffic congestion using fuzzy logic," Telkomnika,        Supervised Machine Learning Algorithm," The Computer Journal, May
+       vol. 17, no. 1, p. 320, Feb. 2019, doi: 10.12928/telkomnika.v17i1.10129.            2020, doi: https://doi.org/10.1093/comjnl/bxz129.
+[12]   L. Marek, M. Koukol, L. Zajíčková, and P. Tuček, "Fuzzy Logic in Traffic       [26] M. Saleem, S. Abbas, T. M. Ghazal, M. Adnan Khan, N. Sahawneh, and
+       Engineering: A Review on Signal Control," Mathematical Problems in                  M. Ahmad, "Smart cities: Fusion-based intelligent traffic congestion
+       Engineering, vol. 2015, pp. 1–14, Jan. 2015, doi: 10.1155/2015/979160.              control system for vehicular networks using machine learning
+[13]   N. T. Ratrout, and S. M. Rahman "Review of the fuzzy Logic Based                    techniques," Egyptian Informatics Journal, Apr. 2022, doi:
+       approach in Traffic Signal Control: Prospects in Saudi Arabia," Journal             https://doi.org/10.1016/j.eij.2022.03.003.
+       of Transportation Systems Engineering and Information Technology, vol.         [27] M. Waqas, S. Abbas, Farooq, U., Khan, M. A., Ahmad, M., & Mahmood,
+       9, no. 5, pp. 58–70, Oct. 2009, doi: 10.1016/s1570-6672(08)60080-x.                 N, "Autonomous vehicles congestion model: A transparent LSTM-based
+[14]   Y. Guo, Q. Wang, T. Ji, L. Yu, X. Chen, and P. Li, "TrafficChain: a                 prediction model corporate with Explainable Artificial Intelligence
+       Blockchain-Based secure and Privacy-Preserving traffic map," IEEE                   (EAI)" Egyptian Informatics Journal, 28, Dec. 2024, 100582.
+       Access,       vol.    8,     pp.     60598–60612,      Jan.     2020,   doi:        https://doi.org/10.1016/j.eij.2024.100582
+       10.1109/access.2020.2980298.                                                   [28] Kiani, F., & Saraç, Ö. F. (2023). A novel intelligent traffic recovery model
+[15]   D. Das, S. Banerjee, P. Chatterjee, U. Ghosh, and U. Biswas, "Blockchain            for emergency vehicles based on context-aware reinforcement learning.
+       for intelligent transportation Systems: Applications, challenges, and               Information               Sciences,              619,               288–309.
+       opportunities," IEEE Internet of Things Journal, vol. 10, no. 21, pp.               https://doi.org/10.1016/j.ins.2022.11.057
+       18961–18970, Nov. 2023, doi: 10.1109/jiot.2023.3277923.                        [29] Lorente, S., Angelov, P., Antonio, J., & Martinez, I. (2022). Academic
+                                                                                           Editors: María Paz. A Survey on Artificial Intelligence (AI) and
+                                                                                           EXplainable AI in Air Traffic Management: Current Trends and
+                                                                                           Development         with    Future     Research        Trajectory,     12(3).
+                                                                                           https://doi.org/10.3390/app120312.
+
+
+
+
+                                                                                                                                                      511 | P a g e
+                                                                       www.ijacsa.thesai.org
+

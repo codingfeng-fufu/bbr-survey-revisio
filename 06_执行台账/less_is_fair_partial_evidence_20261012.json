@@ -1,0 +1,84 @@
+{
+  "doi": "10.3390/s25175374",
+  "title": "Less Is Fair: Reducing RTT Unfairness Through Buffer Sizing",
+  "author": "Agnieszka Piotrowska",
+  "year": 2025,
+  "status": "eligibility reviewed: include; extracted results remain scoped",
+  "source": "fulltext_acquisition_20261012/openalex_Q2_0029.pdf",
+  "implementation": {
+    "platform": "Mininet",
+    "OS": "Ubuntu20.04",
+    "kernel": "5.4.0-169-generic",
+    "BBR_identity": "Kernel/environment reported; BBRv2/v3 explicitly future work. Exact source commit not verified."
+  },
+  "settings": {
+    "queue": "DropTail with tc queue limit",
+    "packet_bytes": 1500,
+    "segment_bytes": 1460,
+    "duration_s": 100,
+    "repetitions": 5,
+    "two_flow_capacity_Gbps": 1,
+    "baseline_rtt_ms": 20,
+    "second_rtt_range_ms": [
+      1,
+      200
+    ],
+    "buffer_reference": "baseline20ms",
+    "two_flow_buffer_range_BDP": [
+      0.01,
+      50
+    ],
+    "multiflow_count": 10
+  },
+  "metrics": [
+    "Jain overall/intragroup",
+    "symmetric throughput difference ratio",
+    "relative throughput share",
+    "retransmission ratio",
+    "mean RTT"
+  ],
+  "locations": [
+    "pp.7–9 setup and metrics",
+    "p.14 multi-flow setup",
+    "pp.24–25 summary and limitations"
+  ],
+  "limitations": [
+    "Single fixed dumbbell, deterministic traffic and loss-free links",
+    "No claim that shallow buffer improves fairness universally across versions",
+    "No BBRv3 validation; comparisons to2024ns3BBRv3study must preserve implementation difference",
+    "1Gbps host capability claim not independently profiled",
+    "Curve-level values and author repository not reproduced",
+    "High intra-group fairness can coexist with poor overall/inter-group fairness; never aggregate these metrics interchangeably",
+    "Shallow buffers may improve reported fairness but incur higher retransmission overhead",
+    "Paper has ambiguous/mistyped percentage units in Figure12 caption; do not cite caption Mbps as retransmission-ratio unit",
+    "2024 ns3 BBRv3 report and2025native-kernel report have different implementations and datasets; shared author does not prove duplicate study"
+  ],
+  "review_scope": "Read study motivation, methods, result sections and conclusions; Table2 visually checked. No author-code rerun or complete curve digitization.",
+  "report_id": "RPT_PIOTROWSKA_2025_LESS_IS_FAIR",
+  "study_id": "ST_PIOTROWSKA_2025_LESS_IS_FAIR",
+  "eligibility_reason": "Direct primary TCP BBR/Cubic buffer and RTT fairness study under frozen M02 criteria",
+  "table2_visual_check": {
+    "page": 19,
+    "scope": "Ten-flow matrix aggregated by buffer categories, not individual-case BBRv3 results",
+    "buffer_categories": [
+      "<0.5BDP",
+      "0.5–2BDP",
+      ">2BDP"
+    ],
+    "overall_jain": [
+      0.99,
+      0.8,
+      0.6
+    ],
+    "intra_group_jain_G1": [
+      1.0,
+      1.0,
+      0.99
+    ],
+    "intra_group_jain_G2": [
+      1.0,
+      0.99,
+      0.99
+    ]
+  }
+}

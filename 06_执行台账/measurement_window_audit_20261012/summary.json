@@ -1,0 +1,47 @@
+{
+  "method": "Sensitivity only: whole receiver intervals completely contained in each configured window; boundary intervals excluded, no interpolated bytes. Primary frozen judgements and archived metrics unchanged.",
+  "batches": [
+    {
+      "batch": "formal_baseline_20261010",
+      "runs": 60,
+      "max_absolute_total_mbps_change": 0.31527725551298147,
+      "max_absolute_jain_change": 0.028728943658610895,
+      "max_absolute_flow2_share_change": 0.043607867102913644
+    },
+    {
+      "batch": "formal_bbr1_20261012",
+      "runs": 60,
+      "max_absolute_total_mbps_change": 0.31968232303779587,
+      "max_absolute_jain_change": 0.0561058047702957,
+      "max_absolute_flow2_share_change": 0.046945475051535346
+    },
+    {
+      "batch": "formal_bbr2_20261010",
+      "runs": 60,
+      "max_absolute_total_mbps_change": 0.1843062721912645,
+      "max_absolute_jain_change": 0.009249059654470537,
+      "max_absolute_flow2_share_change": 0.010062736901096825
+    },
+    {
+      "batch": "formal_bbr3_20261011",
+      "runs": 60,
+      "max_absolute_total_mbps_change": 0.4645106051183632,
+      "max_absolute_jain_change": 0.01557302217476253,
+      "max_absolute_flow2_share_change": 0.012619653585300261
+    },
+    {
+      "batch": "formal_e3_20261011",
+      "runs": 80,
+      "max_absolute_total_mbps_change": 0.4485976928769162,
+      "max_absolute_jain_change": 0.006493364627209841,
+      "max_absolute_flow2_share_change": 0.016494490737723633
+    },
+    {
+      "batch": "formal_random_loss_20261012",
+      "runs": 20,
+      "max_absolute_total_mbps_change": 1.8273897605845804,
+      "max_absolute_jain_change": 0.00924361101373583,
+      "max_absolute_flow2_share_change": 0.035492419903388306
+    }
+  ]
+}

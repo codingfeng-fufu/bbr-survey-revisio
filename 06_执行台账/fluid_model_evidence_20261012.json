@@ -1,0 +1,48 @@
+{
+  "report_id": "RPT_DOMANSKI_2016_FLUID",
+  "study_id": "ST_DOMANSKI_2016_FLUID",
+  "doi": "10.1007/978-3-319-47217-1_21",
+  "decision": "include_background_methods",
+  "scope": "Supporting queue/RTT and TCP fairness modeling under frozen M02; not BBR performance evidence",
+  "title": "The Fluid Flow Approximation of the TCP Vegas and Reno Congestion Control Mechanism",
+  "authors": [
+    "Adam Domanski",
+    "Joanna Domanska",
+    "Michele Pagano",
+    "Tadeusz Czachorski"
+  ],
+  "year": 2016,
+  "platform": "Python numerical fluid-flow computations, not packet-level/native-kernel measurements",
+  "protocols": [
+    "TCP NewReno",
+    "TCP Vegas"
+  ],
+  "queue_policies": [
+    "FIFO tail drop",
+    "RED"
+  ],
+  "locations": {
+    "model": "PDF p.3 Eqs.1–2; p.4 Vegas rules",
+    "parameters": "p.5 Section3",
+    "results": "pp.5–7 Figures1–4",
+    "conclusion": "p.7 Section4"
+  },
+  "reported_parameters": {
+    "RED_min_packets": 10,
+    "RED_max_packets": 15,
+    "buffer_packets": 20,
+    "RED_pmax": 0.1,
+    "RED_weight": 0.007,
+    "Vegas_gamma": 1,
+    "Vegas_alpha": 2,
+    "Vegas_beta": 4
+  },
+  "limits": [
+    "NewReno fluid approximation omits timeout losses and slow start; authors limit suitability to low loss rates",
+    "Mean queue/window dynamics are not proof of individual packet behavior",
+    "Contains no BBR version, ECN comparison or 100Mbps experimental validation",
+    "Numerical capacity=0.075 and propagation=2 reported without an unambiguous experiment-unit conversion; do not convert to Mbps or ms",
+    "No independent repeated-run/uncertainty inference made"
+  ],
+  "review": "Full eight-page report read; equation page visually checked; no author-code reproduction; background eligibility only"
+}

@@ -1,0 +1,43 @@
+Response to Reviewer 3
+
+Thank you for reading the manuscript carefully. We respond to each comment below. Page numbers refer to the printed revised manuscript pages.
+
+R3-1: Abstract readability
+
+Reviewer comment (summary): Rewrite the abstract for readability, removing citations and unnecessary numerical detail.
+
+Response: We rewrote the abstract with a clearer progression from scope to framework, experiments and conclusion. It reports the 340-run experiment scope without repeating detailed external throughput ratios or embedding citations. Revised location: Abstract.
+
+R3-2: BDP-Veno and OVeno
+
+Reviewer comment (summary): Discuss other BDP-aware TCP designs, including BDP-Veno and OVeno.
+
+Response: We have added BDP-Veno and OVeno to Section 1.2 and the bibliography, with their titles, publication metadata and DOIs. They broaden the related-work discussion beyond BBR variants. The revision distinguishes these BDP-aware designs from BBR rather than assuming they use the same estimator, probing policy or loss response.
+
+Our available source records establish their bibliographic identities and the scope described in their abstracts, but do not supply a matched experiment against our BBR implementations. We therefore keep this discussion qualitative and do not report a cross-paper performance ranking. This is a limited addition to related work, not a comparative evaluation of the two protocols.
+
+Manuscript locations: Section 1.2 (p. 2).
+
+R3-3: Analytical contribution
+
+Reviewer comment (summary): Clarify the analytical contribution beyond numerical evaluation.
+
+Response: We have added an analytical assessment in response to this concern. The paper remains a survey with an analytical study and controlled measurements; we have not developed a new congestion-control algorithm. First, the revised analysis demonstrates non-identifiability: for fixed capacity, RTTs and queue limit, every algebraic allocation x1=(1-s)G, x2=sG satisfies the aggregate-rate and propagation-pipe identities, so those identities alone cannot determine s. This is a statement about what the equations identify, not a claim that every allocation is a controller equilibrium. Second, we transform Jain's established two-flow index into an explicit share-feasibility interval and separate utilization from allocation requirements. Third, we define a requirement-dependent assessment procedure with explicit inputs, observation windows, per-metric outputs and an undetermined result when evidence is missing. Repeated-run assessment reports the fraction jointly satisfying utilization and fairness requirements, alongside the metric means.
+
+The controlled measurements then evaluate this procedure and quantify transfer from E1 calibration to disjoint E3 conditions against a constant baseline. The analysis reports both small errors and conditions where queue conditioning performs worse, and makes its retrospective design explicit. We have rewritten the contribution statement to identify this analysis and its experimental evaluation explicitly. We attribute BDP and Jain identities to established theory and do not present them as new formulas, a new TCP controller or a proof of universal suitability thresholds.
+
+Manuscript locations: Section 1.4 (p. 3); Section 2.1 (p. 5); Section 3.4 (p. 10); Section 7 (p. 21); Section 3.5 (p. 12); Section 7.5 (p. 24); Table 12 (p. 26); Table 13 (p. 26).
+
+R3-4: Implementation details and reproducibility
+
+Reviewer comment (summary): Provide sufficient implementation, tool, platform and configuration details for reproduction.
+
+Response: Section 7.1 now specifies the two-sender/shared-bottleneck/one-receiver topology, Mininet 2.3.0, iperf3 3.9, iproute2 5.15.0, kernel environments, runtime algorithm names, FIFO/tbf/netem queue settings, MTU, ECN configuration, run duration and repetition count. It defines total goodput, Jain fairness and per-run shares, and gives the reference BDP, queue targets and packet-limit rounding. The experimental supplement supplies raw logs, manifests and analysis scripts for all 340 runs. Receiver goodput and derived Jain/share metrics use a stated full-run window, with a separate post-warmup sensitivity analysis. Early RTT probes and queue snapshots are not represented as complete end-of-run measurements. Different kernel environments and the BBRv1 compatibility patch are reported as limitations on causal attribution.
+
+Manuscript locations: Section 7 (p. 21); Figure 9 (p. 23); Table 10 (p. 24); Table 11 (p. 24).
+
+R3-5: Positive assessment of the remaining presentation
+
+Reviewer comment (summary): The remaining presentation of the BBR study is well done.
+
+Response: Thank you for this assessment. We have kept the overall explanatory structure and revised the sections affected by the other comments.

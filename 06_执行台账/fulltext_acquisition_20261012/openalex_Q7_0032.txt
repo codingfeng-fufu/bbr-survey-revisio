@@ -1,0 +1,457 @@
+  Adaptive Handover Detection for QUIC over LEO
+                Satellite Networks
+         1st Nurulfaizal Bin M. Shukeri                           2nd Jianping Tian                      3rd Yung-Wey Chong
+           Digital Transformation Centre                    School of Computer Sciences               School of Computer Sciences
+             Universiti Sains Malaysia                        Universiti Sains Malaysia                 Universiti Sains Malaysia
+                  Penang, Malaysia                                Penang, Malaysia                         Penang, Malaysia
+                  nfaizal@usm.my                            tianjianping@student.usm.my                      chong@usm.my
+
+            4th Muhammad Niswar                              5th Sye Loong Keoh                           6th Achmad Basuki
+           Department of Informatics                    School of Computing Science                  Faculty of Computer Science
+            Hasanuddin University                           University of Glasgow                       Universitas Brawijaya
+             Makassar, Indonesia                           Glasgow, Scotland, UK                          Malang, Indonesia
+              niswar@unhas.ac.id                       SyeLoong.Keoh@glasgow.ac.uk                          abazh@ub.ac.id
+
+
+
+   Abstract—Low Earth Orbit (LEO) satellites travel at approx-                (GEO) satellites and terrestrial infrastructure, LEO constella-
+imately 7.5 km/s, causing frequent link handovers that manifest               tions offer broad geographic coverage, terrain independence,
+as round-trip time (RTT) spikes and transient packet loss                     high link reliability, reduced propagation latency, and lower
+events. Traditional transport-layer congestion control algorithms
+misinterpret these link-level disturbances as network congestion,             susceptibility to physical obstructions [10]. Starlink, operated
+leading to unnecessary reductions in the congestion window                    by SpaceX, exemplifies the commercial maturity of this tech-
+(cwnd) and consequent throughput degradation. Existing opti-                  nology, with more than 9,000 satellites in operation as of
+mization schemes either depend on proprietary satellite telemetry             January 2026, serving approximately nine million subscribers
+that is unavailable to end-users, or exploit fixed handover                   across nearly 155 countries and regions [11].
+periodicity patterns whose applicability is restricted to specific
+constellations and geographic regions. This paper proposes the                   A key challenge faced by LEO satellite networks stems
+Adaptive Handover Detection (AHD) algorithm, which operates                   from the dynamic changes caused by satellite mobility. Each
+exclusively on observable end-to-end metrics, specifically RTT,               satellite must orbit the Earth at approximately 7.5 km/s to
+available bandwidth, and packet loss rate, to distinguish link han-           resist gravity and maintain its orbit. This rapid movement,
+dover events from genuine network congestion without requiring                together with the associated handovers and dynamic topology
+any external auxiliary information. Integrated as a transparent
+wrapper around BBRv3 within the QUIC protocol stack and                       changes, adversely affects the stability and reliability of the
+evaluated in a Mininet-based simulation environment driven                    network [6]. Each handover event introduces delay spikes and
+by real Starlink measurement traces, AHD identifies handover-                 packet loss, which cause the congestion control (CC) algorithm
+induced network state transitions, suppresses unnecessary cwnd                to perceive network congestion and proactively reduce the
+reductions, increases QUIC throughput by up to 32%, and                       congestion window (cwnd). During recovery, the algorithm
+reduces the packet loss rate by 11% relative to standard BBR.
+An ablation study confirms that both EWMA-based smoothing                     enters a slow-start state, which has a significant negative
+and the freeze protection mechanism are essential contributors                impact on latency-sensitive applications such as low-latency
+to the observed performance gains. A sensitivity analysis of all              live video streaming [12]. Among CC algorithms, Bottleneck
+five tunable parameters justifies the selected configuration and              Bandwidth and Round-trip propagation time (BBR) has been
+demonstrates that performance remains robust throughout the                   shown to achieve higher throughput and better bandwidth
+evaluated parameter range.
+   Index Terms—QUIC, congestion control, LEO satellite net-
+                                                                              fairness than CUBIC in satellite network environments [4],
+works, handover detection                                                     [5], making it a strong baseline for further improvement.
+                                                                                 Several studies have sought to optimize communication pro-
+                         I. I NTRODUCTION                                     tocol performance by predicting handover events. SaTCP [6]
+                                                                              attempts to incorporate satellite location information, but the
+   Satellite communication has emerged as a key enabler                       link-layer feedback it relies upon is difficult to obtain in com-
+of global connectivity, with Low Earth Orbit (LEO) satel-                     mercial, closed-source systems. Although StarQUIC [7] ex-
+lite networks representing one of the most rapidly advanc-                    ploits specific handover periodicity patterns, its generalizabil-
+ing paradigms in this domain. Compared with geostationary                     ity is limited by regional and constellation-specific variations.
+                                                                              This paper proposes an adaptive algorithm that relies solely
+  This work is the output of the ASEAN IVO Phase II project, ‘PEP-star:       on end-to-end measurement data without requiring external
+A Performance Enhancing Proxy for Low Earth Orbit Satellite Communi-
+cations in Disaster-Resilient ASEAN Network Infrastructure’ and financially   auxiliary information. The principal contributions of this paper
+supported by NICT (http://www.nict.go.jp/en/index.html).                      are: (1) an AHD detection mechanism based on the BBRv3
+algorithm that is suitable for the QUIC protocol; and (2)            minute [8], leading to congestion misjudgment by QUIC’s
+a reproducible simulation environment built on real Starlink         CC algorithm. They consequently proposed StarQUIC, a cwnd
+datasets to verify the algorithm’s advantages in improving           freeze mechanism that is independent of the CC algorithm.
+throughput and robustness.                                           This mechanism exploits predictable handover patterns to
+                                                                     avoid unnecessary cwnd reductions, reducing QUIC trans-
+                     II. R ELATED W ORK                              mission completion times by up to 35%. However, Starlink
+   Due to the characteristics of LEO satellites, such as high-       experiences slight timing variations across different regions,
+speed movement, frequent link changes, and significant path          and other LEO satellite constellations do not exhibit this
+delay fluctuations, traditional Internet transport protocols often   pattern, limiting StarQUIC’s generalizability.
+struggle to maintain stable performance in this environment.            This paper proposes the Adaptive Handover Detection
+Consequently, considerable research effort has been directed         (AHD) algorithm, evaluated using a Mininet-based emulator
+toward the performance of transport protocols in LEO satellite       and a publicly available Starlink latency dataset [1] for repro-
+network environments.                                                ducibility. In this work, comparison with SaTCP is precluded
+   Khan et al. [2] evaluated the performance of various trans-       because SaTCP requires proprietary link-layer feedback that is
+port protocols in LEO network environments through simu-             unavailable in the simulation environment. Comparison with
+lation and experimentation, demonstrating that path changes          machine learning-based approaches is similarly deferred, as
+and delay fluctuations caused by satellite orbital movement          such methods require labeled handover datasets and introduce
+significantly impair the stability of CC mechanisms. Barbosa         non-deterministic inference latency. Therefore, the present
+et al. [3] systematically compared the performance of TCP CC         evaluation focuses on demonstrating handover detection per-
+algorithms in LEO networks, concluding that traditional CC           formance against BBR and StarQUIC.
+algorithms often fail to adapt to frequent link changes, leading
+                                                                                         III. M ETHODOLOGY
+to decreased throughput and performance variance.
+   Cao and Zhang [6] proposed SaTCP, which is based on                  In LEO networks, handover events cause short-term network
+CUBIC, to adjust TCP CC decisions by predicting satel-               state transitions that are typically manifested as an increase
+lite handover events or route update timestamps using the            in RTT and a decrease in available bandwidth. When this
+predictability of satellite positions. SaTCP requires ground         phenomenon is misclassified as regular congestion, the CC
+stations (GS) to report interruption events in advance, enabling     algorithm triggers unnecessary cwnd reduction, resulting in a
+user terminals (UT) to notify user equipment (UE) of upcom-          significant decrease in throughput and an extended recovery
+ing handover events. However, these mechanisms do not exist          time.
+in commercial LEO satellite networks, where such devices                To address this, AHD is designed as an adaptive handover
+are inaccessible to third-party developers. Consequently, the        detection mechanism that operates as an outer wrapper around
+evaluation of SaTCP is limited to the LeoEM simulator and            the base CC algorithm (BBRv3):
+does not extend to real-world deployment.                               • During stable link periods, the base CC algorithm is used
+   QUIC is a UDP-based transport layer protocol standardized               for rate control.
+by the IETF (RFC 9000) [9], featuring encryption, multi-                • Upon identification of a handover signature rather than
+plexing, and low latency. It combines the reliability of TCP               a congestion signature, AHD enters a freeze protection
+with the flexibility of UDP, shortens connection establishment             phase to suppress cwnd-reducing signals.
+time through 0-RTT and 1-RTT handshakes, and supports                   • AHD restores the learning baseline gradually after the
+connection migration based on Connection Identifier (CID)                  freeze concludes.
+identification, enabling seamless adaptation to network han-            The primary objective of this mechanism is to maintain
+dover scenarios. Its CC module supports multiple algorithms,         the stability of the transmission window during handover
+including CUBIC and BBR, and its user-space implementation           disturbances and reduce the probability of erroneous cwnd
+makes deployment and iteration more flexible.                        reduction.
+   Wang et al. [4] evaluated the performance of QUIC with
+BBR in satellite Internet scenarios using a dedicated sim-           A. Handover Event Detection
+ulation platform and found that QUIC+BBR outperforms                    Upon each ACK reception, AHD extracts three observable
+QUIC+CUBIC in terms of throughput and goodput under                  transport metrics:
+typical packet loss rates of 1–10% in satellite networks, while                          xt = (rttt , bwt , losst )               (1)
+maintaining a stable transmission rate and good bandwidth
+fairness. Bujari et al. [5] further demonstrated that BBR is           A per-metric statistical baseline is maintained using an
+more efficient than alternative CC algorithms within QUIC in         Exponential Weighted Moving Average (EWMA):
+most scenarios. Both studies indicate that targeted improve-
+                                                                                       x̄t = (1 − α) x̄t−1 + α xt                 (2)
+ments to BBR are necessary to further enhance its performance
+in satellite networks.                                                  RTT and bandwidth use a faster update coefficient (α =
+   Kamel et al. [7] observed that Starlink handover events           0.15), while the packet loss rate uses a slower update co-
+occur at approximately 12, 27, 42, and 57 seconds per                efficient (α = 0.05), in order to suppress the effect of
+instantaneous jitter on the loss baseline. The relative deviations      During the freeze period, two key controls are implemented:
+for RTT and bandwidth are then computed as:                             • Window floor enforcement: The cwnd value at freeze
+
+                  rttt − rttt           bwt − bwt                         entry (cwndf ) is recorded, and cwnd(t) ≥ cwndf is
+           ertt
+            t =               ,    ebw
+                                    t =               (3)                 enforced to prevent cwnd from dropping due to handover
+                      rttt                 bwt
+                                                                          interference.
+   A handover-type event is flagged when all three of the               • Notification suppression: Negative congestion notifica-
+following conditions are satisfied simultaneously:                        tions that would reduce cwnd, such as repeated packet
+            ertt
+             t > θrtt ,   ebw
+                           t > θbw ,    losst < θloss         (4)         loss signals and timeouts, are masked. ACK-driven in-
+                                                                          ternal state updates, however, continue normally, keeping
+   This joint condition captures the combined signature of a              bandwidth estimates and counters current.
+sudden increase in latency, a sudden decrease in bandwidth,
+                                                                        After the freeze concludes, if the observation is stable (the
+and the absence of elevated packet loss, and is used to
+                                                                     event count has been reset to zero and remains so for several
+distinguish between link handover and queue congestion.
+                                                                     cycles), the freeze exits, the baseline is refreshed with the latest
+B. Prediction and Error Control Mechanism                            smoothed RTT and bandwidth values, and the accumulated
+   AHD accumulates evidence of handover-type conditions              loss history is gradually decayed, completing the parameter
+using an event counter Cevent and defines the prediction error       update phase.
+as:
+                             |ertt | + |ebw
+                                         t |                         D. Parameter Sensitivity Analysis
+                       Et = t                              (5)
+                                     2                                 To assess the robustness of the AHD scheme and justify
+   The metric Et averages the normalized deviations of RTT           the selected parameter configuration, a sensitivity analysis was
+and bandwidth. Because both ertt             bw
+                                    t and et are dimensionless       conducted on five key parameters: θrtt , θbw , θloss , Nth , and
+relative deviations, obtained by normalizing the raw measure-        Emax . Fig. 1 illustrates the impact of these parameters on
+ment differences by their respective EWMA baseline values,           average network throughput.
+this equal-weighted average provides a unit-free, combined
+error signal that penalizes large deviations in either metric                                                 Sensitivity of θrtt
+                                                                                                                                                                             12.5
+                                                                                                                                                                                                  Sensitivity of θbw                                                        Sensitivity of θloss
+
+
+without requiring explicit scaling factors.                                              13.0
+
+                                                                                         12.5
+                                                                                                                                                                             12.0                                                                         13.5
+
+                                                                                                                                                                             11.5
+                                                                     Throughput (Mbps)
+
+
+
+
+                                                                                                                                                         Throughput (Mbps)
+
+
+
+
+                                                                                                                                                                                                                                      Throughput (Mbps)
+   The conditions for entering the freeze state, in which the                            12.0
+
+                                                                                         11.5
+                                                                                                                                                                             11.0
+                                                                                                                                                                                                                                                          13.0
+
+
+                                                                                                                                                                             10.5                                                                         12.5
+predicted handover is confirmed, are:                                                    11.0
+
+                                                                                         10.5
+                                                                                                                                                                             10.0
+                                                                                                                                                                                                                                                          12.0
+                                                                                                                                                                              9.5
+                                                                                         10.0
+
+                  Cevent ≥ Nth ∧ Et ≤ Emax                    (6)                         9.5                                                                                 9.0                                                                         11.5
+
+                                                                                                0.10   0.15   0.20       0.25       0.30   0.35   0.40                              0.10   0.15   0.20   0.25   0.30    0.35   0.40                              0.040   0.045       0.050        0.055   0.060
+                                                                                                                 Value of θrtt                                                                       Value of θbw                                                                Value of θloss
+
+   If the event threshold has been reached but the error remains                                              Sensitivity of Nth
+                                                                                                                                                                             12.5
+                                                                                                                                                                                                  Sensitivity of Emax
+
+                                                                                         12.8
+persistently elevated, the cumulative consecutive error counter                          12.6
+                                                                                                                                                                             12.0
+
+                                                                                                                                                                             11.5
+                                                                     Throughput (Mbps)
+
+
+
+
+                                                                                                                                                         Throughput (Mbps)
+
+
+
+
+Cerr is incremented. A Refine operation is triggered when                                12.4
+
+                                                                                         12.2
+                                                                                                                                                                             11.0
+
+                                                                                                                                                                             10.5
+
+either of two conditions holds: (i) consecutive prediction errors                        12.0
+
+                                                                                         11.8
+                                                                                                                                                                             10.0
+
+                                                                                                                                                                              9.5
+
+persist (Cerr ≥ 5), indicating a stale baseline; or (ii) no ACK                          11.6
+
+                                                                                         11.4
+                                                                                                                                                                              9.0
+
+                                                                                                                                                                              8.5
+
+is received for 2 seconds (timeout), implying a possible route                                   1        2          3
+                                                                                                                 Value of Nth
+                                                                                                                                4          5       6                                0.10   0.15   0.20   0.25   0.30
+                                                                                                                                                                                                     Value of Emax
+                                                                                                                                                                                                                        0.35   0.40
+
+
+change or silent loss. These two conditions are independent
+and operate under OR logic: whichever occurs first triggers          Fig. 1. Parameter sensitivity analysis of the proposed AHD scheme. Subplots
+a reset of the event and error counters, and the RTT and             (a)–(e) show the impact of different parameter values on average throughput.
+                                                                     The red markers indicate the optimal parameter settings selected for the
+bandwidth baselines are rebuilt from the current link estimate       finalized algorithm: (a) θrtt = 0.25, (b) θbw = 0.3, (c) θloss = 0.05,
+to prevent a stale model from amplifying detection errors.           (d) Nth = 3, and (e) Emax = 0.25.
+
+C. Freeze Protection Strategy
+                                                                                           The key observations from each parameters are as follows:
+  After predicting the handover, the algorithm enters a freeze
+                                                                                           • Threshold Parameters (θrtt , θbw , θloss ): As shown in
+period Tf :
+                                                                                             Fig. 1(a)–(c), throughput initially increases as the thresh-
+                     tfreeze until = t0 + tf               (7)
+                                                                                             olds are tuned to capture handover characteristics more
+   The freeze duration is RTT-adaptive: the soft window is                                   accurately. However, performance degrades when the
+set to Tsoft = clip(2 · SRTT, 250 ms, 700 ms), which covers                                  thresholds exceed their optimal values (θrtt = 0.25,
+the typical LEO handover transient. After Tsoft expires, the                                 θbw = 0.3, and θloss = 0.05). Excessively high thresholds
+freeze is released only when two consecutive ACK samples                                     may cause missed detections of handover events, while
+produce no further anomaly, confirming a stable path. A hard                                 overly low thresholds may trigger false positives under
+cap Thard = 2Tsoft bounds the worst case, and the freeze is                                  normal channel jitter.
+forcibly released whenever the single-sample loss rate or the                              • Observation Window (Nth ): Fig. 1(d) indicates that
+EWMA loss rate exceeds the threshold, ensuring that AHD                                      Nth = 3 yields the best result. A smaller Nth renders
+does not hold the window high during genuine congestion.                                     the algorithm overly sensitive to transient noise, whereas
+     a larger Nth introduces detection delay that hinders timely
+     window adjustment during handovers.
+  • Maximum Estimation Error (Emax ): The sensitivity
+     of Emax is shown in Fig. 1(e). The optimal value is
+     0.25. When Emax increases beyond 0.3, throughput drops
+     to approximately 8.35 Mbps, suggesting that an over-
+     tolerant error margin prevents the algorithm from accu-
+     rately distinguishing between congestion and link state
+     changes.
+  Based on these results, the optimal parameter set {θrtt =
+0.25, θbw = 0.3, θloss = 0.05, Nth = 3, Emax = 0.25} is
+adopted for all subsequent performance evaluations.
+
+                IV. E VALUATION & R ESULTS
+   AHD was evaluated against standard BBR (BBRv3) and
+StarQUIC in a controlled simulation environment driven by                                                     Fig. 2. Network topology diagram of simulated environment.
+real Starlink measurement traces. Four key performance in-
+                                                                                                                         D   % D Q G Z L G W K                                                                      E   ) & 7
+dicators were assessed: throughput, flow completion time,
+                                                                                                                                                                                                 
+latency, and packet loss rate.                                                                           
+
+                                                                                                                                                                                               
+
+
+
+
+                                                                     % D Q G Z L G W K   0 E S V 
+A. Evaluation                                                                                                                                                                                   
+
+
+
+
+                                                                                                                                                                            ) & 7   V 
+                                                                                                          
+   The simulation platform is based on Mininet and utilizes                                                                                                                                      
+                                                                                                          
+measurement data collected in [1]. These traces include IRTT                                              
+                                                                                                                                                                                                     
+
+delay measurements collected at 10 ms intervals and iPerf3                                                                                                                                             
+                                                                                                               % % 5         6 W D U 4 8 , &         $ + '   2 X U V                                      % % 5    6 W D U 4 8 , &    $ + '   2 X U V 
+throughput measurements collected at 100 ms intervals. The
+                                                                                                                           F   / D W H Q F \                                                                        G   / R V V
+bandwidth and delay of the links are updated every 100 ms                                                
+                                                                                                                                                                                                        
+based on the traces using the tc-netem and tc-tbf utilities                                              
+
+                                                                                                         
+available on Linux. This configuration results in a probed                                                                                                                                              
+                                                                     / D W H Q F \   P V 
+
+
+
+
+                                                                                                                                                                                     / R V V    
+                                                                                                         
+packet loss rate of approximately 2–4% in both directions.                                                                                                                                              
+                                                                                                         
+Although packet loss was not altered during handover events,                                                                                                                                            
+                                                                                                         
+the peak RTTs captured through tracing cause picoquic to                                                                                                                                                
+                                                                                                          
+perceive packet loss via retransmission timeout (RTO). The                                                                                                                                             
+                                                                                                               % % 5         6 W D U 4 8 , &         $ + '   2 X U V                                      % % 5    6 W D U 4 8 , &    $ + '   2 X U V 
+evaluation uses only non-ISL Starlink traces from the Seattle
+PoP [1]. ISL traces are excluded due to dataset limitations and
+                                                                    Fig. 3. Performance comparison under dynamic LEO scenarios. The error
+to isolate satellite-to-ground handover effects; accordingly, all   bars represent the 95% confidence intervals (n = 10).
+claims are scoped to non-ISL LEO access links, and extension
+to ISL-enabled topologies is left as future work.
+   For each test, a 256 MB file was transferred from the server     throughput demonstrates a greater ability to aggregate band-
+to the client using BBR, StarQUIC, and AHD, respectively,           width in the highly dynamic LEO satellite environment.
+and the transfer completion time was recorded. Ten runs were           The FCT results are presented in Fig. 3(b). AHD reduces
+performed per trace over four traces. The simulated network         the average FCT to 176.10 s, compared with 233.72 s for BBR
+topology is shown in Fig. 2.                                        and 187.67 s for StarQUIC, representing reductions of 24.65%
+                                                                    and 6.16%, respectively. The error bars for BBR are sub-
+B. Results                                                          stantially wider than those of AHD and StarQUIC, indicating
+   The effectiveness of the proposed AHD optimization               that conventional BBR experiences high performance variance
+scheme is verified by comparison with standard QUIC (based          during satellite handovers. By contrast, AHD maintains a
+on BBRv3) and StarQUIC. Fig. 3 presents the statistical results     tighter confidence interval, demonstrating its effectiveness in
+of four key performance indicators, where the bars represent        providing stable transmission performance over LEO satellite
+mean values and the error bars indicate 95% confidence              networks.
+intervals (CI) based on n = 10 independent test runs.                  Due to frequent handovers and channel interference, LEO
+   As shown in Fig. 3(a), the average throughput of AHD             satellite networks often exhibit high jitter and non-congestion
+reached 12 Mbps, representing an improvement of approx-             packet loss. As shown in Fig. 3(c), the RTT of all schemes
+imately 32.11% over standard BBR (9.08 Mbps) and 9.8%               remains approximately 33 ms. AHD achieves the lowest av-
+over StarQUIC (11.1 Mbps). Although AHD exhibits a slightly         erage latency at 32.95 ms, marginally below BBR (33.11 ms)
+larger standard deviation than StarQUIC, its superior mean          and StarQUIC (33.60 ms). The small magnitude of these
+differences confirms that AHD improves throughput without          the QUIC protocol and evaluated in Mininet-based simulations
+inducing additional queuing delay.                                 driven by real Starlink traces, AHD identifies network state
+   As shown in Fig. 3(d), the average packet loss rate of          transitions caused by handover and suppresses the unnecessary
+AHD is reduced to 4.42%, representing relative reductions          cwnd reductions that afflict traditional CC algorithms. The
+of 11.04% and 11.92% compared with BBR (4.98%) and                 experimental results demonstrate that AHD achieves up to
+StarQUIC (5.03%), respectively. The upper bound of AHD’s           32% throughput gain and 11% packet loss reduction over
+95% CI remains below the mean values of both BBR                   standard BBR, while also outperforming StarQUIC, offering
+and StarQUIC. This confirms that the proposed threshold-           a solution for satellite Internet protocol optimization.
+based detection mechanism can accurately distinguish between           Despite these promising results, several directions remain
+congestion-related losses and non-congestion-related losses,       open for future work. First, the current detection mechanism
+such as handover-induced drops, thereby preventing the win-        relies on a limited set of transport-layer observables. Incor-
+dow collapse effect and reducing redundant retransmissions.        porating richer signals, such as packet reordering patterns,
+This distinction is important for latency-sensitive applications   jitter characteristics, or congestion window dynamics, could
+such as live video streaming, as it lowers the probability of      improve detection accuracy in complex orbital environments.
+frame freezes.                                                     Second, future work will include a quantitative comparison
+                                                                   with SaTCP and machine learning-based handover detection,
+C. Ablation Study                                                  as well as evaluation on ISL-enabled topologies and multiple
+   To quantify the contribution of each removable component        PoPs, once suitable emulators or labeled datasets become
+of AHD, two variants were evaluated: (i) No-EWMA, which            available. Third, all experiments were conducted in a Mininet-
+disables exponential smoothing and uses raw rttt , bwt , losst     based simulator using historical Starlink traces. Field deploy-
+for detection; and (ii) No-Freeze, which detects handovers         ment tests on live LEO satellite networks such as Starlink and
+but disables the window floor enforcement and notification         OneWeb are needed to validate the practical applicability of
+masking. The event counter and error threshold are integral to     AHD. Fourth, this paper focuses on single-flow performance.
+the detection logic and cannot be removed without invalidating     The fairness of AHD when coexisting with multiple competing
+the algorithm; they are therefore not ablated.                     flows, including other AHD flows and flows governed by
+   Table I reports the average bandwidth and packet loss           legacy CC algorithms, has not been studied. In principle,
+rate across all runs. Disabling EWMA reduces bandwidth by          AHD’s freeze mechanism only temporarily suppresses cwnd
+14.25% (from the full AHD configuration of 12.00 Mbps              reduction during handover transients and otherwise follows
+to 10.29 Mbps) and increases the loss rate from 4.42% to           BBRv3’s rate control, which is known to maintain fairness in
+4.63%, confirming that smoothing is essential for filtering        static environments; however, rigorous multi-flow evaluation
+measurement noise and avoiding false positive detections.          is left as future work.
+Disabling the freeze protection mechanism produces a substan-
+                                                                                                R EFERENCES
+tially larger degradation: bandwidth drops by 21.25% (from
+                                                                   [1] J. Zhao and J. Pan, ”LENS: A LEO satellite network measurement
+the full AHD configuration of 12.00 Mbps to 9.45 Mbps)                 dataset,” in Proc. 15th ACM Multimedia Syst. Conf., Apr. 2024, pp.
+and the loss rate rises from 4.42% to 4.91%, approaching               278–284.
+the performance of standard BBR. This demonstrates that            [2] F. Khan, C. Hervella, L. Diez, F. F. Fernández, N. J. H. Marcano, R. H.
+                                                                       Jacobsen, and R. Agüero, ”Realistic assessment of transport protocols
+the freeze protection mechanism is the primary contributor             performance over LEO-based communications,” Computer Networks,
+to AHD’s performance improvement, while EWMA provides                  vol. 236, p. 110008, Nov. 2023.
+a necessary and complementary filtering contribution.              [3] G. Barbosa, S. Theeranantachai, B. Zhang, and L. Zhang, ”A com-
+                                                                       parative evaluation of TCP congestion control schemes over low-Earth-
+                                                                       orbit (LEO) satellite networks,” in Proc. 18th Asian Internet Engineering
+                            TABLE I                                    Conf., Dec. 2023, pp. 105–112.
+                    A BLATION S TUDY R ESULTS                      [4] Y. Wang, K. Zhao, W. Li, J. Fraire, Z. Sun, and Y. Fang, ”Performance
+                                                                       evaluation of QUIC with BBR in satellite internet,” in 2018 6th IEEE
+    Variant          Bandwidth (Mbps)    Packet Loss Rate (%)          International Conference on Wireless for Space and Extreme Environ-
+                                                                       ments (WiSEE), Dec. 2018, pp. 195–199.
+    EWMA + Freeze          12.00                 4.42              [5] A. Bujari, M. Franco, C. E. Palazzi, M. Quadrini, C. Roseti, and F.
+    No EWMA                10.29                 4.63                  Zampognaro, ”QUIC congestion control algorithm characteristics in
+    No Freeze               9.45                 4.91                  mixed satellite–terrestrial emergency communication scenarios,” Com-
+                                                                       puter Communications, vol. 225, pp. 239–249, Sep. 2024.
+                                                                   [6] X. Cao and X. Zhang, ”SaTCP: Link-layer informed TCP adaptation
+              V. C ONCLUSION AND F UTURE W ORK                         for highly dynamic LEO satellite networks,” in Proc. IEEE INFOCOM
+                                                                       2023 - IEEE Conf. Comput. Commun., May 2023, pp. 1–10.
+   This paper has proposed and evaluated AHD, an adaptive          [7] V. Kamel, J. Zhao, D. Li, and J. Pan, ”StarQUIC: Tuning congestion
+handover detection algorithm designed to address the transmis-         control algorithms for QUIC over LEO satellite networks,” in Proc. 2nd
+                                                                       Int. Workshop LEO Netw. Commun., Nov. 2024, pp. 43–48.
+sion performance degradation caused by frequent handovers          [8] J. Pan, J. Zhao, and L. Cai, ”Measuring the satellite links of a LEO
+in LEO satellite networks. Unlike existing approaches, AHD             network,” in Proc. IEEE Int. Conf. Commun. (ICC), Jun. 2024, pp.
+does not rely on proprietary hardware feedback or fixed                4439–4444.
+                                                                   [9] J. Iyengar and M. Thomson, ”QUIC: A UDP-based multiplexed
+handover schedules, operating solely on observable end-to-             and secure transport,” RFC 9000, May 2021. [Online]. Available:
+end metrics. Integrated as a wrapper around BBRv3 within               https://www.rfc-editor.org/info/rfc9000.
+[10] Y. Su, Y. Liu, Y. Zhou, J. Yuan, H. Cao, and J. Shi, ”Broadband LEO
+     satellite communications: Architectures and key technologies,” IEEE
+     Wireless Communications, vol. 26, no. 2, pp. 55–61, Apr. 2019.
+[11] SpaceX, ”Starlink Progress Report 2025,” Hawthorne, CA,
+     USA, Rep., 2025. [Online]. Available: https://starlink.com/public-
+     files/starlinkProgressReport 2025.pdf. [Accessed: Mar. 10, 2026].
+[12] J. Zhao and J. Pan, ”Low-latency live video streaming over a low-earth-
+     orbit satellite network with DASH,” in Proc. 15th ACM Multimedia
+     Syst. Conf., Apr. 2024, pp. 109–120.
+Shukeri, Nurulfaizal Bin M., Tan, Jianping, Chong, Yung-Wey, Niswar, Muhammad,
+Keoh, Sye Loong and Basuki, Achmad (2026) Adaptive Handover Detection for QUIC
+over LEO Satellite Networks. In: 41st International Technical Conference on
+Circuits/Systems, Computers, and Communications (ITC-CSCC 2026), Bangkok,
+Thailand, 07-10 July 2026, (Accepted for Publication).
+
+
+
+
+Copyright © 2026 IEEE. Reproduced under a Creative Commons Attribution 4.0
+International License.
+
+
+
+ https://eprints.gla.ac.uk/390916/
+
+
+
+
+ Deposited on: 28 July 2026
+
+
+
+
+     Enlighten – Research publications by members of the University of Glasgow
+                               https://eprints.gla.ac.uk
+

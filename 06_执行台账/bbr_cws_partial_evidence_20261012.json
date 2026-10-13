@@ -1,0 +1,64 @@
+{
+  "record_id": "openalex_Q1_0052",
+  "doi": "10.3390/electronics9050862",
+  "title": "BBR-CWS: Improving the Inter-Protocol Fairness of BBR",
+  "status": "eligibility reviewed: include; numerical claims remain scoped",
+  "source": "fulltext_acquisition_20261012/openalex_Q1_0052.pdf",
+  "implementation": "Ubuntu/Linux4.14 BBR modification, not stockBBRv2/v3",
+  "mechanism": "Added bbr_set_upper_scaling pluschanges tobbr_set_cwnd/bbr_update_model; recovery/RTprop conditions adjustuppercwnd",
+  "tools": [
+    "Mininet",
+    "iperf",
+    "netem",
+    "tcpdump",
+    "modified tcpprobe"
+  ],
+  "host_qdisc": "fq enabled onBBRhosts; disabled ononeCUBIChost; possible hostconfiguration confound",
+  "interactive_matrix": {
+    "capacity_mbps": [
+      50,
+      20
+    ],
+    "reported_end_to_end_delay_ms": [
+      10,
+      40
+    ],
+    "buffer_BDP": [
+      0.5,
+      5
+    ],
+    "duration_s": 150,
+    "starts": "simultaneous",
+    "repetitions": "not confirmed in inspected sections"
+  },
+  "limits": [
+    "Distinct patched controller, cannot substitute itsresults forstockversionidentity",
+    "Do not inferECN configuration frompapermechanism background",
+    "Reportedend-to-enddelaydefinition still needs exactRTT/oneway confirmation",
+    "Jain/retransmissionnumbers not yet visuallychecked orreproduced",
+    "Hostfqconfiguration must accompany any comparison",
+    "96%retransmissionreduction reported for a specific0.5BDP comparison; not across all matrices",
+    "No independent repetitions/uncertainty intervals confirmed",
+    "Strong never/exactbufferbound claims require source-code andmeasurementverification; not adopted",
+    "EarlierCCNC2020scalingreport is cited as preliminary work; linkbefore independent study aggregation"
+  ],
+  "source_locations": [
+    "Implementation paragraph beforeSection4",
+    "Section5.1",
+    "Section5.4/Table2"
+  ],
+  "additional_result_locations": [
+    "PDFpp.12–14 Figs8–12",
+    "pp.14–15 Fig13",
+    "pp.15–16 Figs14–15/Conclusion"
+  ],
+  "scope_findings": [
+    "Two-flow 10/40ms experiments are equal-path RTT variants, not heterogeneous-RTT fairness tests",
+    "Six-flow tests are3BBR+3CUBIC,150s; intergroupfairness not equivalent tointraprotocolRTTfairness",
+    "Conclusion says0.9orhigher inmost0.2–6BDPcases whereas results text usesalllatencyenvironments; preserve conservative most-tested-cases wording"
+  ],
+  "report_id": "RPT_SONG_2020_BBR_CWS",
+  "study_id": "ST_SONG_2020_BBR_CWS",
+  "eligibility_reason": "Primary BBRv1-based mechanism, interprotocol fairness and retransmission study within M02scope",
+  "review_scope": "Motivation, method, experimental results and conclusion read; Fig13p.15 visually checked. No code rerun or exact curve digitization."
+}

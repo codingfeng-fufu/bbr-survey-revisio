@@ -1,0 +1,35 @@
+{
+  "record_id": "openalex_Q1_0016",
+  "doi": "10.3390/s21124128",
+  "title": "Improvement of RTT Fairness Problem in BBR Congestion Control Algorithm by Gamma Correction",
+  "status": "partial methods/mechanism review; final eligibility pending",
+  "source": "fulltext_acquisition_20261012/openalex_Q1_0016.pdf",
+  "platform": "NS3 simulation; exactrelease/commit not verified",
+  "mechanism": "Gamma-baseddynamicProbeBWpacinggain, testedlimitsPup<=1.5/Pdown>=0.5; distinct fromBBR-ACWcwndgainchange",
+  "comparators": [
+    "originalBBR",
+    "BBQ",
+    "BBR-ACW"
+  ],
+  "inspected_fairness_case": {
+    "capacity_mbps": 100,
+    "buffer_BDP": 5,
+    "rtts_ms": [
+      10,
+      50
+    ]
+  },
+  "limits": [
+    "NativeLinux/BBRv2/v3identity not established",
+    "Application toBBRv2explicitly futurework; not validationofallversions",
+    "Text extraction has duplicated/overlapping layers; curves needvisualreview",
+    "Conclusion50%fairness/57%delay reductions not independently reproduced inthischeck",
+    "Optimalgammavalues remain futurework; no universalgainrecommendation",
+    "Metricsareintra-protocolheterogeneousRTT, notCUBICcoexistence evidence"
+  ],
+  "locations": [
+    "Section3pacingfunctions",
+    "Section4.1",
+    "Section5conclusions"
+  ]
+}

@@ -1,0 +1,666 @@
+Received January 27, 2020, accepted February 28, 2020, date of publication March 2, 2020, date of current version March 12, 2020.
+Digital Object Identifier 10.1109/ACCESS.2020.2977834
+
+
+
+
+BBRp: Improving TCP BBR Performance
+Over WLAN
+CARLO AUGUSTO GRAZIA , MARTIN KLAPEZ ,
+AND MAURIZIO CASONI , (Senior Member, IEEE)
+Department of Engineering Enzo Ferrari, University of Modena and Reggio Emilia, 41125 Modena, Italy
+Corresponding author: Carlo Augusto Grazia (carloaugusto.grazia@unimore.it)
+
+
+
+
+  ABSTRACT This paper shows the inefficiency of TCP BBR in exploiting the Wi-Fi bandwidth. This
+  limitation of BBR has been observed with both IEEE 802.11n and IEEE 802.11ac, where the mechanism
+  of frame aggregation is used to boost the throughput of data transmission. In the last years, many TCP
+  variants have been introduced to limit the bufferbloat phenomena and bound the latency through a reduction
+  of the queue backlog injection rate. However, this mechanism impacts on the Wi-Fi frame aggregation logic,
+  impeding TCP congestion controls to reach the full throughput potential of a Wi-Fi interface. While this
+  problem can be solved with TCP Cubic by allowing the sender node to enqueue more packets, for TCP BBR
+  the fix is not the same, as it has a customized pacing algorithm. With this contribution we propose BBRp,
+  a new BBR version that allows for fine-tuning the congestion control pace, achieving between four and six
+  times more throughput over IEEE 802.11n and IEEE 802.11ac channels, at the cost of an increased latency
+  that is however always less than the latency obtainable with loss-based TCP congestion controls.
+
+
+  INDEX TERMS BBR, latency, TCP, TSQ, WLAN.
+
+
+I. INTRODUCTION                                                                                Interface Card (NIC). Even if the TSQ performance over
+The increase of Wi-Fi users is demanding new opti-                                             wired links is remarkable, this is not the case for WLAN
+mized standards, as well as refinements in the current                                         environments in which TSQ could break the frame aggrega-
+ones [1]–[3]. Considering the two most used technolo-                                          tion logic, impeding all the TCP variants to discover the full
+gies for WLAN environments, namely IEEE 802.11n and                                            link potential correctly. This limitation has been discovered
+IEEE 802.11ac, the concept of frame aggregation has                                            and solved for TCP Cubic, and it led to a new solution for
+been introduced to increase the overall throughput [4].                                        boosting BBR v2.0 throughput on Wi-Fi paths [11]–[13].
+Simultaneously, several solutions to limit the end-to-end                                      Unfortunately, applying the same fix to the BBR algorithm
+latency have been introduced to overcome the bufferbloat                                       is not enough to get a decent throughput from the Wi-Fi
+phenomena [5]. The developers of the Linux kernel have                                         interface. The reason is that another essential TCP part of
+been very active in the last years introducing several fea-                                    BBR is breaking the Wi-Fi frame-aggregation logic, i.e., TCP
+tures and modules related to TCP communications, with new                                      Pacing, which is a delay between the transmission of TCP
+congestion controls like BBR [6], proposed by Google LLC                                       segments. While all the TCP variants use a shared pacing
+(Google) at the beginning of 2017. BBR is currently available                                  structure, BBR has a customized one, hardcoded in the Linux
+on many Linux’s distributions, Google has incrementally                                        kernel, that takes precedence over the default one.
+applied it to its YouTube servers, and it is in the process of
+being improved to BBR v2.0 in order to deal with several                                       A. CONTRIBUTION
+limitations highlighted by the research community in the last                                  In this paper, we highlight the challenges that arise combin-
+years [7]–[10]. Moreover, Google has also introduced a new                                     ing TCP BBR, TSQ and TCP Pacing on a wireless bottle-
+mechanism called TCP Small Queues (TSQ) that limits the                                        neck, providing real tests on several wireless technologies.
+number of packets that a TCP socket can push down in the                                       We present a modified version of BBR called BBRp, able
+stack until packets have been truly dispatched by the Network                                  to exploit the Wi-Fi bottleneck without braking the frame-
+                                                                                               aggregation logic at the bottleneck. BBRp has been tested on
+   The associate editor coordinating the review of this manuscript and                         a real test-bed, with a Wi-Fi access technology, over different
+approving it for publication was Mubashir Husain Rehmani                .                      use-cases and compared to several TCP congestion controls.
+
+                     This work is licensed under a Creative Commons Attribution 4.0 License. For more information, see http://creativecommons.org/licenses/by/4.0/
+43344                                                                                                                                                                VOLUME 8, 2020
+C. A. Grazia et al.: BBRp: Improving TCP BBR Performance Over WLAN
+
+
+
+
+TABLE 1. Related work contributions summarized.
+
+
+
+
+We demonstrated the ability of BBRp to discover the full             Cubic [14], [23], [24]; thanks to FQ-Codel, the unfairness
+Wi-Fi bandwidth reaching almost optimal throughput values,           gap can be reduced remarkably [25]. General performance
+outperforming the standard BBR algorithm, while still main-          on the impact of TCP BBR versus TCP Cubic traffic has
+taining better latency performance when compared to TCP              also been investigated in [26]. A variant of BBR, called
+Cubic. A key contribution of BBRp is, indeed, to maximize            Modest-BBR, modifies BBR, reducing its aggressiveness and
+the efficiency of a data transfer, increasing the throughput         increasing fairness with Cubic while still maintaining similar
+with a minimum latency increment, regardless of the bot-             performance to the original BBR [10]. Another variant of
+tleneck Wi-Fi position (i.e., proximal to the sender or the          BBR called, instead, DA-BBR, focuses on the RTT-fairness
+receiver). Moreover, the outcome of this research paved the          achieving fair throughput between short-RTT flows and long-
+way for BBR v2.0 and allowed users using long-term-support           RTT flows where RTT is five times higher [16]. DA-BBR
+Linux kernels such as 4.14 and 4.19 to boost the BBR perfor-         works on top of the BBQ algorithm, which has been the first
+mance on the Wi-Fi path.                                             attempt to address the problem of RTT fairness of the original
+   The rest of the paper is organized as follows: Section II         BBR [15]. BBQ continuously detected the excess queues
+describes the related work, while Section III enhances the           and limited the time for probing when a queue was created
+critical points of a wireless bottleneck. Section IV presents        to prevent long RTT flows from transmitting a considerable
+the current TCP stack available on Linux systems and                 amount of traffic to the pipe. To conclude the picture, two
+Section V describes the testbed used to produce the results          works investigate the behavior of mixed BBR and Cubic traf-
+available in Section VI. Finally, Section VII concludes the          fic dealing with the internal parameters of BBR, in particular
+paper.                                                               with its cycle [27], [28].
+                                                                        Considering real tests of BBR over Linux systems, BBR
+II. RELATED WORK                                                     and Cubic have been tested over standard Gigabit Ethernet
+Several scientific contributions have analyzed BBR perfor-           wired networks with a 4.9 kernel version [8]. The paper shows
+mance in different scenarios and technologies. As an exam-           that BBR does not meet its standard behavior when multiple
+ple, some recent works have tried to answer this question:           flows are in place, both in terms of fairness and latency reduc-
+‘‘will TCP work in mmWave 5G cellular networks?’’. One               tion due to high queue occupancy. On the other side, the frame
+work is based on simulations and also includes BBR among             aggregation over WLAN technologies has been investigated
+the TCP congestion controls investigated [19]. A general             mainly through analytical models and simulations, initially
+issue for mmWave is that, for the currently available TCP            on IEEE 802.11n and, recently, on IEEE 802.11ac [29], [30].
+variants, it is challenging to exploit the available bandwidth          To the best of our knowledge, the only scientific contri-
+during ‘‘irregular’’ time intervals. Continuing on the cellular      bution investigating the performance of BBR over WLANs
+network topic, with currently available technology such as           has been proposed by the author of BBR, Neal Cardwell with
+4G, BBR has been tested in [20], [21]; both the papers               a RFC, proposing a BBR patch that we name BBR-DEV
+conclude that TCP BBR outperforms TCP Cubic and TCP                  hereafter [17]. BBR-DEV can operate, increasing the BBR
+NewReno in terms of throughput and latency trade-off, but            throughput, in the case where the TCP sender is on Ethernet
+in some network conditions BBR struggles in maintaining              and the receiver is on a Wi-Fi network. To do it, BBR-DEV
+fairness between flows. Another work confirms a latency              instructs the sender to put extra data in flight to keep the
+reduction on mobile edge computing for BBR with respect              bottleneck utilized. Moreover, BBR-DEV introduces also an
+to Cubic [22].                                                       adaptive drain technique that has the goal of lowering queuing
+   Concerning fairness, when different RTT flows are in              delays. We overcome the limitations of BBR-DEV, concern-
+place, BBR has been discovered to provide better treat-              ing the throughput increment on the Wi-Fi path, by proposing
+ment for higher-RTT flows, while another work shows                  a solution that works also in the scenarios in which the sender
+that it is hard to achieve fairness between BBR and                  is directly attached to a Wi-Fi interface. Our investigation
+
+VOLUME 8, 2020                                                                                                                 43345
+                                                                               C. A. Grazia et al.: BBRp: Improving TCP BBR Performance Over WLAN
+
+
+
+
+                                                                         dropped, allowing the sender to moderate the amount of data
+                                                                         inflight once the losses are registered.
+                                                                            The assumptions behind this tradeoff, unfortunately, fall
+                                                                         when considering a wireless bottleneck where the aggrega-
+                                                                         tion technique is enabled (this is the case of the standards
+                                                                         IEEE 802.11n and 802.11ac). In a Wi-Fi bottleneck, having
+                                                                         more than one packet enqueued is exploited opportunistically
+                                                                         by aggregating data in a single large frame to reduce the
+                                                                         protocol overhead and increase the efficiency of the trans-
+                                                                         mission, increasing the ratio between the payload size and
+                                                                         the total frame size. In other words, this is done by reducing
+                                                                         the fixed MAC layer overhead and medium contention over-
+                                                                         head, which results in less airtime consumption and higher
+                                                                         throughput. This mechanism has an upper limit, known as
+                                                                         the maximum aggregation size; after that, it is necessary to
+                                                                         form a new aggregate, i.e., a new frame. Considering the
+                                                                         aggregation mechanism, it is not valid anymore that enqueue-
+                                                                         ing more packets has no impact on the delivery rate; indeed,
+                                                                         the delivery rate increases as a function of the aggrega-
+                                                                         tion size, up to the maximum bottleneck bandwidth reached
+                                                                         with the maximum aggregation size (BtlWw+agg) [31], [32].
+                                                                         Simultaneously, the RTT increases less than linearly, unlike
+                                                                         that in wired bottlenecks, because the larger is the number of
+                                                                         packets enqueued (i.e., the larger the aggregate), the higher
+                                                                         will be the data rate, while the RTT increment will be lower,
+                                                                         reducing the slope. This introduces a new optimal point B,
+                                                                         which is the equivalent of A but for a wireless bottleneck.
+                                                                         After reaching B, increasing the amount of data inflight has,
+                                                                         again, the sole effect of increasing the RTT without increasing
+                                                                         the throughput. Similarly, loss-based variants operate at the
+FIGURE 1. Data-rate and round-trip time as a function of the amount of   point D, which is the equivalent of C moving from wired to
+data inflight: aggregation vs. non aggregation.
+                                                                         wireless bottlenecks, where losses are generated. An exper-
+                                                                         imental validation of Wi-Fi bottleneck curves is provided in
+involves not only the congestion control alone but also other            Section VI-A.
+new mechanisms such as TSQ and TCP Pacing that both play                    The most critical difference between the two bottlenecks,
+a crucial role in the frame aggregation stage.                           and the two optimal points A and B, is that in B, reaching
+                                                                         the maximum delivery rate, comes at the expense of an RTT
+III. WIRELESS BOTTLENECK                                                 increment equal to the transmission time of a packet with the
+To understand the limits of BBR, we refer to Figure 1 in                 maximum aggregation size.
+which is depicted the difference between a standard wired
+bottleneck and a wireless 802.11n/ac one. The Figure reports             IV. STACK
+the delivery rate and the Round-Trip Time (RTT) of one                   This section describes the current TCP/IP stack of the Linux
+flow, according to the amount of data inflight. The typical              kernel, including all the new parts subject of this paper,
+RTT/throughput tradeoff, reported in bold, guided the design             like TSQ and TCP Pacing. To accurately present these new
+principle of all the ‘‘bufferbloat-oriented’’ solutions and have         modules, the queueing discipline (QDisc) layer and the driver
+been presented in the original BBR paper [6]. Indeed, in wired           are also reported. Indeed, Figure 2 models the TCP Linux
+networks, after reaching the point A (corresponding to the               subsystem with the new features, the QDisc block, and the
+Bandwidth-Delay Product - BDP - known as Kleinrock’s                     Driver block. The section also reports details on BBR and
+optimal operating point) of the Figure, increasing the amount            BBRp.
+of data inflight has the sole effect of increasing the RTT, due             The current Linux TCP module is composed of three main
+to the formation of queues of packets and queueing delays at             algorithms, namely TCP Congestion Control, TCP Small
+the bottleneck buffer, while the delivery rate remains constant          Queues, and TCP Pacing. On top of this module, there is
+and equal to the bottleneck bandwidth (BtlBw). Another                   the TCP Socket, which manages the ACKs and deals with
+essential operating point for wired networks is C, which is              physical packets. Every TCP connection is mapped with a
+the loss-based congestion control operating point, where the             specific TCP socket, and the packets are managed according
+queue at the bottleneck gets full, and packets start to be               to the three algorithms.
+
+43346                                                                                                                              VOLUME 8, 2020
+C. A. Grazia et al.: BBRp: Improving TCP BBR Performance Over WLAN
+
+
+
+
+   FIGURE 2. Linux TCP sender architecture.
+
+
+
+   Congestion Control: it is a well-known part of the TCP
+module, rich in literature contribution with many possible
+algorithms that can be used. In this paper are tested TCP
+Cubic, the current default Linux solution, TCP BBR, the con-
+gestion control algorithm designed by Google and incre-
+mentally deployed in many nodes, but also TCP New Reno
+and TCP New Vegas, a standard loss-based solution and a
+delay-based one respectively. These four algorithms are well
+different in terms of the approach: on one side we have BBR,         FIGURE 3. Linux TCP BBR block.
+a rate-based variant where the concept of time is stressed to
+reduce latency as the main goal, and New Vegas, a pure delay-
+based variant that presaged many elements of BBR; on the
+other side, instead, we have loss-based variants such as Cubic       A standard TCP Pacing algorithm is used by almost all the
+and New Reno. Each congestion control is responsible for             TCP congestion controls except TCP BBR, which imple-
+fundamental operations like the computation of the sending           ments its own solution. The Linux kernel uses two default
+rate and the congestion window size, as well as the compu-           rates for pacing, expressed as a percentage of the current rate
+tation of the TCP parameters in the presence of congestion           of a TCP flow. These two values are equal to 200% during
+events or packet losses.                                             the slow-start phase (allowing to enqueue packets at a rate
+   TCP Small Queues (TSQ): it is the algorithm introduced            which is twice the current one) and equal to 120% in the
+by Google to mitigate each TCP flow latency. To achieve              congestion avoidance phase (allowing to enqueue packets at
+this result, each TCP socket is allowed to enqueue in the            a rate which is 20% higher than the current one). TCP BBR
+node stack a limited number of packets mitigating the                uses a similar value called TCP Pacing Gain, hardcoded in
+Bufferbloat [5] phenomena and avoiding the accumulation              the BBR algorithm and not tunable in user space, equal to a
+of packets in the sender node queues; only when the NIC              rate which is 25% higher of the current one.
+finalizes the dispatch of a packet, the TCP socket is informed          TCP BBR: if BBR is selected as TCP congestion control,
+and is allowed to enqueue a new packet in the stack. The             the TCP block of Figure 2 behaves following the Figure 3
+standard TSQ behavior on wired networks is to allow each             description. The core feature of BBR is to be model-based,
+TCP socket to enqueue a number of packets that is equivalent         and it behaves following a state-machine composed by four
+to the number of packets that would be sent in 1 ms at the           states: Sturtup, Drain, ProbeBW and ProbeRTT. The first
+current sending rate; this mechanism helps in maintaining            two states belong to the initial part of a connection, then
+an upper bound of the queueing delay of the sending node             BBR moves to a steady-state phase composed by the last
+as a function of the flow throughput. This global constraint         two states [16]. The input for the state machine are the last
+of 1 ms has been proved in [11] to be too strict in a Wi-Fi          10 RTT samples and the last estimated bandwidth, while the
+environment where the frame aggregation is not possible with         output consists of the congestion window size, and the pacing
+such a limit.                                                        rate for the sending engine. The sending engine is the last
+   TCP Pacing: it is the algorithm that defines the pace used        step before enqueueing the packets in the lower layer of the
+to push the packets from the TCP module to the lower layers          stack, which is the QDisc one of Figure 2. The sending engine
+of the stack. While the TSQ limits the number of packets             is similar to the mechanism used by all the TCP congestion
+enqueued, the TCP Pacing limits the internal rate for moving         controls, the difference is that all the algorithms, except BBR,
+packets, forcing a time interval between an enqueue and              use global pacing rate, while BBR uses the one provided by
+another; in this sense, both TSQ and TCP Pacing help avoid-          its model, and it cannot be tuned in user-space. During the
+ing the formation of bursts mitigating the Bufferbloat effect.       sending engine stage, each TCP congestion control knows
+
+VOLUME 8, 2020                                                                                                                 43347
+                                                                           C. A. Grazia et al.: BBRp: Improving TCP BBR Performance Over WLAN
+
+
+
+
+the amount of data that can be enqueued, limited by the
+congestion window size and, in particular, by the TSQ policy,
+and then the data is delivered to the lower layers pacing it at
+the current pacing rate. The higher the pacing rate, the shorter
+will be the distance, in terms of time, between the packets in
+the final stage of Figure 3.
+   TCP BBRp: It differs from BBR for the ProbeBW state.             FIGURE 4. Physical testbed layout.
+The ProbeBW is the most critical one in terms of bandwidth
+estimation, indeed BBR spends most of the time in this              TABLE 2. Testbed parameters.
+state to probe the available bandwidth. The ProbeBW state
+consists of eight cycles in which the pacing_gain variable
+assumes the eight values, cyclically, of [1.25, 0.75, 1, 1, 1, 1,
+1, 1]. At the first cycle, the standard BBR pacing_gain
+is placed at 1.25, which is not enough to guarantee a proper
+bandwidth estimation if the bottleneck uses aggregation poli-
+cies. The general idea of the first cycle is to send more
+data to check if the available bandwidth is greater than the
+one estimated so far. Continuing, the subsequent value of
+the pacing_gain variable is 0.75, to drain the bottleneck
+queue by removing the excess of packets generated by the
+previous probing cycle. The remaining six cycles consist,
+instead, of a steady-state in which data is sent at a constant
+pacing_gain of 1 with the bottleneck bandwidth obtained
+in the previous probing cycle. The critical change in the
+ProbeBW state of BBRp is described in Algorithm 1, where
+the standard first value of 1.25 for the pacing_gain is             the piece of code that interacts with the Network Interface
+replaced by the bbrp_pace variable. Indeed, our patch               Card (NIC) and deliver packets on the medium. A very last
+allows to tune the first pacing_gain value for tuning               queue is present in the driver; it is typically a FIFO and
+bandwidth probe. In our test we used 1.5 instead of 1.25,           is ruled by a Byte Queue Limit (BQL) [33], [34] to avoid
+providing a bbrp_pace of 6. We remind that BBRp falls-              excessive queueing. This limit is hard-coded in the kernel and
+back to the standard BBR behavior with a bbrp_pace of 5.            not part of our tests.
+The BBRp patch is available, together with our open-data,
+with more tests with different bbrp_pace values [18].               V. TESTBED
+                                                                    This section describes our testbed, which is depicted in Fig-
+Algorithm 1 BBRp Algorithm.                                         ure 4. Each test involves three nodes, one wireless client, one
+Input: UNIT, bbrp_pace                                              wired server, and the router in the middle that provides the
+ 1: int pacing_gain[] = {                                           connectivity to both the other nodes. All the nodes deploy
+        UNIT × bbrp_pace / 4,         // probe for more bw          Arch Linux as the operating system with a 4.19 kernel ver-
+        UNIT × 3 / 4,                          // drain queue       sion. This testbed represents a typical home/office connection
+        UNIT, UNIT, UNIT,                     // cruise at bw       with a desktop or a laptop connected to a Wi-Fi Access Point
+        UNIT, UNIT, UNIT                 // without bloating        using the IEEE 802.11n or IEEE 802.11ac standard, while
+    };                                                              the rest of the network is then typically wired as in our case.
+    [. . .]                                                         The wireless connectivity is given by PCIe Atheros chipsets
+ 2: bw = get_bbr_max_bw();                                          supported by the ath9k and ath10k open drivers.
+ 3: min_rtt = get_bbr_min_rtt(); // BBR model parameters               This testbed allows configuring typical connections with
+ 4: if pacing_gain > UNIT then                                      different bottleneck positions. One example is a fast
+ 5:     cwnd = bw × min_rtt × pacing_gain; // BDP × gain            home/office connection with 1 Gbit/s backhaul that suffers
+ 6: end if                                                          a local bottleneck, which is the wireless interface between
+                                                                    the client and the access point. Another example, instead,
+   Once the TCP socket generates a packet, the packet is            considers a backhaul of 100 Mbit/s imposed by the Internet
+moved into the QDisc layer of Figure 2 that can be both a           Service Provider (ISP), and the wireless access network is not
+separate block in case of a wired connection, as well as a          the bottleneck anymore, which is, instead, represented by the
+black-box integrated into the driver as is the case with the        wired connection between the access point and the server.
+ath9k and ath10k drivers. Figure 2 reports the standard                The client uses one of the five possible TCP congestion
+structure of the FQ-Codel [25] algorithm as the default option      control algorithms reported in Table 2, namely: BBR, BBRp,
+of many Linux distributions. The last block is the driver,          New Vegas, Cubic, and New Reno. The client can also set
+
+43348                                                                                                                          VOLUME 8, 2020
+C. A. Grazia et al.: BBRp: Improving TCP BBR Performance Over WLAN
+
+
+
+
+different possible TSQ limits [11], [13]: it can be the standard
+dynamic value of 1 ms of data at the current rate, or it can
+be relaxed with the configuration of 2TSQ, 4TSQ and 8TSQ
+that accommodate 2 ms, 4 ms and 8 ms of data, respectively.
+The incremental steps follow the powers of 2 because, at the
+kernel level, the TSQ size is managed as a bits shift operation.
+   The most critical parameter introduced in this paper is the
+TCP Pacing rate. Since BBR does not react to any modifi-
+cation to the standard pacing value offered by the current
+Linux systems, we patched it, exposing the TCP Pacing
+Gain variable used internally. We named this patched version
+BBRp and changed the default pacing rate, increasing its
+value, moving from the standard BBR TCP Pacing Gain
+equal to a rate which is 25% higher of the current one, to a
+BBRp TCP Pacing Gain equal to 50%. BBRp enables a fine-
+grained tuning of the pacing rate and details about our BBRp
+patch, the results not included here for space limitations, and      FIGURE 5. Data-rate and round-trip time as a function of the data
+several other possible pacing ratios can be found in [18]. The       inflight: experimental data on IEEE 802.11ac.
+proposed solution is steering the design of BBR v2.0 [7].
+   All the experiments reported in this paper have been orga-
+nized by using the Flent [35] tool, a flexible network tester        size at the sender side. To do so, we used a feature of our
+that gives the possibility to manage different traffic typologies    TSQ patch which allows to control the amount of data at
+efficiently as well as to collect many performance metrics.          the sender side in a static way, controlling the amount of
+Tests are organized as follows. We start a standard TCP traffic      packets that the TCP socket can enqueue, regardless of the
+in upload or download between the wireless client and the            flow data-rate; this ease the comparison with the theoretical
+server. Each test runs for 40 seconds, 5 initial seconds with        curve seen in Section I that is usually plotted as a function
+only ICMP traffic, 30 middle seconds in which also the actual        of the data inflight. Figure 5 shows the result of this exper-
+TCP transmission is performed, and 5 final seconds where,            imental analysis dividing the output of the RTT, plotted in
+again, only the ICMP traffic is maintained. In this way, it is       red in Figure 5a, to the output of the bandwidth, plotted in
+possible to highlight the impact of the TCP traffic on the           blue in Figure 5b. The experiment validates the bandwidth-
+ping RTT, as well as many other parameters related to the            limited and the buffer-limited area of Figure 1. Moreover,
+TCP traffic itself, like throughput and TCP RTT. Similar to          we enhanced on Figure 5 the operating points that correspond
+the simple TCP upload or download, the Realtime Response             to A, B and D of Figure 1.
+Under Load (RRUL) test is designed in the same way, but it
+uses 4 TCP flows in upload, and other 4 TCP flows in down-           B. TCP UPLOAD
+load, all simultaneously active during the 30 central seconds        One critical problem that we have observed and solved in [11]
+of each test. The parameters used to configure the testbed of        is related to the TCP upload in an IEEE 802.11n/ac network.
+our experiments are summarized in Table 2.                           Indeed, the recently adopted TSQ mechanism breaks the
+                                                                     aggregation logic at the local Wi-Fi bottleneck, and this is the
+VI. RESULTS
+                                                                     reason why we did different experiments considering differ-
+This section reports the results collected during our experi-
+                                                                     ent TSQ sizes, to relax the limit on the number of packets to be
+ments. A first suite of test validate the Wi-Fi bottleneck curve
+                                                                     enqueued and, consequently, boost the throughput. We used a
+of Figure 1 through experimental analysis then, the rest of
+                                                                     single TCP flow in upload because it is the most challenging
+the result section is divided into three groups, one for each
+                                                                     scenario in which a single flow is in charge of exploiting
+experiment investigated: TCP upload, TCP download, and
+                                                                     the entire bandwidth of the Wi-Fi bottleneck. To demonstrate
+RRUL, used for analyzing network performance under the
+                                                                     it, we present in Figure 6 the global throughput reached
+heavy workloads that typically induce bufferbloat and other
+                                                                     by one, four and eight simultaneously active TCP flows
+networking problems. Each experiment has been replicated
+                                                                     in Figures 6a, 6b and 6c, respectively. In this experiment we
+10 times. The recorded data are reported as candlesticks,
+                                                                     disabled the TSQ logic, and so there is no limitation in the
+which are the result of the aggregation of each iteration.
+                                                                     amount of data that each socket can enqueue in the node.
+The central box of each candlestick reports the 10th and
+                                                                     The higher is the amount of flows competing for the Wi-Fi
+90th percentiles, while the horizontal line inside each box
+                                                                     bottleneck, the higher is the amount of packets that the NIC
+represents the median value.
+                                                                     can use to exploit the channel bandwidth through forming
+A. WI-FI BOTTLENECK VALIDATION                                       large aggregate frames. This moves the focus to a simple
+To validate Figure 1, we provided experimental analysis by           worst-case scenario: a single TCP aiming to use the entire
+running a single TCP New Reno upload varying the TSQ                 wireless bandwidth.
+
+VOLUME 8, 2020                                                                                                                           43349
+                                                                                   C. A. Grazia et al.: BBRp: Improving TCP BBR Performance Over WLAN
+
+
+
+
+FIGURE 6. Standard TCP upload: one, four and eight flows.
+
+
+
+
+   FIGURE 7. One TCP flow in upload with different TCP & TSQs: Goodput vs ping, ath9k-htc.
+
+
+
+
+   FIGURE 8. One TCP flow in upload with different TCP & TSQs: Goodput vs ping, ath9k.
+
+
+   Our solution previously proposed in [11] worked properly                       with the ath9k driver by the Linux kernel to deal, again,
+for loss-based congestion controls, but BBR did not react with                    with IEEE 802.11n networks.
+a throughput increment when relaxing the TSQ limits, due to                   •   In Figure 9, instead, it is mounted a Qualcomm
+a mild TCP pacing rate, unable to support the aggregation                         QCA6178 1 × 1 MIMO, a PCIe wireless card able to
+logic at the bottleneck. This can be observed in the three                        create or join IEEE 802.11ac Wi-Fi networks through
+Figures 7, 8, and 9. The difference between these Figures is                      the ath10k driver.
+the chipset used to create the Wi-Fi connectivity:
+                                                                              These Figures, compared together, report that BBR is
+  •   In Figure 7 it is used the chipset Atheros AR9271                    unable to boost the throughput even by relaxing the TSQ
+      1 × 1 MIMO, which is a USB dongle, and due to this,                  constraints. The reason is the pacing rate adopted by BBR
+      the Linux kernel manages the wireless connection with                that impedes the formation of bursts at the bottleneck, which
+      the ath9k-htc driver, that deals with IEEE 802.11n                   in this case is clearly the wireless sender interface, with
+      connectivity.                                                        the consequence of breaking the Wi-Fi aggregation logic
+  •   In Figure 8 it is used the chipset Atheros AR5BHB116                 forcing the inability to increase the throughput. The other
+      2 × 2 MIMO, which is a PCIe wireless card managed                    loss-based variants, Cubic and New Reno, quickly reach
+
+43350                                                                                                                                  VOLUME 8, 2020
+C. A. Grazia et al.: BBRp: Improving TCP BBR Performance Over WLAN
+
+
+
+
+   FIGURE 9. One TCP flow in upload with different TCP & TSQs: Goodput vs ping, ath10k.
+
+
+
+
+                                                                           interface during the experiment of Figure 8. We included
+                                                                           such data because, with the ath9k driver, the possibility
+                                                                           to collect the aggregation statistics is enabled by default.
+                                                                           With this Figure, it is possible to notice how loss-based
+                                                                           congestion controls and BBRp can increase the aggregation
+                                                                           size as a function of the TSQ limit; New Vegas increases the
+                                                                           aggregation size as well but sharply limiting the maximum
+                                                                           reachable aggregation, while, as a last conclusion, BBR never
+                                                                           aggregates more than one packet, excluding few statistical
+                                                                           outliers unable to steadily boost the throughput.
+                                                                              We reported first the TCP upload experiments because it is
+FIGURE 10. One TCP flow in upload with different TCP & TSQs: Wi-Fi         chronologically the first problem that we have dealt with as a
+aggregation size, ath9k.
+                                                                           consequent outcome of our previous work on TSQ [11]. Our
+                                                                           patch has been included in the Linux kernel, and now ath9k
+                                                                           and ath10k relax by default the TSQ limit at 4 ms of data.
+their respective maximum throughput by relaxing the TSQ                       We also considered a different scenario in which the wired
+constraints. The price to pay for this throughput increment,               connectivity between the access point and the server is limited
+as seen in Section III, is an RTT increment measured with                  at 100 Mbit/s by the ISP. This situation lets to migrate the
+the ICMP ping protocol. Even New Vegas, which is the                       bottleneck position from the wireless interface of the access
+delay-based congestion control at the base of the BBR model,               network to the wired backhaul one. The same experiment
+is able to increase and even double its throughput with all the            described before has been run on this second scenario, and
+technologies. This because the pacing rate adopted by New                  results are reported in Figure 11. One key characteristic of
+Vegas is the same pacing rate adopted by all the congestion                BBRp, in this scenario, is the ability to reach the 100 Mbit/s
+controls except BBR. As a matter of fact, New Vegas can                    provided by the bottleneck with just a TSQ value equal to
+not achieve the maximum throughput because it limits the                   2 ms, without an excessive queuing delay, while TCP Cubic
+RTT increments at 1 ms, limiting the data delivery-rate after              needs a TSQ value equal to 4 ms to obtain the same result.
+this threshold. BBRp is reported in the center of each figure;             Even TCP New Vegas is able to get close to the bottleneck
+thanks to our patch that increases the pacing rate, increasing             bandwidth relaxing the TSQ constraints, and, as seen before,
+its value, BBRp is able to increase the Wi-Fi upload through-              only BBR is not able to exploit the capacity of the path, saving
+put like loss-based congestion controls, up to the optimal val-            1 ms of ping RTT, but paying the price of a throughput well
+ues, without significative latency reductions nor increments.              below 40 Mbit/s.
+The distance between the minimum and the maximum RTT is
+limited at 5 ms by the FQ-CoDel queueing discipline used in                C. TCP DOWNLOAD
+the sender node. We chose to use a 1.5 factor for the pacing               For what concerns a TCP download, we considered our
+rate by analyzing the tradeoff of throughput and delay with                Testbed in Figure 4 to model a standard scenario in which the
+different wired and wireless technologies. Indeed, our BBRp                server is connected through a Gigabit Ethernet to the Access
+patch allows us to fine-grained tuning the pacing rate to the              Point, forming a reliable high-speed network, in which the
+desired value, as can be observed in the data source [18].                 sender (the server) does not have any TSQ issues related to
+   To validate our analysis, we also report Figure 10, which               aggregation. Indeed, in this case, we do not need to take the
+includes the Wi-Fi aggregation size registered by the sender               TSQ as a testing parameter because it does not affect the
+
+VOLUME 8, 2020                                                                                                                       43351
+                                                                                  C. A. Grazia et al.: BBRp: Improving TCP BBR Performance Over WLAN
+
+
+
+
+   FIGURE 11. One TCP flow in upload with different TCP: Goodput vs ping, ath9k and 100 Mbit/s wired bottleneck.
+
+
+
+
+FIGURE 12. One TCP flow in download with different TCP: Goodput vs         FIGURE 13. One TCP flow in download with different TCP: Goodput vs
+ping, ath9k.                                                               ping, ath10k.
+
+
+
+communication in terms of TCP throughput. Instead, is the
+TCP Pacing difference between BBR and BBRp that affects
+the throughput by interacting with the aggregation logic of the
+remote Wi-Fi bottleneck. Indeed, from the point of view of the
+server, which is transmitting the TCP stream, the bottleneck
+is not the local interface, so it is clearly the typical condition
+in which the bottleneck is a remote segment of the end-
+to-end path, and there is no trivial control of it with back-              FIGURE 14. One TCP flow in download, BBR-DEV vs BBRp: pacing rate
+pressure mechanisms. Moreover, this scenario allows a fair                 and BBR BW model.
+comparison with the BBR-DEV algorithm, because of the
+position of the wireless bottleneck not directly connected to
+the transmitting node [17].                                                bottleneck bandwidth. Indeed, TCP New Vegas reaches less
+   The measurements collected during a single TCP down-                    than 100 Mbit/s in Figure 12 and 250 Mbit/s in Figure 13
+load are reported in the two Figures 12 and 13. The                        with an 802.11n and 802.11ac wireless bottleneck, respec-
+difference between these Figures is, even in this case,                    tively. Similarly, BBR reaches even lower values of 75 Mbit/s
+the chipset used to create the Wi-Fi connectivity: Figure 12               in Figure 12 and 200 Mbit/s in Figure 13, respectively. These
+uses the chipset Atheros AR5BHB116 2 × 2 MIMO, while                       behaviors, recalling the wireless bottleneck discussion of
+Figure 13 uses a Qualcomm QCA9880v2 2 × 2 MIMO                             Section III, correspond to the operating point A of Figure 1.
+chipset. To enhance the difference between the TCP conges-                    The second important thing to notice is that TCP loss-based
+tion controls performance, we configured the Access Point                  variants, i.e., TCP Cubic and TCP New Reno, are able to
+to use the pfifo_fast queueing discipline at the wireless                  boost the throughput close to the optimal limit imposed by
+bottleneck, which allows appreciating the different operating              the wireless bottleneck, which is slightly less than 200 Mbit/s
+points of each TCP variant with respect to the wireless bot-               in Figure 12 and 550 Mbit/s in Figure 13. The drawback is
+tleneck model in Figure 1 of Section III.                                  the RTT registered by these two congestion controls; indeed,
+   The first important thing to notice is the inefficiency                 the operating point of these loss-based variants is marked
+of TCP BBR and New Vegas to exploit the wireless                           as D in Figure 1.
+
+43352                                                                                                                                 VOLUME 8, 2020
+C. A. Grazia et al.: BBRp: Improving TCP BBR Performance Over WLAN
+
+
+
+
+    A third important thing is to acknowledge the improvement
+introduced by the BBR-DEV algorithm, the improved ver-
+sion of BBR that mitigates the performance limitation of the
+original BBR algorithm on Wi-Fi links. BBR-DEV almost
+doubles the data-rate of standard BBR in both the technolo-
+gies investigated, introducing a queueing delay smaller than
+BBRp in the ath9k scenario and equal to BBRp in the
+ath10k scenario.
+    The fourth and final thing to notice is the almost optimal
+tradeoff of TCP BBRp in both the IEEE 802.11n and IEEE
+802.11ac scenarios. In fact, in Figure 12, BBRp reaches
+150 Mbit/s with less than 20 ms of RTT while, in Figure 13,          FIGURE 15. RRUL test: Goodput vs ping, ath9k, 4TSQ.
+
+it reaches 400 Mbit/s with less than 10 ms of RTT. Compar-
+ing BBRp to BBR, the former triplicates the throughput in
+both cases with smaller impacts on latency increments. This          TCP congestion control that guarantees fairness between the
+happens because BBRp works at the operating point B of               upstream and the downstream and, at the same time, it is able
+Figure 1, increasing the throughput as soon as it is possi-          to limit the latency to the value of BBR and New Vegas at less
+ble while impeding an RTT increment when the bottleneck              than 10 ms. As a last note, even in this case, TCP loss-based
+bandwidth is reached.                                                variants suffer a high RTT due to their operating point D of
+    Concluding the comparison between BBR-DEV and                    Figure 1.
+BBRp, Figure 14 reports the pacing rates (solid lines) and
+the BBR bandwidth values (dashed lines) collected during             VII. CONCLUSION
+the IEEE 802.11n test. BBRp is able to maintain a higher             This paper showed the inefficiency of TCP BBR over IEEE
+bandwidth to fully exploit the Wi-Fi bottleneck capacity, with       802.11n and IEEE 802.11ac, the two most used Wi-Fi
+a data rate that is 100 Mbps higher than BBR-DEV; to do so,          technologies. The reason for this inefficiency lies in the
+BBRp maintains a pacing rate between 300 and 400 Mbps                impossibility of performing frame aggregation with the stan-
+in order to keep the bandwidth on 200 Mbps. Furthermore,             dard BBR algorithm. We then introduced BBRp, which
+a key characteristic of BBR-DEV is visible in the Figure:            permits to tune the BBR pacing speed, allowing the con-
+the absence of spikes corresponding to the draining phases.          gestion control to correctly aggregate packets at the wireless
+While BBRp manifests spikes of pacing rate reduction in              bottleneck and exploit the bottleneck bandwidth. Our exper-
+conjunction with the 15th and 25th second of test (BBR base          iments let us validate the BBRp performance in different
+model, in fact, drains the queues every 10 seconds of activity),     scenarios concluding that our proposed variant solves the
+BBR-DEV does not reproduce the same trend, because of an             BBR inefficiency, reaching almost optimal TCP throughput
+adaptive drain mechanism.                                            while maintaining better performance in terms of latency
+                                                                     when comparing it with both BBR-DEV and TCP loss-
+D. RRUL TEST                                                         based variants like Cubic or New Reno. We demonstrate that
+To conclude our experimental section, we report here the             BBRp behaves remarkably in several scenarios, considering
+results obtained by the different TCP congestion controls            TCP uploads with a local wireless bottleneck or a remote
+during an RRUL test. The testbed is configured exactly like          wired bottleneck, TCP downloads with a remote wireless
+the previous experiment, the TCP download, and we report             bottleneck, and challenging RRUL scenarios with a highly
+in Figure 15 only the results obtained in the IEEE 802.11n           congested environment. In particular, we have proved through
+scenario, for brevity. Considering that the test involves both       real tests that BBRp increases the BBR throughput between
+4 TCP streams in download and 4 TCP streams in upload,               3 and 6 times over both the IEEE 802.11n and IEEE 802.11ac
+we configured the client to operate with the current Linux           technologies, while preserving fairness by balancing the
+default TSQ value at 4 ms. In general, the unfairness between        upstream and the downstream paths; simultaneously, BBRp
+the download path and the upload path is clear, with the             minimizes the ICMP latency to values lower than those of
+download streams that take a higher portion of the wireless          TCP New Vegas and the standard TCP BBR.
+bottleneck bandwidth. This is a consequence of the TSQ
+behavior, which is still a limit, even if it has been relaxed,       REFERENCES
+of 4 ms for the upload path, while it is not a limit for the          [1] E. Khorov, A. Kiryanov, A. Lyakhov, and G. Bianchi, ‘‘A tutorial on IEEE
+download path where the server, connected to the Access                   802.11ax high efficiency WLANs,’’ IEEE Commun. Surveys Tuts., vol. 21,
+                                                                          no. 1, pp. 197–216, 1st Quart., 2019.
+Point through a wired interface, can increase the throughput          [2] B. Bellalta, ‘‘IEEE 802.11ax: High-efficiency WLANS,’’ IEEE Wireless
+more easily. This characteristic has already been observed                Commun., vol. 23, no. 1, pp. 38–46, Feb. 2016.
+with TCP Cubic in [11], and Figure 15 confirms the trend              [3] M. M. Islam, M. S. A. Mamun, N. Funabiki, and M. Kuribayashi,
+                                                                          ‘‘Dynamic access-point configuration approach for elastic wireless local-
+also for the other congestion controls. The only exception is             area network system,’’ in Proc. 5th Int. Symp. Comput. Netw. (CANDAR),
+BBRp, which registers remarkable results. BBRp is the sole                Nov. 2017, pp. 216–222.
+
+VOLUME 8, 2020                                                                                                                              43353
+                                                                                           C. A. Grazia et al.: BBRp: Improving TCP BBR Performance Over WLAN
+
+
+
+
+ [4] S. Das, P. Kar, and S. Barman, ‘‘Analysis of IEEE 802.11 WLAN                 [27] K. Miyazawa, K. Sasaki, N. Oda, and S. Yamaguchi, ‘‘Cycle and diver-
+     frame aggregation under different network conditions,’’ in Proc. Int.              gence of performance on TCP BBR,’’ in Proc. IEEE 7th Int. Conf. Cloud
+     Conf. Wireless Commun., Signal Process. Netw. (WiSPNET), Mar. 2017,                Netw. (CloudNet), Oct. 2018, pp. 1–6.
+     pp. 1240–1245.                                                                [28] K. Miyazawa, K. Sasaki, N. Oda, and S. Yamaguchi, ‘‘Cyclic performance
+ [5] J. Gettys and K. Nichols, ‘‘Bufferbloat: Dark buffers in the Internet,’’           fluctuation of TCP BBR,’’ in Proc. IEEE 42nd Annu. Comput. Softw. Appl.
+     Queue, vol. 9, no. 11, p. 40, Nov. 2011.                                           Conf. (COMPSAC), Jul. 2018, pp. 811–812.
+ [6] N. Cardwell, Y. Cheng, C. S. Gunn, S. H. Yeganeh, and V. Jacobson,            [29] Y. Lin and V. W. S. Wong, ‘‘WSN01-1: Frame aggregation and optimal
+     ‘‘BBR: Congestion-based congestion control,’’ Commun. ACM, vol. 60,                frame size adaptation for IEEE 802.11 n WLANs,’’ in Proc. IEEE Globe-
+     no. 2, pp. 58–66, Jan. 2017.                                                       com, Nov. 2006, pp. 1–6.
+ [7] N. Cardwell, ‘‘BBR V2: A model-based congestion control,’’ in                 [30] T. Moriyama, R. Yamamoto, S. Ohzahata, and T. Kato, ‘‘Frame aggre-
+     Proc. ICCRG at IETF 104th Meeting, Mar. 2019. [Online]. Available:                 gation size determination for IEEE 802.11ac WLAN considering chan-
+     https://datatracker.ietf.org/meeting/104/materials/slides-104-iccrg-an-            nel utilization and transfer delay,’’ in Proc. 14th Int. Joint Conf. e-Bus.
+     update-on-bbr-00                                                                   Telecommun., vol. 6, 2017, pp. 89–94.
+ [8] M. Hock, R. Bless, and M. Zitterbart, ‘‘Experimental evaluation of BBR        [31] D. Skordoulis, Q. Ni, H.-H. Chen, A. P. Stephens, C. Liu, and
+     congestion control,’’ in Proc. IEEE 25th Int. Conf. Netw. Protocols (ICNP),        A. Jamalipour, ‘‘IEEE 802.11n MAC frame aggregation mechanisms
+     Oct. 2017, pp. 1–10.                                                               for next-generation high-throughput WLANs,’’ IEEE Wireless Commun.,
+ [9] D. Scholz, B. Jaeger, L. Schwaighofer, D. Raumer, F. Geyer, and G. Carle,          vol. 15, no. 1, pp. 40–47, Feb. 2008.
+     ‘‘Towards a deeper understanding of TCP BBR congestion control,’’             [32] T. Y. Arif and R. F. Sari, ‘‘Throughput estimates for A-MPDU and
+     in Proc. IFIP Netw. Conf. (IFIP Networking) Workshops, May 2018,                   block ACK schemes using HT-PHY layer,’’ J. Comput., vol. 9, no. 3,
+     pp. 109–117.                                                                       pp. 678–687, Mar. 2014.
+[10] Y. Zhang, L. Cui, and F. P. Tso, ‘‘Modest BBR: Enabling better fairness for   [33] J. Corbet. (Aug. 2011). Network Transmit Queue Limits. [Online]. Avail-
+     BBR congestion control,’’ in Proc. IEEE Symp. Comput. Commun. (ISCC),              able: https://lwn.net/Articles/454390/
+     Jun. 2018, pp. 646–651.                                                       [34] N. Mareev, D. Kachan, K. Karpov, D. Syzov, and E. Siemens, ‘‘Efficiency
+                                                                                        of BQL congestion control under high bandwidth-delay product network
+[11] C. A. Grazia, N. Patriciello, T. Hoiland-Jorgensen, M. Klapez, M. Casoni,
+                                                                                        conditions,’’ in Proc. Int. Conf. Appl. Innov. IT, vol. 7, no. 1, pp. 19–22,
+     and J. Mangues-Bafalluy, ‘‘Adapting TCP small queues for IEEE 802.11
+                                                                                        2019.
+     networks,’’ in Proc. IEEE 29th Annu. Int. Symp. Pers., Indoor Mobile Radio
+                                                                                   [35] T. Hoeiland-Joergensen, C. A. Grazia, P. Hurtig, and A. Brunstrom,
+     Commun. (PIMRC), Sep. 2018, pp. 1–6.
+                                                                                        ‘‘Flent: The flexible network tester,’’ in Proc. 11th EAI Int. Conf. Perform.
+[12] C. Grazia and N. Patriciello. (Jun. 2018). TCP Small Queues and
+                                                                                        Eval. Methodol. Tools, 2017, pp. 120–125.
+     WiFi Aggregation—A War Story. [Online]. Available: https://lwn.net/
+     Articles/757643/
+[13] C. A. Grazia, ‘‘IEEE 802.11n/AC wireless network efficiency under differ-
+     ent TCP congestion controls,’’ in Proc. Int. Conf. Wireless Mobile Comput.,
+     Netw. Commun. (WiMob), Oct. 2019, pp. 1–6.
+                                                                                                              CARLO AUGUSTO GRAZIA received the Ph.D.
+[14] G.-H. Kim, I. Mahmud, and Y.-Z. Cho, ‘‘Fairness improvement of BBR
+                                                                                                              degree from the Department of Engineering Enzo
+     congestion control algorithm for different RTT flows,’’ in Proc. Int. Conf.
+                                                                                                              Ferrari (DIEF), University of Modena and Reggio
+     Electron., Inf., Commun. (ICEIC), Jan. 2019, pp. 1–2.
+[15] S. Ma, J. Jiang, W. Wang, and B. Li, ‘‘Fairness of congestion-based
+                                                                                                              Emilia (UNIMORE), in 2016. He is currently an
+     congestion control: Experimental evaluation and analysis,’’ 2017,                                        Assistant Professor holding the course automotive
+     arXiv:1706.09115. [Online]. Available: http://arxiv.org/abs/1706.09115                                   connectivity with DIEF, UNIMORE. He has been
+[16] G.-H. Kim and Y.-Z. Cho, ‘‘Delay-aware BBR congestion control algo-                                      involved in the EU FP7 Projects E-SPONDER
+     rithm for RTT fairness improvement,’’ IEEE Access, vol. 8, pp. 4099–4109,                                and PPDR-TC. His research interests include com-
+     2020.                                                                                                    puter networking, with an emphasis on wireless
+[17] N. Cardwell. (Apr. 2018). Linux TCP BBR Patch for Higher                                                 networks, queueing algorithms, and V2X.
+     WiFi Throughput and Lower Queuing Delays. [Online]. Available:
+     https://groups.google.com/forum/#!topic/bbr-dev/8pgyOyUavvY
+[18] (Apr. 2019). BBR+: Linux Kernel Patch, Source Scripts and Tests.
+     http://netlab.ing.unimo.it/sw/BBRp.zip
+                                                                                                              MARTIN KLAPEZ received the Ph.D. degree from
+[19] M. Zhang, M. Polese, M. Mezzavilla, J. Zhu, S. Rangan, S. Panwar, and
+                                                                                                              DIEF, UNIMORE, in 2017. He is currently a Post-
+     M. Zorzi, ‘‘Will TCP work in mmWave 5G cellular networks?’’ IEEE
+                                                                                                              doctoral Research Fellow with DIEF, UNIMORE.
+     Commun. Mag., vol. 57, no. 1, pp. 65–71, Jan. 2019.
+                                                                                                              He has collaborated with the Italian Nanoscience
+[20] A. Parichehreh, S. Alfredsson, and A. Brunstrom, ‘‘Measurement analysis
+     of TCP congestion control algorithms in LTE uplink,’’ in Proc. 2nd Netw.                                 National Research Center S3, where he has been
+     Traffic Meas. Anal. Conf. (TMA), Jun. 2018, pp. 1–8.                                                     involved in the EU FP7 Project PPDR-TC. His
+[21] E. Atxutegi, F. Liberal, H. K. Haile, K.-J. Grinnemo, A. Brunstrom, and                                  research interests include network softwarization,
+     A. Arvidsson, ‘‘On the use of TCP BBR in cellular networks,’’ IEEE                                       public safety networks, and safety-related V2X
+     Commun. Mag., vol. 56, no. 3, pp. 172–179, Mar. 2018.                                                    systems.
+[22] Z. Wang, Y. Tan, and X. Zhang, ‘‘Experimental evaluation of modern
+     TCP variants in MEC-enabled cellular networks,’’ in Proc. 10th Int. Conf.
+     Wireless Commun. Signal Process. (WCSP), Oct. 2018, pp. 1–5.
+[23] G.-H. Kim, Y.-J. Song, I. Mahmud, and Y.-Z. Cho, ‘‘Enhanced BBR con-
+     gestion control algorithm for improving RTT fairness,’’ in Proc. 11th Int.                        MAURIZIO CASONI (Senior Member, IEEE)
+     Conf. Ubiquitous Future Netw. (ICUFN), Jul. 2019, pp. 358–360.
+                                                                                                       received the M.S. degree (Hons.) and the Ph.D.
+[24] K. Sasaki, M. Hanai, K. Miyazawa, A. Kobayashi, N. Oda, and
+                                                                                                       degree in electrical engineering from the Univer-
+     S. Yamaguchi, ‘‘TCP fairness among modern TCP congestion control
+                                                                                                       sity of Bologna, Italy, in 1991 and 1995, respec-
+     algorithms including TCP BBR,’’ in Proc. IEEE 7th Int. Conf. Cloud
+     Netw. (CloudNet), Oct. 2018, pp. 1–4.                                                             tively. In 1995, he was a Research Fellow with
+[25] T. Hoeiland-Joergensen, P. McKenney, D. Taht, J. Gettys, and E. Dumazet.                          the Computer Science Department, Washington
+     (Jan. 2018). FlowQueue-CoDel. [Online]. Available: https://tools.ietf.                            University at St. Louis, St. Louis, MO, USA. He is
+     org/html/rfc8290                                                                                  currently an Associate Professor of telecommuni-
+[26] P. Hurtig, H. Haile, K.-J. Grinnemo, A. Brunstrom, E. Atxutegi, F. Liberal,                       cations with DIEF, UNIMORE, Italy. He has been
+     and A. Arvidsson, ‘‘Impact of TCP BBR on CUBIC traffic: A mixed work-                             responsible for the EU FP7 Projects E-SPONDER
+     load evaluation,’’ in Proc. 30th Int. Teletraffic Congr. (ITC), Sep. 2018,    and PPDR-TC at UNIMORE.
+     pp. 218–226.
+
+43354                                                                                                                                                VOLUME 8, 2020
+

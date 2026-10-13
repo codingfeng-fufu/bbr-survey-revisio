@@ -1,0 +1,792 @@
+                                                                                   SPECIAL SECTION ON ARTIFICIAL INTELLIGENCE AND COGNITIVE
+                                                                                   COMPUTING FOR COMMUNICATION AND NETWORK
+
+
+Received December 30, 2018, accepted January 7, 2019, date of publication January 11, 2019, date of current version February 4, 2019.
+Digital Object Identifier 10.1109/ACCESS.2019.2892046
+
+
+
+
+TCP-Drinc: Smart Congestion Control Based
+on Deep Reinforcement Learning
+KEFAN XIAO, (Student Member, IEEE), SHIWEN MAO , (Fellow, IEEE),
+AND JITENDRA K. TUGNAIT, (Life Fellow, IEEE)
+Department of Electrical and Computer Engineering, Auburn University, Auburn, AL 36849-5201, USA
+Corresponding author: Shiwen Mao ( smao@ieee.org)
+This work was supported in part by NSF under Grant CNS-1702957, and in part by the Wireless Engineering Research and Education
+Center (WEREC), Auburn University, Auburn, AL, USA.
+
+
+
+
+  ABSTRACT As wired/wireless networks become more and more complex, the fundamental assumptions
+  made by many existing TCP variants may not hold true anymore. In this paper, we develop a model-
+  free, smart congestion control algorithm based on deep reinforcement learning, which has a high potential
+  in dealing with the complex and dynamic network environment. We present TCP-Deep ReInforcement
+  learNing-based Congestion control (Drinc) which learns from past experience in the form of a set of
+  measured features to decide how to adjust the congestion window size. We present the TCP-Drinc design
+  and validate its performance with extensive ns-3 simulations and comparison with five benchmark schemes.
+
+
+  INDEX TERMS Congestion control, deep convolutional neural network (DCNN), deep reinforcement
+  learning (DRL), long short term memory (LSTM), machine learning.
+
+
+
+I. INTRODUCTION                                                                                 queueing network theory that can guide the design of a con-
+The unprecedented growth of network traffic, in particular,                                     gestion control protocol. Second, if following the end-to-end
+mobile network traffic, has greatly stressed today’s Internet.                                  principle, agents at end hosts have to probe the network state
+Although the capacities of wired and wireless links have                                        and make independent decisions without coordination. The
+been continuously increased, the gap between user demand                                        detected network state is usually error-prone and delayed, and
+and what the Internet can offer is actually getting wider.                                      the effect of an action is also delayed and depends on the
+Furthermore, many emerging applications not only require                                        actions of other competing hosts. Third, if to involve routers,
+high throughput and reliability, but also low delay. Although                                   the algorithm must be extremely simple (e.g., stateless) to
+the brute-force approach of deploying wired and wireless                                        ensure scalability, since the router may handle a huge amount
+links with a higher capacity helps to mitigate the problem,                                     of flows. Finally, as more wireless devices are connected,
+a more viable approach is to revisit the higher layer protocol                                  the lossy and capacity-varying wireless links also pose great
+design, to make more efficient use of the increased physical                                    challenges to congestion control design.
+layer link capacity.                                                                               Many effective congestion control protocols have been
+    Congestion control is the most important networking func-                                   developed in the past three decades since the pioneering
+tion of the transport layer, which ensures reliable delivery of                                 work [1] (see Section II). However, many existing schemes
+application data. However, the design of a congestion control                                   are based on some fundamental assumptions. For example,
+protocol is highly challenging. First, the transport network is                                 early generation of TCP variants assume that all losses are
+an extremely complex and large-scale network of queues. The                                     due to buffer overflow, and use loss as indicator of conges-
+TCP end host itself consists of various interconnected queues                                   tion. Since such assumption does not hold true in wireless
+in the kernel. When the TCP flow gets into the Internet,                                        networks, many heuristics have been proposed for TCP over
+it traverses various queues at routers/switches along the end-                                  wireless to distinguish the losses due to congestion from that
+to-end path, each shared by cross-traffic (e.g., other TCP                                      incurred by link errors. Moreover, many existing schemes
+flows and UDP traffic) and served with some scheduling                                          assume a single bottleneck link in the end-to-end path, and
+discipline. Significant efforts are still needed to gain good                                   the wireless last hop (if there is one) is always the bottle-
+understanding of such a complex network to develop the                                          neck. Given the high capacity wireless links and the complex
+
+                                            2169-3536 2019 IEEE. Translations and content mining are permitted for academic research only.
+11892                                             Personal use is also permitted, but republication/redistribution requires IEEE permission.       VOLUME 7, 2019
+                                           See http://www.ieee.org/publications_standards/publications/rights/index.html for more information.
+K. Xiao et al.: TCP-Drinc: Smart Congestion Control Based on Deep Reinforcement Learning
+
+
+
+
+network topology/traffic conditions we have today [2], such                     TABLE 1. Notation.
+assumptions are less likely to be true. The bottleneck could be
+at either the wired or wireless segment, it could move around,
+and there could be more than one bottlenecks. Finally, when
+there is a wireless last hop, some existing work [3] assumes no
+competition among the flows at the base station (BS), which,
+as shown in [4], may not be true due to coupled wireless
+transmission scheduling at the BS.
+   In this paper, we aim to develop a smart congestion con-
+trol algorithm that does not rely on the above assumptions.
+Motivated by the recent success of applying machine learn-
+ing to wireless networking problems [5], and based on our
+experience of applying deep learning (DR) and deep rein-
+forcement learning (DRL) to 5G mmWave networks [6],
+edge computing and caching [7]–[9], and RF sensing and
+indoor localization [10]–[12], we propose to develop a model-
+free, smart congestion control algorithm based on DRL. The
+original methods that treat the network as a white box have
+been shown to have many limitations. To this end, machine
+learning, in particular, DRL, has a high potential in dealing
+with the complex network and traffic conditions by learning
+from past experience and extracting useful features. A DRL
+based approach also relieves the burden on training data,
+and has the unique advantage of being adaptive to varying
+network conditions.
+   In particular, we present TCP-Drinc, acronym for Deep
+reinforcement learning based congestion control. TCP-Drinc
+is a DRL based agent that is executed at the sender side. The
+agent estimates features such as congestion window differ-
+ence, round trip time (RTT), the minimum RTT over RTT
+ratio, the difference between RTT and the minimum RTT, and                            within the time-series introduced by delay and partial
+the inter-arrival time of ACKs, and stores historical data in an                      information that an agent senses.
+experience buffer. Then the agent uses a deep convolutional                        3) We develop a realistic implementation of TCP-Drinc
+neural network (DCNN) concatenated with a long short term                             on the ns-3 [13] and TensorFlow [14] platforms. The
+memory (LSTM) network to learn from historical data and                               DRL agent is developed with TensorFlow and the train-
+select the next action to adjust the congestion window size.                          ing and inference interfaces are built in ns-3 using
+The contributions of this work are summarized as follows.                             TensorFlow C++. We conduct an extensive simulation
+   1) To the best of our knowledge, this is the first work that                       study with TCP-Drinc and compare with five represen-
+        applies DRL to tackle the congestion control problem.                         tative benchmark schemes, including both loss based
+        Specifically, we propose a DRL based framework on                             and latency based TCP variants. TCP-Drinc achieves
+        (i) how to build an experience buffer to deal with the                        superior performance in throughput and RTT in all
+        delayed environment, where an action will take effect                         the simulations, and exhibits high adaptiveness and
+        after a delay and feedbacks are also delayed, (ii) how                        robustness under dynamic network environments.
+        to handle the multi-agent competition problem, and
+        (iii) how to design and compute the key components                         The remainder of this paper is organized as follows.
+        including states, action, and reward. We believe this                   We first review related work in Section II and discuss pre-
+        framework could help to boost the future research on                    liminaries of DRL in Section III. The system model and
+        smart congestion control protocols.                                     problem statement are presented in Section IV. The proposed
+   2) The proposed TCP-Drinc framework also offers                              TCP-Drinc design is presented in Section V, and validated
+        effective solutions to several long-existing problems                   with ns-3 simulations in Section VI. We conclude this paper
+        in congestion control: delayed environment, partial                     in Section VII. The math notation is summarized in Table 1.
+        observable information, and measurement variations.
+        We apply DCNN as a filter to extract stable features                     II. RELATED WORK
+        from the rich but noisy measurements, instead of using                  Congestion control is a fundamental networking problem,
+        EWMA as a coarse filter as in previous works. More-                     which has drawn extensive attention and has been studied
+        over, the LSTM is utilized to handle the autocorrelation                over the past three decades. In this section, we review the
+
+VOLUME 7, 2019                                                                                                                        11893
+                                                         K. Xiao et al.: TCP-Drinc: Smart Congestion Control Based on Deep Reinforcement Learning
+
+
+
+
+key related work and recent progress, as classified into three
+categories: end-to-end, router based, and smart schemes.
+
+A. END-TO-END SCHEMES
+This class of work can be further classified into loss-
+based or delay-based schemes. TCP Reno [15], TCP
+Tahoe [1] and TCP NewReno [16] are early protocols that
+are loss-based. TCP Vegas is the first delay-based pro-
+tocol. Currently, most computer operation systems adopt
+TCP Cubic [17] or Compound TCP [18], which are mainly
+designed to deal with large capacity RTT products.
+   These protocols are originally designed for the wired
+Internet. However, recent measurements in 3G and 4G LTE
+networks reveals fast variation of channel capacity [3].
+In addition, Zaki et al. [4] show that bursty scheduling and
+competing traffic will also influence the RTT and capacity            FIGURE 1. Reinforcement learning for congestion control.
+utilization. The authors then propose new end-to-end proto-
+cols that observe packet arrival times to infer the uncertain
+network dynamics (i.e., Sprout [3]) and utilize delay measure-        layer. Li et al. [30] incorporate Q-learning into congestion
+ments (i.e., Verus [4]) to cope with these challenges.                control design and present QTCP. It is based on limited
+   Another recent progress on congestion control is in the            feature scales (discretized states) and uses Kanerva Coding,
+paradigm of data center networks. Compared with general               instead of a deep neural network, for Q-function approxima-
+networks, the link capacity in data center networks is usually        tion. The authors show considerable gains achieved by QTCP
+larger (e.g, Gigbits or 10s of Gigbits) and stable, and the           over the classical TCP NewReno scheme.
+latency is much smaller (e.g., in µs), while ACK is not sent for
+every packet. The Data Center TCP (DCTCP) [19] exploits
+                                                                      III. PRELIMINARIES OF DRL
+ECN feedback from switches. Performance-oriented Con-
+                                                                      The general reinforcement learning consists of two entities:
+gestion Control (PCC) proposes to continuously observe the
+                                                                      agent and environment, as shown in Fig. 1. The interactions
+connection between its actions and experienced performance,
+                                                                      between the two entities constantly influence the environment
+and to adopt actions that lead to good performance [20].
+                                                                      and trains the agent. Usually DRL is applied to solve Markov
+Jiang et al. [21] leverage sliding mode control theory to ana-
+                                                                      decision problems (MDP). During each episode, the agent
+lyze and address the stability issue of quantized congestion
+                                                                      receives a state tensor st , takes an action at based on policy
+notification (QCN) in data center Ethernet networks.
+                                                                      π (st ), and receives a scalar valued reward r(st , at ). There
+                                                                      may be a delay τ1 before action at starts to influence the
+B. ROUTER BASED SCHEMES
+                                                                      environment, and there may also be a delay τ2 for reward
+This class of work involves switches or routers in the
+                                                                      r(st , at ) to be received by the agent. Such delays are neglected
+congestion control process. Explicit Congestion Notifica-
+                                                                      in many DRL designs. However, for congestion control, such
+tion (ECN) [22] is introduced as a substitution of loss as
+                                                                      delays play an important role on the stability of the system as
+a congestion signal. In Active Queue Management (AQM)
+                                                                      will be demonstrated later in this paper.
+schemes, such as RED [23], CoDel [24], and MAQ [25], [26],
+                                                                         The value function V (st , at ) can be represented as the
+routers mark or drop packets on incipient congestion. These
+                                                                      discounted, accumulated reward, which is given by
+approaches require modification of routers and intermediate
+devices, which may not be practical or may not scale up to                                        T
+                                                                                                  X
+large number of TCP flows.                                                                 Rt =          γ i−t · r(si , ai ),                (1)
+                                                                                                   i=t
+C. SMART SCHEMES
+                                                                      where γ ∈ [0, 1] is the discount factor and T is the end of the
+With the recent success of machine learning/deep learning on
+                                                                      episode. With Bellman-Ford equation, we rewrite (1) as
+image recognition, video analytics, and natural language pro-
+cessing, there is strong interest in applying machine learning                            Rt = r(st , at ) + γ · Rt+1 .                      (2)
+to solving networking problems [5]. The results in [27] and
+[28] provide interesting insights into machine generated con-            In general settings, policy π (a|st ) or π (st ) generates the
+gestion protocols. However, these learning algorithms require         target action by mapping the state space to the action space:
+offline training based on prior knowledge of the network              S → A, stochastically or deterministically. For example,
+and can only be adopted for limited situations. Xu et al. [29]        we can model the output action as a probability distribution
+propose an algorithm based on DRL to deal with the traffic            over a discrete action space p(a), while the action to be taken
+engineering problem at intermediate nodes in the network              could be either sampled with this distribution or the one
+
+11894                                                                                                                             VOLUME 7, 2019
+K. Xiao et al.: TCP-Drinc: Smart Congestion Control Based on Deep Reinforcement Learning
+
+
+
+
+with the largest probability. It is natural to use neural net-
+works (NN) to approximate such policy and value functions.
+However, the approximation could be unstable, due to the
+strong correlation between sequential samples. In addition,
+the nonstationary target values could further degrade the
+stability. Therefore the shallow NN has a limited ability to
+extract important features.
+   DRL algorithms, first introduced in [31], are based on
+a similar structure but incorporate a deep neural network
+(DNN) to learn the value function and/or the policy function.
+The raw sensory data is treated as state st and input to the
+DNN. The DNN is utilized to approximate the Q-function
+Q(st , at ), termed Deep Q-Network (DQN), which calculates
+the optimal value for each possible action for given state st .
+The Q value function Qπ (st , at ) for given policy π is defined                FIGURE 2. System architecture for TCP over wireless.
+as
+                    Qπ (st , at ) = E [Rt |st , at ],                  (3)      time (RTT) of a user, τRTT (t) = τp + τq (t), where τp is the
+where Rt is given in (1). The equation can be unrolled as                       propagation delay and τq (t) is the queuing delay, seems to be
+                                                                                independent to other users, since the BS usually maintains
+   Qπ (st , at ) = Est+1 rt + γ Qπ (st+1 , at+1 )|st , at .
+                                                        
+                                                            (4)                 separate queues for different users. However, even in this
+                                                                                case, the multiple flows at the BS are still coupled due to
+   Let ω represent the weights of the DQN. Supposing
+                                                                                the transmission scheduling algorithm used at the BS [4].
+Q(st , at , ω) ≈ Qπ (st , at ), we can define a loss function as
+             h                                            i                     Furthermore, the flows may still compete with each other for
+J (ω) = E (rt + γ Q(st+1 , at+1 , ω) − Q(st , at , ω))2 .       (5)             transmission resources and buffer storage along the multihop
+                                                                                path if they share a common link.
+The sum of the first two terms on the right-hand-side is                           The general problem of congestion control should be
+defined as the target value, i.e., yt = rt + γ Q(st+1 , at+1 , ω).              treated as a delayed, distributed decision-making problem.
+   To address the instability problem of the training process,                  Each sender needs to decide its own cWnd (or, sending
+Mnih et al. [31] proposed two strategies: experience replay                     rate). We focus on cWnd in this paper since it can be
+and target networks. First, the history of transitional states                  implicitly translated into sending rate according to the TCP
+and actions is stored in a buffer as experience. The DQN is                     clocking phenomenon [32]. The ‘‘delayed’’ feature means
+trained with mini batches of data that are sampled randomly                     that the action that a sender takes will influence the bot-
+from the experience buffer, so as to break the correlation                      tleneck queue after a forward propagation delay; and the
+between sequential data samples. In fact, mini-batches are                      receiver feedback about the network condition is usually
+randomly drawn from the experience buffer in order to apply                     received by the sender an RTT later. If the global infor-
+stochastic gradient decent (SGD) to further reduce the corre-                   mation of each user’s strategy, network topology, and traf-
+lation. Second, an additional target network is introduced to                   fic condition were available, one could have made perfect
+calculate the target value yt = rt + γ · Q(st+1 , at+1 , ω0 ) in the            decisions. But the global information is usually unavailable
+training process, whose weights ω0 are updated periodically                     and the users do not cooperate on congestion control, which
+with the running weights. The target value will become stable                   entails ‘‘distributed’’ decision making. Although these fea-
+after certain amount of steps in the training process.                          tures have been considered in prior work, e.g., modeling TCP
+                                                                                throughput as delayed differential equations [32], they all
+IV. SYSTEM MODEL AND PROBLEM STATEMENT                                          pose great challenges to a DRL based congestion control
+A. NETWORK ARCHITECTURE                                                         design.
+In this paper, a very general setting of congestion control is
+considered, as shown in Fig. 2, where is a set of remote hosts                   B. PARTIALLY OBSERVABLE INFORMATION
+serving a set of mobile users (in fact, the last hop could also be              In congestion control, the information each sender can
+wired). Each end-to-end path, from a remote host to a mobile                    acquire is partial and delayed. The measured RTT can only
+user, consists of multiple hops. The remote hosts apply a                       tell the total delay, but lacks details on the delay on each hop,
+congestion window (cWnd) based protocol. The two features                       on forward and backward directions, and on propagation and
+of the general setting are: competitions among different flows                  queueing components. One popular approach is to approx-
+at bottleneck links and potentially multiple bottlenecks along                  imate propagation delay by the minimal RTT. In addition,
+the end-to-end path.                                                            the acquisition of RTT and the effect of action are both
+   Most prior works assume that the last wireless hop is                        delayed. Therefore, congestion control is actually a partially
+the single bottleneck. Under this assumption, the round-trip                    observable Markov decision process (POMDP).
+
+VOLUME 7, 2019                                                                                                                             11895
+                                                            K. Xiao et al.: TCP-Drinc: Smart Congestion Control Based on Deep Reinforcement Learning
+
+
+
+
+   The problem is to develop a sender algorithm that explores            congestion window cWnd, measured RTT, and interarrival
+the network environment and adjusts the congestion win-                  times of received ACKs.
+dow to reliably transport data. This process is conducted
+by many other senders as well due to shared networking                   D. NETWORK MODEL
+resources. Therefore, the environment one sender senses is               The traffic model adopted in this paper is based on TCP
+also affected by other users’ actions and is constantly chang-           clocking [32]; the sending rate can be implicitly determined
+ing. In this paper, we propose an integrated solution to deal            by the congestion window cWnd and RTT. CWnd is the
+with such ‘‘multi-agent’’ feature of the congestion control              maximum amount of TCP segments the sender can inject
+problem.                                                                 into the network without ACK. The network and receiver can
+   For the POMDP problem, it helps to utilize historical data            control the sending pace by delaying or withholding ACKs.
+to exploit the momentum and correlation in the process.                  The benefit of focusing on cWnd is the reduced control action
+However, utilizing historical data is non-trivial due to the             dimension.
+associated time and space complexity. In machine learning,                  To simplify notation, we omit the subscript i for sender i
+a promising solution is the recurrent neural network (RNN),              in the following presentation. Let the sender cWnd be w(t).
+which is effective for capturing the temporal, dynamic behav-            Recall the RTT is τRTT (t) = τp + τq (t), where τp is the prop-
+ior in a time series.                                                    agation delay, and τq (t) is the total queuing delay incurred
+                                                                         at one or more bottleneck links along the end-to-end path.
+C. BASIC ASSUMPTIONS                                                     The τp can be approximated by the minimum RTT within a
+To make the design general, we do not assume the system                  time window. The instantaneous sending rate, x(t), and its
+is Markovian. Many TCP variants, such as [17] and [33],                  relationship with cWnd w(t), is given by [32]
+make control decisions based only on the current state, since                              Z t
+the basic assumption is the next state only depends on the                                           x(ι)dι = w(t).                  (6)
+current state, no matter what congestion signal they use (i.e.,                                 t−τRTT (t)
+delay or loss). In a recent work [27], the exponential average           Differentiating (6) and rearranging terms, we have [32]
+over historical delay is utilized. This is an intuitive solution to                               x(t − τRTT (t̃))
+the problem of congestion control because the current state is                        x(t) =                             + ẇ(t),               (7)
+                                                                                               1 + τ̇RTT (t − τRTT (t̃))
+delayed and partially observable. As discussed, the sending
+rate depends on the state of one RTT before, while the states            where t̃ = t − τRTT (t). Notice that the instantaneous sending
+of queues and latency depend on the state one propagation                rate at time t depends on not only the sending rate one
+delay ago. In short, the Markovian assumption may be too                 RTT ago, but also the derivative of the window size and the
+simplistic and it will be helpful to exploit historical informa-         derivative of RTT at one RTT ago.
+tion for better decision making.                                            Therefore, the congestion control process can be viewed
+   In real network environments, received signals are usually            as a ‘‘combined’’ sparse reward process. Combined means
+noisy, which can be mitigated by adopting an exponential                 it is not a complete sparse process, since the current action
+window moving average to acquire the stable information.                 can still be rewarded, while the previous actions would also
+In this paper, we utilize a DCNN as an automatically tuned               influence the current reward. Moreover, the window size w(t)
+filter to extract stable information. To make the model math-            is an integer, and the influence of increasing or decreasing
+ematically tractable, the amount of previous states to be                w(t) will be delayed until w(t) packets are received.
+considered is limited to a window size of M .
+   We make no assumption on how the users compete for                    E. UTILITY FUNCTION
+resources. The information that senders could acquire is very            We next define a utility function for training and evaluation
+limited in practice. Many existing algorithms are based on               of the proposed algorithm. For resource allocation/traffic
+certain assumptions of network conditions. For example,                  engineering, the α-fairness function is widely adopted [27].
+Sprout [3] assumes that the only dynamic component of delay              In this model, the utility function is defined as
+is queuing delay, and more important, it is self-inflicted,
+                                                                                                  log(ι), if α = 1
+                                                                                                  
+meaning that it is solely determined by its sending rate and
+                                                                                        Uα (ι) = ι1−α                               (8)
+channel capacity. This assumption may be strong since the                                                , otherwise,
+traffic flows are coupled by the transmission scheduling at the                                     1−α
+BS, and cross-traffic may also affect the queueing delay when            where parameter α determines different types of fairness. For
+queues and transmission capacity are shared in the wired                 example, if α → ∞, maximizing the sum utility becomes
+hops. A practical scheme should not require the sender to                a max-min problem. If α = 1, maximizing the sum utility
+know if the physical network is wired or wireless, how many              ensures proportional fairness. In FAST TCP [34], Wei et al.
+bottlenecks are out there, and what scheduling algorithms are            adopt this utility function and prove the fairness of the pro-
+used at each hop. Therefore, it is better to make no extra               posed congestion control algorithm.
+assumptions on the physical network. We thus assume the                     In this paper, the goal is to trade-off between throughput
+information a sender could acquire is its own sending rate,              and latency. For high throughput, the sending rate should
+
+11896                                                                                                                                VOLUME 7, 2019
+K. Xiao et al.: TCP-Drinc: Smart Congestion Control Based on Deep Reinforcement Learning
+
+
+
+
+be set high to prevent the bottleneck queue from being                          two consecutive time slots, and RTT τRTT should be collected
+nonempty, so that the bottleneck capacity can be fully uti-                     as features.
+lized. On the other hand, for low latency, the sending rate                        In the transport process, the minimum RTT within a time
+should be set low to ensure low occupancy level at the                          window provides an estimation of the propagation delay.
+bottleneck queue, so the queueing delay will be low. We                         The reason why not using the minimum RTT of the entire
+adopt the following utility function to trade-off the two design                transmission process, is to take into account the possibility of
+goals [27]                                                                      route changes. Let τ̂p denote the minimum RTT. When cWnd
+                                                                                is smaller than the product of capacity and τ̂p , the measured
+        U (x(t), τRTT (t)) = Uα (x(t)) − βUα (τRTT (t)).               (9)      RTT will always converge to τ̂p . Thus the minimum RTT τ̂p
+                                                                                should also be treated as state information. In TCP-Drinc,
+where coefficient β indicates the relative importance of                        we take the ratio vRTT = τ̂p /τRTT as a feature, which is
+throughput and latency.                                                         indicative of the relative portions of propagation delay in
+   The goal of the congestion control algorithm is to optimize                  the RTT. Furthermore, the difference between RTT and the
+the expectation of (9) by properly setting the congestion                       minimum RTT, i.e., δRTT = τRTT − τ̂p , is an estimate of
+window cWnd.                                                                    the overall queuing delay and is indicative of the network
+                                                                                congestion level. To track the minimum RTT, the estimation
+V. TCP-DRINC DESIGN                                                             will be updated at 10 RTT intervals. The last feature we pick
+A. APPROACH FOR MULTI-AGENT COMPETITION                                         is the inter-arrival time of ACKs, denoted by τACK , which is
+As discussed, we are dealing with a multi-agent competition                     indicative of the goodput of the network.
+problem. At a bottleneck link, multiple flows compete for
+network resources such as buffer and capacity. In addition,                      C. DEFINITIONS OF STATES AND ACTIONS
+the exploration strategy of other users could be sensed as                      We next define the state and action space of TCP-Drinc. The
+dynamics of the environment, which could lead to misin-                         non-Markovian nature of the problem makes it necessary to
+formed state feedback and result in an unstable training                        take history into consideration. As discussed, we consider the
+process and poor performance. We tackle this problem by                         following features of a TCP connection: (i) cWnd difference
+integrating three methods: (i) feature selection, (ii) clipped                  1w, (ii) RTT τRTT , (iii) the minimum RTT over RTT ratio
+rewards, and (iii) a modified training process.                                 vRTT , (iv) the difference between RTT and the minimum
+   Feature selection is presented in Section V-B. By hand-                      RTT δRTT , and (v) the inter-arrival time of ACKs τACK . The
+picking the features that are indicative of system state, we can                algorithm runs in slotted time (e.g., 10 ms per time slot).
+deal with abnormal system dynamics caused by other users’                       In each time slot t, we measure the above features and record
+unknown strategies. Reward clipping can reduce the reward                       them as state of the time slot st . If there is no events (e.g.,
+variation in different environments and increase the learning                   no ACK received or cWnd changed) in a time slot t, we have
+stability, which is discussed in detail in Section V-D.                         st = st−1 . We then take the combination of the states of M
+   For training, we combine the suggestions from [35]–[37]                      consecutive past time slots as one system state, in the form of
+to have: (i) a relatively small experience replay buffer, and                   a 2nd-order tensor, which is denoted as S and given by
+(ii) concurrent experience replay trajectories (CERTs) for
+sampling training data. The first method can mitigate the                                           S = [s0 , s1 , ..., sM −1 ],            (10)
+non-stationary nature of the local experience sensed by an
+agent. The normal experience replay buffer size is multiples                    where st = [1w(t), τRTT (t), vRTT (t), δRTT (t), τACK (t)].
+of 10K. In this work, we set the buffer size to 1600, meaning                      The action space consists of five actions on adjusting
+the algorithm only keeps the most recent 1600 samples. For                      cWnd. In order to trade-off between agility and robustness
+CERTs, each agent takes the same samples for training. To                       through the process, we adopt actions w = w ± 1 as exponen-
+ensure this, the only synchronization needed is to assign the                   tially increase/decrease, and actions w = w ± w1 as linearly
+same random seed to each agent at the beginning of training.                    increase/decrease of w. The exponentially increase/decrease
+It requires no synchronization of the agents afterward, while                   actions allow the agent to quickly adapt to fast variations
+guaranteeing independent operation of each agent.                               of the environment. The linearly increase/decrease actions
+                                                                                enhance robustness when the agent decides to doodle around
+B. FEATURE ENGINEERING                                                          a proper operating point. Moreover, the no change action
+During a TCP session, the sender acquires the follow-                           should also be included. The action space is thus defined as
+ing information: (i) congestion window size, (ii) RTT, and                                                                1
+(iii) inter-arrival time of ACKs. It is necessary to pre-process                           A = {w = w ± 1; w = w ±          ; no change}.   (11)
+                                                                                                                          w
+the sensed data. The benefits are two-fold: accelerating the
+training process and better explanation of the model. Accord-                    D. REWARD CALCULATION
+ing to (6) and (7), the current sending rate is determined by the               Reward design is also challenging for DRL based congestion
+cWnd difference and the sending rate one RTT ago. There-                        control. The RTT measurements at the sender side is usually
+fore, cWnd difference, 1w, as measured by the difference in                     noisy. Factors such as the bursty sending process, varying
+
+VOLUME 7, 2019                                                                                                                              11897
+                                                             K. Xiao et al.: TCP-Drinc: Smart Congestion Control Based on Deep Reinforcement Learning
+
+
+
+
+processing times at the devices along the path, and recov-
+ery from packet losses in the physical layer all contribute
+to measurement noise. However, it is important to acquire
+accurate RTT measurements since a misinformed RTT might
+result in wrong reward to the agent’s action, and affect the
+convergence of the training process. In this paper, we adopt
+a low-pass filter with a fixed window size, i.e., exponential
+window moving average (EWMA), for RTT measurements,
+which removes frequent, small latency jitters.
+   Goodput is measured by counting the ACKs received
+within a time window. A benefit of this method is we
+directly calculate the goodput, while random packet losses
+are excluded. The measured goodput usually varies over time
+due to factors such as bursty sending process and random
+distribution in intermediate queues, as well as packet losses
+caused by link errors or congestion. We also take EWMA with
+one RTT window size to process the measured goodput.
+   Recall that the action of a sender will take effect after one
+RTT, and the impact on future goodput is exponentially dis-               FIGURE 3. The proposed TCP-Drinc system architecture.
+counted. The overall impact of an action on future goodput,
+denoted as z(t), can be estimated as
+                          ∞                                               E. EXPERIENCE BUFFER FORMATION
+                                                   ι−t
+                          X
+                 z(t) =            ẑ(ι)(1 − η)η         ,    (12)        The TCP-Drinc design is presented in Fig. 3, which takes the
+                             ι=t                                          specifically designed structure of training samples to implic-
+                                                                          itly learn and predict the future. As shown in Fig. 1, it takes
+where η < 1 is the decay rate of the action’s influence in the
+                                                                          τ1 (t) for an action to take effect on the bottleneck queue(s).
+future, and ẑ(t) is the measured goodput at time t. In order to
+                                                                          Thus the action that actually works should be as (t − τ1 (t)).
+make the calculation tractable in time and storage, we cut off
+                                                                          Moreover, ACKs carry system state feedback with delay
+time to have a horizon of L. The approximation of z(t) for an
+                                                                          τ2 (t). Thus the currently sensed state s(t) is actually the
+L-horizon is
+                                                                          system state ss (t − τ2 (t)). To deal with such delays, we look
+                      t+L−1
+                                          (1 − η)                         into the future for τ1 (t) + τ2 (t) to predict the system state
+                                                  · ηι−t
+                       X
+             z(t) =            ẑ(ι) ·                        (13)
+                       ι=t
+                                         1 − ηL+1                         based on the current state and action, and then choose the
+                                                                          next action. However, such prediction is challenging since (i)
+  For fairness, we compute the utility function as                        the delays τ1 (t) and τ2 (t) are stochastic; (ii) the predictions
+        U (z(t), τRTT (t)) = Uα (z(t)) − βUα (τRTT (t)).      (14)        are usually noisy and error-prone; and (iii) the computation
+                                                                          could be intensive due to the high dimension of the system.
+In the context of Q-learning, Q-value denotes the expectation                In this paper, we introduce a new strategy to address this
+of reward. If we only adopt the utility (14) in the reward                problem. First of all, we use a buffer to store the running
+function, the agent may keeps on choosing the same action,                dynamics history in th form of three-tuples {s(t), a(t), r(t)}.
+which returns a positive utility value but does not converge              Every time when a new tuple {s(t), a(t), r(t)} is inserted,
+to the optimal operating point. Therefore, we define reward               we look backward in the buffer to find the older tuple that
+function as the utility difference, given by                              was saved one RTT before. Then we combine these two
+                                                                          tuples to obtain a complete training sample as a four-tuple
+               r(t) = U (t + τRTT (t̃)) − U (t),              (15)
+                                                                          {s(t − τRTT (t)), a(t − τRTT (t)), s(t), r(t − τRTT (t))}. This
+where t̃ is one RTT after t.                                              sample is then stored in the experience buffer to be used in
+   Furthermore, for different network environments (e.g., dif-            the training process. This way, the DQN can better learn the
+ferent bottleneck link capacities and propagation delays),                reward based on current and future states.
+the reward calculated using (15) may have a large range of
+variation. In order to make the TCP-Drinc design more gen-                F. TCP-DRINC AGENT DESIGN
+eral and adaptable to various network environments, we clip               With definitions of space and action, reward calculation, and
+the reward value to the range [−1, 1]. With clipping, although            experience buffer design, we are now ready to present the
+the training process could be relatively longer in some cases,            agent design, which is based on a DCNN as shown in Fig. 4.
+the chance of convergence of the training process could be                The agent takes the five features of 64 consecutive time slots
+greatly improved (i.e., by avoiding large oscillations) and the           as input and choose the next action from the action space.
+same TCP-Drinc design can be applied to varying network                      In prior works such as [27], the EWMA is utilized to
+environments, as will be shown in our simulation results.                 process the noisy state information. However, this method
+
+11898                                                                                                                                 VOLUME 7, 2019
+K. Xiao et al.: TCP-Drinc: Smart Congestion Control Based on Deep Reinforcement Learning
+
+
+
+
+       FIGURE 4. Design of the proposed DCNN (in the figure, ‘‘C.’’ represents the convolutional layer, ‘‘S.’’ represents the down sampling (pooling)
+       layer, ‘‘FC’’ means fully connected).
+
+
+suffers from the long tail effect when used as a filter, and                     GPU. The dropout layer is applied with a 0.2 dropout proba-
+it could miss the rich information in feedback. In this paper,                   bility to provide both regularization and ensemble effect. The
+we proposed a new approach to fully utilize the rich feedback                    LSTM layer with 64 units is applied after the DCNN layers.
+information by adopting a DCNN. We use the combined state                        One fully connected layer is used with activation function
+of M consecutive time slots including and before the current                     ELU . The output layer is a linear combination of the previous
+time t and divide them in to frames as inputs. For instance,                     output with five outputs, one for each action. The control
+we set M = 64 and obtain 5 frames. Each frame has a size                         action is applied every 10 ms. If there is no ACK received
+8×8 and consists of data on one of the five features, as shown                   during a time slot, we simply copy the previous state. The
+in Fig. 4. With the convolutional layers and pooling layer,                      agent measures RTT using timestamps in received ACKs. The
+the more stable, higher level features can be abstracted from                    minimum RTT is updated every 10 RTTs.
+the raw state information.                                                          In the simulations, we assume there are N remote hosts
+   Furthermore, the non-Markovian nature of the problem                          that serve N wired or wireless users. Each remote host runs
+should also be accounted for, as well as the action-taking-                      a DRL agent independently, i.e., the DRL agents do not
+effect delay τ1 and feedback delay τ2 (see Fig. 1). A promis-                    share/exchange information. The simulation is based on the
+ing approach is to incorporate an LSTM to handle the cor-                        classical dumbbell topology with two routers in the middle,
+relation in the time series [38]. Through back-propagation                       between the remote hosts and users (see Fig. 2).
+through time (BPTT), this structure exploits memory to                              For fair and comprehensive performance comparison,
+extract system features. As in Fig. 4, the LSTM layer is placed                  we choose the following five benchmark schemes from
+after the DCNN extracts the stable features. Hausknecht and                      existing representative algorithms, including: (i) TCP-
+Stone [38] proposed two training methods: Bootstrapped                           NewReno [16], (ii) TCP-Cubic [17], (iii) TCP-Hybla [39],
+Sequential Updates and Bootstrapped Random Updates. The                          (iv) TCP-Vegas [40], and (v) TCP-Illinois [41]. We will
+former executes the training by randomly selecting an episode                    mainly focus on their performance on throughput and RTT
+and then starting from the beginning of the episode. The latter,                 in this study.
+however, picks a random timestep in an episode and proceeds
+for a fixed amount of timesteps. In this paper, we adopt the                     B. TRAINING PROCESS
+Bootstrapped Random Updates method to train the DQN by                           The training process consists of two phases: pre-training and
+combining with experience replay.                                                distributed training. In pre-training, we train each agent for
+   In Fig. 4, the fully connected layer is used to compute the                   Npre episodes with the same setup except that only one user
+Q-value for each action. We adopt the Exponential Linear                         is served to build the baseline behavior for the agent. Then
+Unit (ELU) activation function, defined as                                       in distributed training, the competition strategy of each agent
+                          (                                                      will be trained independently for Ndis episodes.
+                           ι,              ι>0
+               ELU (ι) =                                   (16)
+                           λ · (eι − 1), ι ≤ 0,                                  1) PRE-TRAINING
+                                                                                 In this simulation, we have Npre = 20. The bottleneck
+instead of Rectified Linear Units (ReLU). Since we have to                       capacity is 10 Mbps and the propagation delay is 80 ms.
+deal with negative rewards, it is beneficial not to kill the nodes               Each training episode lasts for 500 s. Fig. 5 shows the cWnd
+with negative outputs. In the last layer, which is to output the                 and RTT traces in the 10th training episode. It can be seen
+Q-value for actions, no activation function is used.                             that the learning process consists of three phases: the explo-
+                                                                                 ration probability linear annealing phase, the convergence
+VI. SIMULATION STUDY                                                             phase, and the phase of randomly learning of other options.
+A. SIMULATION SETUP                                                              In Fig. 5(a), before the vertical red line is the exploration
+In this paper, the DCNN is implemented with Tensor-                              probability annealing process, which involves a large prob-
+Flow [14]. The training is executed at a reasonable speed on                     ability of random choice of actions. With the exploration
+a PC with an I5-8600k CPU and Nvidia GeForce 1060 3GB                            probability decreased to 0.1, which is the end of the first
+
+VOLUME 7, 2019                                                                                                                                          11899
+                                                                 K. Xiao et al.: TCP-Drinc: Smart Congestion Control Based on Deep Reinforcement Learning
+
+
+
+
+FIGURE 5. The cWnd and RTT traces of pre-training with a single agent         FIGURE 6. The throughput and RTT dynamics of distribute training of five
+obtained in the 10th training episode. (a) cWnd dynamics. (b) RTT             agents. (a) Average throughput. (b) Average RTT.
+dynamics.
+
+
+phase, the agent can adjust the action to converge to the
+perfect operating condition, i.e., the cWnd that can fully                    C. CONGESTION CONTROL PERFORMANCE
+utilize the bottleneck link capacity without introducing extra                In this section, we present our experimental results with
+queuing delay (the horizontal red dashed line in Fig. 5(a)).                  different network parameters to test the performance of
+Then with a 0.1 probability, the agent will randomly deviate                  TCP-Drinc, specifically, over situations that deviate from that
+from the perfect operating point to explore the state space.                  TCP-Drinc was originally trained. As in Section VI-B, TCP-
+This process will be repeated to train the agent with different               Drinc is trained with five TCP sessions with 10 Mbps bot-
+network conditions.                                                           tleneck capacity and 80 ms propagation delay. The following
+                                                                              three testing cases are simulated in this section.
+2) DISTRIBUTED TRAINING
+After pre-training, we copy the model to five different senders                  1) Case I: four users; the propagation delay is varied in
+(i.e., there are N = 5 hosts serving 5 wired users), and                            the range [60, 240] ms; and the bottleneck bandwidth is
+let them run the training process independently. We set the                         10 Mbps;
+random seed to 17 for all the senders. The basic environment                     2) Case II: the number of users is varied in the range [3, 9];
+setting is the same and the distributed training runs for Ndis =                    the propagation delay is 80 ms; and the bottleneck
+100 episodes. In Fig. 6, the average throughput and RTT in                          bandwidth is 8 Mbps;
+the distributed training process are presented. We can see that                  3) Case III: four users; the propagation delay is 100 ms;
+as the distributed training proceeds, the average throughput                        the bottleneck bandwidth is varied within [5, 20] Mbps.
+is increasing in general. And the average RTT eventually                      The bottleneck buffer size is set to 100 packets. Each packet
+converges toward the minimum RTT of 80 ms.                                    consists of a 1000-Byte payload plus a 40-Byte header.
+
+11900                                                                                                                                     VOLUME 7, 2019
+K. Xiao et al.: TCP-Drinc: Smart Congestion Control Based on Deep Reinforcement Learning
+
+
+
+
+FIGURE 7. Throughput and RTT statistics for increased propagation delay         FIGURE 8. Throughput and RTT statistics for increased number of users
+(Case I). (a) Average throughput. (b) Average RTT.                              (Case II). (a) Average throughput. (b) Average RTT.
+
+
+   As shown in Figs. 7, 8, and 9, the well-trained                              each user decreases with increased number of users. Again,
+TCP-Drinc model achieves a promising performance under                          TCP-Drinc achieves the highest throughput and the second
+all the scenarios. In Fig. 7, we present the throughput and RTT                 lowest RTT. TCP-Vegas outperforms TCP-Drinc with a lower
+for increased propagation delay. We can see that all the RTTs                   RTT, but at the cost of a low throughput. Fig. 9 presents
+increase with propagation delay, while the throughput is rel-                   the throughput and RTT achieved under different bottleneck
+atively stable (except for TCP-Vegas). TCP-Drinc achieves                       capacity. For increased bottleneck capacity, the throughput
+the highest throughput and the second smallest RTT for                          increases and the RTT decreases as expected (except for TCP
+the entire range of propagation delay. Although TCP-Vegas                       Vegas). Again, TCP-Drinc achieves the highest throughput
+achieves a lower RTT than TCP-Drinc, its throughput is the                      and the second lowest RTT for the entire range of bottleneck
+lowest, indicating that the low RTT is achieved by keeping                      capacity. TCP Vegas can always achieve the lowest RTT, but
+the sending rate low and the bottleneck buffer almost empty                     at the cost of low throughput. TCP-Drinc achieves a com-
+(i.e., sacrificing the utilization of the bottleneck link capac-                parable throughput as loss based protocols (i.e., TCP-Cubic
+ity). Unlike the several loss based protocols, TCP Vegas is a                   or TCP-NewReno), but only introduces a 20% higher RTT
+latency based scheme that linearly adjusts its cWnd according                   than TCP-Vegas. This is because the TCP-Drinc algorithm
+to the difference between the current RTT and the minimum                       can always find the operation point that is close to the perfect
+RTT. It is effective in keeping RTT low, but is sensitive to                    operating point. We also find that the performance of TCP-
+network condition changes and suffers from relatively low                       Drinc is the best when the network parameters are close to
+throughput.                                                                     the training scenarios.
+   In Fig. 8, the throughput and RTT are presented for                             We next examine the performance of the schemes under
+increased number of users. We can see the capacity for                          dynamic network settings. In particular, the simulation is
+
+VOLUME 7, 2019                                                                                                                                   11901
+                                                                   K. Xiao et al.: TCP-Drinc: Smart Congestion Control Based on Deep Reinforcement Learning
+
+
+
+
+TABLE 2. Jain’s Fairness Index Achieved by the Congestion Control Schemes.
+
+
+
+
+                                                                                FIGURE 10. Throughput and RTT of the TCP variants under randomly
+                                                                                varied network parameters. Each oval area represents the 95%
+                                                                                confidence interval.
+
+
+
+                                                                                TCP-NewReno. Furthermore, TCP-Drinc achieves a much
+                                                                                lower RTT performance than the loss based protocols, e.g.,
+                                                                                at least 46% lower than TCP-NewReno and 65% lower than
+                                                                                TCP-Cubic. Furthermore, TCP-Drinc achieves an over 100%
+                                                                                throughput gain than TCP-Vegas at the cost of a only 15%
+                                                                                higher RTT.
+                                                                                   To study the fairness performance of the algorithms,
+                                                                                we evaluate the Jain’s index they achieve in the simulation.
+                                                                                The average fairness index and the corresponding 95% con-
+                                                                                fidence intervals are presented in Table 2. TCP-Vegas and
+                                                                                TCP-Illinois achieve the best fairness performance among all
+                                                                                the algorithms. TCP-Drinc can still achieve a considerably
+                                                                                high fairness index (only 1.9% lower than the best). Note that
+                                                                                the best fairness performance of TCP Vegas is achieved at
+FIGURE 9. Throughput and RTT statistics for increased bottleneck                the cost of a much poorer throughput performance. It is also
+capacity (Case III). (a) Average throughput. (b) Average RTT.
+                                                                                worth noting that the 95% confidence interval of TCP-Drinc
+                                                                                is the smallest among all the schemes, which is indicative of
+executed 100 times, each lasts for 500s. The number of users                    its robustness under varying network conditions.
+is 5. The bottleneck capacity is varied at a frequency of 10 Hz;                   Finally, we evaluate the TCP variants with a mobile net-
+each capacity is randomly drawn from a uniform distribution                     work scenario. The same network setting is used, except the
+in [5, 15] Mbps. The propagation delay is also varied at a                      last hop is now an LTE network with five mobile users. The
+10 Hz frequency and each value is randomly drawn from                           users move in a disk area of 800 m radius, following a random
+a uniform distribution in [0.06, 0.16]s. In Fig. 10, we plot                    walk mobility model with 1 m/s speed. The LTE network is
+the combined RTT (x-axis) and throughput (y-axis) results                       simulated using the built-in LTE model in ns-3 [13]. The LTE
+in the form of of 95% confidence intervals. That is, we are                     BS uses a deep and separate queue for each user. Therefore,
+95% sure that the throughput and RTT combination of each                        we do not consider TCP-NewReno in this simulation, since it
+scheme are located within the corresponding oval area. We                       will introduce a very large RTT under this setting. The wired
+find that TCP-Drinc achieves a comparable throughput per-                       part has the same configuration as in previous simulations.
+formance with the loss based protocols, e.g., TCP-Cubic and                     The simulation results are presented in Fig. 11. The proposed
+
+11902                                                                                                                                       VOLUME 7, 2019
+K. Xiao et al.: TCP-Drinc: Smart Congestion Control Based on Deep Reinforcement Learning
+
+
+
+
+                                                                                       [9] Z. Chang, L. Lei, Z. Zhou, S. Mao, and T. Ristaniemi, ‘‘Learn to cache:
+                                                                                           Machine learning for network edge caching in the big data era,’’ IEEE
+                                                                                           Wireless Commun., vol. 25, no. 3, pp. 28–35, Jun. 2018.
+                                                                                      [10] X. Wang, X. Wang, and S. Mao, ‘‘RF sensing in the Internet of Things:
+                                                                                           A general deep learning framework,’’ IEEE Commun., vol. 56, no. 9,
+                                                                                           pp. 62–69, Sep. 2018.
+                                                                                      [11] X. Wang, L. Gao, S. Mao, and S. Pandey, ‘‘CSI-based fingerprinting for
+                                                                                           indoor localization: A deep learning approach,’’ IEEE Trans. Veh. Technol.,
+                                                                                           vol. 66, no. 1, pp. 763–776, Jan. 2017.
+                                                                                      [12] W. Wang, X. Wang, and S. Mao, ‘‘Deep convolutional neural
+                                                                                           networks for indoor localization with CSI images,’’ IEEE
+                                                                                           Trans. Netw. Sci. Eng., to be published. [Online]. Available:
+                                                                                           https://ieeexplore.ieee.org/document/8468057
+                                                                                      [13] G. F. Riley and T. R. Henderson, ‘‘The ns-3 network simulator,’’ in Model-
+                                                                                           ing and Tools for Network Simulation, K. Wehrle, M. Günes, and J. Gross,
+                                                                                           Eds. Berlin, Germany: Springer, 2010, pp. 15–34.
+                                                                                      [14] M. Abadi et al., ‘‘Tensorflow: A system for large-scale machine learning,’’
+                                                                                           in Proc. USENIX OSDI, Savannah, GA, USA, Nov. 2016, pp. 265–283.
+                                                                                      [15] D. R. Cox, ‘‘Long-range dependence: A review,’’ in Statistics: An
+                                                                                           Appraisal, H. A. David and H. T. David, Eds. Ames, IA, USA: Iowa State
+FIGURE 11. Throughput and delay results for the dumbbell topology with                     Univ. Press, 1984, pp. 55–74.
+five mobile users served by an LTE network.                                           [16] S. Floyd, A. Gurtov, and T. Henderson, The NewReno Modification to
+                                                                                           TCP’s Fast Recovery Algorithm, document RFC 3782, IETF, Apr. 2004.
+                                                                                      [17] S. Ha, I. Rhee, and L. Xu, ‘‘CUBIC: A new TCP-friendly high-speed TCP
+                                                                                           variant,’’ ACM SIGOPS Operat. Syst. Rev., vol. 42, no. 5, pp. 64–74, 2008.
+                                                                                      [18] K. Tan, J. Song, Q. Zhang, and M. Sridharan, ‘‘A compound TCP approach
+algorithm still performs well in the wireless network setting.                             for high-speed and long distance networks,’’ in Proc. IEEE INFOCOM,
+Its throughput is comparable to the two loss based protocols,                              Barcelona, Spain, Apr. 2006, pp. 1–12.
+with a greatly reduced RTT. Its throughput is much higher                             [19] M. Alizadeh et al., ‘‘Data center TCP (DCTCP),’’ in Proc. ACM SIG-
+                                                                                           COMM, New Delhi, India, Aug./Sep. 2010, pp. 63–74.
+than TCP Vegas while the RTT is only slightly higher.                                 [20] M. Dong, Q. Li, D. Zarchy, P. B. Godfrey, and M. Schapira, ‘‘PCC: Re-
+                                                                                           architecting congestion control for consistent high performance,’’ in Proc.
+VII. CONCLUSIONS                                                                           USENIX NSDI, Oakland, CA, USA, May 2015, pp. 395–408.
+                                                                                      [21] W. Jiang, F. Ren, R. Shu, Y. Wu, and C. Lin, ‘‘Sliding mode congestion
+In this paper, we developed a framework for model-free,                                    control for data center Ethernet networks,’’ IEEE Trans. Comput., vol. 64,
+smart congestion control based on DRL. The proposed                                        no. 9, pp. 2675–2690, Sep. 2015.
+scheme does not require accurate models for network,                                  [22] S. Floyd, ‘‘TCP and explicit congestion notification,’’ ACM SIGCOMM
+                                                                                           Comput. Commun. Rev., vol. 24, no. 5, pp. 8–23, Oct. 1994.
+scheduling, and network traffic flows; it also does not require                       [23] S. Floyd and V. Jacobson, ‘‘Random early detection gateways for
+training data, and is robust to varying network conditions.                                congestion avoidance,’’ IEEE/ACM Trans. Netw., vol. 1, no. 4,
+The detailed design of the proposed TCP-Drinc scheme was                                   pp. 397–413, Aug. 1993.
+                                                                                      [24] K. Nichols and V. Jacobson, ‘‘Controlling queue delay,’’ Commun. ACM,
+presented and the trade-offs were discussed. Extensive sim-                                vol. 55, no. 7, pp. 42–50, Jul. 2012.
+ulations with ns-3 were conducted to validate its superior                            [25] K. Xiao, S. Mao, and J. K. Tugnait, ‘‘Congestion control for infrastructure-
+performance over five benchmark algorithms.                                                based CRNs: A multiple model predictive control approach,’’ in Proc.
+                                                                                           IEEE GLOBECOM, Washington, DC, USA, Dec. 2016, pp. 1–6.
+                                                                                      [26] K. Xiao, S. Mao, and J. K. Tugnait, ‘‘MAQ: A multiple model predictive
+REFERENCES                                                                                 congestion control scheme for cognitive radio networks,’’ IEEE Trans.
+                                                                                           Wireless Commun., vol. 16, no. 4, pp. 2614–2626, Apr. 2017.
+ [1] V. Jacobson, ‘‘Congestion avoidance and control,’’ ACM SIGCOMM Com-
+                                                                                      [27] K. Winstein and H. Balakrishnan, ‘‘TCP ex machina: Computer-generated
+     put. Commun. Rev., vol. 18, no. 4, pp. 314–329, 1988.
+                                                                                           congestion control,’’ ACM SIGCOMM Comput. Commun. Rev., vol. 43,
+ [2] Y. Zhao, B. Zhang, C. Li, and C. Chen, ‘‘ON/OFF traffic shaping in the                no. 4, pp. 123–134, 2013.
+     Internet: Motivation, challenges, and solutions,’’ IEEE Netw., vol. 31, no. 2,   [28] A. Sivaraman, K. Winstein, P. Thaker, and H. Balakrishnan, ‘‘An exper-
+     pp. 48–57, Mar./Apr. 2017.                                                            imental study of the learnability of congestion control,’’ in Proc. ACM
+ [3] K. Winstein, A. Sivaraman, and H. Balakrishnan, ‘‘Stochastic forecasts                SIGCOMM, Chicago, IL, USA, Aug. 2014, pp. 479–490.
+     achieve high throughput and low delay over cellular networks,’’ in Proc.         [29] Z. Xu et al. (Jan. 2018). ‘‘Experience-driven networking: A deep
+     USENIX NSDI, Lombard, IL, USA, Apr. 2013, pp. 459–471.                                reinforcement learning based approach.’’ [Online]. Available: https://
+ [4] Y. Zaki, T. Pötsch, J. Chen, L. Subramanian, and C. Görg, ‘‘Adaptive                  arxiv.org/abs/1801.05757
+     congestion control for unpredictable cellular networks,’’ ACM SIGCOMM            [30] W. Li, F. Zhou, K. R. Chowdhury, and W. M. Meleis, ‘‘QTCP:
+     Comput. Commun. Rev., vol. 45, no. 4, pp. 509–522, Oct. 2015.                         Adaptive congestion control with reinforcement learning,’’ IEEE
+ [5] Y. Sun, M. Peng, Y. Zhou, Y. Huang, and S. Mao. (Sep. 2018). ‘‘Applica-               Trans. Netw. Sci. Eng., to be published. [Online]. Available:
+     tion of machine learning in wireless networks: Key techniques and open                https://ieeexplore.ieee.org/document/8357943
+     issues.’’ [Online]. Available: https://arxiv.org/abs/1809.08707                  [31] V. Mnih et al., ‘‘Human-level control through deep reinforcement learn-
+ [6] M. Feng and S. Mao, ‘‘Dealing with limited backhaul capacity in mil-                  ing,’’ Nature, vol. 518, pp. 529–533, Feb. 2015.
+     limeter wave systems: A deep reinforcement learning approach,’’ IEEE             [32] K. Jacobsson, L. L. H. Andrew, A. Tang, K. H. Johansson,
+     Commun., to be published.                                                             H. Hjalmarsson, and S. H. Low, ‘‘ACK-clocking dynamics: Modelling
+ [7] X. Chen, H. Zhang, C. Wu, S. Mao, Y. Ji, and M. Bennis, ‘‘Optimized                   the interaction between windows and the network,’’ in Proc. IEEE
+     computation offloading performance in virtual edge computing systems                  INFOCOM, Phoenix, AZ, USA, Apr. 2008, pp. 2146–2152.
+     via deep reinforcement learning,’’ IEEE Internet Things J., to be published.     [33] C. Jin, D. X. Wei, and S. H. Low, ‘‘FAST TCP: Motivation, architec-
+     [Online]. Available: https://ieeexplore.ieee.org/document/8493155                     ture, algorithms, performance,’’ in Proc. IEEE INFOCOM, Hong Kong,
+ [8] Y. Sun, M. Peng, and S. Mao, ‘‘Deep reinforcement learning based                      Mar. 2004, pp. 2490–2501.
+     mode selection and resource management for green fog radio access                [34] D. X. Wei, C. Jin, S. H. Low, and S. Hegde, ‘‘Fast TCP: Motivation,
+     networks,’’ IEEE Internet Things J., to be published. [Online]. Available:            architecture, algorithms, performance,’’ IEEE/ACM Trans. Netw., vol. 14,
+     https://ieeexplore.ieee.org/document/8468000                                          no. 6, pp. 1246–1259, Dec. 2006.
+
+VOLUME 7, 2019                                                                                                                                                  11903
+                                                                       K. Xiao et al.: TCP-Drinc: Smart Congestion Control Based on Deep Reinforcement Learning
+
+
+
+
+[35] J. N. Foerster, Y. M. Assael, N. de Freitas, and S. Whiteson. (2016).          Board of the IEEE TRANSACTIONS ON NETWORK SCIENCE AND ENGINEERING,
+     ‘‘Learning to communicate to solve riddles with deep distributed recurrent     the IEEE TRANSACTIONS ON MOBILE COMPUTING, the IEEE TRANSACTIONS ON
+     Q-networks.’’ [Online]. Available: https://arxiv.org/abs/1602.02672            MULTIMEDIA, the IEEE INTERNET OF THINGS JOURNAL, the IEEE WIRELESS
+[36] J. Foerster et al. (2017). ‘‘Stabilising experience replay for deep            NETWORKING LETTERS, the IEEE MULTIMEDIA, and ACM GetMobile.
+     multi-agent reinforcement learning.’’ [Online]. Available: https://               He is a Fellow of the IEEE. He received the NSF CAREER
+     arxiv.org/abs/1702.08887                                                       Award, in 2010, the 2013 IEEE ComSoc MMTC Outstanding Leadership
+[37] S. Omidshafiei, J. Pazis, C. Amato, J. P. How, and J. Vian. (2017). ‘‘Deep     Award, the 2015 IEEE ComSoc TC-CSR Distinguished Service Award,
+     decentralized multi-task multi-agent reinforcement learning under partial
+                                                                                    the 2017 IEEE ComSoc ITC Outstanding Service Award, and the Auburn
+     observability.’’ [Online]. Available: https://arxiv.org/abs/1703.06182
+                                                                                    University Creative Research & Scholarship Award, in 2018. He was a co-
+[38] M. Hausknecht and P. Stone. ‘‘Deep recurrent Q-learning for partially
+     observable MDPs.’’ [Online]. Available: https://arxiv.org/abs/1507.06527       recipient of the 2004 IEEE Communications Society Leonard G. Abraham
+[39] C. Caini and R. Firrincieli, ‘‘TCP hybla: A TCP enhancement for het-           Prize in the Field of Communications Systems, IEEE ICC 2013, IEEE
+     erogeneous networks,’’ Int. J. Satellite Commun. Netw., vol. 22, no. 5,        WCNC 2015, the Best Paper Awards from IEEE GLOBECOM 2015and
+     pp. 547–566, Sep./Oct. 2004.                                                   2016, the Best Demo Award from IEEE SECON 2017, and the IEEE ComSoc
+[40] L. S. Brakmo, S. W. O’Malley, and L. L. Peterson, ‘‘TCP Vegas: New             MMTC Best Conference Paper Award in 2018.
+     techniques for congestion detection and avoidance,’’ in Proc. SIGCOMM,
+     London, U.K., Aug./Sep. 1994, pp. 24–35.
+[41] S. Liu, T. Başar, and R. Srikant, ‘‘TCP-Illinois: A loss-and delay-based
+     congestion control algorithm for high-speed networks,’’ Perform. Eval.,
+     vol. 65, no. 6, pp. 417–440, 2008.
+
+
+                          KEFAN XIAO (S’14) received the B.E. degree in
+                          electronic engineering from Xi’an Jiaotong Uni-
+                          versity, Xi’an, China, in 2011, the M.S. degree in                                  JITENDRA K. TUGNAIT (M’79–SM’93–F’94–
+                          electronic engineering from Shanghai Jiao Tong                                      LF’16) received the B.Sc. degree (Hons.) in elec-
+                          University, Shanghai, China, in 2014, and the                                       tronics and electrical communication engineering
+                          Ph.D. degree in electrical and computer engineer-                                   from the Punjab Engineering College, Chandi-
+                          ing from Auburn University, Auburn, AL, USA,                                        garh, India, in 1971, the M.S. and E.E. degrees
+                          in 2018. He is currently a Software Engineer                                        from Syracuse University, Syracuse, NY, USA,
+                          with Google, Inc. His research interests include                                    and the Ph.D. degree from the University of Illinois
+                          TCP congestion control, video streaming, and                                        at Urbana–Champaign, in 1973, 1974, and 1978,
+                          transmissions.                                                                      respectively, all in electrical engineering.
+                                                                                                                 From 1978 to 1982, he was an Assistant Profes-
+                                                                                    sor of electrical and computer engineering with the University of Iowa, Iowa,
+                        SHIWEN MAO (S’99–M’04–SM’09–F’19)                           IA, USA. He was with the Long Range Research Division, Exxon Production
+                        received the Ph.D. degree in electrical and com-            Research Company, Houston, TX, USA, from 1982 to 1989. He joined the
+                        puter engineering from Polytechnic University               Department of Electrical and Computer Engineering, Auburn University,
+                        (now New York University), Brooklyn, NY, USA.               Auburn, AL, USA, in 1989, as a Professor, where he currently holds the title
+                        He is currently the Samuel Ginn Distinguished               of James B. Davis Professor. His current research interests include statistical
+                        Professor with the Department of Electrical and             signal processing, wireless communications, and multiple target tracking.
+                        Computer Engineering, and the Director of the                  Dr. Tugnait is a past Associate Editor of the IEEE TRANSACTIONS ON
+                        Wireless Engineering Research and Education                 AUTOMATIC CONTROL, the IEEE TRANSACTIONS ON SIGNAL PROCESSING, the IEEE
+                        Center, Auburn University, Auburn, AL, USA.                 SIGNAL PROCESSING LETTERS, and the IEEE TRANSACTIONS ON WIRELESS
+                           His research interests include wireless net-             COMMUNICATIONS, and a past Senior Area Editor of the IEEE TRANSACTIONS ON
+works, multimedia communications, and smart grid. He is a Distinguished             SIGNAL, and a past Senior Editor of IEEE WIRELESS COMMUNICATIONS LETTERS.
+Speaker of the IEEE Vehicular Technology Society. He is on the Editorial
+
+
+
+
+11904                                                                                                                                               VOLUME 7, 2019
+

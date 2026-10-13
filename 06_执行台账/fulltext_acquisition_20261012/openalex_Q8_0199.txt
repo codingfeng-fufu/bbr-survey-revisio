@@ -1,0 +1,802 @@
+                                                                                SPECIAL SECTION ON ARTIFICIAL INTELLIGENCE (AI)-EMPOWERED
+                                                                                INTELLIGENT TRANSPORTATION SYSTEMS
+
+
+Received October 25, 2019, accepted November 11, 2019, date of publication November 18, 2019, date of current version
+November 27, 2019.
+Digital Object Identifier 10.1109/ACCESS.2019.2953888
+
+
+
+
+Spatial-Temporal Graph Attention Networks:
+A Deep Learning Approach
+for Traffic Forecasting
+CHENHAN ZHANG , JAMES J. Q. YU , (Member, IEEE), AND YI LIU , (Student Member, IEEE)
+Department of Computer Science and Engineering, Southern University of Science and Technology, Shenzhen 518055, China
+Corresponding author: James J. Q. Yu (yujq3@sustech.edu.cn)
+This work was supported by the General Program of Guangdong Basic and Applied Basic Research Foundation
+under Grant 2019A1515011032.
+
+
+
+
+  ABSTRACT Traffic speed prediction, as one of the most important topics in Intelligent Transport Systems
+  (ITS), has been investigated thoroughly in the literature. Nonetheless, traditional methods show their
+  limitation in coping with complexity and high nonlinearity of traffic data as well as learning spatial-temporal
+  dependencies. Particularly, they often neglect the dynamics happening to traffic network. Attention-based
+  models witnessed extensive developments in recent years and have shown its efficacy in a host of fields,
+  which inspires us to leverage graph-attention-based method to handling traffic network speed prediction.
+  In this paper, we propose a novel deep learning framework, Spatial-Temporal Graph Attention Networks
+  (ST-GAT). A graph attention mechanism is adopted to extract the spatial dependencies among road segments.
+  Additionally, we introduce a LSTM network to extract temporal domain features. Compared with previous
+  related research, the proposed approach is able to capture dynamic spatial dependencies of traffic networks.
+  A series of comprehensive case studies on a real-world dataset demonstrate that ST-GAT supersedes existing
+  state-of-the-art results of traffic speed prediction. Furthermore, outstanding robustness against noise and on
+  reduced graphs of the proposed model has been demonstrated through the tests.
+
+
+  INDEX TERMS Traffic speed prediction, graph attention, deep learning, intelligent transportation system,
+  spatio-temporal domain feature.
+
+
+I. INTRODUCTION                                                                                Model-driven approaches handle TSP using computational
+Traffic, as a canonical topic with regards to livelihood, never                                simulation combining with various mathematical theories
+fail to arouse people’s attention. According to a survey                                       such as queuing theory [4]. However, the complex simu-
+in 2017, the driving population of America had exceeded                                        lation process and impractical assumption usually develop
+200 million [1]. Under this background, accurate real-time                                     massive computational consumption and degenerative results
+prediction of traffic conditions is very helpful for gov-                                      on practical scenarios [5]. In the meantime, the massive
+ernments and related institutes to develop the Intelligent                                     acquisition of traffic data and advanced data processing
+Transportation System (ITS) which can grossly improve the                                      technologies make data-driven approaches an outstand-
+people’s travel experience. Traffic Speed Prediction (TSP),                                    ing paradigm in handling the TSP problem [6]. Existing
+as a branch of traffic state prediction in the domain of ITS,                                  data-driven approaches can be classified into two main
+has been verified to be useful for many traffic applications                                   categories: parametric and non-parametric models. While
+such as route guidance, flow control and navigation [2], [3].                                  classical statistic-based parametric approaches, e.g., Autore-
+   TSP has been investigated for decades and the related                                       gressive Integrated Moving Average (ARIMA) and
+methods can be roughly divided into two categories,                                            Kalman Filter (KF) have been widely adopted in the
+i.e., model-driven approaches and data-driven approaches.                                      literature [7]–[10], these approaches fail to handle non-linear
+                                                                                               traffic data since they follow a stationary assumption of
+   The associate editor coordinating the review of this manuscript and                         time-series [11]. To address this problem, non-parametric
+approving it for publication was Chao Chen.                                                    machine learning methods such as K-Nearest Neighbors
+
+                     This work is licensed under a Creative Commons Attribution 4.0 License. For more information, see http://creativecommons.org/licenses/by/4.0/
+166246                                                                                                                                                               VOLUME 7, 2019
+C. Zhang et al.: ST-GAT: Deep Learning Approach for Traffic Forecasting
+
+
+
+
+algorithm (KNN) [12] and Support Vector Regression (SVR)                  learning traffic speed predictors, although measurement noise
+[13] are used to model the complex data characteristics                   and missing data usually happen to the process of data
+considering both high-dimensionality and non-linearity prop-              collection.
+erties. Non-parametric methods are capable of automatically                  Therefore, in this paper, we propose a novel deep learn-
+learning their model parameters by capturing the latent infor-            ing framework, i.e., Spatial-Temporal Graph Attention Net-
+mation from time-series data and remarkable results have                  works (ST-GAT). ST-GAT is a hybrid model integrating a
+been shown in various tasks.                                              spatial dependency extraction block and a temporal feature
+   In recent years, the development of deep learning has                  extraction block. The spatial dependency extraction block
+enabled an increasing number of researchers to adopt deep                 comprises a graph attention-based network based on Graph
+neural networks for high-accuracy traffic prediction [6], [14].           Attention Network (GAT) [27] to extract the spatial depen-
+Huang et al. [15] employ a Deep Belief Network (DBN)                      dencies in traffic networks. Deep learning models with atten-
+to learn effective features for traffic flow prediction in an             tion mechanisms have been verified to be effective in various
+unsupervised manner. Jia et al. [16] proposed a DBN and                   graph-based tasks [27]–[30]. Among them, GAT especially
+Multi-layer Perceptron (MLP) hybrid model for speed pre-                  inspires us since it shows an effective approach to compute
+diction. Lv et al. [17] apply Stacked Autoencoder (SAE)                   the pair-wise attentional correlations, which would be useful
+to extract traffic features for traffic flow prediction. All of           to exploit spatial dependencies. Additionally, we design a
+the aforementioned deep learning approaches achieved good                 method to construct time-series speed observations into fea-
+results. However, they mainly aim at modelling a single                   ture representations, called Speed2Vec, to adapt time-series
+sequence, which is constrained to consider only the time-                 traffic data to GAT. In the temporal feature extraction block,
+series dependencies on traffic networks.                                  we employ a LSTM network to learn time-series feature.
+   To extract the spatial feature of traffic data, researchers            Our model is validated via a real-world dataset, PeMSD7,
+introduce Convolutional Neural Networks (CNN) into the                    collected by California Department of Transportation. Com-
+traffic prediction tasks. Ma et al. proposed an image-based               pared with state-of-the-art baselines, our model has superior
+method that treats the traffic networks as images and use                 performance on multiple preset prediction lengths. Addi-
+CNN to learn the spatial features [18]. Yu et al. [19]                    tional tests demonstrate the robustness of the proposed model
+have shown a good result by combining CNN with Long                       against noise and reduced graphs. Moreover, the analyses of
+Short-term Memory (LSTM) network for TSP. Wang et al.                     the result shed light on our model’s capability in understand-
+introduced an error feedback mechanism in their CNN mod-                  ing the spatial-temporal traffic dependencies.
+els to meet predictive challenges rising from sudden traf-                   The main contribution of this paper is as follows:
+fic events [20]. Traditional CNNs are restricted to only
+                                                                            •   We propose a novel deep learning hybrid model,
+process grid-like spatial structures such as images. How-
+                                                                                the spatial-temporal graph attention networks
+ever, data are often sampled in non-Euclidean spaces such
+                                                                                (ST-GAT). To the best of our knowledge, it is the first
+as graphs. To address this issue, Geometric Deep Learn-
+                                                                                time to apply GAT to extract spatial-temporal features
+ing (GDL) is proposed by [21]. Graph Convolutional Net-
+                                                                                in a traffic speed prediction study.
+works (GCN) is one of its developments that generalize
+                                                                            •   We propose Speed2Vec, an approach for feature rep-
+CNN to graph domains [22], [23]. For traffic data-related
+                                                                                resentation to convert time-series traffic data into the
+problems, GCN is widely adopted to handle various tasks
+                                                                                feature vector for attention computation.
+by treating traffic networks as graphs that can fully take
+                                                                            •   We conduct a comprehensive performance comparison
+advantage of spatial information in traffic [11], [19], [24].
+                                                                                in a traffic speed prediction task using a real-word
+Li et al. [11] proposed a hybrid GCN-based model that
+                                                                                dataset. The proposed model distinctly outperforms
+captures the spatial dependency with random walks on the
+                                                                                existing state-of-the-art methods.
+traffic network and the temporal dependency with LSTM.
+                                                                            •   Extensive case studies analyze the performance of the
+Yu et al. [24] proposed a Spatio-Temporal Graph Convolu-
+                                                                                proposed model, its sensitivity to parameters, general-
+tional Networks (STGCN) that employ convolutional struc-
+                                                                                ization to simplified graphs, robustness to measurement
+tures on both spatial and time axis. Currently, GCN-based
+                                                                                noise, and interpretability.
+approaches are among the most advanced techniques in traffic
+prediction research [25].                                                    The remainder of this paper is organized as follows.
+   Although these models achieved outstanding prediction                  Section II formulates the problem of traffic speed forecasting
+accuracy, most of them tend to extract static spatial depen-              on the graph, and introduce the mathematical formulation
+dencies in traffic, while these dependencies may evolve over              of GAT and multi-head attention. Section III describes the
+time [26]. Furthermore, the ‘‘black box’’ nature of current               structure and main characteristics of the proposed ST-GAT
+deep learning models renders them bad interpretability [6].               model. Section IV compares the prediction performance of
+A better comprehending of spatial dependencies of traf-                   the proposed model with other benchmark models based on
+fic networks extracted from the models would be useful                    the real-world dataset PeMSD7 and presents several sensi-
+for traffic allocation. Besides, previous research devotes lit-           tivity analyses. Finally, Section V concludes the paper and
+tle attention to the noise-tolerance capability of the deep               discusses future studies.
+
+VOLUME 7, 2019                                                                                                                   166247
+                                                                                C. Zhang et al.: ST-GAT: Deep Learning Approach for Traffic Forecasting
+
+
+
+
+II. PRELIMINARY
+In this section, we first formalize the traffic speed prediction
+problem on road graphs. Then, we elaborate on the principle
+of GAT as well as multi-head attention mechanism, and they
+are closely related to the spatial dependency learning of our
+model.
+
+A. TRAFFIC SPEED FORECASTING PROBLEM ON ROAD
+GRAPHS
+Traffic speed forecasting is a time-series prediction task pre-
+dicting the future traffic speed, given historical traffic speed
+observations from sensors at different road segments. Typi-
+cally, we can formulate this process by
+                                f (·)
+           vt−M +1 , . . . , vt −−→ v̂t+1 , . . . , v̂t+H ,         (1)
+where vt ∈ Rn is an observation vector of n road segments
+(observation stations) at time step t. The traffic speed forcast-
+ing model aims to learn a function f (·) to predict the traffic
+speed in the following H time steps given the information
+from past M time steps.
+   In this work, we represent the traffic network as an undi-
+rected graph with traffic time-series, Gt = (Vt , E , W ), where          FIGURE 1. A graph attentional layer with multi-head attention
+Vt is the set of nodes each of which represents the speed                 mechanism, involving K heads. N denotes the number of nodes
+observation from an arbitrary sensor at time t, E is the set              connected to node i .
+
+of edges and W is the adjacency matrix of the graph. Subse-
+quently, the traffic speed forecasting problem on road graphs
+can be represented by                                                     how the node features of layer l are updated to those of
+                                                                          layer l + 1, we first introduce the consitituting component
+                                        f (·)
+     [Vt−M +1 , . . . , Vt ; E ; G] −−→ [V̂t+1 , . . . , V̂t+H ].   (2)   of GAT, i.e, graph attentional layer. The input to a GAT layer
+                                                                          is a set of node features, hl = hl1 , hl2 , ...hlN , hli ∈ RF where
+                                                                          N is the number of nodes and F is the number of features
+B. GRAPH ATTENTION NETWORK                                                from each node. To transform the input features into higher-
+                                                                                                                                0
+In this paper, we use GAT to learn the attentions among nodes             level features, a shared weight matrix, φ ∈ RF ×F , is used to
+and apply them into updating hidden features. It is assumed               cast the input to another feature space of F 0 -dimension. Then,
+that the updated hidden features with attention informa-                  a self-attention mechanism is defined and shared between
+tion are helpful for further time-series prediction. Therefore,           along edges to calculate the attention coefficient of nodes and
+we will detail the propagation rule of GAT in this subsection.            their neighbors:
+   GAT extends GCN by incorporating an explicit atten-                                                                    0
+tion mechanism. Following a self-attention strategy [31],                           eij = a φhli , φhlj , a : RF × RF → R,                (4)
+GAT learns the hidden features of each node by iteratively
+using node feature for similarity computation. The key dif-               where a (·, ·) is the attention mechanism, eij is the computed
+ference between GAT and GCN is on how to collect and                      attention coefficient. Note that to retain topological infor-
+accumulate the feature representations of neighbor nodes.                 mation of the graph, only the attention coefficients of the
+In GCN, a standard convolution includes the standardized                  node and its first-hop neighbors are computed. A softmax
+sum of the features of adjacent nodes as                                  function is used to normalize the attention coefficients into
+                                                                        a easily comparable form. Finally, a Leaky Rectified Linear
+                               X 1                                        Units (LeakyReLU) activation function [32] is applied the
+                 hl+1
+                  i   =σ              φ l hlj  ,          (3)           final normalized attention coefficients αij is obtained as
+                                   cij
+                                j∈N (i)
+                                                                                       αij = softmax LeakyReLU eij .
+                                                                                                                        
+                                                                                                                                     (5)
+where N (i) is the set of adjacent nodes which are immediate
+neighbors of node i, σ is a non-linear activation function,               Consequently, these coefficients are employed to update
+cij is a standardized constant based on graph structure, l is             model features utilizing the GCN convolution rule [22]:
+the current layer, φ l is the weight matrix for node feature                                                         
+transformation, hl+1
+                  i   is the updated hidden feature of node i.                                         X
+   GAT replaces the above convolution operation in graph                                 hl+1
+                                                                                          i    =σ        αij φ l hlj  .         (6)
+convolution with an attention mechanism. To better illustrate                                               j∈N(i)
+
+166248                                                                                                                                  VOLUME 7, 2019
+C. Zhang et al.: ST-GAT: Deep Learning Approach for Traffic Forecasting
+
+
+
+
+         FIGURE 2. Architechture of spatial-temporal graph attention networks (ST-GAT).
+
+
+
+
+a: MULTI-HEAD ATTENTION MECHANISM                                             A. GAT FOR CAPTURING SPATIAL DEPENDENCIES
+Multi-head attention mechanism enables the model to learn                     IN TRAFFIC NETWORKS
+an attention coefficient through multiple representation sub-                 GAT leverages the node features to compute attention coeffi-
+spaces. In order to make the self-attention learning pro-                     cients that represent the spatial dependency of a graph. There
+cess robust, multi-head attention mechanism strategies are                    are some challenges when using GAT to handle traffic data.
+usually adopted [31], [33]. Specifically, take the adopted                    First, it is difficult to find proper feature representations of
+multi-head attention mechanism in [27] as an example,                         time-series data, and weak feature representations may lead
+K independent attention mechanisms perform the above                          to unsatisfactory training result. Second, how to represent the
+transformation across in K heads (i.e., K independent atten-                  learned attention coefficients and apply them to update the
+tion processes) and their resulting features are concatenated                 hidden feature is crucial to our algorithm. In the following,
+together to develop an output feature representation. Subse-                  we devise new approaches to address these problems.
+quently, the final output is obtained by averaging the con-
+catenation of feature representation. This process is formally                1) Speed2Vec
+defined as                                                                    In a traffic prediction task, the observed data are recorded
+                                                                           in time-series. To define feasible feature representations
+            K
+                                                                              on nodes from such data, we propose a Speed-to-Vector
+                      X
+         = k σ             αijK φ K hlj  ,
+   l+1
+  
+   h                                          Concatenation
+   i
+  
+  
+            K =1     j∈N(i)
+                                                                              (Speed2Vec) data embedding mechanism. Specifically,
+                                                           (7)              we consider the speed observations of a node in a fixed
+                    K X
+                1 X
+                                                                              historical window as its hidden feature at a time step and
+         =σ                     αij φ hj  , Averaging,
+   l+1
+                                 K    K   l
+   h
+   i
+  
+                K                                                            embed them in a vector as
+                       K =1 j∈N(i)
+
+                                                                                            ht = [vt−F+1 , vt−F+2 , . . . , vt ] ,        (8)
+
+III. PROPOSED MODEL                                                           where ht ∈ RF ; t denotes the t-th time frame, and
+In this paper, we propose a hybrid traffic speed predic-                      F is the dimension of the vector, whose physical meaning in
+tor: ST-GAT. As presented in Fig. 2, ST-GAT comprises                         the context is the historical window size. Then, we reshape
+a spatial GAT block for spatial correlation extraction,                       the feature representations generated by Speed2Vec as the
+an RNN block for the temporal feature learning as well                        network-wide input to spatial GAT block, i.e.,
+as time-series prediction, and an output layer for pro-                                            1
+                                                                                                           h12  · · · h1T
+                                                                                                                          
+ducing the sequence output. Specifically, in the spatial                                             h1
+                                                                                                   h2     h22  · · · h2T 
+GAT block, we employ the aforementioned multi-head                                                 1
+                                                                                                                       ..  ,
+                                                                                             N
+                                                                                          HT =  .          ..   ..                   (9)
+                                                                                                                          
+attention mechanism that enables the model to jointly                                              ..       .      .   . 
+learn spatial dependencies through multiple independent                                             hN     hN   · · · hN
+                                                                                                      1      2          T
+attention blocks to benefit the learning process. In the
+RNN block, we employ a 2-layer LSTM network for extract-                      where HTN ∈ RT ×N ×F ; T is the length of temporal sequence,
+ing time-series feature. The final predictions are generated                  and N is the number of nodes in the traffic networks. It is
+by a fully-connected neural network in the final output                       worth noting that F should be reasonably large to obtain
+layer.                                                                        sufficient temporal features, while an overly large F renders
+
+VOLUME 7, 2019                                                                                                                         166249
+                                                                         C. Zhang et al.: ST-GAT: Deep Learning Approach for Traffic Forecasting
+
+
+
+
+redundant historical data in feature representation as well as
+an increased computational burden. In this work, we set the F
+to 12 to ensure that the performance comparison between
+our model and other baselines are under the same historical
+window size. Additionally, we will examine the sensitivity
+of F in Section IV.
+   Through Speed2Vec, we are able to further compute the
+attention coefficients using the equations given in section II.
+Furthermore, this mechanism enables our model to directly
+utilize the time-series data as the input to GAT. It elimi-
+nates the need of constructing our model into a Sequence
+to Sequence structure [11], [34] which incorporates an addi-
+                                                                   FIGURE 3. The way of connection between RNN block and spatial GAT
+tional sequence encoder, rendering a more complex predica-         block. vt0 denotes the updated feature representations at time t .
+tor design.
+
+2) Attention Adjacency Matrices                                    units and cell states that control the flow of information to
+The final step of the spatial GAT block is updating hidden         solve the vanishing gradient problem in long-term time-series
+features. To achieve this, we introduce the attention adjacency    prediction. Especially, the cell states are the key to LSTMs
+matrix which maps the previously learned attention coeffi-         that they store the memory information and pass through all
+cients into an adjacency matrix as                                 the time iterations. The gating units have three types, namely,
+                  
+                    α11     α12     · · · α1N
+                                                                  input gate, forget gate, and output gate, which are used to
+                   α21     α22           α2N                     decide whether to add or remove information to a cell state.
+             A= .                  .        ..           (10)    Given data xt , the cell output state ct and the hidden layer
+                                               
+                   ..                ..
+             e
+                                              .                   output ht can be computed by1
+                    αN 1 αN 2 · · · αNN
+                                                                             it   =   σ (Wii xt + bii + Whi h(t−1) + bhi ),               (12)
+where α is the attention coefficient, and self-attention is con-
+                                                                             ft   =   σ (Wif xt + bif + Whf h(t−1) + bhf ),               (13)
+sidered. Considering the temporal sequence, we obtain a set
+of attention adjacency matrices over time and a corresponding                gt   =   tanh(Wig xt + big + Whg h(t−1) + bhg ),             (14)
+3-D variable can be represented by                                           ot   =   σ (Wio xt + bio + Who h(t−1) + bho ),               (15)
+                                                                             ct   =   ft ∗ c(t−1) + it ∗ gt ,                             (16)
+                         A1 , e
+                              A2 , . . . , e
+                                           AT ,
+                                            
+                  AT = e
+                  e                                         (11)
+                                                                             ht   =   ot ∗ tanh(ct ),                                     (17)
+where eAT ∈ RT ×N ×N ; T is the length of temporal sequence,
+and N is the number of nodes in the traffic networks. In this      where it , ft , gt , ot are the input, forget, cell, and output
+way, the learned attention coefficients are allowed to multi-      gates values, respectively, Wii , Wif , Wig , Wio , Whi , Whf , Whg ,
+ply network-wide hidden features (i.e., HTN ) to calculate the     Who are the weight matrices connecting xt , h(t−1) to three
+updated hidden features.                                           gates and the cell input, bii , bif , big , bio , bhi , bhf , bhg , bho
+   Furthermore, the attention adjacency matrix embodies the        are the corresponding biases, σ represents the sigmoid func-
+design principle of GAT: better interpretability. In previous      tion, tanh represents the the hyperbolic tangent function, and
+work [11], [24], the edge weights are directly computed by         ∗ represents element-wise multiplication here. To construct
+the distance between nodes in the networks. Contributed            ST-GAT, we connect the RNN block with spatial GAT block
+by the adopted attention adjacency matrix, we represent the        as shown in Fig. 3. Note that for achieving multiple nodes
+edge weights by the learned attention coefficients that the        ahead forecasting the LSTM in our model is generalized to a
+spatial dependency can be intuitively presented. We can also       3-D structure.
+observe the dynamic spatial dependency by the evolvement              The last step is to forecast the future H time-step traffic
+of the attention adjacency matrix. A related case study will       speed. We employ a fully-connected layer which uses the
+be shown in Section IV.                                            output of LSTM as its input for linear transformation to obtain
+                                                                   the final prediction output. Given the input, v̂t+H is computed
+B. RNN FOR TEMPORAL FEATURES LEARNING AND                          by
+PREDICTION                                                                                 v̂t+H = w × ht + b,                            (18)
+Traffic data also has a distinct temporal dependency in
+addition to spatial dependency. Recurrent Neural Networks          where w ∈           RC×H
+                                                                                        is a weight matrix that maps the
+(RNNs) are usually leveraged to learn temporal dependency          C-channels hidden output of LSTMs to H output and b is
+and realize time-series prediction [11], [19], [35]. In ST-GAT,    the bias.
+we use LSTM, which is one of the most practical variants             1 With abuse of notation, h in this subsection exclusively denotes the
+                                                                                                t
+of RNNs [36], [37]. LSTM introduces a collection of gating         hidden layer output of LSTM.
+
+166250                                                                                                                           VOLUME 7, 2019
+C. Zhang et al.: ST-GAT: Deep Learning Approach for Traffic Forecasting
+
+
+
+                                                                                           
+  The proposed model is trained using mean squared error                         matrix W = wij is established by
+(MSE), also known as L2 loss, which can be written as
+                                                                                                                     dist(vi , vj )
+                                                                                                                                   
+                                                       2
+           X                                                                               
+L V̂t+H ; θ =      V̂t+H ← (Vt−F+1 , ...Vt ; θ) − Vt+H ,                                     1, if i 6= j and exp −
+                                                                                                                                     >ε
+                                                                                                                         σ2
+                                                                                             
+                     t                                                               wij =                                                   (20)
+                                                                          (19)               
+                                                                                              1, if i = j (i.e., self-connection),
+                                                                                             
+                                                                                               0, otherwise.
+where Vt+H and V̂t+H denote the network-wide ground truth
+and predictions, respectively; θ represents all the learnable
+                                                                                 where wij represents the edge weight between node vi and
+parameters in the model.
+                                                                                 node vj , which is decided by their Euclidean space distance
+   Summarizing the aforementioned, the main characteristics
+                                                                                 dist(vi , vj ); ε and σ 2 are the user-controlled parameters that
+of ST-GAT are threefold. First, ST-GAT can be regarded as a
+                                                                                 control the density of graph, and we set their values the same
+generalized model to handle structured time-series benefited
+                                                                                 as those in [24] to make a fair comparison. Note that we define
+from the Speed2Vec mechanism. It can also be applied to
+                                                                                 the network as an undirected graph. Therefore, the initial
+spatial-temporal tasks not limited to traffic speed predic-
+                                                                                 adjacency matrix is converted symmetrically, i.e., wij = wji .
+tion in road networks. Second, by using attention adjacency
+                                                                                    Furthermore, we also develop reduced graphs by only con-
+matrices, ST-GAT can represent the spatial dependencies by
+                                                                                 necting each node with its K nearest neighbors. In this way,
+learned attention coefficients among nodes. Third, as a new
+                                                                                 we attempt to explore the model performance on the graph
+attempt, the architecture of the proposed ST-GAT model in
+                                                                                 with different K values. The related test will be shown later.
+this paper is more simple compared to existing advanced
+models, e.g., [11], [26], [38], and it demonstrates a great
+potential for further enhancements.                                              2) Experiment Setting
+                                                                                 All experiments are conducted on a NVIDIA GeForce RTX
+IV. EXPERIMENTS                                                                  2080 GPU and an Intel(R) Xeon(R) E5-2620 v4 CPU. The
+In this section, a series of comprehensive experiments are per-                  past time window is 60 minutes (12 observed data points) and
+formed to evaluate the performance of the proposed approach                      they are used to forecast traffic speed in the next 15, 30 and
+for traffic speed prediction. We first assess its prediction                     45 minutes.
+accuracy and compare it with related results of baselines                           ST-GAT is trained based on the optimizer Adam [39] for
+and benchmarks. Additionally, we investigate the sensitivity                     150 epochs. The initial learning rate is 2e−4 with a weight
+of model performance to different hyperparameters. Then,                         decay of 5e−4 ; the batch size is set to 50. The dropout [40]
+we assess its performance on reduced graphs. Furthermore,                        and early stopping are used to prevent overfitting. In addition,
+we demonstrate the interpretability of the proposed approach                     we employed batch normalization [41] and Xavier parame-
+by visualization. Lastly, we inspect the influence of measure-                   ter [42] initialization to stable the learning process.
+ment noise and missing data.                                                        To balance the trade-off between model performance and
+                                                                                 computational complexity, the adopted architecture setting
+A. SYSTEM CONFIGURATION                                                          of ST-GAT is specified as follows by executing grid search
+1) Dataset                                                                       strategy. We employ a single graph attentional layer with
+PeMSD7 is a dataset collected from Caltrans Performance                          8 attention heads to achieve the multi-head attention mech-
+Measurement System (PeMS) by over 39,000 sensor sta-                             anism. The number of hidden units of the two-layer LSTMs
+tions in the District 7 of California. Data samples from                         is set to 32 and 128, respectively.
+each 30-second interval are aggregated into 5-minute periods.                       ST-GAT is compared with the following classic and the
+We choose the dataset which is sampled by [24] in a medium-                      state-of-the-art machine learning models: (1) HA Historical
+scale containing 228 stations of PeMSD7. The time period of                      Average, which models the traffic speed as a seasonal pattern
+the dataset is from May 1st to June 30th of 2012 which only                      and uses the average of previous seasons as the prediction; (2)
+includes the weekdays to avoid atypical traffic.                                 Auto-Regressive Integrated Moving Average (ARIMA); (3)
+   As the time interval of data collection is set to 5 minutes,                  Linear Support Victor Regression (LSVR) (4) Feed-Forward
+each sensor in the road network produces 288 observations                        Neural Network (FNN); (5) Full-Connected LSTM (FC-
+per day. When there are missing data points, we use linear                       LSTM) [34]; (6) Diffusion Convolutional Recurrent Neural
+interpolation to recover missing data. Additionally, data are                    Network (DCRNN) [11]; and (7) Spatio-Temporal Graph
+normalized by Z-Score method. The training, validation, and                      Convolutional Networks (STGCN) [24].
+testing sets are correspondingly developed, each of which                           We use Root Mean Square Error (RMSE), Mean Absolute
+contains 60%, 20%, and 20% of all data.                                          Error (MAE), and Mean Absolute Percentage Error (MAPE)
+   In this paper, we build the adjacency matrix of sensors                       to evaluate all learning models, which are defined as follows
+(nodes) of road network in two ways. First, an adjacency                                             v
+matrix is generated based on thresholded Gaussian kernel                                             u n 
+                                                                                                     u1X          2
+method replacing the computed weight value by 1. Mean-                                        RMSE = t    Xi − X̂i ,                         (21)
+                                                                                                       n
+while, the self-connection is considered. Thus, the adjacency                                                  i
+
+VOLUME 7, 2019                                                                                                                             166251
+                                                                                 C. Zhang et al.: ST-GAT: Deep Learning Approach for Traffic Forecasting
+
+
+
+
+TABLE 1. Performance comparison of ST-GAT and baselines on the PeMSD7 dataset.
+
+
+
+
+                              n
+                         1X
+               MAE =        Xi − X̂i ,                         (22)
+                         n
+                             i=1
+                              n
+                         1   X     Xi − X̂i
+             MAPE =                         × 100% ,           (23)
+                         n            Xi
+                             i=1
+where Xi denotes the observed traffic speed at time i, and
+X̂i denotes the forecast at i. Moreover, we consider MAPE
+as the most referable one among the three metrics, as did
+in [19], [43].
+
+B. EXPERIMENT RESULT
+1) Comparison with State-of-the-Art Methods
+Table 1 shows the results of ST-GAT and aforementioned
+baselines on dataset PeMSD7 for 15 minutes, 30 minutes
+and 45 minutes ahead predictions where the baseline results
+are adopted from [24]. We draw the following observa-
+tions from the comparison. (1) ST-GAT achieves the best
+prediction accuracy regarding all the metrics for the three
+forecasting windows with a significance level of 99% (two-
+sided T-test, P < 0.01), even compared with the state-of-
+the-art graph convolution-based model such as STGCN and
+GCGRU. Specifically, the MAPE of ST-GAT outperforms
+STGCN by 0.5% (15 min), 0.76% (30 min), and 0.83%
+(45 min). This illustrates the effectiveness of the attention
+mechanism on graph-based spatial feature learning. (2) Tra-              FIGURE 4. Validation MSE versus the number of training epochs.
+ditional statistical and machine learning methods have been
+greatly outperformed, especially for long-term forecasting.
+For example, comparing the results of LSVR and FC-LSTM,                  units in each LSTM layer and the dimension of Speed2Vec.
+LSVR achieves better performance in 15 min ahead forecast-               Specifically, these values are set to 2/8/16, 8 + 32/32 +
+ing. However, in terms of 45 min ahead forecasting, it per-              128/64 + 256, and 3/6/12/18, respectively, whose default
+forms worse than FC-LSTM. This is partly due to their inca-              values are presented in Table 2. 45 min ahead prediction is uti-
+pability of long-sequence memorization and spatial-temporal              lized as the benchmark test. We first compare their prediction
+learning on complex data.                                                accuracy. It can be observed that the prediction accuracy is
+                                                                         improved with larger hyperparameters. To better illustrate the
+2) Sensitivity of Hyperparameters                                        convergence rate of the training process, we demonstrate the
+In this work, a hybrid graph-attention-based recurrent neu-              MSE convergence in Fig. 4. From this figure, we observe that
+ral network is adopted. We empirically select a number of                convergence speed is also enhanced with larger hyperparame-
+hyperparameters and parameters when constructing this traf-              ters. Particularly, an obvious increase of training convergence
+fic speed predictor. In this subsection, the sensitivity and             speed can be observed when the number of attention heads is
+influence of these settings to the prediction accuracy as well           added to 8 from 2, which is contributed by the efficacy of
+as training speed are investigated.                                      multi-head attention mechanism in ST-GAT.
+   We test the performance of our model with three archi-                   Furthermore, the larger hyperparameters (e.g., m = 16,
+tectural hyperparameters, namely, the number of attention                numbers of neurons in the two LSTM layers: 64 and 256)
+heads in the graph attentional layer, the number of hidden               cannot be simultaneously utilized due to the limitation of the
+
+166252                                                                                                                                   VOLUME 7, 2019
+C. Zhang et al.: ST-GAT: Deep Learning Approach for Traffic Forecasting
+
+
+
+
+TABLE 2. ST-GAT hyperparameter test. m denotes the number of
+multi-heads, LSTM denotes the number of hidden units in each LSTM
+layer (1st/2nd), and F denotes the dimension of the Speed2Vec.
+
+
+
+
+hardware in this experiment. Therefore, we finally present
+the performance over default hyperparameters as shown
+in Table 1. Large-scale networks will be investigated in future
+work.
+
+3) Efficacy of ST-GAT on Reduced Graphs
+As mentioned before, in our original work, the traffic network             FIGURE 5. (a) The total number of edges in each reduced graph.
+                                                                           (b) Model performance on reduced graphs. K corresponds to the number
+is constructed by building an adjacency matrix based on the                of the nearest neighbors to connect for each node to generate the graph.
+distances between road segments. Nonetheless, the influence
+of distance cannot be reflected since the constructed adja-                effectiveness of the proposed model on reduced graphs,
+cency matrix is unweighted, i.e., the adjacency weights are all            which develop good prediction results with relatively less
+represented by 1 regardless of their actual distance between               graph information.
+nodes in the graph. Furthermore, the graph generated by                       It is also worth noting that we observe that the reduced
+this adjacency matrix is so dense that the average degree of               graphs seem to have a greater effect on the model per-
+each node reaches 200 when there are 228 nodes in total.                   formance of short-term prediction than long-term predic-
+The hypothesis is that the graph incorporates unnecessary                  tion. Comparing the performance of the model on the
+edges that develop redundant topological information, and the              graph (K = 5) and the original graph, the penalties of
+spatial features learned by this cannot help the model improve             the performance are 1.7%/0.4%/0.3% corresponding to
+its prediction performance effectively. Therefore, we are par-             15 min/30 min/45 min, respectively. This phenomenon will
+ticularly interested in investigating the model performance on             be further investigated in future work.
+reduced graphs which discard this redundant information.
+   In this subsection, we compare the performance of the
+                                                                           4) Model Interpretation
+proposed model on reduced graphs. Specifically, we obtain
+                                                                           Traditional methods such as ARIMA, FC-LSTM are not
+reduced graphs by dropping redundant topological connec-
+                                                                           able to exploit spatial dependency. However, by employ-
+tions among nodes in the graphs. For each node in the
+                                                                           ing the attention mechanism on traffic networks, our model
+graph, only the adjacencies with K nearest neighbors are
+                                                                           ST-GAT has the compatibility to extract spatial feature from
+retained.2 A suite of reduced graphs with K equaling to
+                                                                           new traffic data. To better understand the model interpreta-
+5/10/20/50/100, respectively, are constructed. Fig. 5 (a)
+                                                                           tion, we first visualize the learned attention coefficients and
+indicates the total number of edges in each reduced graph and
+                                                                           conduct an empirical study. Fig. 6 shows the heatmaps of
+Fig. 5 (b) shows the comparison of model performance on the
+                                                                           learned attention coefficients of three sensor stations (each for
+original and reduced graphs. Overall, we observe that it does
+                                                                           one road segment) and their arbitrary five neighbors, respec-
+cause degenerated performance with the smaller K . However,
+                                                                           tively, which are sampled from PeMSD7 dataset. In this
+the performance degradation is minuscule when compared to
+                                                                           figure, the value of attention coefficients can be regarded
+the degree to the reduction of the graph. For example, when
+                                                                           as the degree of correlations of any two road segments.
+K = 20, namely approximately 90% of the edges in the graph
+                                                                           We can observe that the attention coefficients vary for differ-
+are discarded compared with the original graph, the model
+                                                                           ent neighbors, which suggests the discrepancy of correlations
+performance is still quite close to that on the original graph
+                                                                           between one road segment and its multiple neighbors. Further
+where the prediction accuracy only suffers from a 0.2 − 0.7%
+                                                                           investigation indicates some factors affecting the attention
+(MAPE) penalty. This case study demonstrates the
+                                                                           coefficients. For example, the attention coefficients between
+  2 With abuse of notation, K in this subsection exclusively denotes the   Station C and its Neighbor 5 are relatively large since the two
+number of connected nodes of each node in a reduced graph.                 stations are located at the upstream and downstream of the
+
+VOLUME 7, 2019                                                                                                                              166253
+                                                                                  C. Zhang et al.: ST-GAT: Deep Learning Approach for Traffic Forecasting
+
+
+
+
+          FIGURE 6. Heatmaps of learned attention coefficients varied over time and different neighbors. Three different road segment
+          sensors are included.
+
+
+
+
+same road as shown in Fig. 7 (left). However, for Station B
+and its Neighbor 2, their attention coefficients are relatively
+small since they are located in different roads while they have
+a close spatial distance as shown in Fig. 7 (right). Moreover,
+the learned attention coefficients are not fixed but varied in
+time. For Station A, the attention coefficients with its neigh-
+bors at 06:00 in the morning are distinctly larger than those
+at other times. It can be concluded that spatial dependencies
+change when traffic status changes over time. In other words,               FIGURE 7. Left: Two stations located in the upstream and downstream of
+it demonstrates that our model is able to extract dynamic                   the same road. Right: Two stations located on different roads which are
+                                                                            without intersection.
+spatial dependencies. In summary, we can intuitively perceive
+the traffic spatial dependency among these adjacent road
+segments by learned attentions.
+   To further demonstrate the effect of graph attention on
+spatial-temporal feature learning, we compare the predic-
+tion performance of our model and the state-of-the-art graph
+convolution-based method STGCN through showing their
+one hour ahead forecasting. As shown in Fig. 8, we observe
+the following phenomena: (1) In general, ST-GAT is more
+likely to accurately predict the traffic speed value with
+smaller deviation. A relatively better imitative effect can be
+observed from the figure. (2) ST-GAT predicts the start and
+end of the peak hours more accurately (e.g. 15:00 to 21:00).
+Benefited from the attention mechanism, ST-GAT predictions
+of each sensor station are more sensitive to speed changes
+                                                                            FIGURE 8. Traffic speed forecasting in a day of the dataset PeMSD7. The
+of its neighborhoods. (3) ST-GAT develops predictions with                  results of ST-GAT and STGCN are conducted by one hour ahead
+small oscillation in non-peak periods (e.g. 00:00 to 06:00).                forecasting.
+Comparatively, the oscillation happens to STGCN is more
+violent in this period. By incorporating LSTM, our model                       First, we investigate the influence of measurement noise
+achieves promising temporal feature learning and develops                   on model performance. In this work, noise is sampled from
+notable long-term prediction accuracy.                                      a Gaussian distribution for each observation value. Specifi-
+                                                                            cally, according to IEEE Standard [45], we select the Gaus-
+                                                                            sian distributions with variances which are 0.5%/1%/2% of
+5) Influence of Missing Data and Measurement Noise                          the mean values of data. The final noisy data are generated by
+Incomplete data coverage and measurement noise usually                      imposing the sampled noise on the observation values. New
+happen to traffic data collection on account of limited device              learning models are trained and tested individually using the
+deployment, failure of involved sensors, and data transmis-                 generated noisy data. Table 3 demonstrates the performance
+sion errors. According to [44], in the data collection process,             of our model on noisy data. The prediction accuracy only
+the missing rate of raw data can be as high as 15%. Both                    degenerates by a 0.03% (MAPE) when data are disturbed
+the measurement noise and missing data introduce unknown                    by 2% Gaussian noise. Second, we investigate the tolerance
+influence to speed prediction. Therefore, we are interested                 of our model to missing data. We construct datasets incor-
+in how these two factors influence the performance of the                   porating 0.5%/1%/2% missing data by randomly select-
+proposed model.                                                             ing 0.5%/1%/2% observations and replace their values
+
+166254                                                                                                                                    VOLUME 7, 2019
+C. Zhang et al.: ST-GAT: Deep Learning Approach for Traffic Forecasting
+
+
+
+
+TABLE 3. Accuracy of ST-GAT with measurement noise and missing data.               [3] J. Zhang, F.-Y. Wang, K. Wang, W.-H. Lin, X. Xu, and C. Chen, ‘‘Data-
+                                                                                       driven intelligent transportation systems: A survey,’’ IEEE Trans. Intell.
+                                                                                       Transp. Syst., vol. 12, no. 4, pp. 1624–1639, Dec. 2011.
+                                                                                   [4] E. Cascetta, Transportation Systems Engineering: Theory and Methods,
+                                                                                       vol. 49. Dordrecht, The Netherlands: Springer, 2013.
+                                                                                   [5] M. Ben-Akiva, M. Bierlaire, H. Koutsopoulos, and R. Mishalani, ‘‘Dyna-
+                                                                                       MIT: A simulation-based system for traffic prediction,’’ in Proc. DAC-
+                                                                                       CORD Short Term Forecasting Workshop, Delft, The Netherlands, 1998,
+                                                                                       pp. 1–12.
+                                                                                   [6] Y. Wang, D. Zhang, Y. Liu, B. Dai, and L. H. Lee, ‘‘Enhancing transporta-
+                                                                                       tion systems via deep learning: A survey,’’ Transp. Res. C, Emerg. Technol.,
+                                                                                       vol. 99, pp. 144–163, Feb. 2019.
+                                                                                   [7] X. Li, G. Pan, Z. Wu, G. Qi, S. Li, D. Zhang, W. Zhang, and Z. Wang,
+                                                                                       ‘‘Prediction of urban human mobility using large-scale taxi traces and its
+by 0. Similarly, we independently train and test the new                               applications,’’ Frontiers Comput. Sci., vol. 6, no. 1, pp. 111–121, 2012.
+                                                                                   [8] L. Moreira-Matias, J. Gama, M. Ferreira, J. Mendes-Moreira, and
+model with the generated datasets. Nonetheless, as shown                               L. Damas, ‘‘Predicting taxi–passenger demand using streaming data,’’
+in Table 3, noticeable performance degradation is observed:                            IEEE Trans. Intell. Transp. Syst., vol. 14, no. 3, pp. 1393–1402, Sep. 2013.
+a 0.3% (MAPE) penalty is developed when only 0.5% data is                          [9] S. H. Hosseini, B. Moshiri, A. Rahimi-Kian, and B. N. Araabi, ‘‘Short-term
+                                                                                       traffic flow forecasting by mutual information and artificial neural net-
+missing.                                                                               works,’’ in Proc. IEEE Int. Conf. Ind. Technol., Mar. 2012, pp. 1136–1141.
+   This test demonstrates the robustness of our model on                          [10] J. Guo, W. Huang, and B. M. Williams, ‘‘Adaptive Kalman filter approach
+noisy data, which is greatly contributed by the noise-tolerance                        for stochastic short-term traffic flow rate prediction and uncertainty quan-
+                                                                                       tification,’’ Transp. Res. C, Emerg. Technol., vol. 43, pp. 50–64, Jun. 2014.
+capability of the deep learning model incorporated. How-                          [11] Y. Li, R. Yu, C. Shahabi, and Y. Liu, ‘‘Diffusion convolutional recurrent
+ever, the under-performing against missing data expose the                             neural network: Data-driven traffic forecasting,’’ 2017, arXiv:1707.01926.
+deficiency of the proposed model, which may suggest the                                [Online]. Available: https://arxiv.org/abs/1707.01926
+                                                                                  [12] H. Chang, Y. Lee, B. Yoon, and S. Baek, ‘‘Dynamic near-term traffic
+significance of data integrity to the graph-based attention                            flow prediction: System-oriented approach based on past experiences,’’
+mechanism. We aim to address this drawback in future work.                             IET Intell. Transp. Syst., vol. 6, no. 3, pp. 292–305, 2012.
+                                                                                  [13] M. Castro-Neto, Y.-S. Jeong, M.-K. Jeong, and L. D. Han, ‘‘Online-SVR
+                                                                                       for short-term traffic flow prediction under typical and atypical traffic
+V. CONCLUSION AND FUTURE WORK                                                          conditions,’’ Expert Syst. Appl., vol. 36, no. 3, pp. 6164–6173, 2009.
+In this paper, inspired by the research findings of applying                      [14] Y. LeCun, Y. Bengio, and G. Hinton, ‘‘Deep learning,’’ Nature, vol. 521,
+attention mechanism on graphs, we propose a novel graph-                               no. 7553, pp. 436–444, May 2015.
+                                                                                  [15] W. Huang, G. Song, H. Hong, and K. Xie, ‘‘Deep architecture for traffic
+based deep learning framework ST-GAT for traffic speed                                 flow prediction: Deep belief networks with multitask learning,’’ IEEE
+forecasting. This model integrates the graph attention net-                            Trans. Intell. Transp. Syst., vol. 15, no. 5, pp. 2191–2201, Oct. 2014.
+work (GAT) and recurrent neural network to jointly learn                          [16] Y. Jia, J. Wu, and Y. Du, ‘‘Traffic speed prediction using deep learn-
+                                                                                       ing method,’’ in Proc. IEEE 19th Int. Conf. Intell. Transp. Syst. (ITSC),
+spatial-temporal dependencies on traffic networks. Specifi-                            Nov. 2016, pp. 1217–1222.
+cally, we utilize the attentional graph convolution of GAT                        [17] Y. Lv, Y. Duan, W. Kang, Z. Li, and F.-Y. Wang, ‘‘Traffic flow prediction
+on spatial feature learning and regard the learned attention                           with big data: A deep learning approach,’’ IEEE Trans. Intell. Transp. Syst.,
+                                                                                       vol. 16, no. 2, pp. 865–873, Apr. 2015.
+coefficients as the spatial dependency. A LSTM network is                         [18] X. Ma, Z. Dai, Z. He, J. Ma, Y. Wang, and Y. Wang, ‘‘Learning traffic as
+integrated to capture the temporal dynamics and improve                                images: A deep convolutional neural network for large-scale transportation
+the performance for relatively long-term forecasting. This                             network speed prediction,’’ Sensors, vol. 17, no. 4, p. 818, Apr. 2017.
+                                                                                  [19] H. Yu, Z. Wu, S. Wang, Y. Wang, and X. Ma, ‘‘Spatiotemporal recurrent
+framework inherits the advantages of both GAT and LSTM.                                convolutional networks for traffic prediction in transportation networks,’’
+Experiments on a real-world dataset show that the proposed                             Sensors, vol. 17, no. 7, p. 1501, Jun. 2017.
+framework supersedes existing state-of-the-art methods in the                     [20] J. Wang, Q. Gu, J. Wu, G. Liu, and Z. Xiong, ‘‘Traffic speed prediction and
+                                                                                       congestion source exploration: A deep learning method,’’ in Proc. IEEE
+literature, which indicates the data potential of graph-based                          16th Int. Conf. Data Mining (ICDM), Dec. 2016, pp. 499–508.
+attention mechanism on spatial-temporal learning. In addi-                        [21] M. M. Bronstein, J. Bruna, Y. LeCun, A. Szlam, and P. Vandergheynst,
+tion, the proposed model develops notable performance on                               ‘‘Geometric deep learning: Going beyond Euclidean data,’’ IEEE Signal
+                                                                                       Process. Mag., vol. 34, no. 4, pp. 18–42, Jul. 2017.
+simplified graphs as well as noisy data, which demonstrates                       [22] T. N. Kipf and M. Welling, ‘‘Semi-supervised classification with graph
+its scalability and robustness. These advantages will be prac-                         convolutional networks,’’ 2016, arXiv:1609.02907. [Online]. Available:
+tical for both industrial use and scientific research.                                 https://arxiv.org/abs/1609.02907
+                                                                                  [23] J. Bruna, W. Zaremba, A. Szlam, and Y. LeCun, ‘‘Spectral networks and
+   In the future, we plan to integrate additional factors such                         locally connected networks on graphs,’’ 2013, arXiv:1312.6203. [Online].
+as the road directions, traffic control, and the weather into the                      Available: https://arxiv.org/abs/1312.6203
+prediction to further improve the performance. Additionally,                      [24] B. Yu, H. Yin, and Z. Zhu, ‘‘Spatio-temporal graph convolutional
+                                                                                       networks: A deep learning framework for traffic forecasting,’’ 2017,
+new technologies to enhance the capability of addressing                               arXiv:1709.04875. [Online]. Available: https://arxiv.org/abs/1709.04875
+missing raw data will be incorporated.                                            [25] G. Li, M. Müller, A. Thabet, and B. Ghanem, ‘‘DeepGCNs: Can GCNs
+                                                                                       go as deep as CNNs?’’ 2019, arXiv:1904.03751. [Online]. Available:
+                                                                                       https://arxiv.org/abs/1904.03751
+REFERENCES                                                                        [26] L. N. N. Do, H. L. Vu, B. Q. Vo, Z. Liu, and D. Phung, ‘‘An effective
+ [1] I. Wagner. Car Drivers—Statistics and Facts. Accessed: Jul. 4, 2019.              spatial-temporal attention based neural network for traffic flow predic-
+     [Online]. Available: https://www.statista.com/topics/1197/car-drivers/            tion,’’ Transp. Res. C, Emerg. Technol., vol. 108, pp. 12–28, Nov. 2019.
+ [2] M. Veres and M. Moussa, ‘‘Deep learning for intelligent transportation       [27] P. Veličković, G. Cucurull, A. Casanova, A. Romero, P. Liò, and Y. Bengio,
+     systems: A survey of emerging trends,’’ IEEE Trans. Intell. Transp. Syst.,        ‘‘Graph attention networks,’’ 2017, arXiv:1710.10903. [Online]. Avail-
+     to be published.                                                                  able: https://arxiv.org/abs/1710.10903
+
+VOLUME 7, 2019                                                                                                                                             166255
+                                                                                              C. Zhang et al.: ST-GAT: Deep Learning Approach for Traffic Forecasting
+
+
+
+
+[28] E. Choi, M. T. Bahadori, L. Song, W. F. Stewart, and J. Sun, ‘‘GRAM:                                        CHENHAN ZHANG received the B.Eng. degree
+     Graph-based attention model for healthcare representation learning,’’ in                                    in telecommunication engineering from the
+     Proc. 23rd ACM SIGKDD Int. Conf. Knowl. Discovery Data Mining, 2017,                                        University of Wollongong, Wollongong, NSW,
+     pp. 787–795.                                                                                                Australia, in 2017, the B.Eng. degree in telecom-
+[29] J. Feng, M. Huang, X. Zhu, and Y. Yang, ‘‘GAKE: Graph aware knowledge                                       munication engineering from Zhengzhou Univer-
+     embedding,’’ in Proc. 26th Int. Conf. Comput. Linguistics (COLING),                                         sity, Zhengzhou, China, in 2018, and the M.S.
+     2016, pp. 641–651.                                                                                          degree in engineering management from the City
+[30] H. Zhou, T. Young, M. Huang, H. Zhao, J. Xu, and X. Zhu, ‘‘Commonsense
+                                                                                                                 University of Hong Kong, in 2019. He is currently
+     knowledge aware conversation generation with graph attention.,’’ in Proc.
+                                                                                                                 a Research Assistant with the Department of Com-
+     IJCAI, 2018, pp. 4623–4629.
+[31] A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez,                                     puter Science and Engineering, Southern Univer-
+     L. Kaiser, and I. Polosukhin, ‘‘Attention is all you need,’’ in Proc. Adv.         sity of Science and Technology, Shenzhen, China. His research interests
+     Neural Inf. Process. Syst., 2017, pp. 5998–6008.                                   include deep learning, intelligent transportation systems, text mining, and
+[32] B. Xu, N. Wang, T. Chen, and M. Li, ‘‘Empirical evaluation of rectified            social network analysis.
+     activations in convolutional network,’’ 2015, arXiv:1505.00853. [Online].
+     Available: https://arxiv.org/abs/1505.00853
+[33] D. Busbridge, D. Sherburn, P. Cavallo, and N. Y. Hammerla, ‘‘Relational
+     graph attention networks,’’ 2019, arXiv:1904.05811. [Online]. Available:
+     https://arxiv.org/abs/1904.05811
+[34] I. Sutskever, O. Vinyals, and Q. V. Le, ‘‘Sequence to sequence learning
+     with neural networks,’’ in Proc. Adv. Neural Inf. Process. Syst., 2014,                                      JAMES J. Q. YU (S’11–M’15) received the B.Eng.
+     pp. 3104–3112.                                                                                               and Ph.D. degrees in electrical and electronic
+[35] Y. Wu, H. Tan, L. Qin, B. Ran, and Z. Jiang, ‘‘A hybrid deep learning based                                  engineering from the University of Hong Kong,
+     traffic flow prediction method and its understanding,’’ Transp. Res. C,                                      Pokfulam, Hong Kong, in 2011 and 2015, respec-
+     Emerg. Technol., vol. 90, pp. 166–180, May 2018.                                                             tively. He was a Postdoctoral Fellow with the
+[36] F. A. Gers, J. Schmidhuber, and F. Cummins, ‘‘Learning to forget: Con-                                       University of Hong Kong, from 2015 to 2018.
+     tinual prediction with LSTM,’’ in Proc. Artif. Neural Netw., vol. 2, 1999,                                   He is currently an Assistant Professor with the
+     pp. 850–855.
+                                                                                                                  Department of Computer Science and Engineer-
+[37] S. Hochreiter and J. Schmidhuber, ‘‘Long short-term memory,’’ Neural
+     Comput., vol. 9, no. 8, pp. 1735–1780, 1997.
+                                                                                                                  ing, Southern University of Science and Technol-
+[38] Z. Cui, R. Ke, and Y. Wang, ‘‘Deep bidirectional and unidirectional LSTM                                     ogy, Shenzhen, China, and an Honorary Assistant
+     recurrent neural network for network-wide traffic speed prediction,’’ 2018,        Professor with the Department of Electrical and Electronic Engineering,
+     arXiv:1801.02143. [Online]. Available: https://arxiv.org/abs/1801.02143            The University of Hong Kong. He is also the Chief Research Consultant
+[39] D. P. Kingma and J. Ba, ‘‘Adam: A method for stochastic                            of GWGrid Inc., Zhuhai, and Fano Labs, Hong Kong. His research interests
+     optimization,’’      2014,     arXiv:1412.6980.     [Online].      Available:      include smart city and urban computing, deep learning, intelligent transporta-
+     https://arxiv.org/abs/1412.6980                                                    tion systems, and smart energy systems. He is an Associate Editor of the IET
+[40] N. Srivastava, G. Hinton, A. Krizhevsky, I. Sutskever, and                         Smart Cities Journal.
+     R. Salakhutdinov, ‘‘Dropout: A simple way to prevent neural networks
+     from overfitting,’’ J. Mach. Learn. Res., vol. 15, no. 1, pp. 1929–1958,
+     2014.
+[41] S. Ioffe and C. Szegedy, ‘‘Batch normalization: Accelerating deep network
+     training by reducing internal covariate shift,’’ 2015, arXiv:1502.03167.
+     [Online]. Available: https://arxiv.org/abs/1502.03167
+[42] X. Glorot and Y. Bengio, ‘‘Understanding the difficulty of training deep                                     YI LIU (S’19) received the B.Eng. degree in net-
+     feedforward neural networks,’’ in Proc. 13th Int. Conf. Artif. Intell. Statist.,                             work engineering from Heilongjiang University,
+     2010, pp. 249–256.
+                                                                                                                  Harbin, China, in 2019. He is currently a Visiting
+[43] H. Yao, F. Wu, J. Ke, X. Tang, Y. Jia, S. Lu, P. Gong, J. Ye, and Z. Li,
+     ‘‘Deep multi-view spatial-temporal network for taxi demand prediction,’’
+                                                                                                                  Student with the Department of Computer Science
+     in Proc. 32nd AAAI Conf. Artif. Intell., Apr. 2018, pp. 1–8.                                                 and Engineering, Southern University of Science
+[44] H. M. Al-Deek, C. Venkata, and S. R. Chandra, ‘‘New algorithms for                                           and Technology, Shenzhen, China. His research
+     filtering and imputation of real-time and archived dual-loop detector data                                   interests include security and privacy in smart
+     in i-4 data warehouse,’’ Transp. Res. Res., J. Trans. Res. Board, vol. 1867,                                 city and urban computing, deep learning, intelli-
+     no. 1, pp. 116–126, 2004.                                                                                    gent transportation systems, and blockchain. He
+[45] W. Gao, Y. Tian, T. Huang, S. Ma, and X. Zhang, ‘‘The IEEE 1857                                              received the Early Graduation Base On Academic
+     standard: Empowering smart video surveillance systems,’’ IEEE Intell.                                        Excellence.
+     Syst., vol. 29, no. 5, pp. 30–39, Sep./Oct. 2014.
+
+
+
+
+166256                                                                                                                                                 VOLUME 7, 2019
+

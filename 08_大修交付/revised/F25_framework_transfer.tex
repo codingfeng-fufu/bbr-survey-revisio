@@ -1,0 +1,104 @@
+\subsection{Quantitative Transfer Evaluation of the Framework}
+\label{sec:framework_transfer}
+
+We supplement the scenario comparisons with a quantitative test of whether
+an equal-RTT calibration transfers to different capacities and delays.
+This analysis was designed during revision after the archived results were
+available. Calibration and evaluation runs are disjoint, but the test is
+retrospective; its design and data split are documented in the supplement.
+The analysis script retains all inputs and reports the constant-baseline
+comparison, including the contribution of queue conditioning.
+
+Calibration uses only the 15 BBRv3 E1 runs with equal 20-ms RTTs at
+100 Mbps, five at each queue target $q\in\{0.5,2,10\}$. At each target,
+we estimate mean $u$ and mean $J$. For a target queue ratio between knots,
+we linearly interpolate the two means in $\log q$; outside the range,
+we extend the adjacent segment and restrict predictions to the metric's
+feasible interval. The comparator predicts the overall calibration mean,
+independent of queue size. Neither model fits an E3 outcome. Capacity and
+RTT effects cannot be estimated from this single-capacity, equal-RTT
+calibration; transferring normalized rates therefore tests an explicit
+assumption that the evaluation tests.
+
+The primary transfer comparison uses the four 200-Mbps E3 cases, where
+physical queue ratios agree with the frozen input labels: RTTs of 10 or
+60 ms and $q\in\{1,4\}$. The four 50-Mbps cases are a separate comparison
+using their corrected physical ratios of 4 and 16. Errors are computed
+against each condition's five-run mean, for 20 BBRv3 runs in each group.
+The 40 CUBIC runs remain a performance comparator and are not calibration
+data for the BBRv3 predictor.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Retrospective transfer errors for BBRv3 condition means. MAE is the
+mean absolute error; normalized-goodput errors are fractions of capacity.
+Queue interpolation uses E1 only. The constant predictor uses the same
+calibration data. Each row evaluates four E3 conditions.}
+\label{tab:framework_transfer}
+\begin{tabular}{llrrr}
+\toprule
+Evaluation group & Metric & Queue MAE & Constant MAE & Queue max. error \\
+\midrule
+200 Mbps, actual $q=1,4$ & $u$ & 0.00264 & 0.00264 & 0.00400 \\
+ & $J$ & 0.01010 & 0.01134 & 0.01464 \\
+50 Mbps, actual $q=4,16$ & $u$ & 0.00309 & 0.00309 & 0.00366 \\
+ & $J$ & 0.02027 & 0.01444 & 0.02499 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:framework_transfer} separates modest transfer error from
+predictive added value. In the four input-matched cases, the queue-conditioned
+Jain estimate has slightly smaller MAE than the constant predictor, but
+normalized-goodput MAE is the same to the displayed precision. In the corrected 50-Mbps cases, Jain MAE is 0.02027 for queue
+interpolation and 0.01444 for the constant estimate. This comparison
+identifies the dependence of transfer estimates on their conditioning
+variables. The largest Jain error is about
+0.025; reporting only high aggregate utilization would conceal this
+assessment limitation. These results quantify the framework's transfer
+boundary without claiming that E3 validates the original queue thresholds.
+
+We also instantiate the analytical assessment in
+Section~\ref{sec:analytical_assessment} with illustrative requirements
+$u_0=0.90$ and $j_0=0.95$. These values were selected for retrospective
+illustration, not frozen as experimental acceptance thresholds. All 40
+BBRv3 and all 40 CUBIC E3 runs meet the utilization requirement, while
+40 BBRv3 and 27 CUBIC runs meet both requirements. The result is restricted
+to equal-RTT same-algorithm competition; E2 provides the separate coexistence
+assessment. The supplement reports
+run-level decisions and a threshold sensitivity grid. Receiver-goodput and early-ping windows are reported separately. Sender
+retransmission totals and queue snapshots provide complementary indicators
+for the documented operating conditions.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Sensitivity of the retrospective E3 rate/fairness assessment to
+illustrative service requirements. Cells count runs meeting both limits,
+from 40 runs per algorithm. They are not independent condition counts.}
+\label{tab:assessment_requirements}
+\begin{tabular}{rrrr}
+\toprule
+Minimum $u$ & Minimum $J$ & BBRv3 & CUBIC \\
+\midrule
+0.90 & 0.95 & 40/40 & 27/40 \\
+0.95 & 0.95 & 0/40 & 27/40 \\
+0.90 & 0.99 & 38/40 & 19/40 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The higher utilization requirement in Table~\ref{tab:assessment_requirements}
+reverses which algorithm meets the joint requirement more often: no
+BBRv3 run reaches $u=0.95$, whereas all CUBIC runs do. Tightening fairness
+instead reduces both algorithms' pass counts. This measured throughput--allocation tradeoff makes the service
+preference explicit under equal RTTs. The full
+threshold grid and per-condition variability are provided in the supplement.
+
+The frozen F07 predictions are retained separately from this new analysis.
+They specify qualitative ``near-capacity'' or ``near-one'' outcomes without
+numerical acceptance margins, and request medians rather than the reported
+full-run means. Four cases also have inconsistent physical queue inputs.
+The new transfer test reports numerical error directly; the historical
+prediction sheet remains in the supplement as a separate record.

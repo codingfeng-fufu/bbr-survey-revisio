@@ -1,0 +1,50 @@
+{
+  "record_id": "openalex_Q7_0062",
+  "doi": "10.1007/978-3-031-72322-3_45",
+  "title": "Performance Evaluation of Traffic Steering Methods for QoS Improvement in Case of Network Failures in Beyond5GNetworks",
+  "status": "partial methods/result-scope extraction; final eligibility pending",
+  "source": "fulltext_acquisition_20261012/openalex_Q7_0062.pdf",
+  "platform": "ns-3 simulated traffic steering; no real satellite deployment evaluation",
+  "transport": "All applications use UDP; no stockTCPBBRperformance experiment",
+  "route_settings_as_reported": [
+    {
+      "route": "LEO",
+      "capacity": "130Mb/s",
+      "MTU_bytes": 1500,
+      "latency": "50ms"
+    },
+    {
+      "route": "GEO",
+      "capacity": "120Mb/s",
+      "MTU_bytes": 1500,
+      "latency": "800ms"
+    },
+    {
+      "route": "LPWA",
+      "capacity": "50kb/s",
+      "MTU_bytes": 255,
+      "latency": "5s"
+    }
+  ],
+  "duration_s": 14,
+  "start_time_range_s": [
+    0,
+    1
+  ],
+  "application_types": 10,
+  "UEs_per_application": "random7–10",
+  "primary_metric": "Fraction of flows meeting application throughput/latency requirements; notJainfairness",
+  "comparator": "Round-robin steering",
+  "limits": [
+    "Route latencies are labelledlatency, not independently identified asRTT; do not convert without source topology review",
+    "Reported satelliteparameters originate fromreferences, not thispapersmeasurements",
+    "RandomUEcounts/starttimes do not establish repeat count oruncertainty",
+    "Realoperational/scalabilitytests explicitly futurework",
+    "Can support routing/QoSscenario background only after eligibility; cannot validateBBRv3gain orlossresponses"
+  ],
+  "inspected_locations": [
+    "Table1",
+    "Sections3.2/4",
+    "Section6"
+  ]
+}

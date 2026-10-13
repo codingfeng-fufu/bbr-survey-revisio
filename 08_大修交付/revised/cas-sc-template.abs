@@ -1,0 +1,18 @@
+BBR can sustain high aggregate throughput while competing flows receive
+unequal bandwidth shares. Interpreting this tradeoff requires the network
+conditions, controller implementation and performance objective to be
+considered together. This survey connects BBRv1--v3 evidence across six
+network scenarios through buffer depth, bandwidth-delay product and loss
+source, with implementation, queue management and flow count as assessment
+inputs. An analytical procedure separates utilization from allocation and
+expresses fairness requirements as explicit flow-share constraints.
+We complement the synthesis with 340 controlled two-flow runs covering
+four implementation environments, RTT asymmetry, BBR/CUBIC coexistence,
+additional capacity and delay settings, and artificial loss. In the twelve
+BBR/CUBIC conditions, total goodput is 95.58--95.59 Mbps while the BBR
+share spans 0.143--0.327. Additional equal-RTT comparisons show how changing
+the goodput or fairness requirement changes the assessment of BBRv3 and
+CUBIC. Together, the synthesis and measurements provide a reproducible,
+metric-specific basis for evaluating BBR and interpreting its deployment
+tradeoffs. Learning-assisted approaches are assessed through their control
+objectives, reported outcomes and deployment evidence.

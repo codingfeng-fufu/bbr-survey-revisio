@@ -1,0 +1,159 @@
+                                            1
+
+
+
+Reviewer 1
+
+Comments
+
+Reviewer 1 - Initial submission, 08/09/2026
+This survey examines the applicability and fairness of BBR congestion control across
+three versions and six network scenarios. Its proposed contribution is a framework
+organized around buffer depth, bandwidth-delay product (BDP), and loss source. It also
+reviews intra-protocol and inter-protocol fairness and discusses opportunities for AI-
+assisted congestion control.
+
+The manuscript argues that BBR performs particularly well in high-BDP environments,
+that its advantages depend strongly on network conditions, and that persistent fairness
+problems arise from structural properties of its measurement model.
+
+Major Comments
+--------------------
+
+1) Sections 5–5.4 and Figures 5–6 infer that a larger propagation RTT necessarily
+produces a larger bandwidth share. This inference is incomplete. A larger amount of in-
+flight data can simply be necessary to sustain the same throughput over a longer path.
+The product identity alone does not determine bandwidth allocation.
+
+2) Table 3, Table 9, and Sections 5.2 and 6.1 imply that BBRv2/v3 fairness mechanisms
+fail or revert toward BBRv1 when ECN is unavailable. This overlooks the loss-driven
+mechanisms also described in the manuscript.
+
+3) Sections 3.2–3.4 propose rules for deciding when BBR is suitable, but do not
+adequately explain how the numerical boundaries were established. The categories are
+also inconsistent: Section 3.2 defines medium buffers as 1.5–10×BDP, while Table 5 uses
+1–10×BDP.
+
+4) Please explain what “suitable” means: higher throughput, lower delay, fairer
+bandwidth sharing, fewer retransmissions, or some combination. Specify which RTT is
+used to calculate BDP when competing flows have different RTTs. Also explain how
+BBR version, queue management, and the number of flows affect the proposed rules.
+Provide the bandwidth and RTT values supporting the classification of each scenario,
+particularly LEO satellite links.
+
+5) Section 1.2 and Table 1 should explain what this paper adds beyond existing surveys,
+especially reference [20]. Covering more scenarios may be useful, but the authors should
+identify the new insights gained from bringing those scenarios together.
+
+6) Sections 6.2–6.3 make broad claims that most AI approaches optimize only one
+objective and that none addresses both fairness and different service requirements. Please
+provide evidence for these statements or narrow them to the studies reviewed. Also
+distinguish limitations of particular simulation studies from limitations of the simulation
+software itself.
+
+Minor Comments
+--------------------
+                                            2
+
+
+
+
+1) Replace rhetorical formulations such as “This is a geometric fact, not a bug,”
+“nemeses,” and “operators have no reason” with precise, qualified scientific language.
+
+2) Reduce repetition across the abstract, framework, scenario matrix, fairness discussion,
+and conclusion.
+
+3) In Figure 2, the delay that increases with queue occupancy should not be labeled
+propagation delay.
+
+Reviewer 2
+
+Comments
+
+Reviewer 2 - Initial submission, 15/09/2026
+This manuscript provides a systematic review of the applicability boundaries, version
+evolution, fairness issues, and AI-assisted optimization of BBR congestion control. It
+develops a three-dimensional applicability framework based on buffer depth, BDP
+magnitude, and loss source, and comprehensively analyzes the performance and fairness
+of BBRv1–v3 across multiple representative network scenarios. The manuscript further
+discusses RTT fairness, the coexistence of BBR and CUBIC, and potential directions for
+structural improvement. Overall, the topic is practically relevant and the coverage is
+broad. However, the following issues remain:
+(1) The systematic review process and the 165-item evidence set lack reproducibility.
+Although Figure 1 outlines the search and screening stages and reports the final inclusion
+of 165 sources with some information on their composition, it does not provide the key
+counts needed to reconstruct the selection process. These include the numbers of records
+retrieved from each database, the numbers before and after deduplication, the numbers
+screened and excluded during title/abstract screening, and the numbers assessed and
+excluded during full-text review. More importantly, the manuscript explicitly treats “the
+165 body-text citations” as the final statistical unit while also listing “genuinely cited in
+the text” as an inclusion criterion. This creates a clear circular criterion: references are
+included because they are cited in the main text, while the final 165 cited references are
+then used to demonstrate the systematic nature of the review. Based on the current
+reporting, readers cannot determine whether these 165 sources were genuinely derived
+from a predefined and reproducible search and screening process or were retrospectively
+assembled from the reference set after the manuscript had been completed. The authors
+should provide complete search and screening numbers, deduplication rules, and reasons
+for full-text exclusion. They should also clearly explain how the final 165-item evidence
+set was progressively derived from the initial search results.
+(2) The three-dimensional framework lacks explicit decision criteria and adequate
+validation. The manuscript defines buffer depth, BDP magnitude, and loss source as three
+“orthogonal” physical dimensions. It also claims that the framework is quantifiable,
+falsifiable, and applicable to algorithm selection. However, several key problems remain.
+First, the High, Medium, and Low “suitability” ratings in Table 4 do not have clear and
+consistent criteria. The manuscript does not explain whether these ratings are based on a
+single metric, such as throughput, latency, or fairness, or on thresholds combining
+multiple metrics. Consequently, readers cannot independently reproduce these ratings or
+use them to make consistent algorithm-selection decisions. Second, Section 3.5
+acknowledges that the three dimensions are not strictly orthogonal, that loss source
+cannot be accurately represented as a static attribute, and that flow count has not been
+                                            3
+
+
+incorporated into the framework. These limitations indicate that the relationships among
+the dimensions and their effects on the ratings have not been sufficiently explained, and
+the reliability of the framework for algorithm selection requires further validation. Third,
+the “independent validation” in Section 3.5 mainly uses the data from Scholz et al. [25] to
+conduct qualitative consistency checks for P1–P3. This is closer to showing that the
+external data do not clearly contradict the framework than to validating its predictive
+ability using data that were not involved in constructing the rules.
+(3) Table 3 contains errors in its summary of the key parameters and mechanisms of
+BBRv1, BBRv2, and BBRv3. First, the target inflight for BBRv2/v3 during ProbeRTT is
+not simply set to BDP/2. Instead, it is the larger of 4 MSS and BDP/2. Second,
+cwnd_gain is not always fixed at 2.0 across BBRv1–v3. Third, the note below the table
+states that BBRv2/v3 degrade toward BBRv1 when ECN support is unavailable. This
+description is misleading. Even without ECN marking, BBRv2/v3 retain loss-feedback-
+based mechanisms for updating the bw_lo, inflight_lo, and inflight_hi bounds, together
+with the corresponding state-control logic. Therefore, the absence of ECN alone is
+insufficient to conclude that the overall behavior of BBRv2/v3 approaches that of
+BBRv1.
+(4) The preparation of Figures 3–6 and the extent of AI involvement require further
+clarification. The existing “Declaration of generative AI and AI-assisted technologies”
+mentions figure-text translation but does not explicitly state whether generative AI was
+used to generate these figures. If AI-assisted generation was involved, the authors should
+clearly disclose the tools used, their specific purposes, and the extent of their use in both
+the declaration and the corresponding figure captions. The authors should also explain
+how they verified the accuracy of the technical content presented in these figures.
+
+Reviewer 3
+
+Comments
+
+Reviewer 3 - Initial submission, 17/09/2026
+The authors have empirically evaluated the various versions of BBR. The results
+discussion is well presented. The drawback of this current version of the paper is as
+follows:
+1. The abstract is not easy to follow. It should be revised and written as per the style of
+the Abstract. Remove the reference content, reduce the numerical detail, and focus on the
+motivation, objective, and contribution in a nutshell.
+2. The authors have focused on only BBR variants. They should also discuss other BDP-
+based TCPs, such as BDP-Veno and OVeno. They should increase the literature part.
+3. The authors have carried out only the numerical evaluation. The proposed algorithm or
+analytical study is missing, thereby limiting the paper's novelty. The author should also
+contribute in these terms.
+4. The implementation details are not sufficient. It must be defined in detail, including the
+tools, platform, and configuration. That may help the reader reproduce this research
+work.
+5. The rest of the presentation related to the study on BBR is well done.
+

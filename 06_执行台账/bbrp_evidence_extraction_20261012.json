@@ -1,0 +1,46 @@
+{
+  "report_id": "RPT_GRAZIA_2020_BBRP",
+  "study_id": "ST_GRAZIA_2020_WLAN_BBRP",
+  "doi": "10.1109/ACCESS.2020.2977834",
+  "decision": "include",
+  "reason": "Direct nativeLinuxBBRWLANpacing/aggregation primaryexperiment underM02scope",
+  "source": "fulltext_acquisition_20261012/openalex_Q1_0064.pdf",
+  "implementation": "ArchLinux4.19,BBRpProbeBWgain1.5vs1.25; exactbuildhashnotreproduced",
+  "methods": {
+    "tool": "Flent",
+    "repetitions": 10,
+    "test_duration_s": 40,
+    "TCP_active_window_s": [
+      5,
+      35
+    ],
+    "ICMP_only_before_after_s": 5,
+    "reported_statistics": "median,10th/90thpercentile boxes",
+    "directions": [
+      "upload",
+      "download",
+      "RRUL4upload+4download"
+    ],
+    "TSQ_ms": [
+      1,
+      2,
+      4,
+      8
+    ]
+  },
+  "source_locations": [
+    "pp.3–5aggregation/stack/testbed",
+    "p.6duration/statisticsvisuallychecked",
+    "pp.7–9upload/download",
+    "p.10RRUL/conclusion"
+  ],
+  "limits": [
+    "Chipset,direction,TSQ,bottleneckposition andqdiscmust accompanyresults",
+    "RRULupstream/downstreambalance notheterogeneousRTTJainverification",
+    "Authors3–6xstatement comparesBBRpwithoriginalBBR,notCUBIC4.2x",
+    "DownloadTSQnotvaried aslocalsenderWiFibottleneck",
+    "NoBBRv3/LEOdeploymentvalidation",
+    "Exactcurvevalues/code notreproduced"
+  ],
+  "review_scope": "Motivation,stack,method,upload/download/RRULresults andconclusionread; p.6methodsvisuallychecked. Eligibility completed, not all quantitative claims verified."
+}

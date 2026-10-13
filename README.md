@@ -2,6 +2,17 @@
 
 整理日期：2026-09-24。论文：COMNET-D-26-03761。
 
+## 当前修订入口（2026-10-12，尚未最终验收）
+
+- 候选正文：[cas-sc-template_F05_applied.tex](07_Overleaf修订候选/cas-sc-template_F05_applied.tex)，已接入F20实验章节；不是已合入Overleaf的最终版本。
+- 英文逐条回复：[F21_response_to_reviewers_audited_en.md](07_Overleaf修订候选/F21_response_to_reviewers_audited_en.md)，覆盖18条意见，未关闭项如实保留。
+- 当前交付审计：[入口](06_执行台账/current_delivery_audit_20261012/README.md)，可重建候选哈希与递归依赖检查。
+- 全文资格进度：[权威状态](06_执行台账/fulltext_current_status_20261012.md)：当前数量以该自动重建状态为准；包含全文资格待审及原自动排除待独立复核两类任务。报告组不等于独立研究，候选子队列不等于全部审查工作量。
+- 实验测量问题：[窗口与输入审计](06_执行台账/measurement_window_audit_20261012.md)：全程均值与预热窗口不同、队列快照未覆盖整个传输、四个E3案例队列标签不一致。历史自动support不能作为最终验证签收。
+- 补跑准备：[measurement v2](06_执行台账/measurement_v2/README.md)：独立采集器、分析器和目标内核检查已准备；本地模拟测试不等于真实目标节点补跑。
+
+仍缺完整主稿的10张原图和refs.bib、目标实验节点访问、图源/AI及作者事实确认。M04/M07、完整编译与最终稿一致性、Overleaf合入及投稿流程均未完成。原始实验日志、冻结预测和历史快照保留，后续审计不追溯改写它们。
+
 ## 给谁看哪份
 
 只向成员发送自己的个人任务单即可；不必把整个资料包发给每个人。

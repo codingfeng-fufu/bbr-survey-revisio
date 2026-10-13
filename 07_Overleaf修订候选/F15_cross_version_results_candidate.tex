@@ -2,7 +2,10 @@
 % Verify figure filenames and section numbering against the Overleaf main version.
 \subsection{Conditioned cross-version comparison}
 The baseline, an independently loaded BBRv1 module, BBR2, and BBRv3 runs were analyzed with the same condition
-keys, statistical window, and five-run repetition rule. The Ubuntu in-tree
+keys, full-run receiver-summary window, and five-run repetition rule.
+Although configuration files declare a 30-s warmup, the archived primary
+analysis uses the full 180-s transfer. A separate interval-based
+sensitivity analysis retains the requested post-warmup window. The Ubuntu in-tree
 baseline is retained as an implementation-specific reference. BBRv1,
 BBR2, and BBRv3 are identified by their source/kernel markers; their runtime
 registration names are \texttt{bbr1}, \texttt{bbr2}, and \texttt{bbr},
@@ -12,8 +15,7 @@ for the unexported TSO helper.
 Across the tested 100-Mbps matrix, equal-RTT total goodput remains close to
 the bottleneck for all four implementations, while flow shares and Jain
 fairness vary with RTT asymmetry, queue setting, and implementation. Under
-the 40- and 80-ms second-flow conditions, the observed long-RTT share and
-queue-drop counts differ across implementations. These results support a
+the 40- and 80-ms second-flow conditions, the observed long-RTT share differs across implementations. These results support a
 conditional comparison over the tested matrix; they do not establish a
 universal version ranking or identify unmeasured internal state.
 

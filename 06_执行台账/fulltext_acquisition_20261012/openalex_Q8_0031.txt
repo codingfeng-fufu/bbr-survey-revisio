@@ -1,0 +1,1728 @@
+Received September 7, 2020, accepted October 21, 2020, date of publication October 27, 2020,
+date of current version November 30, 2020.
+Digital Object Identifier 10.1109/ACCESS.2020.3034141
+
+
+
+
+Deep Reinforcement Learning for Traffic Signal
+Control: A Review
+FAIZAN RASHEED1 , KOK-LIM ALVIN YAU1 , (Senior Member, IEEE),
+RAFIDAH MD. NOOR2 , (Member, IEEE), CELIMUGE WU3 , (Senior Member, IEEE),
+AND YEH-CHING LOW1 , (Member, IEEE)
+1 Department    of Computing and Information Systems, Sunway University, Subang Jaya 47500, Malaysia
+2 Faculty   of Computer Science and Information Technology, University of Malaya, Kuala Lumpur 50603, Malaysia
+3 Graduate    School of Informatics and Engineering, The University of Electro-Communications, Tokyo 182-8585, Japan
+Corresponding author: Kok-Lim Alvin Yau (koklimy@sunway.edu.my)
+This work was supported in part by A Novel Clustering algorithm based on Reinforcement Learning for the Optimization of Global and
+Local Network Performances in Mobile Networks funded by the Malaysian Ministry of Education through Fundamental Research Grant
+Scheme under Grant FRGS/1/2019/ICT03/SYUC/01/1, and in part by the Partnership between Sunway University and the University of
+Malaya under Grant CR-UM-SST-DCIS-2018-01 and Grant RK004-2017.
+
+
+
+
+  ABSTRACT Traffic congestion is a complex, vexing, and growing issue day by day in most urban areas
+  worldwide. The integration of the newly emerging deep learning approach and the traditional reinforcement
+  learning approach has created an advanced approach called deep reinforcement learning (DRL) that has
+  shown promising results in solving high-dimensional and complex problems, including traffic congestion.
+  This article presents a review of the attributes of traffic signal control (TSC), as well as DRL architectures and
+  methods applied to TSC, which helps to understand how DRL has been applied to address traffic congestion
+  and achieve performance enhancement. The review also covers simulation platforms, a complexity analysis,
+  as well as guidelines and design considerations for the application of DRL to TSC. Finally, this article
+  presents open issues and new research areas with the objective to spark new interest in this research field.
+  To the best of our knowledge, this is the first review article that focuses on the application of DRL to TSC.
+
+
+  INDEX TERMS Artificial intelligence, deep learning, deep reinforcement learning, traffic signal control.
+
+
+I. INTRODUCTION                                                                                     TSCs have three traditional signal colors: red indicates a
+With rapid population growth and urbanization, traffic                                           stop, yellow indicates a slow down, and green indicates a
+demand is steadily rising in metropolises worldwide. Traffic                                     go. A cycle consists of a predetermined sequence of traffic
+signal controls (TSCs) are installed to monitor traffic flows                                    phases, and the cycle length is the time interval of a cycle.
+and alleviate traffic congestion at intersections [1]–[3]. Dur-                                  A traffic phase consists of a combination of green signals
+ing traffic congestion, vehicles move slowly or stop at lanes,                                   allocated to a set of lanes simultaneously for non-conflicting
+and the queue length of the vehicles increases [4]. Conges-                                      movements at an intersection. A short moment of all red
+tion that occurs in a single lane has a single-point-of-failure                                  signals is included in between traffic phases to provide safe
+effect as it can also affect the traffic conditions of the other                                 transition, causing some time loss. A traffic phase split (or
+lanes at the same and neighboring intersections. There are                                       the green time) is the time interval, which is part of a cycle
+three main reasons that exacerbate congestion. Firstly, traffic                                  length, allocated for a traffic phase.
+entering an intersection is greater than the traffic leaving it.                                    Traditionally, TSCs determine the traffic phase splits to
+Secondly, cross-blocking occurs when vehicles cannot cross                                       manage traffic flows and alleviate traffic congestion using
+an intersection despite a green signal being activated as the                                    three main approaches. Firstly, a deterministic TSC applies
+respective lane of the downstream intersection has become                                        a pretimed control system that uses the Webster formula
+fully occupied. Thirdly, green idling occurs when no vehicle                                     based on historical traffic data collected at different times [5].
+is present at an intersection when a green signal is activated.                                  Secondly, a semi-dynamic TSC applies an actuated control
+                                                                                                 system that uses current (or instantaneous) traffic conditions,
+    The associate editor coordinating the review of this manuscript and                          rather than longer-term traffic conditions. For example, green
+approving it for publication was Chao Wang              .                                        signals are activated at lanes with vehicles [6]. Thirdly, a
+
+                       This work is licensed under a Creative Commons Attribution 4.0 License. For more information, see https://creativecommons.org/licenses/by/4.0/
+208016                                                                                                                                                                  VOLUME 8, 2020
+F. Rasheed et al.: Deep Reinforcement Learning for Traffic Signal Control: A Review
+
+
+
+
+TABLE 1. List of abbreviations.                                                       to store the weights (or network parameters) of the links
+                                                                                      connecting the neurons, which are used to approximate the
+                                                                                      Q-values efficiently in order to address the storage capacity
+                                                                                      issue in RL [15].
+
+                                                                                      A. SIGNIFICANCE OF DEEP REINFORCEMENT LEARNING
+                                                                                      FOR TRAFFIC SIGNAL CONTROL
+                                                                                      Several success stories of the use of DRL over the years
+                                                                                      have brought new and refreshed enthusiasm to the world of
+                                                                                      artificial intelligence. In 2013, DeepMind introduces DRL
+                                                                                      applied to playing a range of Atari 2600 games with super-
+                                                                                      human performance [14]. Later in 2016, DRL is trained by
+                                                                                      DeepMind to play the Alpha Go board game, which defeated
+                                                                                      a host of world champions [16]. Subsequently, DRL has been
+                                                                                      applied in many real-world applications, such as robotics
+                                                                                      [17], natural language processing [18], health care [19], busi-
+                                                                                      ness management [20], Industry 4.0 [21], smart grid [22],
+                                                                                      computer vision [23], transportation, particularly TSC and
+                                                                                      driver-less vehicles [24]. In view of these developments, this
+                                                                                      article presents a comprehensive review of the limited work
+fully-dynamic TSC applies an actuated control system that                             on DRL applied to TSC, motivated by the goal of achieving
+uses longer-term traffic conditions. For example, a traffic                           better-than-human intelligence solutions. In general, DRL
+phase split is increased with the average waiting time and                            offers main advantages that are appealing to TSCs as follows:
+queue length of vehicles at a lane. While the semi-dynamic
+TSC approach uses a single inductive loop detector installed                            •   DRL enables an agent to adapt to the real-time traffic
+at a lane to detect the presence of vehicles, the fully-dynamic                             condition that evolves in a complex and unpredictable
+TSC uses at least two inductive detectors to measure the                                    manner due to unexpected disturbances, such as bad
+queue length [7]–[11].                                                                      weather conditions and road accidents.
+   Research has been undertaken to investigate TSCs that                                •   DRL can be a model-based or model-free approach,
+can optimize traffic signal scheduling and timing, such as                                  and it enables an agent to perform self-learning on the
+adjusting traffic phase splits, in order to ameliorate traffic                              fly without having prior knowledge about the operat-
+congestions at moderately and heavily trafficked single or                                  ing environment, including traffic condition and net-
+multiple intersections. Reinforcement learning (RL) has been                                work. The model-based approach creates a model of
+the preferred unsupervised artificial intelligence technique                                the operating environment, and then selects an action
+for accomplishing a fully-dynamic TSC [12]. RL possesses                                    and observes feedback from the model [25]. On the
+the capability to learn the relationships between actions and                               other hand, the model-free approach does not create a
+their effects on the operating environment (or states). Specif-                             model of the operating environment. The model-free
+ically, RL adjusts traffic phase splits, or even skips traffic                              approach has been chosen for TSC because it has lower
+phases, according to traffic conditions which are dynamic and                               complexity and computational requirement compared to
+can be unpredictable. Nevertheless, RL is marred by the curse                               the model-based approach.
+of dimensionality, an issue whereby the number of states                                •   DRL represents reward with system goal(s) and perfor-
+(or the state space) becomes too large, leading to two main                                 mance measure(s), which take account of multiple fac-
+shortcomings [13]. Firstly, a higher computational cost must                                tors that affect system performance from the operating
+be incurred to explore all state-action pairs in order to identify                          environment. For instance, the reward changes with the
+optimal actions, causing a longer learning time. Secondly,                                  average waiting time, queue length, or throughput of
+a larger storage capacity is required to store knowledge (or                                vehicles at an intersection (see Section IV).
+Q-values).                                                                              •   DRL addresses the curse of dimensionality, which
+   Recently, deep learning (DL), which is an advanced artifi-                               adversely affect the traditional RL approach, when
+cial intelligence technique, has been successfully combined                                 applied to TSC. This is because TSC has a large state
+with RL to provide deep reinforcement learning (DRL), and                                   space as there are multiple factors affecting a traffic
+it has shown to address the shortcomings of RL [14]. DRL                                    network.
+has three main advantages. Firstly, DRL enables a contin-                                Most importantly, DRL provides added advantages com-
+uous state space representation, so there can be a large                              pared to other approaches applied to TSC as shown
+number of states. Secondly, DRL reduces the learning time                             in Table 2.
+required to explore all state-action pairs and identify opti-                            Meanwhile, the trend of the number of papers published
+mal actions. Thirdly, DRL uses several layers of neurons                              from January 2016 to March 2020 on the use of DRL to TSC
+
+VOLUME 8, 2020                                                                                                                                208017
+                                                                         F. Rasheed et al.: Deep Reinforcement Learning for Traffic Signal Control: A Review
+
+
+
+
+                                                                              II. BACKGROUND
+                                                                              This section presents an overview of DL, RL, and DRL,
+                                                                              as well as various DL architectures with RL methods. In addi-
+                                                                              tion, simulation platforms are presented.
+
+                                                                              A. DEEP LEARNING
+                                                                              Deep learning (DL) is an advanced artificial intelligence
+                                                                              approach that consists of a deep neural network (DNN), such
+                                                                              as a fully-connected layer network (FCLN) [36], [37]. The
+                                                                              term ‘‘deep" indicates that the neural network consists of a
+                                                                              large number of hidden layers (e.g., up to 150 layers [38]),
+                                                                              which may be fully-connected (FC) with each other, while a
+                                                                              traditional neural network generally consists of a much lower
+                                                                              number of hidden layers (e.g., two or three layers [39]). Fig. 3
+                                                                              shows a FCLN architecture that consists of three main types
+                                                                              of layers, namely the input, hidden, and output layers, and it is
+FIGURE 1. The trend of related papers published in recent years on the        an interconnected assembly of neurons (i.e., processing ele-
+use of DRL to TSC.                                                            ments) that are capable of learning unstructured and complex
+                                                                              data [40]. During training, data flows from the input layer to
+is shown in Fig. 1. This study was conducted on three well-                   the output layer. The output yk of a neuron k in the hidden
+known literature databases with scientific scope, namely Web                  and output layers is as follows [41]:
+of Science, ScienceDirect, and IEEEXplore Digital Library.                                                X            
+                                                                                                  yk = ϕ        wkj .xj                    (1)
+B. OUR CONTRIBUTIONS                                                                                               j=0
+
+While general reviews of designing TSCs using RL [13],                        where wkj represents the weight (or network parameter),
+[30]–[32], multi-agent systems [29], big data [34], DL [35],                  which is assigned on the basis of the relative importance of
+and other artificial intelligence approaches, such as fuzzy                   input xj compared to other inputs, and ϕ(.) represents the
+systems [33], have been presented, this article complements                   activation function at neuron k.
+their works by focusing on the DRL approach, particularly                        There are various kinds of DL architectures applied to
+on how DRL models can be applied to formulate the TSC                         TSC, including the traditional FCLN, convolutional neural
+problem, and how the strengths of various DRL approaches                      network (CNN), stacked auto encoder (SAE), dueling net-
+can provide added advantages in addressing the challenges                     work, and long short-term memory (LSTM) (see Section II-D
+brought about by traffic management and control. To the                       for more details).
+best of our knowledge, this is the first comprehensive arti-
+cle that contributes to the body of knowledge by providing
+                                                                              B. REINFORCEMENT LEARNING
+systematic and extensive synthesis, analysis and summary of
+                                                                              Reinforcement learning (RL) is the third paradigm of arti-
+limited DRL schemes applied to TSC, which helps to identify
+                                                                              ficial intelligence, which is different from the supervised
+research gaps in existing schemes and explore future research
+                                                                              learning and unsupervised learning approaches. It enables an
+directions. Various technical aspects of DRL-based TSCs,
+                                                                              agent to explore and exploit different state-action pairs so that
+including DRL models, DRL methods, DL architectures,
+                                                                              it achieves the best possible positive reward (or negative cost)
+simulation platforms, complexity analysis and performance
+                                                                              for system performance enhancement as time goes by t =
+measures, are covered to enhance the technicality of article.
+                                                                              1, 2, 3, . . . [42]–[45]. Algorithm 1 presents the traditional RL
+                                                                              algorithm [42]. At time instant t ∈ T , an agent observes its
+C. ORGANIZATION OF THIS ARTICLE
+                                                                              Markovian (or memoryless) decision-making factors (or state
+The rest of this article is organized as shown in Fig. 2.                     st ∈ S) in the dynamic and stochastic operating environment,
+Section II presents an overview of DL, RL, and DRL, as well                   and selects and performs an action at ∈ A [46]–[49]. Sub-
+as various DL architectures with RL methods. The sim-                         sequently, the agent observes the next state st+1 and receives
+ulation platforms are also presented. Section III presents                    an immediate reward (or cost) rt+1 (st+1 ), which depends on
+the attributes of TSC systems. Section IV presents the rep-                   the next state st+1 for the state-action pair (st , at ). Then,
+resentations of DRL models and complexity analysis for                        it updates Q-value Qt (st , at ), which represents knowledge,
+TSC. Section V presents the application of DRL to TSC.                        for the state-action pair. The Q-value Qt (st , at ) represents the
+Section VI presents the guidelines and design consider-                       appropriateness of taking action at under state st , and it is
+ations for the application of DRL to TSC. Section VII                         updated using Q-function as follows [50]:
+presents open issues. Finally, Section VIII concludes this
+article.                                                                                   Qt+1 (st , at ) ← Qt (st , at ) + αδt (st , at )             (2)
+
+208018                                                                                                                                        VOLUME 8, 2020
+F. Rasheed et al.: Deep Reinforcement Learning for Traffic Signal Control: A Review
+
+
+
+
+TABLE 2. Comparison of DRL with other approaches applied to TSC.
+
+
+
+
+where 0 ≤ α ≤ 1 is the learning rate, and δt (st , at ) is the tem-                      During action selection, an agent selects either exploration
+poral difference, which is based on the Bellman equation that                         or exploitation. Exploration selects a random action with a
+represents the difference between immediate and discounted                            small probability ε to update its Q-value so that better actions
+rewards for two successive estimations as follows [51]:                               can be identified in a dynamic and stochastic operating envi-
+                                                                                      ronment as time progresses. On the other hand, exploitation
+δt (st , at ) = rt+1 (st+1 ) + γ maxQt (st+1 , a)−Qt (st , at )          (3)
+                                   a∈A                                                selects the best-known (or greedy) action with probability
+where γ maxQt (st+1 , a) represents the discounted reward,                            1 − ε to maximize the state value using the value function
+         a∈A                                                                          as follows [52]:
+which is the expected maximum Q-value at time t + 1
+and so on, and 0 ≤ γ ≤ 1 represents a discount fac-
+                                                                                                         vπt (st ) = maxQt (st , a)               (4)
+tor that shows the preference for the discounted reward.                                                            a∈A
+In other words, the immediate reward rt+1 (st+1 ) repre-
+sents a short-term reward, while the discounted reward                                where π is the policy, which is applied by the agent to decide
+γ maxQt (st+1 , a) represents a long-term reward. As time goes                        the next action at+1 based on the current state st , and it is
+  a∈A                                                                                 defined as follows [53]:
+by t = 1, 2, 3, . . ., the agent explores, updates, and stores the
+Q-values Qt (st+1 , a) of all the state-action pairs (st , at ) in a                                   π(st ) = arg maxQt (st , a)                (5)
+two-dimensional Q-table.                                                                                            a∈A
+
+VOLUME 8, 2020                                                                                                                                 208019
+                                                                 F. Rasheed et al.: Deep Reinforcement Learning for Traffic Signal Control: A Review
+
+
+
+
+FIGURE 2. Organization of this article.
+
+
+   Hence, an agent selects an action with the maximum                 memory [58]. Using target network, an agent utilizes a dupli-
+Q-value. For simplicity, only exploitation is shown in algo-          cate of the main network, and uses its weights to calculate
+rithms presented in this article.                                     target Q-values subsequently used to calculate a loss function
+                                                                      minimized using gradient descent [59]. The weights of the
+C. DEEP REINFORCEMENT LEARNING                                        target networks are fixed (or updated after a certain number
+Deep reinforcement learning (DRL) is the combination of               of iterations) to improve training stability. During training,
+two artificial intelligence approaches (i.e., DL and RL). Deep        the target Q-value is used to compute the loss of a selected
+Q-network (DQN) is the first DRL method proposed by                   action in order to stabilize training, and it is updated every
+DeepMind [14], and it has been widely used in TSC. DQN                certain number of iterations [60]–[63]. The main network
+has two main features, namely experience replay and target            enables an agent to select an action after observing its state
+network [54]–[57]. Using experience replay, an agent stores           from the environment, and subsequently updates its main
+an experience in a replay memory, and subsequently trains             Q-values. The rest of this section presents the DQN archi-
+itself using experiences randomly selected from the replay            tecture and algorithm, respectively.
+
+208020                                                                                                                               VOLUME 8, 2020
+F. Rasheed et al.: Deep Reinforcement Learning for Traffic Signal Control: A Review
+
+
+
+
+                                                                                      2) DQN ALGORITHM
+                                                                                      Algorithm 2 shows the algorithm for DQN. At episode
+                                                                                      m ∈ M , an agent observes the current state sm ∈ S.
+                                                                                      At time instant t ∈ T , the agent selects an action at ∈ A
+                                                                                      using Equation (5), which is given by the Q-value of the
+                                                                                      main network; subsequently it receives the reward rt+1 (st+1 )
+                                                                                      and observes the next state st+1 , and stores its experience
+                                                                                      et = (st , at , rt , st+1 , at+1 ) in the replay memory Dt =
+                                                                                      (e1 , e2 , . . . , et , . . . ). Subsequently, the agent samples a mini-
+                                                                                      batch of experiences from the replay memory Dt in a random
+                                                                                      manner to learn the weights θj . At iteration j ∈ J , the agent
+FIGURE 3. FCLN architecture.
+                                                                                      updates the target Q-values of the target network, specifically
+                                                                                      Qj (sj , a∗j ; θj− ) ≈ Q∗ (sj , aj ). The weights θj− of the target
+Algorithm 1 RL Algorithm Embedded in an Agent                                         network is replaced with the weights θj of the main network
+                                                                                      in order to provide updated Q-values Q(s, a; θk− ) of the target
+ 1: Procedure
+                                                                                      network as time goes by. The weights θj− of the target network
+ 2:     observe current state st ∈ S
+                                                                                      is fixed to minimize the loss between the Q-values of the
+ 3:     for t = 1 : T do
+                                                                                      main and target networks, which helps to stabilize Q-values.
+ 4:       select action at ∈ A using Equation (5)
+                                                                                      The loss function at iteration j is minimized to train the main
+ 5:       perform action at ∈ A
+                                                                                      network as follows [64]:
+ 6:       receive reward rt+1 (st+1 ) and next state st+1
+          update Q-value Qt+1 (st , at ) using Equation (2)
+                                                                                                                            h                     2 i
+ 7:
+                                                                                                   Lj (θj ) = Esj ,aj ∼p(.) yj − Qj (sj , aj ; θj )        (7)
+ 8:     end for
+ 9: End Procedure                                                                     where p(s, a) represents the probability distribution of a state-
+                                                                                      action pair (s, a), and yj represents the target given by θj−1        −
+                                                                                                                                                                   in
+                                                                                      the previous iteration j − 1. The gradient of the loss function
+1) DQN ARCHITECTURE                                                                   ∇θ Lj (θj ) is given as follows [65]:
+DQN possesses one of the different kinds of DL architectures,                                                    h                                             i
+such as FCLN, CNN, SAE, 3DQN, and LSTM. FCLN has                                      ∇θ Lj (θj ) = Esj ,aj ∼p(.) yj − Qj (sj , aj ; θj ) ∇θj Qj (sj , aj ; θj )
+been widely used with DQN. Fig. 4 presents the architecture                                                                                                      (8)
+of DQN. An agent has three main components, namely the
+replay memory, the main network, and the target network.                                During backpropagation, a backward pass uses gradient
+The replay memory is a dataset of an agent’s experiences                              descent, whereby the weights θj of the main network are
+Dt = (e1 , e2 , . . . , et , . . . ), which are gathered when the                     updated in the opposite direction, to achieve the minimum
+agent interact with the environment as time goes by t =                               value of ∇θ Lj (θj ).
+1, 2, 3, . . . . Subsequently, the experiences Dt are used during
+                                                                                      D. DEEP LEARNING ARCHITECTURES WITH
+the training process. The main network consists of a FCLN,
+                                                                                      REINFORCEMENT LEARNING METHODS
+and the weight θk of the FCLN is used to approximate its
+Q-values Q(s, a; θk ) at iteration k. The main network is used                        This section presents DL architectures used with RL methods
+to select an action at for a particular state st observed from                        applied to different types of traffic network models, including
+the environment in order to achieve the best possible reward                          single intersection [66]–[72], [99], multi intersections [74],
+rt+1 (st+1 ) and next state st+1 at the next time instant t + 1.                      real world [77]–[79], and grid [76]. Fig. 12 presents the DRL
+The target network is a duplicate of the main network, and the                        attributes for TSC.
+weight θ − of the FCLN is used to approximate its Q-values
+Q(s, a; θk− ) after the kth iteration. There are two main differ-                     1) DL ARCHITECTURES
+ences between the Q-values of the main and target networks.                           The DL architectures used with RL methods for TSCs are as
+Firstly, the main network is used during action selection and                         follows:
+training, while the target network is used during training only.                      N.1 The traditional FCLN has been adopted in [70], [72] to
+The target network improves the training stability, without                                approximate the Q-values of TSCs (see Section II-A).
+which the policy may oscillate between the main and tar-                              N.2 Convolutional neural network (CNN) has been widely
+get Q-values in a single network. Secondly, the Q-values                                   adopted in [66], [69], [74], [76], [78] to approximate the
+Q(s, a; θk ) of the main network are updated in every iteration                            Q-values of TSCs. While the traditional DL approach
+k, while the weights θj− of the target network are updated by                              consists of fully connected (FC) layers, CNN has two
+copying the weights θj of the main network at every C steps,                               main types of layers, namely the convolutional layer,
+which is equivalent to k iterations.                                                       and as well as the traditional FC layer (see Fig. 5 for
+
+
+VOLUME 8, 2020                                                                                                                                               208021
+                                                                 F. Rasheed et al.: Deep Reinforcement Learning for Traffic Signal Control: A Review
+
+
+
+
+                   FIGURE 4. DQN architecture.
+
+
+Algorithm 2 Traditional DQN Algorithm
+ 1: Procedure
+ 2:      for episode = 1: M do
+    {Observation process}
+ 3:           observe current state st ∈ S
+ 4:           for t = 1 : T do
+    {Action selection process}
+ 5:                 select action at ∈ A using Equation (5)
+ 6:                 receive reward rt+1 (st+1 ) and next state st+1
+ 7:                 store experience (st , at , rt+1 (st+1 ), st+1 ) in replay memory Dt
+    {Training process}
+ 8:                 sample a random minibatch of experiences (st , at , rt+1 (st+1 ), st+1 ) from replay memory Dt
+ 9:                 for j = 1 : N do
+10:                 set target
+                                   (
+                                     rj+1 (sj+1 ),                              if episodes terminate at sj+1
+                              yj =                                                                                                              (6)
+                                     rj+1 (sj+1 ) + γ maxa Q(sj+1 , a; θj ), otherwise
+
+11:                 perform a gradient descent optimization on (yj − Q(sj , aj ; θj ))2 with respect to θj using Equation (8)
+12:                 reset θ − = θ in every C steps
+13:                 end for
+14:            end for
+15:       end for
+16:   End Procedure
+
+
+      an example of a CNN architecture [69]). In Fig. 5, CNN                consists of three parts, namely convolution, pooling, and
+      has one input layer, two convolutional layers, two FC                 activation. The data flows from the input layer to the
+      layers, and one output layer. Each convolutional layer                output layer. The layers are as follows:
+
+208022                                                                                                                               VOLUME 8, 2020
+F. Rasheed et al.: Deep Reinforcement Learning for Traffic Signal Control: A Review
+
+
+
+
+FIGURE 5. An example of a CNN architecture [40].
+
+
+      •The input layer represents the state sit , such as the posi-
+       tion (S.5) and speed (S.6) of a vehicle. For instance,                         FIGURE 6. An example of a SAE architecture [38]. The encoder is enclosed
+                                                                                      with a dotted line, and the decoder is enclosed with a dashed line.
+       at an intersection, with a grid size of 60×60, the input
+       state sit represents the position and speed of a vehicle,
+       and it has a size of 60 × 60 × 2.                                                        the reconstruction error, which is a measure of the
+    • Two convolutional layers consist of k filters (or ker-
+                                                                                                discrepancy between input and its reconstruction by
+       nels), in which each filter consists of a set of weights.                                decoding, of the obtained parameters θae is minimized
+       Each weight aggregates local patches (e.g., the pixels                                   as follows:
+       of an image) from the previous layer and shifts the
+       aggregated local patches for a fixed number of steps
+                                                                                                                                     1X
+       defined by the stride each time. By pooling, the salient                                 θae = arg minL(x, D) = arg min          ||x − D(x)||2
+       values from the local patches replace the whole patch                                             θae                   θae   2
+       in order to remove the less important information and                                                                                      (11)
+       reduce the dimensionality of the input state sit . Next,
+       the activation function (i.e., ReLU) activates the units
+       of patches.                                                                          •The output layer provides the Q-values Qit (sit , ait ) of
+    • Two FC layers.                                                                         all possible actions ait ∈ Ai .
+    • The output layer provides the Q-values Qit (sit , ait ) of                      N.4 Double dueling deep Q-network (3DQN), with its FC
+       all possible actions ait .                                                         layer split into two separate streams, has been adopted
+N.3 Stacked auto encoder (SAE) neural network, which                                      in [71], [73], [77] to approximate the Q-values of TSCs.
+    performs encoding and decoding functions, has been                                    The 3DQN architecture consists of double Q-learning
+    adopted in [67] to approximate the Q-values of TSCs.                                  [85] and a dueling network [86] as shown in an example
+    Fig. 6 shows an example of a SAE architecture. The data                               of a 3DQN architecture in Fig. 7. In double Q-learning,
+    flows from the input layer to the output layer. The layers                            a max operator decouples the selection of an action
+    are as follows:                                                                       from the evaluation of an action; while in traditional
+                                                                                          Q-learning, a max operator uses the same value for
+    • The input layer represents the state sit .
+                                                                                          both selection and evaluation of an action. The dueling
+    • The encoder maps the input data into hidden represen-
+                                                                                          network has two separate streams to estimate the state
+       tations (i.e., feature extraction). The encoding process
+                                                                                          value and the advantage of each action separately. The
+       is given by:
+                                                                                          data flows from the input layer to the output layer. The
+                             E(x) = f (W1 x + b)                         (9)              layers are as follows:
+                                                                                          • The input layer represents the state sit .
+          where f (.) is the encoding function, W1 is a weight                            • Three convolutional layers consist of k filters (or
+          matrix used to reduce the number of parameters to                                  kernels), in which each filter consists of a set of
+          learn, and b is the bias vector, which stores the                                  weights.
+          value of 1 in order to produce an output for the                                • Two FC layers, in which the second FC layer is split
+          next layer that differs from 0 whenever the a feature                              into two separate streams: a) the state value V (sit ) pro-
+          value is 0.                                                                        vides an estimate of the value function that measures
+      •   The decoder reconstructs the input data from the hid-                              the absolute value of a state sit ; and b) the advantage
+          den representations. The decoding process is given                                 A(sit , ait ) of performing an action ait under a state sit
+          by:                                                                                that represents the contribution of the action to the
+                           D(x) = g(W2 E(x) + b)                        (10)                 value function compared to all possible actions. The
+                                                                                             3DQN architecture uses a FC layer that splits into two
+          where g(.) is the decoding function, and W2 is a trans-                            separate streams, while the CNN architecture uses the
+          pose matrix of the weight matrix W1 . Subsequently,                                traditional FC layers.
+
+VOLUME 8, 2020                                                                                                                                        208023
+                                                                            F. Rasheed et al.: Deep Reinforcement Learning for Traffic Signal Control: A Review
+
+
+
+
+                       FIGURE 7. An example of a 3DQN architecture [42].
+
+
+
+
+      •    The output layer provides the Q-values Qit (sit , ait ) of                   •   The input layer represents the state sit .
+           all possible actions ait ∈ A as follows:                                     •   The LSTM layer consists of a memory cell that main-
+                                                                                            tains a time window of states [87]. In Fig. 8, the mem-
+           Qit (sit , ait ) = V (sit )                                                      ory cell has an input gate g, and an output gate h.
+                                               1 X i i                                    In addition, there are two nodes for multiplication ×,
+                              + A(sit , ait )−       A(st , at+1 )   (12)
+                                               |A| i                                        one node for summation +, and two gate activation
+                                               at+1
+                                                                                            functions δ that transform data into a value between 0
+        where a positive value of A(sit , ait ) indicates that the                          and 1.
+        action ait has a better reward (or performance) com-                            •   The output layer provides the Q-values Qit (sit , ait ) of
+        pared to the average performance of all possible                                    all possible actions ait ∈ Ai .
+        actions, and vice-versa.
+     The 3DQN architecture uses the double DQN (DDQN)                            2) DRL METHODS
+     algorithm. While the traditional DQN algorithm uses the                     There are three DRL methods applied to DL architectures for
+     same max operator and values for both selection and                         TSCs as follows:
+     evaluation of an action, the DDQN algorithm uses the                        E.1 Value-based method. The value-based method is the
+     target as follows:                                                              traditional DQN method (see Sections II-B and II-
+          DDQN                                                                       C), which has been adopted in [66]–[74], [76]–[78],
+      yj         = rj+1 (sj+1 )
+                                                                                     [99]. The value-based DQN maps each state-action pair
+                   +γ Q(sj+1 , arg max Q(sj+1 , a; θj ); θj− )       (13)            (st , at ) to a state value Vt (st ) learned using value function
+                                        a
+                                                                                     (see Equation (4)) in order to identify the best possible
+N.5 The traditional long short-term memory (LSTM) neural                             action for each state.
+    network, which is based on a recurrent neural network,                       E.2 Policy-gradient (PG)-based method. DQN with the PG-
+    consists of a memory cell; and it has been adopted in [79]                       based method selects an action at ∈ A based on a
+    to approximate the Q-values of TSCs. Fig. 8 shows an                             policy with probability distribution π(at |st ; θ) given a
+    example of a LSTM architecture. The data flows from                              state st ∈ S, where the probability distribution is learned
+    the input layer to the output layer. The layers are as                           by performing gradient descent on the policy parameter
+    follows:                                                                         (i.e., the weight θ of DQN). Equation (8) is revised as
+                                                                                     follows:
+                                                                                                                   hX                           i
+                                                                                       ∇θ Lj (θj ) = Esj ,aj ∼p(.)        ∇θ logπθ (at | st )Rt   (14)
+                                                                                                                       t
+
+
+                                                                                                        t γ rt represents the reward function.
+                                                                                                          P
+                                                                                     where Rt =
+                                                                                     PG-based DQN has been adopted in [68].
+                                                                                 E.3 Advantage actor critic (A2C)-based method. DQN with
+                                                                                     the A2C-based method is a hybrid approach that com-
+                                                                                     bines both value-based and PG-based DQN methods.
+                                                                                     Each agent has an actor that controls how it behaves
+                                                                                     (i.e., PG-based), and a critic that measures the suitability
+FIGURE 8. Traditional LSTM neural network architecture.                              of the selected action (i.e., value-based). Equation (8) is
+
+208024                                                                                                                                          VOLUME 8, 2020
+F. Rasheed et al.: Deep Reinforcement Learning for Traffic Signal Control: A Review
+
+
+
+
+     revised as follows:                                                                   For simplicity, we can focus on the green time of the traf-
+                                                                                           fic phase with green signals, in which the rest of the
+                                    hX                                   i
+      ∇θ Lj (θj ) = Esj ,aj ∼p(.)        ∇θ logπθ (at | st )At (st , at )
+                                                                                           traffic phases receive red signals. Too long of a green
+                                     t
+                                                                        (15)               time can cause cross-blocking and green idling when the
+                                                                                           traffic volume is high and low, respectively. Too short
+     where At (st , at ) = Qt (st , at ) − Vt (st ) is the advantage                       of a green time can increase the queue length of a lane,
+     function. A2C-based DQN has been adopted in [79].                                     resulting in congestion. The maximum and minimum
+                                                                                           durations of a traffic phase split can be imposed. The
+E. SIMULATION PLATFORMS                                                                    maximum duration prevents a long waiting time for
+Traffic simulators are simulation platforms that evaluate,                                 vehicles at other lanes, while the minimum duration
+compare, and optimize DRL-based TSCs. In general, a traffic                                ensures that at least a single waiting vehicle can cross
+simulator provides a graphical user interface and essential                                an intersection.
+features to simulate TSCs, vehicles, and roads in order to
+gather: a) local statistics, such as the queue length of the                          B. TRAFFIC NETWORK MODELS
+vehicles at an intersection; and b) global statistics, such as                        The traffic network models reflect the traffic conditions,
+the queue length of the vehicles at all intersections in a                            which can be characterized by their architectures and traffic
+traffic network. There are two approaches for investigation:                          arrival rates.
+a) the macroscopic approach that focuses on traffic flows,
+such as traffic density, the speed limit of the lanes, and the
+                                                                                      1) TRAFFIC NETWORK ARCHITECTURES
+vehicle distributions [101]; and b) the microscopic approach
+                                                                                      A traffic network consists of a single or multiple intersections
+that focuses on the mobility characteristics of an individual
+                                                                                      and edge nodes. Each intersection has multiple legs in differ-
+vehicle, such as the driving speed and direction [102]. In most
+                                                                                      ent directions, and each leg has a single or multiple lanes so
+investigations in the application of DRL to TSCs, traffic
+                                                                                      that a vehicle can either turn right, turn left, or go straight.
+simulators are based on the microscopic approach [66], [67],
+                                                                                      A vehicle enters a traffic network through an edge node,
+[70], [77], including SUMO [103], [104], Paramics [105],
+                                                                                      traverses from one intersection to another, and leaves through
+[106], VISSIM [107], [108], and Aimsun Next [109], [110].
+                                                                                      another edge node in a closed traffic environment. A left-
+Some schemes have considered real world traffic network in
+                                                                                      hand traffic network is considered throughout the article, even
+simulations, including real world traffic network based on
+                                                                                      though a similar description can be applied to a right-hand
+Florida designed in Aimsun Next [77], as well as Jinan [78]
+                                                                                      traffic network.
+and Monaco [79] designed in SUMO.
+                                                                                      M.1.1 Single intersection traffic network represents a traffic
+III. ATTRIBUTES OF TRAFFIC SIGNAL CONTROL                                                   network with a single intersection [66]–[72].
+SYSTEMS                                                                               M.1.2 Multi intersection traffic network represents a traf-
+The attributes of the intersections, traffic, and TSCs have                                 fic network with multiple intersections, such as two
+brought about challenges to traffic management. This section                                intersections with a single closed link in between
+presents these attributes to provide a better understanding                                 the intersections (see Fig. 10a) and three inter-
+about the TSC problem, which is solved using DRL as pre-                                    sections with a central intersection and two out-
+sented in Section IV. Figure 9 presents various aspects of                                  bound intersections (see Fig. 10b) [74]. Each vehicle
+the TSC attributes. In addition, performance measures are                                   can cross one intersection (e.g., west), two inter-
+presented.                                                                                  sections (e.g., west-central) or three intersections
+                                                                                            (e.g., west-central-east).
+A. CHALLENGES                                                                         M.1.3 Real world traffic network represents a traffic net-
+DRL addresses the following two main challenges of TSC                                      work based on the layout of a city, and so a larger
+that causes congestion, green idling, and cross-blocking:                                   number of intersections are considered. For instance,
+C.1 Inappropriate traffic phase sequence: A traffic phase                                   investigations are conducted based on 8 intersec-
+     consists of a combination of green signals allocated to                                tions in Florida (United States) [77], 24 intersec-
+     a set of lanes simultaneously for non-conflicting and                                  tions in Jinan (China) [78], and 30 intersections
+     safe traffic flows at an intersection. TSC has different                               in Monaco [79].
+     kinds of traffic phases (see Section III-C2 for more                             M.1.4 Grid traffic network represents a traffic network based
+     details) characterized by: a) with opposing through traf-                              on a grid topology, such as 2 × 2 (see Fig. 10c) and
+     fic (T.2.1); b) without opposing through traffic (T.2.2);                              3 × 3 traffic networks [76].
+     and c) with group-based individual traffic (T.2.3). These                           An intersection i has l legs. Each leg l i ∈ L i has d lanes,
+                                                                                                                                i      i
+     traffic phases can be activated in an in-order (i.e., round-                     whereby each lane is represented by d l ∈ Dl . The number
+     robin) or out-of-order manner.                                                   of lanes is ignored when a leg has a single lane d = 1.
+C.2 Inappropriate traffic phase split: A traffic phase split                             A traffic network also consists of hardware devices
+     represents the time interval allocated for a traffic phase.                      (e.g., video-based traffic detectors, inductive loop detectors,
+
+VOLUME 8, 2020                                                                                                                                 208025
+                                                                 F. Rasheed et al.: Deep Reinforcement Learning for Traffic Signal Control: A Review
+
+
+
+
+         FIGURE 9. TSC attributes.
+
+
+
+
+              FIGURE 10. Traffic network architectures.
+
+
+and camera sensors) installed at intersections to gather              connections, and can communicate with vehicles using wire-
+local statistics (e.g., traffic arrival and departure rates,          less communication.
+the occupancy of a lane, as well as the queue length and
+waiting time of vehicles) over time. The hardware devices             2) TRAFFIC ARRIVAL RATE
+process (e.g., aggregate) and send the statistics to agents           Traffic arrival rate characterizes: a) the number of vehicles
+(or TSCs) in order to estimate longer-term information                entering a traffic network through edge nodes; or b) arriving
+(e.g., the average queue length). Alternatively, the hardware         at an intersection within a time duration (e.g., 2,000 vehicles
+devices can gather shorter-term information (e.g., the instan-        per hour) [67]. The traffic arrival rate affects the traffic vol-
+taneous queue length) at intersections at any time instant.           ume leading to a crowded or sparse traffic network. When
+The TSCs can communicate among themselves using wired                 a vehicle arrives, it is placed at the end of a queue at one
+
+208026                                                                                                                               VOLUME 8, 2020
+F. Rasheed et al.: Deep Reinforcement Learning for Traffic Signal Control: A Review
+
+
+
+
+of the lanes of the legs at an intersection. Each lane can                            T.1.2 Distributed model enables multiple distributed agents
+accommodate a certain number of vehicles. Traffic models                                    to gather local statistics and select their respective
+and statistical distributions can be used to characterize the                               actions. Hence, a complex problem is segregated into
+steady-state dynamics of the traffic arrival rate as follows:                               sub-problems solved by the distributed agents, con-
+M.2.1 Poisson-based traffic arrival rate determines the prob-                               tributing to higher efficiency and robustness. In the
+       ability of the number of vehicles n arriving at an                                   context of DRL, the distributed model enables the
+       intersection i within a time period tp based on [80]:                                agents to optimize a global Q-value in a traffic network
+                                                                                            in order to achieve the global objective of a traffic
+                                      (µi tp )n −µi tp                                      network. To provide a global view of the operat-
+                             Pi,n
+                              tp =             e                        (16)
+                                        n!                                                  ing environment, the distributed agents observe their
+                                                                                            respective local operating environment and learn about
+      where µ is the arrival rate of vehicles. Using the
+                                                                                            their neighboring agents’ information (e.g., rewards
+      Poisson process, there are three main properties that
+                                                                                            and Q-values). The agents select their respective
+      attribute to a realistic traffic model [69]: a) the inter-
+                                                                                            actions, and the global Q-value converges to an optimal
+      arrival time is exponentially distributed; b) the inter-
+                                                                                            equilibrium in order to achieve an optimal joint action
+      arrival time is memoryless; and c) the number of
+                                                                                            as time goes by.
+      incoming vehicles at different lanes are independent
+      of each other.                                                                  2) TRAFFIC PHASES
+M.2.2 Real world-based traffic arrival rate determines the
+                                                                                      The traffic phases can be characterized as follows:
+      probability of the number of vehicles arriving at an
+                                                                                      T.2.1 With opposing through traffic is a traffic phase, which
+      intersection within a time period based on the travers-
+                                                                                            incorporates a four-phase traffic sequence, in which
+      ing properties of vehicles (e.g., lane switching, vehicle
+                                                                                            traffic travels through two opposing lanes simultane-
+      overtaking, driving direction, driving speed, and the
+                                                                                            ously as shown in Fig. 11a. It is preferred at intersec-
+      physical position of the destination). Some real world-
+                                                                                            tions where: a) either through or turning traffic volume
+      based traffic models are the car-following model [71]
+                                                                                            is significantly higher; and b) the through and turning
+      and the Nagel-Schereckenberg model [81].
+                                                                                            traffic use separate lanes [67].
+                                                                                      T.2.2 Without opposing through traffic is a traffic phase,
+C. TRAFFIC SIGNAL CONTROL MODELS
+                                                                                            which incorporates a four-phase traffic sequence,
+TSCs can be characterized by their architectures (e.g., TSCs
+                                                                                            in which traffic travels through two lanes with-
+and their relationship) and traffic phases. While the architec-
+                                                                                            out opposing each other simultaneously as shown
+ture characterizes the operation at the global level (or multiple
+                                                                                            in Fig. 11b. It is preferred at intersections where:
+intersections), the traffic phase characterize operation at the
+                                                                                            a) the through and turning traffic volumes are equal,
+local level (or a single intersection).
+                                                                                            and b) the through and turning traffic share a single
+                                                                                            lane [70].
+1) TSC ARCHITECTURES
+                                                                                      T.2.3 With grouped individual traffic is a traffic phase in
+In the context of DRL, the TSC architecture is as follows:                                  which green signals are individually allocated to lanes
+T.1.1 Centralized model enables a centralized agent to gather                               for a particular time period as long as the selected
+       local statistics (e.g., the queue length (S.1) of the lanes)                         combination of traffic movements are non-conflicting
+       from all or neighboring agents, and selects an action                                at an intersection [66].
+       (e.g., the type of traffic phase (A.1)), which optimizes
+       the system-wide performance. Subsequently, the cen-                            D. PERFORMANCE MEASURES
+       tralized agent either executes the action or sends the                         There are four performance measures achieved by DRL mod-
+       action or knowledge to distributed agents (e.g., all or                        els as follows:
+       neighboring agents). The distributed agents may either                         P.1 Lower average delay reduces the average time required
+       execute the action or use the knowledge to select their                             by vehicles to cross an intersection or to traverse from a
+       respective actions. A centralized model has three main                              source to a destination. The average time also includes
+       issues with regard to efficiency, scalability, and robust-                          the average waiting and travelling times during cross-
+       ness. Firstly, the centralized model has a single point of                          blocking and congestion.
+       failure whereby the malfunctioning of the centralized                          P.2 Lower average waiting time reduces the average waiting
+       agent can affect the traffic condition of the entire traffic                        time of the vehicles (see (R.1) in Section IV-C).
+       network. Secondly, the centralized agent experiences                           P.3 Smaller queue length reduces the queue length of
+       the curse of dimensionality. Thirdly, the centralized                               the vehicles (see (S.1) in Section IV-A and (R.2) in
+       agent incurs significant communication overhead for                                 Section IV-C).
+       information exchange. This model has been widely                               P.4 Higher throughput increases the number of vehicles
+       adopted by traditional TSCs, including GLIDE [82],                                  crossing an intersection, or reaching their destinations,
+       SCOOT [83], and SCAT [84].                                                          within a certain time period (e.g., a single cycle).
+
+VOLUME 8, 2020                                                                                                                                208027
+                                                                        F. Rasheed et al.: Deep Reinforcement Learning for Traffic Signal Control: A Review
+
+
+
+
+                            FIGURE 11. Traffic phases.
+
+
+
+
+IV. REPRESENTATIONS OF DEEP REINFORCEMENT                                        and yellow signals are activated, and si,l          t = 1 whenever
+                                                                                                                                         i
+LEARNING MODELS AND COMPLEXITY ANALYSIS FOR                                      green signal is activated, at the lane d l of a leg l i at
+                                                                                                                          i
+TRAFFIC SIGNAL CONTROL                                                           an intersection i. The state si,l     t      can also represent the
+The traditional DRL approach for TSC has been widely used                                          i,l i                    i        i
+                                                                                 green timing tg,t of the lanes d ∈ Dl of a leg l i at an
+                                                                                                                          l
+in the literature [66], [69] [74]. Extension to the traditional                  intersection i [70].
+DRL approach with enhanced features has also been inves-                     S.4 Current traffic phase represents the traffic phase being
+tigated as presented in Section II-D. The DRL agent can be                       activated at the time of decision making. At time t,
+embedded in TSC to coordinate vehicles [75], [76]. The rest                      the state sit can represent the traffic phase at an inter-
+of this section presents the attributes of DRL for TSC sys-                      section i, in which the number of substates is given
+tems. Fig. 12 presents the DRL attributes for TSC. In addition,                  by the number of candidate traffic phases. As an
+complexity analysis is presented.                                                example, the state sit = (si,1                 i,2 i,3         i,8
+                                                                                                                         t , st , st , . . . , st ) =
+                                                                                 (1, 0, 0, 0, 0, 0, 0, 0) represents that only traffic phase 1
+A. STATES
+                                                                                 is activated at time t [69].
+The state sit ∈ S i of an agent i represents its decision-                   S.5 Vehicle position represents the physical position of a
+                                                                 i,j
+making factors. Each state can consist of j sub-states st =                                                          i
+                                                                                 waiting vehicle at the lane d l of a leg l i at an intersection
+                           i,j
+(si,1   i,2 i,3
+  t , st , st , . . . , st ), in which the sub-states have different             i. Consider a lane segmented into small cells from the
+representations at intersection i. In the context of DRL, there                  intersection i, in which each cell can accommodate a
+are six main representations for a state sit :                                   single vehicle. The state sit = (si,1                 i,2 i,3         i,j
+                                                                                                                                t , st , st , . . . , st )
+S.1 Queue length represents the number of waiting vehicles                       represents the position of a cell, with the cell si,1         t being
+      at a lane or a leg, and so it changes with the traffic                                                                               i,j
+                                                                                 the nearest to the intersection i, and the cell st being the
+      arrival and departure rates. A waiting vehicle has a speed                 maximum queue length [74].
+      of 0 km/h. The state sit can represent the maximum                     S.6 Vehicle speed represents the speed of a moving vehicle
+      queue length among the lanes, in which the number of                                       i
+                                                                                 at the lane d l of a leg l i at an intersection i. Consider
+      states is given by the maximum queue length. As an                         a lane segmented into small cells, in which each cell
+      example, suppose there are three waiting vehicles at the                   can measure the speed of a single vehicle. At time t,
+      leg l of intersection i, so the states are si,l         = 1 for            the state sit = (si,1         i,2 i,3             i,j
+                                                                                                          t , st , st , . . . , st ) represents the
+                                                         t
+      the three waiting vehicles and si,l     t =   0 for  the moving            speed of a vehicle from the intersection i, whereby si,∗           t =
+      vehicles [67].                                                             {0, 0.1, 0.2, . . . , 0.9, 1}, si1 = 1 represents the maximum
+S.2 Red timing represents the time elapsed since the traffic                     legal speed of a vehicle (e.g., 90 km/h), and si1 = 0
+      signal of a lane turned into red at an intersection. The                   represents the minimum speed (i.e., 0 km/h) [66].
+      state is reset to a zero value si,l    t = 0 whenever green
+      and yellow signals are activated, and si,l    t = 1 whenever           B. ACTIONS
+                                                    i
+      a red signal is activated, at the lane d l of a leg l i at an          The action ait ∈ Ai of an agent i represents its selected action.
+                                              i
+      intersection i [70]. The state si,l   t can also represent the         In the context of DRL, there are two main representations for
+                     i,l i                  i     i
+      red timing tr,t       of the lanes d l ∈ Dl of a leg l i at an         an action ait :
+      intersection i.                                                        A.1 Traffic phase type represents the selection of a
+S.3 Green timing represents the time elapsed since the traffic                    combination of green signals allocated simultane-
+      signal of a lane turned into green at an intersection. The                  ously for non-conflicting traffic flows at an intersec-
+      state is reset to a zero value si,l     t = 0 whenever red                  tion. The traffic phases can be activated in one of
+
+208028                                                                                                                                      VOLUME 8, 2020
+F. Rasheed et al.: Deep Reinforcement Learning for Traffic Signal Control: A Review
+
+
+
+
+         FIGURE 12. DRL attributes for TSC.
+
+
+    these manners: a) in-order (i.e., round-robin with cer-                               increment/decrement of the queue length of the vehicles
+    tain periods of traffic phase splits); and b) out-of-order.                           at an intersection. The reward rt+1 i (si ) is a relative
+                                                                                                                                   t+1
+    At time t, an action ait = {ai1 , ai2 , ai3 , . . . , ain } at an inter-              value. As an example, rt+1 (st+1 ) = nic,t+1 − niq,t+1
+                                                                                                                      i    i
+    section i represents one of the activated traffic phases.                             represents the difference between the number of vehicles
+    The number of candidate actions is equal to the number                                crossing an intersection nic,t+1 and the queue length
+    of traffic phases [66], [67].                                                         niq,t+1 , and it indicates whether the green time is suffi-
+A.2 Traffic phase split represents the selection of a time                                cient or not at an intersection i [79].
+    interval for a traffic phase at an intersection i. The                            R.3 Phase transition represents the cost of a traffic phase
+    action ait = {ai1 , ai2 } represents whether agent i keeps                            transition, such as the time delay incurred during the
+    the current traffic phase (ai1 ), or switches to another                              transition of a traffic phase [74].
+    traffic phase (ai2 ) which normally happens when the
+    current traffic phase does not receive the best possible                          D. COMPLEXITY ANALYSIS
+    reward [71].                                                                      In this section, the computational, sample, and message
+                                                                                      complexities of DRL models for TSCs are estimated. The
+C. REWARDS                                                                            complexity analysis conducted in this section is inspired by
+The reward rt+1  i (si ) ∈ Ri of an agent i represents its
+                      t+1                                                             similar investigation performed in [111], [112]. The complex-
+feedback from the operating environment, where Ri is a set                            ity analysis has two levels: a) agent-wise that considers all the
+of potential rewards at agent i. The reward value can be                              state-action pairs (st , at ) of an agent, and b) network-wide
+fixed, such as rt+1i (si ) = 1 that represents a reward and
+                        t+1                                                           that considers all agents in a network. Note that, we focus
+  i    i
+rt+1 (st+1 ) = 0 that represents a cost (or penalty). In the                          on exploitation actions while analyzing the DRL algorithm.
+context of DRL, there are three main representations for a                            The parameters for complexity analysis are shown in Table 3.
+reward rt+1i (si ) as follows:
+                t+1                                                                   The agent-wise and network-wide complexities of DRL for
+R.1 Relative waiting time. In this representation, an agent                           TSCs are presented in Table 4. In the table, it should be noted
+      receives rewards (or costs) that change with the average                        that: a) an agent-wise complexity is shown without |I |, and
+      waiting time of the vehicles at an intersection. The aver-                      a network-wide complexity is shown with |I |; and b) DRL
+      age waiting time of the vehicles at an intersection can                         models with a single agent show agent-wise complexities,
+      increase due to cross-blocking, congestion, or red signal.                      and DRL models with multiple agents show network-wide
+                    i (si ) is a relative value. As an example,
+      The reward rt+1                                                                 complexities. The three types of complexities of DRL models
+                          t+1
+       i     i                i
+      rt+1 (st+1 ) = Wti − Wt+1 represents the difference of the                      for TSC is presented in the rest of this section.
+      average total waiting time of all vehicles at intersection i
+      at time t and time t + 1 (or between traffic phases) [69],                      1) COMPUTATIONAL COMPLEXITY
+      [71] [66], [68].                                                                Computational complexity estimates the number of times the
+R.2 Relative queue length. In this representation, an agent                           DRL algorithm is being executed in order to calculate the
+      receives rewards (or costs) that change with the                                Q-values for all actions of the agents, and it also refers to
+
+VOLUME 8, 2020                                                                                                                                  208029
+                                                                  F. Rasheed et al.: Deep Reinforcement Learning for Traffic Signal Control: A Review
+
+
+
+
+TABLE 3. Parameters for complexity analysis.                           example, in Gong’s MARL algorithm for DRL (see Algo-
+                                                                       rithm 3), each agent i exchanges its traffic network condition
+                                                                       (i.e., queue length) with its neighboring agents J (see Step
+                                                                       4 and 5 of Algorithm 3), so the agent-wise complexity is
+                                                                       ≤ |J |, and the network-wide complexity is ≤ |I ||J |.
+
+                                                                       V. APPLICATION OF DEEP REINFORCEMENT LEARNING
+                                                                       FOR TRAFFIC SIGNAL CONTROL SYSTEMS
+                                                                       This section presents the limited application of the traditional
+                                                                       and enhanced DRL models to TSCs. There are five main
+                                                                       DL architectures, namely the traditional FCLN (N.1), CNN
+                                                                       (N.2), SAE (N.3), 3DQN (N.4), and LSTM (N.5), which
+the complexity of action selection. For the agent-wise com-
+                                                                       are applied to TSC in the literature. The DL architectures
+putational complexity, there are |S| states, and |A| actions,
+                                                                       are essential to cater for the high-dimensional state space in
+and so the complexity is O(|S||A|) and the network-wide com-
+                                                                       order to address the curse of dimensionality in TSCs. Hence,
+plexity is O(|I ||S||A|). As an example, in Gong’s DRL model,
+                                                                       this section is presented from the DRL perspective, rather
+where the traditional MARL algorithm (see Algorithm 3) is
+                                                                       than TSCs, and so the categorization is based on the DL
+used, an agent i calculates the reward and updates its Q-value
+                                                                       architectures. Nevertheless, the TSC attributes are captured
+(Step 9), so the agent-wise complexity is O|S| + O(|S||A|),
+                                                                       by the state representations, such as queue length (S.1), red
+which can be simplified as O(|S||A|). Therefore, the network-
+                                                                       timing (S.2), green timing (S.3), current traffic phase (S.4),
+wide complexity is O(|I ||S|) + O(|I ||S||A|), which can be
+                                                                       vehicle position (S.5), and vehicle speed (S.6). A summary
+simplified as O(|I ||S||A|).
+                                                                       of the various DRL models and their descriptions applied
+   For estimating the agent-wise and network-wide computa-
+                                                                       to TSCs is presented in Table 5. Each DRL model has its
+tional complexities of the A2C-based method, which consists
+                                                                       strength. For instance, while 3DQN has been widely used
+of actor and critic networks, the number of neurons in each
+                                                                       to increase the learning speed, CNN has been widely used
+layer as well as the number of layers in the network are con-
+                                                                       to analyze visual imagery. Table 7 presents a summary of
+sidered. For the actor network, the number of neurons in the
+                                                                       the DRL attributes of the DRL-based TSCs proposed in the
+mth layer is Um , and the number of layers in the actor network
+                                                                       literature. In the literature, all DRL models are embedded
+is M . So, the computational complexity of the mth layer is
+                                                                       in TSCs, and so the agent is TSC (G.1). A summary of the
+O(Um−1 Um + Um Um+1 ), P     and the computational complexity
+                                 −1                                    TSC attributes applied in the investigations of DRL-based
+of the actor network is O( M   m=2 (Um−1 Um + Um Um+1 )). For          TSCs is presented in Table 6. Table 8 presents a summary
+the critic network, the number of neurons in the nth layer
+                                                                       of key contributions, quantitative results/findings, and future
+of the critic network is Cn , and the number of layers in
+                                                                       directions of DRL-based TSC investigations. Subsequently,
+the critic network is N . So, the computational complexity
+                                                                       Section VI makes use of Tables 5-8 to provide guidelines
+of the nth layer is O(Cn−1 Cn + Cn Cn+1 ),Pand the compu-
+                                                  −1                   and design considerations for identifying DRL solutions for
+tational complexity of critic network is O( N   n=2 (Cn−1 Cn +         different TSC problems. Table 9 presents a summary of the
+Cn Cn+1 )). During execution, both actor and critic networks
+                                                                       performance measures and simulation platforms applied to
+are used, so the agent-wise   P computational    complexity of
+                                  −1                                   the DRL-based TSC investigations.
+A2C-based method is O( M         m=2 (Um−1 Um + Um Um+1 ) +
+PN −1
+   n=2 (Cn−1 Cn + Cn Cn+1 )), and it is O(|Um , Cn |) for sim-         A. ENHANCEMENT OF THE DRL MODELS WITH
+plicity. So, the network-wide computational complexity is
+                                                                       TRADITIONAL FCLN ARCHITECTURE
+O(|I ||Um , Cn |).
+                                                                       The enhancement of various DRL models based on the tra-
+2) SAMPLE COMPLEXITY                                                   ditional FCLN architecture and the value-based approach for
+Sample complexity estimates the number of experiences an               TSCs are presented.
+agent takes to learn in order to behave well during and after
+training, and it also refers to the complexity of the training         1) WAN’s ENHANCEMENT WITH DYNAMIC DISCOUNT
+process. As an example, in the traditional DRL algorithm (see          FACTOR
+Algorithm 2), an agent gains an experience after interacting           Wan et al. [70] incorporate a dynamic discount factor, which
+with the environment, which is stored in its replay memory             is an enhancement to the discount factor γ in Equation (6),
+(see Step 7 of Algorithm 2), so the agent-wise complexity              to the traditional FCLN architecture (N.1) and the value-
+is O(|S||A||R|) given that there are |R| rewards. Therefore,           based approach (E.1). The combination of the traditional
+the network-wide complexity is O(|I ||S||A||R|).                       FCLN architecture and the value-based approach allows this
+                                                                       approach to use FC layers (see Fig. 3) to provide efficient
+3) MESSAGE COMPLEXITY                                                  storage while mapping each state-action pair to a state value
+Message complexity is the number of messages exchanged                 (see Table 5 for more details). The DRL model optimizes
+among the agents in order to update a Q-value. As an                   the Q-values to address the challenge of inappropriate traffic
+
+208030                                                                                                                                VOLUME 8, 2020
+F. Rasheed et al.: Deep Reinforcement Learning for Traffic Signal Control: A Review
+
+
+
+
+TABLE 4. Agent-wise and network-wide complexities of DRL for TSCs.
+
+
+
+
+phase sequence (C.1) using a centralized model (T.1.1) in a                           (T.1.1) in a single intersection traffic network (M.1.1) with
+single intersection traffic network (M.1.1) with (T.2.1) and                          opposing through traffic (T.2.1). The traffic is characterized
+without opposing through traffic (T.2.2). The traffic is charac-                      by Poisson process (M.2.1). This model is embedded in the
+terized by Poisson process (M.2.1). This model is embedded                            TSC of the intersection (G.1). The state st represents the
+in the TSC of the intersection (G.1). The state st represents                         queue length (S.1) of the vehicles. The action at represents
+the queue length (S.1), the red (S.2) and green (S.3) timings,                        the type of traffic phase to be activated in the next time instant
+and the current traffic phase (S.4). The action at represents                         (A.1). In the proposed scheme, a novel reward function is
+the type of traffic phase to be activated in the next time                            defined to achieve multiple goals as follows:
+instant (A.1). The reward rt+1 (st+1 ) represents the relative
+                                                                                      rt+1 (st+1 ) = (niq,t − niq,t+1 )+(nic,t −nic,t+1 )+(Wti −Wt+1
+                                                                                                                                                 i
+                                                                                                                                                     )
+waiting time (R.1) of the vehicles. In the proposed scheme,
+the dynamic discount factor takes account of the time delay                                                                                        (18)
+between action selection and action execution. When the next                          where, with reference to an intersection i at time t and t + 1,
+action (i.e., a traffic phase) is selected, it may not be executed                    the niq,t − niq,t+1 represents the difference in the total number
+immediately since a traffic phase can only change every pre-                          of waiting vehicles, nic,t − nic,t+1 represents the difference in
+defined time period (i.e., five seconds). Hence, the discount                                                                             i
+                                                                                      the number of crossing vehicles, and Wti − Wt+1         represents
+factor reduces when the time delay increases so that the
+                                                                                      the difference in the total waiting time of all vehicles.
+expected Q-value varies accurately. Equation (6) is revised
+                                                                                         The proposed scheme has been shown to reduce the queue
+as follows:
+                                                                                     length (P.3) of the vehicles.
+      
+       rj+1 (sj+1 ),                  if an episode terminates
+                                                                                      B. DRL MODELS WITH CNN ARCHITECTURE
+      
+                                      with sj+1
+ yj =                                                         (17)                    The application of various DRL models with the traditional
+      
+       rj+1 (sj+1 )
+                                                                                     CNN architecture, as well as value-based and PG-based
+        + 0 maxa Q(sj+1 , a; θj ), otherwise
+      
+                                                                                      approaches, for TSCs are presented.
+where 0 = 1 − τ (1 − γ ) represents the dynamic discount
+factor, and τ represents the time interval between two consec-                        1) INVESTIGATIONS OF THE EFFECTS OF LARGE STATE
+utive actions. Higher τ represents a longer time delay between                        SPACE
+action selection and action execution, and vice-versa.                                Genders et al. [66] investigate the use of a large state space
+   The proposed scheme has been shown to increase the                                 to incorporate more information about the traffic. This is
+throughput (P.4) and reduce the average delay (P.1) of the                            because some popular state representations, such as queue
+vehicles.                                                                             length (S.1) [72], [79], ignore the current traffic phase and
+                                                                                      moving vehicles, including the position (S.5) and speed (S.6)
+2) TAN’s ENHANCEMENT WITH REWARD FUNCTION FOR                                         of vehicles. The DRL model is based on the CNN architecture
+ACHIEVING MULTIPLE GOALS                                                              (N.2) and the value-based approach (E.1). The combination
+Tan et al. [72] incorporate a novel reward function, which                            of the CNN architecture and the value-based approach allows
+is an enhancement to the reward function rt+1    i (si ) =
+                                                      t+1                             this approach to the convolutional architecture (see Fig. 5) to
+   i      i
+Wt − Wt+1 (R.1), to the traditional FCLN architecture (N.1)                           analyze visual imagery while mapping each state-action pair
+and the value-based approach (E.1). The combination of the                            to a state value (see Table 5 for more details). This model
+traditional FCLN architecture and the value-based approach                            optimizes the Q-values to address the challenge of inappro-
+allows this approach to use FC layers (see Fig. 3) to provide                         priate traffic phase sequence (C.1) using a centralized model
+efficient storage while mapping each state-action pair to a                           (T.1.1) in a single intersection traffic network (M.1.1) with
+state value (see Table 5 for more details). The DRL model                             grouped individual traffic (T.2.3). The traffic is characterized
+optimizes the Q-values to address the challenge of inappro-                           by Poisson process (M.2.1). This model is embedded in the
+priate traffic phase sequence (C.1) using a centralized model                         TSC of the intersection (G.1). The state st represents the
+
+VOLUME 8, 2020                                                                                                                                   208031
+                                                                       F. Rasheed et al.: Deep Reinforcement Learning for Traffic Signal Control: A Review
+
+
+
+
+TABLE 5. Summary of DRL models to address the challenges of TSC.
+
+
+
+
+current traffic phase (S.4), the vehicle position (S.5), and the            algorithm (see Algorithm 2) in order to enable coordination
+vehicle speed (S.6), and they are fed to the input layer of                 among multiple agents. The DRL model is based on the
+the CNN architecture. The action at represents the type of                  CNN architecture (N.2) and the value-based approach (E.1).
+traffic phase to be activated in the next time instant (A.1). The           The combination of the CNN architecture and the value-
+reward rt+1 (st+1 ) represents the relative waiting time (R.1)              based approach allows this approach to use the convolutional
+of the vehicles. In this model, the traditional DQN algorithm               architecture (see Fig. 5) to analyze visual imagery while
+(see Algorithm 2) is used, which is based on the value-based                mapping each state-action pair to a state value (see Table 5 for
+method. This value-based method identifies the best possible                more details). This model optimizes the Q-values to address
+action (i.e., A.1) for the states (i.e., S.4, S.5, and S.6). The use        the challenge of inappropriate traffic phase sequence (C.1)
+of a large state space allows agents to incorporate more rele-              using a distributed model (T.1.2) in a multi intersection traffic
+vant information about the traffic, and it has shown to increase            network (M.1.2) and a grid traffic network (M.1.4) with
+the computational and storage complexities, and reduce the                  opposing through traffic (T.2.1). The traffic is characterized
+learning rate. Nevertheless, the proposed scheme has shown                  by a real world traffic model (M.2.2), specifically the Krauß
+to increase throughput (P.4) and reduces the average delay                  car-following model [90]. This model is embedded in each
+(P.1) and queue length (P.3) of the vehicles.                               intersection (G.1), where the state st represents the current
+   Similar model and approach has been adopted by Gao et al.                traffic phase (S.4), the vehicle position (S.5), and the vehicle
+[69]. There are two main differences. Firstly, the action at                speed (S.6). The action at represents the type of traffic phase
+represents the choice to either keep the current traffic phase or           to be activated in the next time instant (A.1). The reward
+switch to the next traffic phase in a predetermined sequence                rt+1 (st+1 ) represents the relative waiting time (R.1) of the
+of traffic phases at the next time instant (A.2), which helps               vehicles, and the phase transition (R.3) of the traffic phases.
+to address the challenge of inappropriate traffic phase split                  The max-plus coordination algorithm, which serves as
+(C.2). Secondly, it uses the centralized model (T.1.1) with                 the enhancement for multi-agent reinforcement learning
+(T.2.1) and without opposing through traffic (T.2.2). The                   (MARL) [91]–[95], enables an agent to learn about its neigh-
+proposed scheme has shown to reduce the average delay (P.1)                 boring agents’ information, such as locally optimized payoff
+and waiting time (P.2).                                                     values (e.g., reward achieved by an individual agent). The
+                                                                            proposed scheme maximizes a global Q-function, which is
+2) VAN DER POL’s ENHANCEMENT WITH MAX-PLUS
+                                                                            the linear combination of the local Q-values, as follows:
+COORDINATION AND TRANSFER PLANNING
+Van der Pol et al. [74], [76] incorporate max-plus coordina-
+                                                                                                               X
+                                                                                           QiGt (sit , ait ) =   Qint ∈Nt (sint , aint ) (19)
+tion [88] and transfer planning [89] into the traditional DQN                                                   n
+
+208032                                                                                                                                     VOLUME 8, 2020
+F. Rasheed et al.: Deep Reinforcement Learning for Traffic Signal Control: A Review
+
+
+
+
+TABLE 6. Summary of TSC attributes applied in DRL-based TSCs.
+
+
+
+
+where N corresponds to a set of all agents in the network.                            architecture (see Fig. 5) to analyze visual imagery while
+The transfer planning approach enables agents to learn a                              mapping each state-action pair to a state value (see Table 5
+large problem by decomposing it into smaller source prob-                             for more details). This model optimizes the Q-values to
+lems. The term ‘transfer’ refers to the transferring of learning                      address the challenge of inappropriate traffic phase sequence
+among multiple agents. The max-plus coordination algo-                                (C.1) using a centralized model (T.1.1) in a real world traffic
+rithm and the transfer planning approach compute the global                           network (M.1.3), which is based on an urban traffic network
+Q-value in order to achieve the global objective of a traffic                         in Jinan, China, with opposing through traffic (T.2.1). The
+network.                                                                              traffic is characterized by a real world traffic model (M.2.2).
+   The proposed scheme has been shown to reduce the aver-                             This model is embedded in each intersection (G.1), where the
+age delay (P.1) of the vehicles.                                                      state st represents the queue length (S.1), the current traffic
+                                                                                      phase (S.4), and the vehicle position (S.5). The proposed
+3) INVESTIGATION OF THE EFFECTS OF REAL WORLD                                         scheme is applied to 24 intersections. The action at represents
+TRAFFIC DATASET                                                                       the type of traffic phase to be activated in the next time instant
+Wei et al. [78] investigate the use of a real world traffic                           (A.1). The reward rt+1 (st+1 ) represents the relative waiting
+dataset consisting of data of more than 405 million vehicles                          time (R.1), the relative queue length (R.2) of the vehicles, and
+recorded by using 1,704 surveillance cameras in Jinan, China                          the phase transition (R.3) of the traffic phases. In the proposed
+covering 935 locations, out of which 43 of them are four-                             scheme, the recorded data consists of the timing information
+way intersections. The data is collected within a time period                         (i.e., peak hours 7-9 A.M. and 5-7 P.M., and non-peak hours),
+from 1st to 31st August 2016. The DRL model is based on the                           the ID of each surveillance camera, and vehicular data (i.e.,
+CNN architecture (N.2) and the value-based approach (E.1).                            the position (S.5) of each vehicle). The recorded real world
+The combination of the CNN architecture and the value-                                traffic data is fed to the input layer of the CNN architecture,
+based approach allows this approach to use the convolutional                          and the output layer provides the Q-value of each possible
+
+VOLUME 8, 2020                                                                                                                                   208033
+                                                                    F. Rasheed et al.: Deep Reinforcement Learning for Traffic Signal Control: A Review
+
+
+
+
+TABLE 7. Summary of DRL attributes for TSCs.
+
+
+
+
+action, which is the type of traffic phase to be activated in the        vehicles. The value-based method maps each state-action pair
+next time instant (A.1).                                                 to a value Vt (st ) in order to identify the best possible action
+   The proposed scheme has been shown to increase through-               for each state, and the PG-based method selects an action for
+put (P.4) and reduce the average delay (P.1) and the queue               a certain state based on a policy. The value-based method
+length (P.3) of the vehicles.                                            achieves a slightly higher value of reward and outperforms
+                                                                         the PG-based method.
+4) COMPARISON OF VALUE-BASED AND PG-BASED                                   The proposed scheme has been shown to reduce the aver-
+METHODS                                                                  age delay (P.1) and the queue length (P.3) of the vehicles,
+Mousavi et al. [68] compare the two different types of                   and so both value-based and PG-based methods are suitable
+DRL methods, namely the value-based method (E.1) and the                 for TSC.
+PG-based method (E.2), in TSCs. The DRL model is based
+on the CNN architecture (N.2). The combination of the CNN                C. DRL MODEL WITH SAE NEURAL NETWORK
+architecture and both value-based and PG-based methods                   ARCHITECTURE
+allows this approach to use the convolutional architecture               The application of DRL model based on the traditional SAE
+(see Fig. 5) to analyze visual imagery while mapping each                neural network architecture and the value-based approach for
+state-action pair to a state value and selecting an action for           TSC is presented.
+a particular state (i.e., image) (see Table 5 for more details).
+This model optimizes the Q-values to address the challenge of            1) INVESTIGATION OF THE EFFECTS OF SAE NEURAL
+inappropriate traffic phase sequence (C.1) using a centralized           NETWORK ARCHITECTURE
+model (T.1.1) in a single intersection traffic network (M.1.1)           Li et al. [67] investigate the use of the SAE neural network
+with opposing through traffic (T.2.1). The traffic is character-         architecture that performs encoding and decoding functions
+ized by Poisson process (M.2.1). This model is embedded in               to TSC. The DRL model is based on the SAE neural net-
+the TSC of the intersection (G.1). The state st represents the           work architecture (N.3) and the value-based approach (E.1).
+current traffic phase (S.4), and the queue length (S.1) of the           The combination of the SAE architecture and the value-
+vehicles. The action at represents the type of traffic phase             based approach allows this approach to use the encoding
+to be activated in the next time instant (A.1). The reward               and decoding functions (see Fig. 6) to compress data while
+rt+1 (st+1 ) represents the relative waiting time (R.1) of the           mapping each state-action pair to a state value (see Table 5 for
+
+
+208034                                                                                                                                  VOLUME 8, 2020
+F. Rasheed et al.: Deep Reinforcement Learning for Traffic Signal Control: A Review
+
+
+
+
+TABLE 8. Summary of key contributions, quantitative results/findings, and future directions.
+
+
+
+
+VOLUME 8, 2020                                                                                 208035
+                                                                    F. Rasheed et al.: Deep Reinforcement Learning for Traffic Signal Control: A Review
+
+
+
+
+TABLE 9. Summary of traffic simulators and performance measures.
+
+
+
+
+more details). This model optimizes the Q-values to address              1) LIANG’s ENHANCEMENT WITH PRIORITIZED
+the challenge of inappropriate traffic phase split (C.2) using           EXPERIENCE REPLAY
+a centralized model (T.1.1) in a single intersection traffic             Liang et al. [71] incorporate a prioritized experience replay
+network (M.1.1) with opposing through traffic (T.2.1). This              approach [96] to the traditional 3DQN architecture (N.4),
+model is embedded in each intersection (G.1), where the state            which consists of double Q-learning and a dueling network,
+st represents the queue length (S.1) of the vehicles. The action         and the value-based approach (E.1), running the DQN algo-
+at represents the choice to either keep the current traffic phase        rithm (see Algorithm 2). The combination of the 3DQN archi-
+or switch to the next traffic phase in a predetermined sequence          tecture and the value-based approach allows this approach
+of traffic phases at the next time instant (A.2). The reward             to use double Q-learning and a dueling network to increase
+rt+1 (st+1 ) represents the relative waiting time (R.1) and the          the learning speed (see Fig. 7) while mapping each state-
+relative queue length (R.2) of the vehicles. In the proposed             action pair to a state value (see Table 5 for more details).
+scheme, the SAE neural network architecture consists of one              This model optimizes the Q-values to address the challenge
+input, two hidden, and one output layers. The input layer                of inappropriate traffic phase split (C.2) using a centralized
+encodes the input data, such as the queue length (S.1) of                model (T.1.1) in a single intersection traffic network (M.1.1)
+the vehicles, using an encoding function (see Equation (10)),            with (T.2.1) and without opposing through traffic (T.2.2). The
+to provide compressed data. The second hidden layer recon-               traffic is characterized by a real world traffic model (M.2.2).
+structs the data using a decoding function (see Equation (10)).          This model is embedded in the TSC of the intersection (G.1).
+Finally, the output layer provides the Q-value of each possible          The state st represents the position (S.5) and speed (S.6) of
+action.                                                                  the vehicles. The action at represents the choice to either keep
+   The proposed scheme has been shown to reduce the aver-                the current traffic phase or switch to the next traffic phase in
+age delay (P.1) and the queue length (P.3) of the vehicles.              a predetermined sequence of traffic phases at the next time
+                                                                         instant (A.2). The reward rt+1 (st+1 ) represents the relative
+D. DRL MODELS WITH 3DQN ARCHITECTURE                                     waiting time (R.1) of the vehicles. In the proposed scheme,
+The application of various DRL models with the traditional               the prioritized experience replay chooses experiences from
+3DQN architecture and the value-based approach for TSCs is               the replay memory on the priority basis in order to increase
+presented.                                                               the learning rate. The prioritized experience replay ranks an
+
+208036                                                                                                                                  VOLUME 8, 2020
+F. Rasheed et al.: Deep Reinforcement Learning for Traffic Signal Control: A Review
+
+
+
+
+experience i, which increases its replay probability, based on                           The proposed scheme has been shown to increase the
+the temporal difference error δ calculated as follows:                                throughput (P.4) and reduce the average delay (P.1) of the
+                     δi = |Q(s, a; θ)i − Q(s, a; θ − )i |                  (20)       vehicles.
+
+where an experience with a lower error is being ranked higher                         Algorithm 3 MARL Algorithm for DRL
+(or prioritized). The replay probability of experience i is                            1: Procedure
+calculated as follows:                                                                 2:   for episode = 1: M do
+                                ℘
+                              p                                                        3:     observe current state sit
+                       Pi = P i ℘                        (21)
+                               k pk                                                    4:     send Q-value Qit (sit , ait ) to neighboring agents J i
+                                                                                                                  j j
+where pi is the priority of an experience i, and ℘ represents                          5:     receive maxaj ∈A Qt (st , aj ) from agent j ∈ J i
+the priority level. Higher ℘ represents a higher priority, and                         6:        for t = 1 : T do
+vice-versa, while ℘ = 0 represents a random sampling.                                  7:           perform steps 5 to 13 of Algorithm 2
+   The proposed scheme has been shown to reduce the aver-                              8:        end for
+age waiting time (P.2) of the vehicles.                                                9:     update Q-value Qit+1 (sit , ait ) using Equation (22)
+                                                                                      10:   end for
+2) GONG’s ENHANCEMENT WITH MARL                                                       11: End Procedure
+Gong et al. [77] incorporate MARL to the traditional 3DQN
+architecture (N.4), which consists of double Q-learning and a
+dueling network, and the value-based approach (E.1), running
+                                                                                      3) INVESTIGATION OF THE EFFECTS OF HIGH-RESOLUTION
+the DQN algorithm (see Algorithm 2). The combination of
+                                                                                      EVENT-BASED DATA
+the 3DQN architecture and the value-based approach allows
+                                                                                      Wang et al. [86] investigate the use of high-resolution event-
+this approach to use double Q-learning and a dueling network
+                                                                                      based data that includes a large amount of useful informa-
+to increase the learning speed (see Fig. 7) while mapping
+                                                                                      tion about vehicles, including their movements and positions.
+each state-action pair to a state value (see Table 5 for more
+                                                                                      The DRL model is based on the 3DQN architecture (N.4)
+details). MARL enables coordination among multiple agents.
+                                                                                      and the value-based approach (E.1). The combination of the
+This model optimizes the Q-values to address the challenge of
+                                                                                      3DQN architecture and the value-based approach allows this
+inappropriate traffic phase sequence (C.1) in a multi intersec-
+                                                                                      approach to use double Q-learning and a dueling network
+tion traffic network (M.1.2) and a real world traffic network
+                                                                                      to increase the learning speed (see Fig. 7) while mapping
+(M.1.3), which is based on an urban traffic network in Florida,
+                                                                                      each state-action pair to a state value (see Table 5 for more
+United States, using a distributed model (T.1.2). The traffic
+                                                                                      details). This model optimizes the Q-values to address the
+is characterized by a real world traffic model (M.2.2). This
+                                                                                      challenge of inappropriate traffic phase sequence (C.1) using
+model is embedded in the TSC of the intersection (G.1). The
+                                                                                      a centralized model (T.1.1) in a single intersection traffic
+state st represents the queue length (S.1), and the position
+                                                                                      network (M.1.1) with (T.2.1) and without opposing through
+(S.5), of the vehicles. The action at represents the type of
+                                                                                      traffic (T.2.2). The traffic is characterized by a real world
+traffic phase to be activated in the next time instant (A.1). The
+                                                                                      traffic model (M.2.2). This model is embedded in the TSC
+reward rt+1 (st+1 ) represents the relative waiting time (R.1) of
+                                                                                      of the intersection (G.1). The state st represents the green
+the vehicles. In the proposed scheme, the MARL algorithm
+                                                                                      timing (S.3), and the vehicle position (S.5). The action at
+enables agents to exchange information (i.e., rewards and
+                                                                                      represents the type of traffic phase to be activated (A.1) in
+Q-values) with each other in order to coordinate their actions.
+                                                                                      the next time instant. The reward rt+1 (st+1 ) represents the
+   Algorithm 3 shows the MARL algorithm for DRL. At time
+                                                                                      relative waiting time (R.1), and the relative queue length
+instant t, an agent i observes the current state sit ∈ S from the
+                                                                                      (R.2) of the vehicles. The high-resolution event-based data
+operating environment, and sends its own Q-value Qit (sit , ait )
+                                                                                      provides a large amount of useful information about the
+to the neighboring agents J i . Subsequently, following steps
+                                                                                      vehicle, such as vehicular movement and position. The high-
+5 to 13 of Algorithm 2, agent i receives the optimal Q-value
+            j j                                                                       resolution event-based data keeps track of: a) the time of
+maxaj ∈A Qt (st , aj ) from each neighboring agent j ∈ J i , selects
+                                                                                      each vehicle arriving at and departing from an inductive loop
+an action ait ∈ A based on the Q-value at time t, and then
+                         i (si ) under the next state si                              detector (or vehicle detector); and b) the time gap between
+receives a reward rt+1       t+1                           t+1 ∈ S                    two consecutive vehicles, which is the time gap between
+at time t + 1. Finally, the agent i updates Q-value Qit (sit , ait ).
+                                                                                      the two vehicles arriving at and departing from the detector.
+Based on Equation (2), the Q-value Qit (sit , ait ) is updated using
+                                                                                      The 3DQN architecture consists of one input layer, three
+Q-function as follows [97]:
+                                                                                      convolutional layers, three FC layers (in which the third FC
+             Qit+1 (sit , ait ) ← Qit (sit , ait ) + αδti (sit , ait )     (22)       layer is split into two separate streams as explained in N.4),
+                                           j       j       j                          and one output layer. The input layer receives the accurate
+   Meanwhile, the Q-value Qt (st , at ) of a neighboring agent
+                                                                                      traffic information, and the output layer provides an accu-
+j ∈ J i is updated using Q-function as follows:
+                                                                                      rate Q-value for each possible action based on the accurate
+                 j      j   j          j       j       j       j   j   j
+             Qt+1 (st , at ) ← Qt (st , at ) + αδt (st , at )              (23)       information [98].
+
+VOLUME 8, 2020                                                                                                                                   208037
+                                                                    F. Rasheed et al.: Deep Reinforcement Learning for Traffic Signal Control: A Review
+
+
+
+
+  The proposed scheme has been shown to increase through-                which are applied with DRL solutions. Table 7 provides a
+put (P.4) and reduce the queue length of vehicles (P.3).                 summary of various DRL attributes, including agent (i.e.,
+                                                                         TSC), states, actions, rewards, and DRL methods for TSCs.
+E. DRL MODEL WITH LSTM NEURAL NETWORK                                    Table 8 provides a summary of various key contributions,
+ARCHITECTURE                                                             quantitative results/findings, and future directions that have
+The application of DRL model based on the traditional LSTM               been presented in the literature. These tables can be used to
+neural network architecture and the A2C-based approach for               identify the suitable DRL solutions for different TSC prob-
+TSC is presented.                                                        lems. Two main aspects must be considered when applying
+                                                                         DRL to TSCs. Firstly, an open issue or a problem needs to be
+1) INVESTIGATION OF THE EFFECTS OF LSTM NEURAL                           identified and well understood. This includes the objectives,
+NETWORK ARCHITECTURE                                                     the problem statement, as well as the research questions of the
+Chu et al. [79] investigate the use of LSTM neural net-                  problem. Secondly, the research questions are answered. The
+work architecture that provides memory to memorize pre-                  guidelines and considerations for applying DRL to TSCs are
+vious inputs of TSC. The DRL model is based on the                       presented based on a sample case study [71] being referred
+LSTM neural network architecture (N.5) and the A2C-                      to throughout this subsection. In [71], a DRL model with the
+based approach (E.3). The combination of LSTM and the                    3DQN architecture and the value-based approach is applied to
+A2C-based approach allows this approach to use the LSTM                  TSC in order to reduce the average travel time of the vehicles.
+neural network (see Fig. 8) to provide memorization of previ-            Next, we define the state, action and reward representations,
+ous inputs while combining both value-based and PG-based                 and discuss the selection of the method for DRL. Lastly,
+methods to control its behavior and to measure the suitability           we define the DL architecture. In general, the state captures
+of the selected action (see Table 5 for more details). This              the TSC attributes, such as queue length (S.1), red timing
+model optimizes the Q-values to address the challenge of                 (S.2), green timing (S.3), current traffic phase (S.4), vehicle
+inappropriate traffic phase sequence (C.1) using a distributed           position (S.5), and vehicle speed (S.6), and so it has a direct
+model (T.1.2) in a multi intersection traffic network (M.1.2),           relevance to the problem. This explains that the state, action,
+an urban traffic network based on Monaco (M.1.3), and a                  and reward representations are defined prior to method and
+grid traffic network (M.1.4) with opposing through traffic               network architecture.
+(T.2.1). The traffic is characterized by a real world traffic
+model (M.2.2). This model is embedded in the TSC of the                  A. DEFINING STATE
+intersection (G.1). The state st represents the queue length             The decision-making factors that an agent observes from
+(S.1) of the vehicles. The action at represents the type of              the operating environment should be well defined. Table 7
+traffic phase to be activated in the next time instant (A.1). The        provides a summary of how states (see Fig. 12) have been rep-
+reward rt+1 (st+1 ) represents the relative waiting time (R.1)           resented in the literature. For instance, in [71], the objective is
+and the relative queue length (R.2) of the vehicles. In the              to maximize the reward in order to reduce the average waiting
+proposed scheme, the A2C-based method has been used with                 time of the vehicles at an intersection. Therefore, the agent
+the LSTM neural network architecture, which consists of one              represents a state with the position (S.5) and speed (S.6) of a
+input, one FC, one LSTM (i.e., memory cell), and one output              vehicle. Upon observation of the state, the agent can decide its
+layer. The output layer is separated into two streams: a) actor,         action, which is based on the state. Similar to other schemes
+which controls the behavior of an agent (i.e., policy-based);            [67], [79], the input layer consists of input neurons. In [71],
+and b) critic, which measures the suitability of the selected            the input layer represents a grid with a size of 60 × 60, where
+action (i.e., value-based). The gradient of the loss function            there are 60 × 60 × 2 input states to represent the position
+for A2C is calculated using Equation (15).                               (S.5) and speed (S.6) of a vehicle.
+   The proposed scheme has been shown to increase through-
+put (P.4) and reduce the average delay (P.1) and queue length            B. DEFINING ACTION
+(P.3) of vehicles.                                                       The possible actions should be well defined so that an agent
+                                                                         can maximize its rewards by taking appropriate actions.
+VI. GUIDELINES AND DESIGN CONSIDERATIONS FOR                             Table 7 provides a summary of how actions (see Fig. 12)
+THE APPLICATION OF DEEP REINFORCEMENT LEARNING                           have been represented in the literature. For instance, in [71],
+FOR TRAFFIC SIGNAL CONTROL SYSTEMS                                       with respect to the objective of reducing the average waiting
+The guidelines and design considerations for the applica-                time of the vehicles, the agent must select an appropriate time
+tion of DRL to TSC is presented in this section, which                   interval of a traffic phase. The action represents the choice
+helps in the identification of suitable DRL solutions for                to either keep the current traffic phase or switch to the next
+different TSC problems. Table 5 provides the description                 traffic phase in a predetermined sequence of traffic phases at
+of various DL architectures and DRL methods with their                   the next time instant (A.2) in order to address the challenge
+strengths. Table 6 provides a summary of various TSC                     of inappropriate traffic phase split (C.2). In [71], the output
+attributes, including challenges, traffic network architectures,         layer consists of nine neurons, and each of them represents a
+traffic characteristics, TSC architectures, and traffic phases,          possible action.
+
+208038                                                                                                                                  VOLUME 8, 2020
+F. Rasheed et al.: Deep Reinforcement Learning for Traffic Signal Control: A Review
+
+
+
+
+C. DEFINING REWARD                                                                    the number of neurons in the input layer is equivalent to the
+The reward should be well defined so that it reflects the                             number of features. For instance, there are eighty neurons in
+objectives that an agent aims to achieve after performing an                          the input layer to represent eighty cells of an intersection,
+action under the state. Table 7 provides a summary of how                             which enable the representation of the queue length (S.1) and
+rewards (see Fig. 12) have been represented in the literature.                        the position (S.5) of the vehicles [99]. However, the number
+For instance, in [71], the reward is the increment/decrement                          of neurons in the hidden layer(s) is not straightforward and are
+of the average waiting time of the vehicles at an intersection.                       generally determined empirically, although higher number of
+Therefore, the agent represents the reward with the rela-                             neurons tend to improve system performance at the expense
+tive waiting time (R.1). By increasing the reward, an agent                           of increased complexity [100].
+improves system performance while achieving its objectives.
+                                                                                      VII. OPEN ISSUES
+                                                                                      While DRL for TSCs has been investigated in the literature,
+D. CHOOSING A METHOD
+                                                                                      there are still substantial open issues that have not been well
+The objectives of a method (e.g., adjusting the discount factor                       studied for real world deployment. This section presents open
+dynamically, or integrating several mechanisms into a single                          issues that can be pursued in this topic in the future.
+framework) with respect to the model should be well defined.
+Table 7 provides a summary of how various methods (see                                A. ADDRESSING THE EFFECTS OF DYNAMICITY TO DQN
+Fig. 12) have been used in the literature. For instance, in [71],
+                                                                                      The state space may be highly dimensional when traffic
+several mechanisms, including double Q-learning, dueling
+                                                                                      images are used as part of the state representation [76],
+network, and prioritized experience replay, are incorporated
+                                                                                      [78]. Higher dimension of state representation is essential to
+into a single framework in order to increase learning rate.
+                                                                                      represent high-quality images that capture moving vehicles,
+Higher learning rate reduces the learning time, which is
+                                                                                      and this can increase the size of state space. To address
+required to explore all state-action pairs in order to identify
+                                                                                      this issue, computing techniques, such as discretization and
+the optimal action. The optimal action, such as the choice
+                                                                                      quantization of state space, can be incorporated into DRL
+to either keep the current traffic phase or switch to the next
+                                                                                      applied to TSC in order to encode and decode between the
+traffic phase in a predetermined sequence of traffic phases at
+                                                                                      high-dimensional state representation and low-dimensional
+the next time instant (A.2), helps a TSC to achieve a smoother
+                                                                                      state representation. The solutions can provide an abstract
+traffic flow. The value-based method maps each state-action
+                                                                                      representation of high-dimensional and complex state repre-
+pair to a value Vt (st ) in order to identify the best possible
+                                                                                      sentation in order to simplify large, as well as dynamic, states.
+action for each state. This helps to achieve the objectives of
+TSCs, and so it is chosen. The rest of the DRL methods are                            B. ADDRESSING THE LEARNING EFFICIENCY OF
+presented in Section II-D2, which can be selected based on                            DQN FOR TSC
+the objectives. For instance, the PG-based method is suitable
+                                                                                      Trial-and-error, which is essential to learning in DQN, incurs
+for the objective of selecting an action for a certain state based
+                                                                                      high learning cost such as a longer learning time that is
+on a policy [68].
+                                                                                      unacceptable in real-world traffic management. While exist-
+                                                                                      ing DQN methods generate impressive results in simulated
+E. DEFINING ARCHITECTURE                                                              environments, such as the Alpha Go or Atari games [14],
+To address the challenges of TSC, a suitable DL architecture                          they require a large number of trials and errors. Consequently,
+for DRL should be well defined. Table 5 provides the descrip-                         learning in DQN-based TSCs can cause traffic congestion in
+tion of various DL architectures with different DRL methods                           real world. Several mechanisms can be applied to increase
+as well as their strengths, while Tables 6-8 provide a summary                        learning efficiency. Firstly, knowledge exchange among mul-
+of how various DL architectures (see Fig. 12) have been used                          tiple intersections helps to coordinate their actions, whereby
+in the literature. For instance, in [71], the 3DQN architecture                       the operating environment (e.g., the congestion level) of
+consists of three convolutional and two FC layers, and it is                          an intersection affects the congestion level of neighboring
+used to capture the position (S.5) and speed (S.6) of a vehicle                       intersections since vehicles traverse from one intersection to
+in order to address the challenge of inappropriate traffic                            another. The knowledge (e.g., Q-values) exchanged among
+phase split (C.2). Since the position and speed are captured                          multiple intersections takes the traffic condition of individ-
+in the form of images and videos, the 3DQN architecture                               ual intersection into consideration to improve the global
+with convolutional layers is selected. The identification of                          reward, which reflects the traffic condition of the entire traffic
+a suitable number of layers is an important aspect. Lower                             network, and increase the efficiency of learning. Secondly,
+number of layers may struggle to fit the training data, while                         enhanced exploration approaches, for instance, the model-
+higher number of layers may cause overfit due to memorizing                           based exploration approach creates a model of the operat-
+the properties of training data, which affect the performance                         ing environment, and then selects an action that increases
+negatively.                                                                           the possibility of exploring unseen states during exploration.
+   Similarly, the identification of a suitable number of neu-                         The model-based exploration approach has been applied
+rons in each layer is another important aspect. In general,                           to Lunar Lander and Mountain Car [116]. Nevertheless,
+
+VOLUME 8, 2020                                                                                                                                   208039
+                                                                   F. Rasheed et al.: Deep Reinforcement Learning for Traffic Signal Control: A Review
+
+
+
+
+the model-based approach has higher complexity and compu-               capture the position (S.5) and the speed (S.6) of vehicles [73],
+tational requirement compared to existing approaches, which             detecting certain vehicles (e.g. ambulances and fire engines)
+are model-free in nature. Future investigations could be pur-           accurately using camera (i.e., high-resolution photos), video
+sued to improve the efficiency of learning in DQN for TSC.              camera (i.e., high-resolution videos), and sensors, must be
+                                                                        integrated to DQN so that it can carry out the right action to
+C. ADDRESSING THE EFFECTS OF TRAFFIC                                    prioritize such vehicles. The reward function should also be
+DISTURBANCES TO LEARNING IN DQN FOR TSC                                 altered to cater for the prioritized vehicles. Future investiga-
+In the real world deployment of DRL, TSC must be robust and             tions could be pursued to address these aspects so that fairness
+reliable against unexpected traffic disturbances, such as bad           among traffic flows can be achieved, and prioritized vehicles
+weather conditions, road accidents, or construction. However,           can cross an intersection on a priority basis with minimal
+the available information for such events is usually sparse             effects to existing traffic.
+and incomplete, and data that integrates several factors may
+be even sparser. Learning under such circumstances can be               F. DEVELOPING TRAFFIC SIMULATORS FOR
+challenging. LSTM contains memory cells that can store                  INVESTIGATING DQN-BASED TSCs
+historical information (or data) [79], including predictions            Most traffic simulators adopt the microscopic approach,
+and their inaccuracy, that can be explored to reduce the effects        in which the focus is on the mobility characteristics of an
+of disturbance (e.g., quantifying the effects of disturbance)           individual vehicle. However, there are lack of investigations
+and improve the accuracy of prediction (e.g., reducing the              using most kinds of TSCs, including the DQN-based TSCs,
+effects of disturbance) as time goes by. While state captures           for controlling the overall traffic flows at the macroscopic
+the traffic conditions that need to be monitored at all times,          level that takes account of the general traffic density, vehi-
+the disturbance can be captured as event that must be detected          cles distributions, and so on. Future investigations could be
+whenever it occurs. However, the occurrence of events (e.g.,            pursued to explore the use of macroscopic attributes in order
+accidents) is likely to be sparse with incomplete information,          to improve the performance achieved by the microscopic
+and so historical information can be useful under such cir-             approach in providing more accurate results.
+cumstances. Future investigations could be pursued to tackle
+these factors when collecting the data in order to improve the          G. CONDUCTING A LITERATURE REVIEW OF DRL FROM
+efficiency of learning from traffic disturbances.                       THE TSC PERSPECTIVE
+                                                                        With the rapid advancement of intelligent transportation
+D. ADDRESSING THE SAFETY ISSUE OF DQN FOR TSC                           systems, a review from the TSC perspective is becoming
+Making DRL agents acceptably safe in real world environ-                essential. While DRL has been proposed to implement the
+ment is another pressing area for future research. While                fully-dynamic TSC (see Section I), other kinds of TSCs,
+DRL models learn from trial-and-error, the learning cost of             including the deterministic and semi-dynamic TSCs, may
+DRL can be critical, or even fatal in the real world as the             be useful in different kinds of scenarios. As this article
+malfunction of traffic signals might lead to accidents. There-          addresses this topic from the DRL perspective, another arti-
+fore, adopting risk management into DRL helps to prevent                cle to understand how has this topic been developed and
+unwanted behavior during and after the learning process of              extended from the TSC perspective can complement this
+DRL agents. Each action is associated with a risk factor,               article to provide a complete current research landscape of
+and subsequently rules can be designed to exclude high-risk             the application of DRL to TSCs. This is because while
+actions from a set of feasible actions. The risk factors of             DRL has been used to address two main challenges, namely
+different actions can be explored and validated in simulation           inappropriate traffic phase sequence (C.1), and inappropriate
+at preliminary stage, and then improved conservatively during           traffic phase split (C.2), in TSCs, other challenges brought
+operation as time goes by in order to minimize the learning             about by the enhanced TSCs and intelligent transportation
+cost. Future investigations could be pursued to address the             systems over the years may open more investigations into
+safety issue of DQN for TSC.                                            the application of DRL to TSCs. In addition to the current
+                                                                        DRL models, namely the centralized model (T.1.1) and the
+E. ADDRESSING THE FAIRNESS AND PRIORITIZED                              distributed model (T.1.2) used in TSCs, this may require
+ACCESS ISSUE                                                            exploring other kinds of models such as a hybrid model
+Fairness and prioritized access to intersection using tradi-            with different degrees of centralized and distributed decision-
+tional and enhanced DQN approaches have not been inves-                 makings. Also, in addition to the current traffic network mod-
+tigated in the literature. The reward function can be revised           els, namely the single intersection traffic network (M.1.1),
+to achieve fairness among traffic flows while traversing from           multi intersection traffic network (M.1.2), real world traffic
+one intersection to another. In addition, there are lack of             network (M.1.3), and grid traffic network (M.1.4), this may
+investigations of prioritized access in the presence of emer-           require exploring other kinds of models integrated with recent
+gency vehicles, such as ambulance and fire engines, that                advancements in the transport ecosystem. While the complex
+traverse from one intersection to another on a priority basis.          traffic networks may be integrated with other modes of trans-
+In addition to high-resolution data that has been used to               port, such as walking and cycling, the investigation of DRL
+
+208040                                                                                                                                 VOLUME 8, 2020
+F. Rasheed et al.: Deep Reinforcement Learning for Traffic Signal Control: A Review
+
+
+
+
+applied to TSCs has been limited to opposing through traffic                          [13] K.-L.-A. Yau, J. Qadir, H. L. Khoo, M. H. Ling, and P. Komisarczuk, ‘‘A
+(T.2.1), without opposing through traffic (T.2.2), and with                                survey on reinforcement learning models and algorithms for traffic signal
+                                                                                           control,’’ ACM Comput. Surv., vol. 50, no. 3, pp. 1–38, Oct. 2017.
+grouped individual traffic (T.2.3). Hence, further literature                         [14] V. Mnih, K. Kavukcuoglu, D. Silver, A. Graves, I. Antonoglou,
+review can be conducted from the TSC perspective to provide                                D. Wierstra, and M. Riedmiller, ‘‘Playing atari with deep rein-
+a new and refreshed look at this topic.                                                    forcement learning,’’ 2013, arXiv:1312.5602. [Online]. Available:
+                                                                                           http://arxiv.org/abs/1312.5602
+                                                                                      [15] V. Mnih, K. Kavukcuoglu, D. Silver, A. A. Rusu, J. Veness,
+VIII. CONCLUSION                                                                           M. G. Bellemare, A. Graves, M. Riedmiller, A. K. Fidjeland,
+In this article, we present a comprehensive review of the                                  G. Ostrovski, S. Petersen, C. Beattie, A. Sadik, I. Antonoglou, H. King,
+                                                                                           D. Kumaran, D. Wierstra, S. Legg, and D. Hassabis, ‘‘Human-level
+application of deep reinforcement learning (DRL) to traffic                                control through deep reinforcement learning,’’ Nature, vol. 518, no. 7540,
+signal control (TSC). For smoother traffic flow, the under-                                pp. 529–533, Feb. 2015.
+lying intersection with different architectures and dynamic                           [16] D. Silver, J. Schrittwieser, K. Simonyan, I. Antonoglou, A. Huang,
+                                                                                           A. Guez, T. Hubert, L. Baker, M. Lai, A. Bolton, Y. Chen, T. Lillicrap,
+traffic arrival rates have posed significant challenges to TSCs                            F. Hui, L. Sifre, G. van den Driessche, T. Graepel, and D. Hassabis,
+to select the right choice of traffic phases, as well as their                             ‘‘Mastering the game of go without human knowledge,’’ Nature, vol. 550,
+duration. This article discusses how TSC can be formulated                                 no. 7676, pp. 354–359, Oct. 2017.
+                                                                                      [17] S. Gu, E. Holly, T. Lillicrap, and S. Levine, ‘‘Deep reinforcement learning
+as an DRL problem using appropriate representations (i.e.,                                 for robotic manipulation with asynchronous off-policy updates,’’ in Proc.
+state, action, and reward), and used to solve the problem using                            IEEE Int. Conf. Robot. Autom. (ICRA), May 2017, pp. 3389–3396.
+a popular DRL approach called deep Q-network (DQN). Sub-                              [18] A. R. Sharma and P. Kaushik, ‘‘Literature survey of statistical, deep
+                                                                                           and reinforcement learning in natural language processing,’’ in Proc. Int.
+sequently, this article presents various kinds of deep learn-                              Conf. Comput., Commun. Autom. (ICCCA), May 2017, pp. 350–354.
+ing (DL) architectures and DRL methods, and highlights their                          [19] A. Esteva, A. Robicquet, B. Ramsundar, V. Kuleshov, M. DePristo,
+strengths in addressing the challenges brought about by the                                K. Chou, C. Cui, G. Corrado, S. Thrun, and J. Dean, ‘‘A guide to deep
+                                                                                           learning in healthcare,’’ Nature Med., vol. 25, no. 1, pp. 24–29, 2019.
+medium- and heavy-loaded traffic at intersections. After that,                        [20] Z. Jiang, D. Xu, and J. Liang, ‘‘A deep reinforcement learning
+the performance measures, simulation platforms, and com-                                   framework for the financial portfolio management problem,’’ 2017,
+plexity analysis of the DRL approaches are investigated. This                              arXiv:1706.10059. [Online]. Available: http://arxiv.org/abs/1706.10059
+                                                                                      [21] S. P. K. Spielberg, R. B. Gopaluni, and P. D. Loewen, ‘‘Deep reinforce-
+article also provides guidelines and design considerations for                             ment learning approaches for process control,’’ in Proc. 6th Int. Symp.
+the application of DRL to TSC. Finally, we discuss some open                               Adv. Control Ind. Processes (AdCONIP), May 2017, pp. 201–206.
+issues for future research of DQN-based TSCs.                                         [22] D. Zhang, X. Han, and C. Deng, ‘‘Review on the research and practice of
+                                                                                           deep learning and reinforcement learning in smart grids,’’ CSEE J. Power
+                                                                                           Energy Syst., vol. 4, no. 3, pp. 362–370, Sep. 2018.
+REFERENCES                                                                            [23] Z. Ren, X. Wang, N. Zhang, X. Lv, and L.-J. Li, ‘‘Deep reinforcement
+  [1] K. Molloy and J. V. Ward Benson, ‘‘Traffic signal control system,’’ U.S.             learning-based image captioning with embedding reward,’’ in Proc. IEEE
+      Patent 3,754,209, Aug. 21, 1973.                                                     Conf. Comput. Vis. Pattern Recognit. (CVPR), Jul. 2017, pp. 290–298.
+  [2] P. Mirchandani and L. Head, ‘‘A real-time traffic signal control system:        [24] A. E. L. Sallab, M. Abdou, E. Perot, and S. Yogamani, ‘‘Deep rein-
+      Architecture, algorithms, and analysis,’’ Transp. Res. C, Emerg. Technol.,           forcement learning framework for autonomous driving,’’ Electron. Imag.,
+      vol. 9, no. 6, pp. 415–432, Dec. 2001.                                               vol. 19, pp. 70–76, Jan. 2017.
+  [3] F. Dion and B. Hellinga, ‘‘A rule-based real-time traffic responsive signal     [25] A. Nagabandi, G. Kahn, R. S. Fearing, and S. Levine, ‘‘Neural network
+      control system with transit priority: Application to an isolated intersec-           dynamics for model-based deep reinforcement learning with model-free
+      tion,’’ Transp. Res. B, Methodol., vol. 36, no. 4, pp. 325–343, May 2002.            fine-tuning,’’ in Proc. IEEE Int. Conf. Robot. Autom. (ICRA), May 2018,
+  [4] L. Zhao, Y.-C. Lai, K. Park, and N. Ye, ‘‘Onset of traffic congestion                pp. 7559–7566.
+      in complex networks,’’ Phys. Rev. E, Stat. Phys. Plasmas Fluids Relat.          [26] W. Wei, Y. Zhang, J. B. Mbede, Z. Zhang, and J. Song, ‘‘Traffic signal
+      Interdiscip. Top., vol. 71, no. 2, Feb. 2005, Art. no. 026125.                       control using fuzzy logic and MOGA,’’ in Proc. IEEE Int. Conf. Syst.,
+  [5] B. Yin, A. El Moudni, and M. Dridi, ‘‘Traffic network micro-simulation               Man Cybern. e-Systems e-Man for Cybern. Cyberspace (Cat.No.01CH6),
+      model and control algorithm based on approximate dynamic program-                    2001, pp. 1335–1340.
+      ming,’’ IET Intell. Transp. Syst., vol. 10, no. 3, pp. 186–196, Apr. 2016.      [27] L. Singh, S. Tripathi, and H. Arora, ‘‘Time optimization for traffic signal
+  [6] Cools, Seung-Bae, Carlos Gershenson, and Bart D‘Hooghe, ‘‘Self-                      control using genetic algorithm,’’ Int. J. Recent Trends Eng., vol. 2, no. 2
+      organizing traffic lights: A realistic simulation,’’ in Advances in Applied          p. 4, 2009.
+      Self-Organizing Systems. London, U.K.: Springer, 2013, pp. 45–55.               [28] T. Li, D. Zhao, and J. Yi, ‘‘Adaptive dynamic programming for multi-
+  [7] S. El-Tantawy, B. Abdulhai, and H. Abdelgawad, ‘‘Multiagent rein-                    intersections traffic signal intelligent control,’’ in Proc. 11th Int. IEEE
+      forcement learning for integrated network of adaptive traffic signal con-            Conf. Intell. Transp. Syst., Oct. 2008, pp. 286–291.
+      trollers (MARLIN-ATSC): Methodology and large-scale application on              [29] A. L. C. Bazzan, ‘‘Opportunities for multiagent systems and multiagent
+      downtown toronto,’’ IEEE Trans. Intell. Transp. Syst., vol. 14, no. 3,               reinforcement learning in traffic control,’’ Auton. Agents Multi-Agent
+      pp. 1140–1150, Sep. 2013.                                                            Syst., vol. 18, no. 3, p. 342, 2009.
+  [8] L. Chun-Gui, W. Meng, S. Zi-Gaung, L. Fei-Ying, and Z. Zeng-Fang,               [30] H. Wei, G. Zheng, V. Gayah, and Z. Li, ‘‘A survey on traffic sig-
+      ‘‘Urban traffic signal learning control using fuzzy actor-critic methods,’’          nal control methods,’’ 2019, arXiv:1904.08117. [Online]. Available:
+      in Proc. 5th Int. Conf. Natural Comput., Aug. 2009, pp. 368–372.                     http://arxiv.org/abs/1904.08117
+  [9] J. C. Medina and R. F. Benekohal, ‘‘Traffic signal control using reinforce-     [31] P. Mannion, J. Duggan, and E. Howley, ‘‘An experimental review of
+      ment learning and the max-plus algorithm as a coordinating strategy,’’ in            reinforcement learning algorithms for adaptive traffic signal control,’’
+      Proc. 15th Int. IEEE Conf. Intell. Transp. Syst., Sep. 2012, pp. 596–601.            in Autonomic Road Transport Support Systems. Cham, Switzerland:
+ [10] P. K. J., H. Kumar A. N, and S. Bhatnagar, ‘‘Decentralized learning                  Birkhauser, 2016, pp. 47–66.
+      for traffic signal control,’’ in Proc. 7th Int. Conf. Commun. Syst. Netw.       [32] Z. Liu, ‘‘A survey of intelligence methods in urban traffic signal control,’’
+      (COMSNETS), Jan. 2015, pp. 1–6.                                                      Int. J. Comput. Sci. Netw. Secur., vol. 7, no. 7, pp. 105–112, 2007.
+ [11] L. A. Prashanth and S. Bhatnagar, ‘‘Threshold tuning using stochas-             [33] D. Zhao, Y. Dai, and Z. Zhang, ‘‘Computational intelligence in urban
+      tic optimization for graded signal control,’’ IEEE Trans. Veh. Technol.,             traffic signal control: A survey,’’ IEEE Trans. Syst., Man, Cybern., C
+      vol. 61, no. 9, pp. 3865–3880, Nov. 2012.                                            (Appl. Rev.), vol. 42, no. 4, pp. 485–494, Jul. 2012.
+ [12] B. Abdulhai, R. Pringle, and G. J. Karakoulas, ‘‘Reinforcement learning         [34] L. Zhu, F. R. Yu, Y. Wang, B. Ning, and T. Tang, ‘‘Big data analytics in
+      for true adaptive traffic signal control,’’ J. Transp. Eng., vol. 129, no. 3,        intelligent transportation systems: A survey,’’ IEEE Trans. Intell. Transp.
+      pp. 278–285, May 2003.                                                               Syst., vol. 20, no. 1, pp. 383–398, Jan. 2019.
+
+VOLUME 8, 2020                                                                                                                                                 208041
+                                                                                  F. Rasheed et al.: Deep Reinforcement Learning for Traffic Signal Control: A Review
+
+
+
+
+[35] M. Veres and M. Moussa, ‘‘Deep learning for intelligent transportation             [62] Y. Liu, L. Zhang, Y. Wei, and Z. Wang, ‘‘Energy efficient training task
+     systems: A survey of emerging trends,’’ IEEE Trans. Intell. Transp. Syst.,              assignment scheme for mobile distributed deep learning scenario using
+     vol. 21, no. 8, pp. 3152–3168, Aug. 2020.                                               DQN,’’ in Proc. IEEE 7th Int. Conf. Comput. Sci. Netw. Technol. (ICC-
+[36] Y. LeCun, Y. Bengio, and G. Hinton, ‘‘Deep learning,’’ Nature, vol. 521,                SNT), Oct. 2019, pp. 442–446.
+     no. 7553, pp. 436–444, 2015.                                                       [63] G. Liu, R. Wu, H.-T. Cheng, J. Wang, J. Ooi, L. Li, A. Li, W. Lok Sibon Li,
+[37] Y. Bengio, I. Goodfellow, and A. Courville, Deep Learning, vol. 1.                      C. Boutilier, and E. Chi, ‘‘Data efficient training for reinforcement learn-
+     Cambridge, MA, USA: MIT Press, 2017.                                                    ing with adaptive behavior policy sharing,’’ 2020, arXiv:2002.05229.
+[38] J. Schmidhuber, ‘‘Deep learning in neural networks: An overview,’’ Neu-                 [Online]. Available: http://arxiv.org/abs/2002.05229
+     ral Netw., vol. 61, pp. 85–117, Jan. 2015.                                         [64] Anschel, Oron, Nir Baram, and Nahum Shimkin, ‘‘Deep reinforcement
+[39] J. M. Zurada, Introduction to Artificial Neural Systems, vol. 8. St. Paul,              learning with averaged target DQN,’’ 2016, arXiv:1611.01929. [Online].
+     Turkey: West, 1992.                                                                     Available: http://arxiv.org/abs/1611.01929
+[40] I. Goodfellow, Y. Bengio, and A. Courville, Deep Learning. Cambridge,              [65] S. Ruder, ‘‘An overview of gradient descent optimization algorithms,’’
+     MA, USA: MIT Press, 2016.                                                               2016, arXiv:1609.04747. [Online]. Available: http://arxiv.org/abs/
+[41] S. Haykin, Neural Networks: A Comprehensive Foundation. Upper Sad-                      1609.04747
+     dle River, NJ, USA: Prentice-Hall, 1994.                                           [66] W. Genders and S. Razavi, ‘‘Using a deep reinforcement learning agent
+[42] R. S. Sutton and G. Andrew Barto, Reinforcement Learning: An Introduc-                  for traffic signal control,’’ 2016, arXiv:1611.01142. [Online]. Available:
+     tion. Cambridge, MA, USA: MIT Press, 2018.                                              http://arxiv.org/abs/1611.01142
+[43] C. Szepesvari, ‘‘Algorithms for reinforcement learning,’’ Synth. lectures          [67] L. Li, Y. Lv, and F.-Y. Wang, ‘‘Traffic signal timing via deep reinforce-
+     Artif. Intell. Mach. Learn., vol. 4, no. 1, pp. 1–103, 2010.                            ment learning,’’ IEEE/CAA J. Automat. Sinica, vol. 3, no. 3, pp. 247–254,
+[44] M. Botvinick, S. Ritter, J. X. Wang, Z. Kurth-Nelson, C. Blundell, and                  Apr. 2016.
+     D. Hassabis, ‘‘Reinforcement learning, fast and slow,’’ Trends Cognit.             [68] S. S. Mousavi, M. Schukat, and E. Howley, ‘‘Traffic light control using
+     Sci., vol. 23, no. 5, pp. 408–422, May 2019.                                            deep policy-gradient and value-function-based reinforcement learning,’’
+[45] Nachum, Ofir, Shixiang Shane Gu, Honglak Lee, and Sergey Levine,                        IET Intell. Transp. Syst., vol. 11, no. 7, pp. 417–423, Sep. 2017.
+     ‘‘Data-efficient hierarchical reinforcement learning,’’ in in Proc. Adv.           [69] J. Gao, Y. Shen, J. Liu, M. Ito, and N. Shiratori, ‘‘Adaptive traffic
+     Neural Inf. Process. Syst., 2018, pp. 3303–3313.                                        signal control: Deep reinforcement learning algorithm with experience
+[46] A. Nair, B. McGrew, M. Andrychowicz, W. Zaremba, and P. Abbeel,                         replay and target network,’’ 2017, arXiv:1705.02755. [Online]. Available:
+     ‘‘Overcoming exploration in reinforcement learning with demonstra-                      http://arxiv.org/abs/1705.02755
+     tions,’’ in Proc. IEEE Int. Conf. Robot. Autom. (ICRA), May 2018,                  [70] C.-H. Wan and M.-C. Hwang, ‘‘Value-based deep reinforcement learning
+     pp. 6292–6299.                                                                          for adaptive isolated intersection signal control,’’ IET Intell. Transp. Syst.,
+[47] M. Jaderberg, W. M. Czarnecki, I. Dunning, L. Marris, G. Lever,                         vol. 12, no. 9, pp. 1005–1010, Nov. 2018.
+     A. G. Castañeda, C. Beattie, N. C. Rabinowitz, A. S. Morcos,                       [71] X. Liang, X. Du, G. Wang, and Z. Han, ‘‘Deep reinforcement learning
+     A. Ruderman, N. Sonnerat, T. Green, L. Deason, J. Z. Leibo, D. Silver,                  for traffic light control in vehicular networks,’’ 2018, arXiv:1803.11115.
+     D. Hassabis, K. Kavukcuoglu, and T. Graepel, ‘‘Human-level perfor-                      [Online]. Available: http://arxiv.org/abs/1803.11115
+     mance in 3D multiplayer games with population-based reinforcement                  [72] K. L. Tan, S. Poddar, S. Sarkar, and A. Sharma, ‘‘Deep reinforce-
+     learning,’’ Science, vol. 364, no. 6443, pp. 859–865, May 2019.                         ment learning for adaptive traffic signal control,’’ in Proc. ASME Dyn.
+[48] Y. Gao, H. Xu, J. Lin, F. Yu, S. Levine, and T. Darrell, ‘‘Reinforce-                   Syst. Control Conf. Amer. Soc. Mech. Eng. Digital Collection, 2019,
+     ment learning from imperfect demonstrations,’’ 2018, arXiv:1802.05313.                  Art. no. V003T18A006.
+     [Online]. Available: http://arxiv.org/abs/1802.05313                               [73] S. Wang, X. Xie, K. Huang, J. Zeng, and Z. Cai, ‘‘Deep reinforcement
+[49] M. Alshiekh, R. Bloem, R. Ehlers, B. Köunighofer, S. Niekum, and                        learning-based traffic signal control using high-resolution event-based
+     U. Topcu, ‘‘Safe reinforcement learning via shielding,’’ in Proc. 32nd                  data,’’ Entropy, vol. 21, no. 8, p. 744, Jul. 2019.
+     AAAI Conf. Artif. Intell. AAAI, 2018, pp. 2661–2669.                               [74] E. Van der Pol and F. A. Oliehoek, ‘‘Coordinated deep reinforcement
+[50] R. S. Sutton and A. G. Barto, Introduction to Reinforcement Learning,                   learners for traffic light control,’’ in Proc. Learn., Inference Control Multi-
+     vol. 135. Cambridge, MA, USA: MIT Press, 1998.                                          Agent Syst. (NIPS), 2016.
+[51] P. R. Montague, ‘‘Reinforcement learning: an introduction, by Sutton, RS           [75] F. Rasheed, K.-L.-A. Yau, and Y.-C. Low, ‘‘Deep reinforcement learning
+     and Barto, AG,’’ Trends Cogn. Sci., vol. 3, no. 9, p. 360, 1999.                        for traffic signal control under disturbances: A case study on sunway
+[52] R. S. Sutton and G. Andrew Barto, Introduction to Reinforcement Learn-                  city, malaysia,’’ Future Gener. Comput. Syst., vol. 109, pp. 431–445,
+     ing, vol. 135. Cambridge, MA, USA: MIT Press, 1998.                                     Aug. 2020.
+[53] L. P. Kaelbling, M. L. Littman, and A. W. Moore, ‘‘Reinforcement                   [76] E. van der Pol, ‘‘Deep reinforcement learning for coordination in traffic
+     learning: A survey,’’ J. Artif. Intell. Res., vol. 4, no. 1, pp. 237–285,               light control,’’ M.S. thesis, Dept. Sci., Univ. Amsterdam, Amsterdam, The
+     Jan. 1996.                                                                              Netherlands, 2016.
+[54] Y. Li, ‘‘Deep reinforcement learning: An overview,’’ 2017,                         [77] Y. Gong, M. Abdel-Aty, Q. Cai, and M. S. Rahman, ‘‘Decentralized
+     arXiv:1701.07274. [Online]. Available: http://arxiv.org/abs/1701.07274                  network level adaptive signal control by multi-agent deep reinforce-
+[55] H. Ye, G. Y. Li, and B.-H.-F. Juang, ‘‘Deep reinforcement learning                      ment learning,’’ Transp. Res. Interdiscipl. Perspect., vol. 1, Jun. 2019,
+     based resource allocation for V2 V communications,’’ IEEE Trans. Veh.                   Art. no. 100020.
+     Technol., vol. 68, no. 4, pp. 3163–3173, Apr. 2019.                                [78] H. Wei, G. Zheng, H. Yao, and Z. Li, ‘‘Intellilight: A reinforce-
+[56] P. Henderson, R. Islam, P. Bachman, J. Pineau, D. Precup, and D. Meger,                 ment learning approach for intelligent traffic light control,’’ in Proc.
+     ‘‘Deep reinforcement learning that matters,’’ in Proc. 32nd AAAI Conf.                  24th ACM SIGKDD Int. Conf. Knowl. Discovery Data Mining, 2018,
+     Artif. Intell. AAAI, 2018, pp. 3200–3207.                                               pp. 2496–2505.
+[57] T. Thi Nguyen and V. Janapa Reddi, ‘‘Deep reinforcement learn-                     [79] T. Chu, J. Wang, L. Codeca, and Z. Li, ‘‘Multi-agent deep reinforcement
+     ing for cyber security,’’ 2019, arXiv:1906.05799. [Online]. Available:                  learning for large-scale traffic signal control,’’ IEEE Trans. Intell. Transp.
+     http://arxiv.org/abs/1906.05799                                                         Syst., vol. 21, no. 3, pp. 1086–1095, Mar. 2020.
+[58] Rolnick, David, Arun Ahuja, Jonathan Schwarz, Timothy Lillicrap, and               [80] Luttinen, R. Tapio, Statistical Analysis of Vehicle Time Headways. Espoo,
+     Gregory Wayne, ‘‘Experience replay for continual learning,’’ in Adv.                    U.K.: Helsinki Univ. Technology, 1996.
+     Neural Inf. Process. Syst., pp. 348–358. 2019.                                     [81] K. Nagel and M. Schreckenberg, ‘‘A cellular automaton model for free-
+[59] X.-L. Chen, L. Cao, C.-X. Li, Z.-X. Xu, and J. Lai, ‘‘Ensemble network                  way traffic,’’ J. de Phys. I, vol. 2, no. 12, pp. 2221–2229, Dec. 1992.
+     architecture for deep reinforcement learning,’’ Math. Problems Eng.,               [82] C. K. Keong, ‘‘The GLIDE system—Singapore’s urban traffic control
+     vol. 2018, pp. 1–6, 2018.                                                               system,’’ Transp. Rev., vol. 13, no. 4, no. 1993, pp. 295–305.
+[60] Y. Takano, H. Inoue, R. Thawonmas, and T. Harada, ‘‘Self-play for                  [83] D. I. Robertson and R. D. Bretherton, ‘‘Optimizing networks of traffic
+     training general fighting game AI,’’ in Proc. Nicograph Int. (NicoInt),                 signals in real time–The SCOOT method,’’ IEEE Trans. Veh. Technol.,
+     Jul. 2019, p. 120.                                                                      vol. 40, no. 1, pp. 11–15, Feb. 1991.
+[61] V. Behzadan and W. Hsu, ‘‘Analysis and improvement of adversarial train-           [84] A. G. Sims and K. W. Dobinson, ‘‘The sydney coordinated adaptive traffic
+     ing in DQN agents with adversarially-guided exploration (AGE),’’ 2019,                  (SCAT) system philosophy and benefits,’’ IEEE Trans. Veh. Technol.,
+     arXiv:1906.01119. [Online]. Available: http://arxiv.org/abs/1906.01119                  vol. 29, no. 2, pp. 130–137, May 1980.
+
+208042                                                                                                                                                     VOLUME 8, 2020
+F. Rasheed et al.: Deep Reinforcement Learning for Traffic Signal Control: A Review
+
+
+
+
+ [85] H. Van Hasselt, A. Guez, and D. Silver, ‘‘Deep reinforcement learning           [110] J. Casas, J. L. Ferrer, D. Garcia, J. Perarnau, and A. Torday, ‘‘Traf-
+      with double q-learning,’’ 2015, arXiv:1509.06461. [Online]. Available:                fic simulation with aimsun,’’ in Fundamentals of Traffic Simulation.
+      https://arxiv.org/abs/1509.06461                                                      New York, NY, USA: Springer, 2010, pp. 173–232.
+ [86] Z. Wang, T. Schaul, M. Hessel, H. van Hasselt, M. Lanctot,                      [111] C. Bettstetter and S. Konig, ‘‘On the message and time complexity of
+      and N. de Freitas, ‘‘Dueling network architectures for deep rein-                     a distributed mobility-adaptive clustering algorithm in wireless ad hoc
+      forcement learning,’’ 2015, arXiv:1511.06581. [Online]. Available:                    networks,’’ in Proc. 4th Eur. Wireless Conf., 2002, pp. 128–134.
+      http://arxiv.org/abs/1511.06581                                                 [112] M. R. Heinen, A. L. C. Bazzan, and P. M. Engel, ‘‘Dealing with
+ [87] S. Hochreiter and J. Schmidhuber, ‘‘Long short-term memory,’’ Neural                  continuous-state reinforcement learning for intelligent control of traffic
+      Comput., vol. 8, no. 9, pp. 1735–1780, 1997.                                          signals,’’ in Proc. 14th Int. IEEE Conf. Intell. Transp. Syst. (ITSC),
+ [88] J. R. Kok and N. Vlassis, ‘‘Using the max-plus algorithm for multiagent               Oct. 2011, pp. 890–895.
+      decision making in coordination graphs,’’ in Robot Soccer World Cup.            [113] V. R. Konda and N. John Tsitsiklis, ‘‘Actor-critic algorithms,’’ in Proc.
+      Berlin, Germany: Springer, 2005, pp. 1–12.                                            Adv. Neural Inf. Process. Syst., 2000, pp. 1008–1014.
+ [89] F. A. Oliehoek and S. W. M. T. Spaan, ‘‘Approximate solutions for               [114] X. Chu and H. Ye, ‘‘Parameter sharing deep deterministic policy
+      factored Dec-POMDPs with many agents,’’ in Proc. AAMAS, 2013,                         gradient for cooperative multi-agent reinforcement learning,’’ 2017,
+      pp. 563–570.                                                                          arXiv:1710.00336. [Online]. Available: http://arxiv.org/abs/1710.00336
+ [90] S. Krauß, ‘‘Microscopic modeling of traffic flow: Investigation of colli-       [115] J. Schulman, F. Wolski, P. Dhariwal, A. Radford, and O. Klimov, ‘‘Proxi-
+      sion free vehicle dynamics,’’ Ph.D. dissertation, Hauptabteilung Mobilität            mal policy optimization algorithms,’’ 2017, arXiv:1707.06347. [Online].
+      Systemtechnik, Inst. Transp. Res., Porz, Germany, 1998.                               Available: http://arxiv.org/abs/1707.06347
+ [91] J. Hu and P. Wellman, ‘‘Multiagent reinforcement learning: Theoretical          [116] S. Zhen Gou and Y. Liu, ‘‘DQN with model-based exploration: Efficient
+      framework and an algorithm,’’ in Proc. Int. Conf. Mach. Learn., vol. 98.              learning on environments with sparse rewards,’’ 2019, arXiv:1903.09295.
+      Madison, WI, USA, 1998, pp. 242–250.                                                  [Online]. Available: http://arxiv.org/abs/1903.09295
+ [92] K. Zhang, Z. Yang, H. Liu, T. Zhang, and T. Başar, ‘‘Fully decentral-
+      ized multi-agent reinforcement learning with networked agents,’’ 2018,
+      arXiv:1802.08757. [Online]. Available: http://arxiv.org/abs/1802.08757
+ [93] Y. Yang, R. Luo, M. Li, M. Zhou, W. Zhang, and J. Wang, ‘‘Mean field
+      multi-agent reinforcement learning,’’ 2018, arXiv:1802.05438. [Online].
+      Available: http://arxiv.org/abs/1802.05438
+ [94] J. Yang, A. Nakhaei, D. Isele, K. Fujimura, and H. Zha, ‘‘CM3: Cooper-
+      ative multi-goal multi-stage multi-agent reinforcement learning,’’ 2018,
+                                                                                                              FAIZAN RASHEED received the B.S. degree in
+      arXiv:1809.05188. [Online]. Available: http://arxiv.org/abs/1809.05188
+ [95] J. Foerster, I. A. Assael, N. De Freitas, and S. Whiteson, ‘‘Learning to
+                                                                                                              electronics from Isra University, Pakistan. He is
+      communicate with deep multi-agent reinforcement learning,’’ in Proc.                                    currently pursuing the M.S. degree in computer
+      Adv. Neural Inf. Process. Syst., 2016, pp. 2137–2145.                                                   science with Sunway University, Malaysia, under
+ [96] T. Schaul, J. Quan, I. Antonoglou, and D. Silver, ‘‘Prioritized                                         the joint programme of Sunway University and
+      experience replay,’’ 2015, arXiv:1511.05952. [Online]. Available:                                       Lancaster University, U.K. His research interests
+      http://arxiv.org/abs/1511.05952                                                                         include domain of intelligent transportation sys-
+ [97] L. Bu, R. Babu, and B. De Schutter, ‘‘A comprehensive survey of multia-                                 tems, machine learning, artificial intelligence, and
+      gent reinforcement learning,’’ IEEE Trans. Syst., Man, Cybern., C (Appl.                                robotics. He was a recipient of the Jeffery Cheah
+      Rev.), vol. 38, no. 2, pp. 156–172, Mar. 2008.                                                          Foundation Research Scholarship to pursue the
+ [98] X. Wu and H. X. Liu, ‘‘Using high-resolution event-based data for traffic       M.S. degree from 2018 to 2020.
+      modeling and control: An overview,’’ Transp. Res. C, Emerg. Technol.,
+      vol. 42, pp. 28–43, May 2014.
+ [99] A. Vidali, L. Crociani, G. Vizzari, and S. Bandini, ‘‘A deep reinforce-
+      ment learning approach to adaptive traffic lights management,’’ in Proc.
+      Workshop ‘From Objects Agents’, 2019, pp. 42–50.
+[100] D. Stathakis, ‘‘How many hidden layers and nodes?’’ Int. J. Remote Sens.,
+      vol. 30, no. 8, pp. 2133–2147, Apr. 2009.
+[101] M. Papageorgiou, ‘‘Some remarks on macroscopic traffic flow mod-
+                                                                                                                KOK-LIM ALVIN YAU (Senior Member, IEEE)
+      elling,’’ Transp. Res. Part A: Policy Pract., vol. 32, no. 5, pp. 323–329,
+      Sep. 1998.                                                                                                received the B.Eng. degree (Hons.) in electri-
+[102] P. Hidas, ‘‘Modelling lane changing and merging in microscopic traffic                                    cal and electronics engineering from Universiti
+      simulation,’’ Transp. Res. Part C: Emerg. Technol., vol. 10, nos. 5–6,                                    Teknologi Petronas, Malaysia, in 2005, the M.Sc.
+      pp. 351–371, Oct. 2002.                                                                                   degree in electrical engineering from the National
+[103] D. Krajzewicz, G. Hertkorn, C. Rossel, and P. Wagner, ‘‘SUMO (Simula-                                     University of Singapore, in 2007, and the Ph.D.
+      tion of Urban MObility)-an open-source traffic simulation,’’ in Proc. 4th                                 degree in network engineering from the Victoria
+      middle East Symp. Simulation Modeling (MESM), 2002, pp. 183–187.                                          University of Wellington, New Zealand, in 2010.
+[104] Behrisch, Michael, Laura Bieker, Jakob Erdmann, and Daniel Krajzewicz,                                    He is currently a Professor with the Department
+      ‘‘SUMO–simulation of urban mobility: An overview,’’ in Proc. SIMUL                                        of Computing and Information Systems, Sunway
+      3rd Int. Conf. Adv. Syst. Simulation, ThinkMind, 2011.                          University. He is also a Researcher, a Lecturer, and a Consultant in 5G,
+[105] G. D. B. Cameron and G. I. D. Duncan, ‘‘PARAMICS—Parallel micro-                cognitive radio, wireless networks, applied artificial intelligence, and rein-
+      scopic simulation of road traffic,’’ J. Supercomput., vol. 10, no. 1,           forcement learning. He also serves as a TPC member and a reviewer for
+      pp. 25–53, 1996.                                                                major international conferences, including ICC, VTC, LCN, GLOBECOM,
+[106] Smith, Mark, Gordon Duncan, and Stephen Druitt, ‘‘PARAMICS: Micro-              and AINA. He was a recipient of the 2007 Professional Engineer Board
+      scopic traffic simulation for congestion management,’’ in Proc. IEE
+                                                                                      of Singapore Gold Medal for being the best graduate of the M.Sc. degree
+      Colloq. Dyn. Control Strategic Inter-Urban Road Netw., 1995, p. 8.
+                                                                                      from 2006 to 2007. He has served as the Vice General Co-Chair for the
+[107] M. Fellendorf and P. Vortisch, ‘‘Microscopic traffic flow simulator VIS-
+      SIM,’’ in Fundamentals of Traffic Simulation, New York, NY, USA:
+                                                                                      ICOIN’19, the General Co-Chair for the IET ICFCNA’14, and the Co-Chair
+      Springer, 2010, pp. 63–93.                                                      of the Organizing Committee for the IET ICWCA’12. He also serves as an
+[108] M. Fellendorf, ‘‘VISSIM: A microscopic simulation tool to evaluate              Associate Editor for IEEE ACCESS, an Editor for the KSII Transactions on
+      actuated signal control including bus priority,’’ in Proc. 64th Inst. Transp.   Internet and Information Systems, a Guest Editor for the Special Issues of
+      Eng. Annu. Meeting, vol. 32. Dallas, TX, USA: Springer, 1994, pp. 1–9.          IEEE ACCESS, IET Networks, IEEE Computational Intelligence Magazine,
+[109] J. Barcelo, and J. Casas, ‘‘Dynamic network simulation with AIMSUN,’’           and the Journal of Ambient Intelligence and Humanized Computing Springer,
+      in Simulation Approaches in Transportation Analysis, Boston, MA, USA:           and a regular reviewer for over 20 journals, including the IEEE journals and
+      Springer, 2005, pp. 57–98.                                                      magazines, the Ad Hoc Networks, the IET Communications, and others.
+
+VOLUME 8, 2020                                                                                                                                               208043
+                                                                                F. Rasheed et al.: Deep Reinforcement Learning for Traffic Signal Control: A Review
+
+
+
+
+                          RAFIDAH MD. NOOR (Member, IEEE) received                                              YEH-CHING LOW (Member, IEEE) received the
+                          the bachelor’s degree in information technol-                                         B.Sc. (Hons.), M.Sc., and Ph.D. degrees in statis-
+                          ogy (BIT) from University Utara Malaysia,                                             tics from the University of Malaya, in 2004,
+                          in 1998, the M.Sc. degree in computer science                                         2007, and 2016, respectively. She is currently a
+                          from University Technology Malaysia, in 2000,                                         Senior Lecturer with the Department of Comput-
+                          and the Ph.D. degree in computing from Lan-                                           ing and Information Systems, School of Science
+                          caster University, U.K., in 2010. She is currently                                    and Technology, Sunway University, Malaysia.
+                          an Associate Professor with the Department of                                         Her research interests include count data analysis,
+                          Computer System and Technology, Faculty of                                            Monte Carlo methods, and applications of statis-
+                          Computer Science and Information Technology,                                          tical inference and probabilistic models, Bayesian
+University of Malaya. Her research interests are related to a field of trans-        inference, and statistics education. She also serves as a reviewer for inter-
+portation system in computer science research domain. Her research interests         national conferences such as the ISI World Statistics Congress 2019 as
+include vehicular networks, network mobility, quality of service, and quality        well as for journal such as Computers & Industrial Engineering. She is
+of experience. She has several collaborators from China, Taiwan, South               also a member of Association for Computing Machinery and International
+Korea, France, Australia, and U.K., who are willing to support in providing          Statistical Institute.
+excellent research outputs.
+
+
+
+
+                        CELIMUGE WU (Senior Member, IEEE)
+                        received the M.E. degree from the Beijing Insti-
+                        tute of Technology, China, in 2006, and the
+                        Ph.D. degree from The University of Electro-
+                        Communications, Japan, in 2010. He is currently
+                        an Associate Professor with the Graduate School
+                        of Informatics and Engineering, The University
+                        of Electro-Communications. His current research
+                        interests include vehicular ad hoc networks, sensor
+                        networks, intelligent transport systems, the IoT,
+and mobile cloud computing. He is/has been a TPC Co-Chair of Wireless
+Days 2019 and ICT-DM 2018, and a track Co-Chair of many international
+conferences, including ICCCN 2019 and IEEE PIMRC 2016. He is/has
+been serving as an Associate Editor for IEEE ACCESS, IEICE Transactions
+on Communications, International Journal of Distributed Sensor Networks,
+and MDPI Sensors, and a Guest Editor for IEEE TRANSACTIONS ON EMERGING
+TOPICS IN COMPUTATIONAL INTELLIGENCE, IEEE Computational Intelligence
+Magazine, and ACM/Springer Mobile Networks & Applications (MONET).
+
+
+
+
+208044                                                                                                                                              VOLUME 8, 2020
+

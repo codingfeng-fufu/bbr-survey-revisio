@@ -1,0 +1,1403 @@
+Received August 13, 2019, accepted September 13, 2019, date of publication September 19, 2019, date of current version October 2, 2019.
+Digital Object Identifier 10.1109/ACCESS.2019.2942390
+
+
+
+
+Machine Learning for 5G/B5G Mobile and
+Wireless Communications: Potential,
+Limitations, and Future Directions
+MANUEL EUGENIO MOROCHO-CAYAMCELA 1 , (Member, IEEE),
+HAEYOUNG LEE 2 , (Member, IEEE), AND WANSU LIM 3 , (Member, IEEE)
+1 Department of Electronic Engineering, Kumoh National Institute of Technology, Gumi 39177, South Korea
+2 5G Innovation Centre (5GIC), Institute for Communication Systems (ICS), University of Surrey, Guildford GU2 7XH, U.K.
+3 Department of IT Convergence, Kumoh National Institute of Technology, Gumi 39177, South Korea
+
+Corresponding author: Wansu Lim (wansu.lim@kumoh.ac.kr)
+This work was supported in part by the National Research Foundation of Korea (NRF) Grant funded by the Korea Government
+(MSIP Ministry of Science, ICT and Future Planning) under Grant 2017R1C1B5016837, in part by the ITRC Program
+(IITP-2019-2014-1-00639), in part by the Global Excellent Technology Innovation Program (10063078) funded by the Ministry of Trade,
+Industry, and Energy (MOTIE) of Korea, in part by the Clear5G Project, supported by the European Unions Horizon 2020 Research and
+Innovation Programme under Grant 761745 and the Government of Taiwan.
+
+
+
+
+  ABSTRACT Driven by the demand to accommodate today’s growing mobile traffic, 5G is designed to be a
+  key enabler and a leading infrastructure provider in the information and communication technology industry
+  by supporting a variety of forthcoming services with diverse requirements. Considering the ever-increasing
+  complexity of the network, and the emergence of novel use cases such as autonomous cars, industrial
+  automation, virtual reality, e-health, and several intelligent applications, machine learning (ML) is expected
+  to be essential to assist in making the 5G vision conceivable. This paper focuses on the potential solutions
+  for 5G from an ML-perspective. First, we establish the fundamental concepts of supervised, unsupervised,
+  and reinforcement learning, taking a look at what has been done so far in the adoption of ML in the
+  context of mobile and wireless communication, organizing the literature in terms of the types of learning.
+  We then discuss the promising approaches for how ML can contribute to supporting each target 5G network
+  requirement, emphasizing its specific use cases and evaluating the impact and limitations they have on the
+  operation of the network. Lastly, this paper investigates the potential features of Beyond 5G (B5G), providing
+  future research directions for how ML can contribute to realizing B5G. This article is intended to stimulate
+  discussion on the role that ML can play to overcome the limitations for a wide deployment of autonomous
+  5G/B5G mobile and wireless communications.
+
+  INDEX TERMS Machine learning, 5G mobile communication, B5G, wireless communication, mobile
+  communication, artificial intelligence.
+
+
+I. INTRODUCTION                                                                                systems have become an essential part of social infrastruc-
+Machine Learning (ML) is everywhere, from medical diagno-                                      ture, mobilizing our daily lives and facilitating the digital
+sis based on image recognition to navigation for self-driving                                  economy in multiple ways [4]. However, ML and 5G wireless
+cars. ML has been evolving as a discipline to the point that                                   communications have somehow been perceived as dissim-
+it currently allows wireless networks to learn and extract                                     ilar research fields, despite the potential they might have
+knowledge by interacting with data. Preliminary interest and                                   when they are used in combination. In fact, the influence
+discussions about the feasibility of evolving 5G standards                                     of ML-enabled mobile and wireless network communica-
+with the assistance of ML protocols have captured the atten-                                   tions has already been made apparent by a number of recent
+tion and imagination of engineers and researchers across the                                   networking paradigms such as location-based services [5],
+globe [1]–[3]. We have witnessed how mobile and wireless
+                                                                                               mobile edge caching [6], [7], context-aware networking [8],
+    The associate editor coordinating the review of this manuscript and                        big data analytics [9], [10], mobile edge computing [11]–[13],
+approving it for publication was Muhammad Naeem.                                               and network traffic control [14].
+
+                     This work is licensed under a Creative Commons Attribution 4.0 License. For more information, see http://creativecommons.org/licenses/by/4.0/
+137184                                                                                                                                                               VOLUME 7, 2019
+M. E. Morocho-Cayamcela et al.: Machine Learning for 5G/B5G Mobile and Wireless Communications
+
+
+
+
+FIGURE 1. Venn diagram of the relation between artificial intelligence,
+machine learning, and deep learning. This article covers machine learning
+and deep learning applications in 5G/B5G mobile and wireless
+communications.
+
+                                                                             FIGURE 2. Traditional programming compared to the three types of
+   ML is great for complex problems where existing solutions                 machine learning. (a) Traditional programming, (b) supervised learning,
+require a lot of hand-tuning, or for problems which there is no              (c) unsupervised learning, and (d) reinforcement learning.
+solution at all using a traditional approach. These problems
+can be tackled by learning from data, replacing conventional                 introduced, the long training times of some algorithms, etc.
+software containing long rule lists, with ML routines that                   Further applications that fall in the intersection of these fields
+automatically learn from previous data. An important dif-                    have been addressed separately for either ML, or wireless
+ference of ML over traditional cognitive algorithms is auto-                 communications researchers. Some authors highlighted the
+matic feature extraction, by which expensive hand-crafted                    potential of ML as an enabler for cellular networks [18], net-
+feature engineering can be waived. Broadly speaking, an ML                   working functions [19], or radio communications [20]. Nev-
+task can detect anomalies, predict future scenarios, adapt to                ertheless, there is limited literature evidence on how ML can
+fluctuating environments, get insights of complex problems                   assist in meeting the specific and practical 5G requirements.
+with large amounts of data, and in general, discover the                        This paper introduces the fundamental concept of ML
+patterns that a human can miss [15]. Since the notion of                     algorithms and the corresponding 5G applications in accor-
+ML has matured alongside similar concepts, we illustrate                     dance with the categories of supervised learning, unsuper-
+the relation between deep learning (DL), ML, and artificial                  vised learning, and reinforcement learning. The article is
+intelligence (AI) at a high level in Fig. 1.                                 motivated by the vision of intelligent base stations (BSs)
+   There are multiple parameters in mobile and wireless net-                 making decisions by themselves, mobile devices creating
+works, and some of them are set using heuristic calcula-                     dynamically-adaptable clusters based on learned data rather
+tions because no solid closed form solution exists for their                 than pre-established and fixed rules, and mobile networks
+value, or because a proper measurement campaign may be                       operating in a fully automated fashion. We raise important
+prohibitively expensive. For these kinds of problems, an ML                  issues for future researches to consider, concerning limita-
+algorithm (e.g., a neural network (NN)) can contribute by                    tions, controversies, and the trade-off between accuracy and
+predicting the parameters and estimating functions based                     interpretability when basic learning algorithms are used as a
+on available data [16]. The next generation of mobile and                    support to fulfill the diverse requirements of the 5G standard.
+wireless communication technologies also demands the use                     Finally, this paper analyzes the emerging technologies for
+of optimization to minimize (or maximize) certain objective                  B5G together with the contribution opportunities of ML,
+functions, and since many problems in mobile and wireless                    bringing essential research questions and directions into con-
+communications are non-linear or polynomial, they have to                    sideration for this fascinating, yet complex topic.
+be approximated. An artificial neural networks (ANN) is
+an ML technique that can be used to model the objective                      II. THE THREE TYPES OF LEARNING AND ITS
+functions of those non-linear problems that require opti-                    APPLICATION IN WIRELESS
+mization or approximation [17]. But like any form of tech-                   COMMUNICATIONS
+nology, ML is not entirely perfect. Among the challenges                     The article is divided according to the level of supervi-
+that are limiting its deployment in wireless communications                  sion that the ML procedure requires on the training stage.
+are the interpretability of results, the difficulty to get rele-             The major categories discussed in the following sections
+vant data, the computational power required, the complexity                  are supervised, unsupervised, and reinforcement learning
+
+VOLUME 7, 2019                                                                                                                                 137185
+                                                 M. E. Morocho-Cayamcela et al.: Machine Learning for 5G/B5G Mobile and Wireless Communications
+
+
+
+
+(See Fig. 2). To understand the difference between these three        estimated by measuring the performance of the model on the
+learning subcategories, a quintessential concept of ‘‘learn-          test set.
+ing’’ can be invoked: ‘‘A computer program is said to learn              Underfitting and overfitting are other important challenges
+from experience E with respect to some class of tasks T and           of supervised learning. Underfitting takes place when the
+performance measure P, if its performance at tasks in T ,             model is not able to obtain a low error on the training
+as measured by P, improves with experience E’’ [35]. Super-           set, whereas overfitting occurs when there is a significant
+vised learning comprises looking at several examples of a             difference between the training error and test error [38].
+random vector x and its label value of vector y, then learning        To control whether a model is prone to overfit or underfit,
+to predict y from a completely new x, by estimating p(y|x),           we can adjust its capacity, that is, the ability to fit a wide
+or particular properties of that distribution. Unsupervised           variety of functions. Models with low capacity may struggle
+learning implicates observing different instances of a random         to fit the training set, whilst models with high capacity may
+vector x and aiming to learn the probability distribution p(x),       memorize properties of the training set that will not gener-
+or its properties. Reinforcement learning comprises an agent          alize well on the test set [39]. Insufficient capacity makes a
+interacting with an environment, and getting feedback loops           model unable to solve complex tasks, whereas a model with
+between the learning system and its experiences, in terms of          a higher capacity than the needed to solve a simple task has
+rewards and penalties [36].                                           a tendency to overfit. Fig. 3 illustrates how this principle
+                                                                      works. ML algorithms perform better when their capacity is
+A. SUPERVISED LEARNING IN 5G MOBILE AND WIRELESS                      proportional to the complexity of the task. The proper level
+COMMUNICATIONS TECHNOLOGY                                             of model complexity is generally determined by the nature of
+In supervised learning, each training example has to be fed           the training data [40]. If we have a small amount of data, or if
+along with its respective label. The idea is to train a learning      the data is not uniformly spread throughout different possible
+model with samples of the problem with known optima, and              scenarios, we should opt for a low-complexity model.
+then use the model to recognize optimal solutions from new
+samples. At a high level, the supervised learning problem
+formulation will have a dataset of instances x (often called
+training set, examples, samples, or objects), and its corre-
+sponding label y. An ML algorithm aθ (e.g., decision tree,
+linear model, neural network, etc.) will find a function that
+maps those instances to labels, as in (1).
+                         aθ (x) → y                          (1)
+To measure the quality of performance of the predictor,
+the algorithm uses a loss function as follows
+                                                                      FIGURE 3. An example of training set generated by randomly sampling x
+                        L(y, aθ (x)).                        (2)      values and deterministically selecting y by evaluating a quadratic
+                                                                      function with a low level of noise. (a) A linear function cannot capture the
+                                                                      curvature from the data. (b) A quadratic function fits the data properly
+The loss function to use, will depend on the specific appli-          and is able to generalize well to new points. (c) A polynomial fit passes
+cation. The main goal of supervised learning is to find the           through all training points very accurately, but it fails to generalize to
+                                                                      unseen points from the underlying function.
+parameters θ 0 , that minimizes the loss function by using the
+dataset of x and y, as in (3).                                           Dataset shift is another significant challenge in non-
+                 θ ← argminθ L(y, aθ (x))
+                   0
+                                                             (3)      stationary environments, where the joint distribution of inputs
+                                                                      and outputs changes between training and test stages [41].
+   Supervised learning tasks are divided into classification,         A simple strategy to overcome dataset shift, is adapting the
+and regression. Classification is the task of predicting a dis-       parameters of the model accordingly to the changes and
+crete class label output for an input, whilst regression is the       retraining the algorithm with an augmented or modified
+problem of predicting a continuous quantity output for a given        dataset [42]. This adaptation may be done either by the end
+example. A major challenge in supervised learning is that             user [43], [44], or automatically [45], [46]. Fig. 4 illustrates
+the algorithm should perform properly on new unobserved               the design of a simple adaptive supervised learning algorithm,
+inputs, not just on the data used for training. This ability is       and shows how the parameters of the model could be updated
+called generalization [37]. Typically, when training a super-         to retrain the algorithm by using the feedback from either
+vised model we can compute the error on the training set              the testing, validation, or implementation stages. This type
+called the training error. The reduction of this error can be         of system is trained with multiple examples of a class along
+described as a naive optimization problem. However, in ML             with their label, and the model learns how to classify new
+there is also a need of minimizing the generalization error,          instances.
+also called the test error. The generalization error is defined          The main characteristic that differentiates supervised
+as the expected value of the error on a new input, and can be         learning from the other types of learners (unsupervised and
+
+137186                                                                                                                             VOLUME 7, 2019
+M. E. Morocho-Cayamcela et al.: Machine Learning for 5G/B5G Mobile and Wireless Communications
+
+
+
+
+   FIGURE 4. The process of automatic adaptation of an ML algorithm to changes. After the raw data has been labeled and splitted, the training data
+   is used for the ML model to learn the patterns/features. The outcomes are subject to evaluation before implementation. After the ML algorithm
+   has been deployed, the errors may be used to correct the model automatically in an iterative manner.
+
+
+
+
+reinforcement) is the initial assumption that we have (or                     for particular frequencies and bandwidth settings from the
+can generate) a dataset of instances with their correspond-                   cells, they later adjusted the parameters using learning-based
+ing labels (x, y). Supervised learning has been beneficial for                approaches to predict the performance that a user will experi-
+applications that can access large amounts of data to train                   ence in the future. The authors showed that the learning-based
+their algorithms, as the number of instances directly influ-                  dynamic frequency and bandwidth allocation (DFBA) pre-
+ences the algorithm robustness. For applications or services                  diction methods yielded significant performance gains with
+that rely on a reduced amount of data, the learning process can               bagging tree prediction.
+be improved through the transfer of knowledge from a related                     Extensive interest in path-loss estimation emerged among
+task that has been already pre-trained. Transfer Learning is                  researchers when they noticed the power of ML to charac-
+a popular technique often used to learn the features of any                   terize more efficient and accurate path-loss models, based
+labeled instance, even with a scarce of training data. Essen-                 on publicly available datasets [51]. The use of ML has been
+tially, one would train a convolutional neural network (CNN)                  proved to provide adaptability to network designers who rely
+on a very large dataset, for example on ImageNet [47], and                    on signal propagation models. Timoteo et al. [24], proposed a
+then fine-tune the CNN on a different dataset, with a different               path-loss prediction model for urban environments using sup-
+vector of features. Fortunately, training on the large dataset is             port vector regression to ensure an acceptable level of quality
+already done by some authors who offer the learned weights                    of service (QoS) for wireless network users. They employed
+for public research use, such as Alexnet [48], VGG Net [49],                  different kernels and parameters over the Okumura-Hata
+or GoogLeNet [50].                                                            model [52], and obtained results similar to those of a complex
+   In 5G networks, LTE small cells are increasingly                           neural network, but with lower computational complexity.
+being deployed to cope with high traffic demands. These                          Wireless communications actively rely on channel state
+small-scale cells are characterized by unpredictable and                      information (CSI) to make an informed decision in the oper-
+dynamic interference patterns, expanding the demand for                       ations of the network, as well as during signal processing.
+self-optimized solutions that can lead to lower drops, higher                 Liu et al. [26], investigated the unobservable CSI for wire-
+data rates, and lower costs for operators. Self-organizing                    less communications and proposed a neural-network-based
+networks (SON) are expected to learn and dynamically adapt                    approximation for channel learning to infer this unobservable
+to different environments. For the selection of an optimal                    information from an observable channel. Their framework
+network configuration in SONs, several ML-based fixes                         was built upon the dependence between channel responses
+have been discussed. In [22], ML and statistical regression                   and location information. To build the supervised learning
+techniques (e.g., bagging tree, boosted tree, SVM, linear                     framework, they trained the network with channel samples,
+regressors, etc.) are evaluated. First, they gathered radio per-              where the unobservable metrics can be calculated from tra-
+formance measurements such as path-loss and throughput                        ditional pilot-aided channel estimation. The applications of
+
+VOLUME 7, 2019                                                                                                                                 137187
+                                                    M. E. Morocho-Cayamcela et al.: Machine Learning for 5G/B5G Mobile and Wireless Communications
+
+
+
+
+TABLE 1. Summary of Supervised Learning-based proposals for 5G Mobile and Wireless Communications Technology.
+
+
+
+
+their work can be extended to cell selection in multi-tier               layer, and one output layer. They showed that the ANN model
+networks, device discovery for device-to-device (D2D) com-               predicts coverage in outdoor environments more accurately
+munications, or end-to-end user association for load balanc-             than the ITU model, using the standard deviation and corre-
+ing, among others. Sarigiannidis et al. [27], used a probabilis-         lation factor as a comparison measure. Among other ML tech-
+tic learning module over a Software-Defined-Radio-enabled                niques with potential for wireless communications, there are
+hybrid optical wireless network. The ML framework receives               k-Nearest Neighbors, Logistic Regression, Decision Trees,
+the traffic-aware knowledge from the SDN controllers and                 and Random Forests. In Table. 1, we summarize different
+adjusts the uplink-downlink configuration in the LTE radio               supervised learning-based models along with the correspond-
+communication. The authors argue that their mechanism is                 ing application in 5G mobile and wireless communications.
+capable of determining the best configuration based on the
+traffic dynamics from the hybrid network, offering significant
+network improvements in terms of jitter and latency.                     B. UNSUPERVISED LEARNING IN 5G MOBILE AND
+   Artificial neural networks (ANN) are a commonly ML                    WIRELESS COMMUNICATIONS TECHNOLOGY
+architecture used to model or approximate objective func-                In unsupervised learning, the data used to train the ML algo-
+tions for existing models or to create accurate models that              rithms is an unlabeled collection of features x1 , x2 , . . . , xn ,
+were impossible to represent in the past without the inter-              and the system attempts to discover subgroups with simi-
+vention of learning machines. ANNs have been proposed to                 lar characteristics among the variables, without any guid-
+solve propagation loss estimation in dynamic environments,               ance. This technique is particularly useful when we want to
+where the input parameters can be selected from the informa-             detect patterns and relationships in the dataset. At no point,
+tion of the transmitter, receiver, buildings, frequency, and so          the algorithm is told to detect groups of related attributes,
+on, and the learning network will train on that data to learn            as the algorithm solves this connection without intervention.
+to estimate the function that best approximates the propa-               However, in some cases we can select the number of clusters
+gation loss for next-generation wireless networks [29]–[32].             we want the algorithm to create. Clustering is a common
+In the same context, Ayadi et al. [28], proposed a multi-layer           ML application that has demonstrated excellent outcomes
+perceptron (MLP) architecture to predict coverage for either             when grouping edge devices in a mobile network (Fig 5).
+short or long distance, in multiple frequencies, and in all envi-        Autoencoders (AE) have also been part of the historical land-
+ronmental types. The MLP presented uses feedforward train-               scape of NN, and are mostly used for dimensionality reduc-
+ing with back propagation to update the weights of the ANN.              tion, and feature learning [66]. If we apply the concept of AE
+They used the inputs of the ITU-R P.1812-4 model [53],                   to the physical layer of a communication system as an end-
+to feed their network composed by an input layer, a hidden               to-end optimized ML task, the input signal reconstruction
+
+137188                                                                                                                              VOLUME 7, 2019
+M. E. Morocho-Cayamcela et al.: Machine Learning for 5G/B5G Mobile and Wireless Communications
+
+
+
+
+                                                                             with the help of hierarchical clustering to identify this kind
+                                                                             of inconsistency. The authors claim that the detection of
+                                                                             these data deviations helps to establish regions of interest
+                                                                             in the network that require special actions, such as resource
+                                                                             allocation or fault avoidance solutions.
+                                                                                Ultra-dense small cells (UDSC) are expected to increase
+                                                                             the capacity of the network, spectrum, and energy efficiency.
+                                                                             To consider the effects of cell switching, dynamic interfer-
+                                                                             ence, time-varying user density, dynamic traffic patterns, and
+                                                                             changing frequencies, Wang and Cheng [63], proposed a
+FIGURE 5. Unsupervised learning example. (a) Initial set of unlabeled        data-driven resource management for UDSC using affinity
+data with different user equipment distributed along a two-dimensional       propagation, an unsupervised learning approach to perform
+feature-axis. (b) The instances after being fed into the unsupervised
+learning algorithm. Notice that the clustering arrangement does not
+                                                                             data analysis and extract the knowledge and behavior of the
+require any supervision.                                                     system under complex environments. Later they introduced
+                                                                             a power control and channel management system based on
+                                                                             the results of the unsupervised learning algorithm. They con-
+within a neural network can be studied as a special case                     clude their research stating that by means of simulation, their
+of an AE. The optimization of a large non-linear NN with                     data-driven resource management framework improved the
+many degrees of freedom for a simple high-level objective has                efficiency of the energy and throughput in UDSC. Alternative
+been attempted in [61]. The authors reconstructed a random                   clustering models such as mini-batch k-means, mean-shift
+input message, transmitted and received over a noisy chan-                   clustering, DBSCAN, agglomerative clustering, etc., may be
+nel. This results bring us closer to a full characterization of              used to associate the users to a certain base station (BS) in
+the wireless channel, enhancing modeling and maintenance                     order to optimize the user equipment (UE) and BS transmit-
+of 5G communications. Balevi et al. [59], incorporated fog                   ting/receiving power. Table 2, shows a brief summary of the
+networking into heterogeneous cellular networks and used an                  potential applications of unsupervised learning in 5G wireless
+unsupervised soft-clustering algorithm to locate fog nodes to                communication technologies.
+be upgraded from low power nodes (LPNs) to high power
+nodes (HPNs). The authors showed that by applying ML clus-                   C. REINFORCEMENT LEARNING IN 5G MOBILE AND
+tering to a priori known data such as the number of fog nodes                WIRELESS COMMUNICATIONS TECHNOLOGY
+and the location of all LPNs within a cell, they were able                   Wireless networks operate in stochastic environments under
+to determine a clustering configuration that reduced latency                 uncertainty (e.g., a node’s location and available power
+in the network. The latency calculation was performed with                   level) [100]. In an uncertain environment, the system dynam-
+open-loop communications, with no ACK for transmitted                        ics can be modelled using a markov decision process (MDP)
+packets, and was compared to the Voronoi tessellation model,                 for a mathematical framework modeling to optimize the
+a classical model based on Euclidean distance.                               desired objectives [20]. A learning entity, agent, interacts
+   Another typical unsupervised learning technique is                        with an environment. At each decision time, the agent
+k-means clustering. Numerous authors have investigated the                   chooses an action a available at a current state s. For the
+applications of this particular clustering technique in the                  action a performed, the system responds by generating a
+next generation wireless network system. Sobabe et al. [54],                 corresponding reward or penalty (negative reward), R(s,a) and
+proposed a cooperative spectrum sensing algorithm using a                    moving into a new state s0 , as depicted in Fig. 6(a). For a
+combination of an optimized version of k-means clustering,                   given state s and action a, according to the Markov property,
+Gaussian mixture model and expectation maximization (EM)                     the state transition probability P(s0 |(s,a)) is independent of all
+algorithm. They proved that their learning algorithm outper-                 previous states and actions. In the framework of partially
+formed the energy vector-based algorithm. Song et al. [58],                  observable MDP (POMDP) which is a generalized MDP,
+discussed how k-means clustering and its classification capa-                the agent is not able to observe the state directly, but instead
+bilities can aid in the selection of an efficient relay node                 only has partial knowledge while perceiving an observa-
+for urban vehicular networks. The authors investigated dif-                  tion [101], as shown in Fig. 6(b). Thus, the agent needs to
+ferent methods for multi-hop wireless broadcasting and how                   keep track of the probability distribution of the states and the
+k-means can be a key factor in the decision-making of the                    observation probability of the underlying MDP, O(s0 |(s,a)) . The
+BSs, by learning from the distribution of the devices and                    problem described with the MDP framework can be solved
+choosing automatically which is the most suitable device to                  by reinforcement learning (RL). The aim of the RL task is
+be used as a relay.                                                          finding the best policy, denoted π ∗ , to maximize the rewards
+   When a wireless network experiences unusual traffic                       by selecting the most proper action in a given state. The value
+demand at a particular time and location, it is often called an              of a state s under policy π , denoted V π (s) is the expected
+anomaly. To help identify these anomalies, Parwez et al. [55],               return when starting in the state s and following π thereafter.
+                                                                             The optimal solution V π is proved to satisfy the following
+                                                                                                        ∗
+used mobile network data for anomaly detection purposes
+
+VOLUME 7, 2019                                                                                                                           137189
+                                                      M. E. Morocho-Cayamcela et al.: Machine Learning for 5G/B5G Mobile and Wireless Communications
+
+
+
+
+TABLE 2. Summary of Unsupervised Learning-based proposals for 5G Mobile and Wireless Communications Technology.
+
+
+
+
+            FIGURE 6. Reinforcement Learning: (a) Markov Decision Process (MDP), (b) Partially Observed Markov Decision Process
+            (POMDP), and (c) Q-learning [18].
+
+
+Bellman optimality equation [102].                                         RL method also can be applied when a MDP model is
+                                                                           unknown [103]. Specifically, the agent might not have infor-
+     V π (s) = max     P(s0 |(s,a)) R(s,a) + γ V π (s0 ) ,
+        ∗           X                             ∗     
+                                                                  (4)      mation on the transition probability and the reward model.
+                  a∈A
+                        s0 ∈S                                              In this case, with the model-free RL method, the agent can
+where γ is a discount factor which makes the value of the                  interact with the environment by exploring the state space
+sum of rewards finite. Equation (4) indicates that the value               and the action space as a trial-and-error learner [104], [105].
+of a state under an optimal policy is equal to the expected                One of the popular model-free RL model is Q-learning illus-
+return for the best action in that state. The RL method can                trated in Fig. 6(c). According to Q-learning, the agent has to
+be applied to find the best policy π ∗ in MDP problems.                    estimate a value-function, called Q-function, through expe-
+While RL can be applied for the case that an MDP model                     rience, in order to learn the optimal policy π ∗ to maximizes
+is available with the model-based method, the model-free                   the value of total reward. Equation (4) can be rewritten as
+
+
+137190                                                                                                                                VOLUME 7, 2019
+M. E. Morocho-Cayamcela et al.: Machine Learning for 5G/B5G Mobile and Wireless Communications
+
+
+
+
+follows.                                                                     While Q-learning is adopted in [73], [74], the MAB method
+                        π∗                                                   is exploited in [87]. In the QoE-based handover algorithms
+                    V        (s) = max Qπ (s, a).                   (5)      proposed in [67], [75], the QoS provided by the chosen
+                                   a∈A
+                                                                             network is considered for the reward. A handover decision
+The Q-learning process turns (5) into an iterative approxima-
+                                                                             problem is formulated as an MDP in [67], and Q-learning
+tion procedure as follows.
+                                                                             is adopted in [75] to find the optimal handover policy with
+ Q(s, a) ← (1 − α)Q(s, a) + α[R(s) + γ max Q(s0 , a)], (6)                   the aim of maximizing the QoE and minimizing the num-
+                                                    a                        ber of handovers. Though in most studies, mobile devices
+where α represents the learning rate in which higher the value               learn selection decisions through trial-and-error based on
+of α, the greater the agent relies on the reward and the dis-                a non-cooperative scheme with their dynamic environment,
+count future reward, compared to the current Q-value. While                  decision making from each device may lead to performance
+RL exploits the feedback reward, this feedback is less infor-                inefficiency from the network side. To overcome this lim-
+mative than in supervised learning, where the agent would be                 itation, in [76], the network information is assumed to be
+given the appropriate actions to take [106], [107] (although                 provided to help the mobile to make more accurate deci-
+such information is not always available). However, it could                 sions. Deriving network information is formulated as a semi-
+be more informative than in unsupervised learning, where the                 markov decision process (SMDP) and Q-learning is adopted
+agent would be left to find the best actions on its own, without             for a radio access technology (RAT) selection algorithm in
+any explicit feedback on its performance [107], [108]. The                   a network-assisted approach. Nguyen et al. [99], also con-
+RL approach has been applied in a variety of schemes such                    sidered a network-assisted approach for a fully distributed
+as admission control, load balancing, mobility management,                   RAT selection algorithm including RL. While devices are
+resource management, and dynamic channel selection (DSA)                     able to exploit limited network-assisted information provided
+in wireless networks [109]. In a heterogeneous network (Het-                 by the BSs, the framework using RL with network-assisted
+Net) environment, where various radio access systems coexist                 feedback could contribute in fast convergence time and low
+and the conditions may change dynamically, adjustment of                     signaling overhead. In a multi-RAT environment, devices
+transmission parameters could be more complicated. Because                   are expected to be capable of multi-connectivity, i.e., to
+RL-based algorithms can adapt to a changing environment                      have access to multiple links over different RATs at the
+by learning through their interactions and from the envi-                    same time. In [77], the algorithm of multiple RATs selection
+ronment, RL has been studied for many algorithms [110]                       based on multi-connectivity (MC) configuration is proposed.
+relevant to load balancing [70]–[72], [88], mobility manage-                 While devices access multiple links for duplicated trans-
+ment [67], [73]–[75], [87], user association [76], [77], [99],               mission to enhance reliability performance, the distributed
+and resource allocation [68], [89], [90].                                    Q-learning is applied. By learning the MC configuration
+   For traffic load balancing in HetNets, one of the most                    condition independently from each UE, results shows that
+studied techniques is cell range expansion (CRE), a mech-                    the proposed algorithm can reduce the number of outage
+anism to virtually increase a small cell’s coverage area by                  devices. To enhance the performance of HetNets, not only
+adding a bias value to its reference signal received power                   cell-specific parameter optimization, such as the CRE bias
+(RSRP). In [70], [71], a Q-learning based scheme is pro-                     adaptation, but also resource allocation has been investigated.
+posed for the bias value optimization. While the work is                     In [89], the shared resource allocation algorithm for LTE pico
+about finding an optimal CRE bias value for each device,                     cells (PCs) is studied to manage interference. Relying on RL
+the authors suggest that the proposed method can reduce the                  theory, the proposed algorithm helps each cell to select the
+number of outage devices and improve the average through-                    most suitable sub-channel in an autonomous manner. In [68],
+put compared to non-learning schemes using a common bias                     resource allocation is approached in a coordinated manner
+value. Simsek et al. in [88] integrated decisions of the best                across different tiers. For the packet call admission con-
+bias for CRE with the UE association process. While the                      trol problem, the joint radio resource management (JRRM)
+proposed algorithm considers UEs’ velocity and historical                    algorithm is proposed by using SMDP. In a cell shared by
+data rate in the short-term scale, results show that the han-                two RATs, the spatial distribution of mobile devices and
+dover failure (HOF) is reduced and the capacity is enhanced.                 the network traffic load of RATs are considered. Based on
+The multi-armed bandit (MAB) learning technique has also                     user satisfaction integrating the rate and a penalty caused by
+been exploited. Authors in [72], proposed a Q-learning based                 blocking, the network learns the optimal joint resource man-
+procedure that integrates a CRE bias value and interference                  agement policy to allocate the packet to an appropriate RAT.
+management to improve throughput. However, the proposed                      In [90], a user scheduling and resource allocation scheme
+approach is difficult to converge, and its optimality cannot be              for HetNets is proposed to exploit the harvested energy
+guaranteed [111]. In the works of [67], [73]–[75], [87], the RL              across small cells, and the actor-critic method is applied. RL
+approach is applied for the handover decision problem. The                   has also been widely applied to studies on cognitive radio
+authors in [73], [74], [87] focus on maximization of the                     networks (CRNs), especially considering the problems in
+offered capacity and reduction of the number of unnecessary                  the time-varying dynamics of the wireless environment that
+handover, i.e., by staying in the cell for a long time period.               cannot be perfectly sensed [69], [91]–[93]. For secondary
+
+VOLUME 7, 2019                                                                                                                       137191
+                                                 M. E. Morocho-Cayamcela et al.: Machine Learning for 5G/B5G Mobile and Wireless Communications
+
+
+
+
+networks [112], RL plays an important role in enabling the            the multi-agent RL (MARL). In MARL, multiple agents,
+secondary users (SUs) to autonomously and opportunisti-               as a group of autonomous and interacting entities, share a
+cally sense the radio environment and tune their transmis-            common environment and improve their policy iteratively by
+sion parameters in a given environment. Alnwaimi et al. [91]          learning from observations to achieve a common goal [107].
+proved that self-configuration and optimization using RL can          In [96] [97], with the proposed MARL-based channel alloca-
+empower femto-cells (FCs) to access the spectrum oppor-               tion, it is shown that the transmission and sensing capability
+tunistically based on learned parameters. While FCs are               for SUs in CRNs could be enhanced. The MARL-based
+considered as SUs of LTE macro cells (MCs), with two                  power control strategy proposed in [98] is proved to acceler-
+sequential learning methods, FCs can identify available spec-         ate the learning of energy harvesting communication systems
+trum opportunities and select subchannels in order to oper-           against intelligent adversaries. Table 3 shows a brief summary
+ate under restrictions of avoiding intra/inter-tier interference      of the potential applications of unsupervised learning in 5G
+and to meet QoS requirements. The amount of interference              wireless communication technologies.
+experienced by FCs and the reconfiguration overhead are
+considered as a learning cost. In [92], an anti-jamming               III. POTENTIAL OF MACHINE LEARNING TO
+strategy for SUs is developed. RL is utilized to choose               SUPPORT 5G REQUIREMENTS
+the frequency channel and determine whether to change its             In this section, we look at the road to the next generation
+location in the presence of jamming and strong interference.          network deployment, and explore the link between ML algo-
+While the learning speed is pointed out as a challenge for            rithms and 5G requirements [114]. 5G is not an incremental
+a large number of channels and a wide range of signal-                improvement over 4G, but rather the next major evolution of
+to-interference-plus-noise ratio (SINR) levels, this work is          mobile communication with performance improvements of
+improved in [93] in terms of learning rate. In [69], the chan-        several orders of magnitude over IMT-advanced. The intent
+nel access process of the SUs in a CRN is modelled as a               of these requirements is to ensure that IMT-2020 guaran-
+constrained POMDP. While partial observation is assumed               tees more flexibility, security, and reliability than previous
+to come from the imperfect sensing of SUs over the primary            technologies, providing a variety of services and deployment
+channel state, a reward function is designed for the instan-          scenarios for a wide range of environments [115], [116]. By
+taneous reward of the SUs and a cost function is designed             agreeing on these requirements, relevant parties (e.g., net-
+for interference experienced at primary users (PUs). The              work operators, manufacturers, regulators, etc.) can work
+RL-based algorithm is applied for finding an optimal policy.          towards developing the same system, where their own par-
+The applications of ML in CRNs are investigated in [113].             ticular needs may not be met at the moment. In this section,
+To overcome spectrum scarcity by utilizing the unlicensed             we have grouped the main 5G requirements into three generic
+spectrum, LTE-Unlicensed (LTE-U) has emerged. The learn-              communication services and have studied how ML can assist
+ing approach that accounts for the coexistence of LTE and             in reaching their demands. Each service emphasizes a differ-
+LTE-U to model the resource allocation problem in LTE-U               ent subset of requirements and applications related to some
+small stations (SBS), has been studied in [80], [95]. The             extent. The three generic services are:
+authors in [95] introduced an RL algorithm based on long
+short-term memory (RL-LSTM) cells to proactively allocate              A. ENHANCED MOBILE BROADBAND (eMBB)
+the resources of LTE-U over the unlicensed spectrum. The              Enhancing the current MBB service will enable new applica-
+problem is formulated as a non-cooperative game between               tions with higher data rate demands over a uniform coverage
+the SBSs, where an RL-LSTM framework enables the SBSs                 area (e.g., ultra-high definition video streaming, and virtual
+to automatically learn which of the unlicensed channels to            reality) (Fig. 7). The essential requirements to enable eMBB
+use, based on the probability of future changes in terms of the       are presented below:
+WLAN activity and the LTE-U traffic loads of the unlicensed
+channels. This work takes into account the value of LTE-U             1) PEAK DATA RATE
+to offload some of LTE data traffic, and the connotation              Peak data rate is planned to increase and support
+of AI in the form of RL-LSTM for long-term dependen-                  high-demand data-driven use cases. IMT-2020 systems will
+cies learning, sequence, and time-series problems. In [80],           be required to deliver 20-times higher data rate than the
+Q-learning is applied for the fair coexistence between LTE            previous technology specification, from 1 Gb/s in 4G to
+and Wi-Fi in the unlicensed spectrum. In the works presented          20 Gb/s in 5G. This is the maximum achievable data rate
+in [78], [79], RL is applied for wireless sensor networks. The        under ideal error-free conditions assigned to a single mobile
+authors present a self-organizing RL approach for scheduling          station when all of the assignable radio resources for the
+the wake-up cycles of nodes based only on their interactions          corresponding link are utilized (excluding radio resources
+with neighboring nodes. The nodes learn to synchronize when           for physical layer synchronization, reference signals, guard
+they have to cooperate for forwarding data, and learn to              bands, etc). An increase of the peak data rate in 5G should
+desynchronize in order to avoid intra-network radio interfer-         be viewed as an evolution that builds on all spectrum assets.
+ences. While most works are based on the single-agent RL              The need for new additional spectrum has grown based on
+model, there is a growing interest in its multi-agent extension,      the emergence of new use cases, and as communication
+
+137192                                                                                                                           VOLUME 7, 2019
+M. E. Morocho-Cayamcela et al.: Machine Learning for 5G/B5G Mobile and Wireless Communications
+
+
+
+
+TABLE 3. Summary of reinforcement learning-based proposals for 5G mobile and wireless communications technology.
+
+
+
+
+                                                                             fundamental answer to unlock the full power of eMBB [117].
+                                                                             However, future research should also consider the complex
+                                                                             land where multiple frequency bands are subject to different
+                                                                             regulations and forms of shared spectrum. Future systems
+                                                                             will have to develop flexibility in order to operate across a
+                                                                             wide range of regulatory models and sharing arrangements.
+                                                                                Massive or large Multiple-Input Multiple-Output (MIMO)
+                                                                             is an essential contribution in the promise to provide an
+                                                                             increased spectral efficiency in 5G. MIMO is defined as
+                                                                             a system that uses a large number of individually con-
+                                                                             trollable antenna elements to exploit the spatial degrees
+                                                                             of freedom of multiplexing messages for several users in
+FIGURE 7. Enhanced Mobile Broadband (eMBB) applications offers
+                                                                             the same frequency, or to focus the radiated signal toward
+higher peak data rates, and increased wide-area rates.                       intended receivers to minimize intra- and inter-cell interfe-
+                                                                             rence [118], [119]. Contributions of ML in MIMO technology
+                                                                             includes channel estimation and direction of arrival (DOA)
+service providers consider their deployment options for 5G                   estimation by using deep neural networks (DNN) to learn the
+networks, they will need access to significant amounts of                    statistics of the wireless channel and the spatial structures in
+spectrum resources to achieve the full performance benefits                  the angle domain [34]. Another ML contribution in MIMO
+of the 5G new radio technology. Centimeter waves (cmWave)                    is the classification of the channel state information (CSI) to
+and millimeter waves (mmWave) are considered to be a                         select the optimal antenna indices using supervised learning
+
+VOLUME 7, 2019                                                                                                                        137193
+                                                  M. E. Morocho-Cayamcela et al.: Machine Learning for 5G/B5G Mobile and Wireless Communications
+
+
+
+
+(i.e., k-nearest neighbors (k-NN) [120], and support vector            of correctly received bits contained in the service data unit
+machine (SVM) [25]).                                                   (SDU), over a certain period of time. The target value
+                                                                       for area traffic capacity increased from 0.1 Mbits/s/m2 on
+2) USER EXPERIENCED DATA RATE                                          IMT-advanced, to 10 Mbit/s/m2 in 5G.
+User experienced data rate is defined as the 5% point of the              To handle this area traffic capacity demand, cell densi-
+cumulative distribution function (CDF) of the user through-            fication has been proposed with pleasant results under 5G
+put over active time (i.e., the number of correctly received bits      scenarios [125], [126]. Cell densification refers to the deploy-
+at MAC Layer 3), measured in a dense urban environment.                ment of a large number of small base stations (SBSs) with
+IMT-2020 intends to brace 10-times higher user experienced             different cell sizes (i.e., micro, pico, and femtocells), allowing
+data rate compared to 4G LTE, from 10 Mbit/s to 100 Mbit/s.            larger spatial reuse of the resources. Additional tiers of small
+Its strong connection with other requirements such as peak             cells provide a tremendous increase in the spectrum reuse
+data rate and latency makes it ideal to be used as a 5G                factor, which allows the allocation of more bandwidth per UE.
+performance indicator in real-world environments.                      Unsupervised learning has been the de facto ML-approach for
+   Emerging technologies such as wireless network virtual-             creating clusters in coordinated multi-point (CoMP), based
+ization (WNV) will become one of the main trends in 5G                 on different features such as capacity improvement, inter-cell
+systems and empower a better quality of experience (QoE)               interference mitigation, and load balancing [127]. Unsuper-
+for end users [121]. WNV relies on software-defined net-               vised self-organizing map (SOM) learning has also been used
+working (SDN), and network function virtualization (NFV)               for planning the coverage of dynamic clusters in HetNets,
+to fulfill different network standards [122]. Network pro-             with the advantage of adjusting the position of the small
+grammability via SDNs and NFV offers endless possibilities             cells based on a SON [60]. The major drawback of cell
+to aid in the automation of network operation, and manage-             densification is that the traffic that can be served by an SBS is
+ment tasks by applying cognitive intelligence and ML algo-             limited by the capacity of the backhaul link. To alleviate the
+rithms [123], [124]. Network resource allocator systems have           backhaul link congestion and increase connectivity, caching
+been designed based on SDN and NFV to enable autonomous                the most popular contents at the network edge has been
+network management. These systems use classifiers to pre-              proposed [128]. Video traffic is particularly suitable to be
+dict the demand and dynamically allocate the amount of                 cached beecause it requires high data rates and exhibits an
+network resources, topology setup, and most appropriate                asynchronous content reuse property [129]. The contents can
+bitrate according to the connectivity performance (i.e., band-         be cached either at SBSs equipped with a cache memory
+width, latency, and jitter), enhancing the user-perceived data         or at the users’ devices directly. One of the most promising
+rate [23]. Similarly, ML can be used to dynamically select             technologies to increase traffic capacity is the use of multiple
+the most appropriate bit rate according to the connectivity            input multiple output (MIMO) and coordinated multi-point
+performance, using agents that learn over time. For this case,         (CoMP) antenna systems. Multi-antenna systems in eMBB
+adequate policy enforcement over the entire network is still           support extreme-data rates in a given area, by improving
+an open issue, but it is expected that in the future, multiple         spectral efficiency and extreme coverage.
+SDN controllers can work together in a distributed manner.
+   By considering the traffic generated by multiple sources,           4) SPECTRUM EFFICIENCY
+generative deep neural networks (GDNN) can reveal the                  The minimum requirements for peak spectral efficiencies in
+presence of correlations that impact the readings of multiple          IMT-2020 are 30 bit/s/Hz for downlink, and 15 bit/s/Hz for
+sensors deployed in the same geographical area [65]. For               uplink. The peak spectral efficiency denotes the maximum
+example, a GDNN that is fed with the readings of all the               data rate under ideal conditions normalized by channel band-
+sensors of a building may capture correlations that depend on          width (in bit/s/Hz). The available spectrum will extend from
+the traffic generated by the devices, making it possible to dis-       3 GHz in 4G, to 30 GHz in 5G. To meet this requirement,
+criminate not only between different classes of traffic sources        access to flexible techniques that maximize the spectrum
+(e.g., random warnings, and periodic sensed data), but even            efficiency are needed as well. The search for optimal use
+between different streams of the same class (e.g., data with           of the electromagnetic spectrum has led us to think of spec-
+higher priority, and temporal trends), due, for instance,              trum use not in terms of exclusive ownership but of multiple
+to environmental alterations or social phenomena. That kind            access. In the process of accessing the spectrum dynamically,
+of rich context information can be further exploited by opti-          the negative effects of sharing licenses have raised doubts
+mizing the usage of the transmission resources e.g., inferring         among researchers [130].
+the type of building (office or residential), and adjusting the           To reduce the negative consequences of spectrum sharing
+propagation models accordingly to maximize the QoE offered             on the priority access licenses (PAL) nodes, reinforce-
+to the final user.                                                     ment learning has been used in the new 3.5 GHz Cit-
+                                                                       izens Broadband Radio Service (CBRS) band, to access
+3) AREA TRAFFIC CAPACITY                                               shared spectrum opportunistically. Specifically, a Q-learning
+Area traffic capacity refers to the total traffic throughput           algorithm was used to adjust the access of the secondary
+served per geographic area in Mbit/s/m2 , that is, the number          General Authorized Access (GAA) nodes, via learning an
+
+137194                                                                                                                            VOLUME 7, 2019
+M. E. Morocho-Cayamcela et al.: Machine Learning for 5G/B5G Mobile and Wireless Communications
+
+
+
+
+                  FIGURE 8. Massive Machine Type Communications (mMTC) provides efficient connectivity for the deployment of a
+                  massive number of geographically spread devices (e.g., sensors and smart devices). Three access types are planned
+                  for mMTC: direct network access (MTC-D), access via an aggregation node (MTC-A), and short-range D2D access
+                  (MTC-M).
+
+
+optimal energy-detection threshold (EDT) for carrier sens-                    that must be processed by the next-generation wireless sys-
+ing [81]. The local learning framework presented in this work                 tem. The problem of cell association when the density
+can be extended to a global intelligence using multi-agent                    of users increases has been extensively addressed in the
+learning to jointly optimize within and across different                      past [133], [134], but recently as ML techniques have
+shared-spectrum deployments. Similarly important, detecting                   emerged, Q-learning algorithms have been proposed to
+anomalous behavior in the wireless spectrum has remained as                   enable users to select their serving BS faster by exploiting
+a critical job due to the complex electromagnetic use of the                  local data and the learning outcomes of neighboring users,
+spectrum. Wireless spectrum anomalies can be significantly                    instead of exchanging all the local data among users [82].
+different depending on the unwanted signal in a licensed                         Network densification infrastructure (i.e., deploying small
+band, which makes manual labeling, an impractical task. This                  femtocells) can easily congest weak backhaul links as well,
+task has now been approached by using adversarial autoen-                     affecting the QoS of end-users. An ML approach to miti-
+coders (AAE), an ML routine that detects the anomalies in                     gate this limitation is to fetch popular contents (e.g., video
+the wireless spectrum by using power spectral density data in                 streams) during off-peak hours, storing the data in the SBs’
+an unsupervised learning setting [62].                                        memory units, and reusing them during peak traffic peri-
+                                                                              ods [135], [136]. The caching problem has been formulated
+B. MASSIVE MACHINE-TYPE COMMUNICATIONS (mMTC)                                 as a Markov process with an unknown transition probabil-
+Another key characteristic of 5G communication services is                    ity and is solved using reinforcement learning to find the
+the scalable connectivity demand for the expanding number                     optimal caching policy to adapt to the underlying dynamics
+of wireless network-enabled devices, focusing on the efficient                of 5G [83]. In a similar way, ultra-dense networks (UDN)
+transmission of small payloads over an extended coverage                      will result in a decrease in the number of active devices per
+area [131], [132]. Applications such as body-area networks,                   access node, leading UDN to often work under high-load
+smart homes, internet of things (IoT), and drone delivery                     conditions. Novel multiple-access techniques allow overload-
+will generate sporadic traffic between a massive number of                    ing the spectrum by multiplexing users in the power and
+geographically spread equipments (Fig. 8), requiring mMTC                     code domains, resulting in non-orthogonal access. With this
+to be able to support new, yet unforeseen use cases. The two                  approach, gains in user and system throughput of up to 50%
+central requirements to enable mMTC are:                                      can be obtained. Candidate schemes are Non-Orthogonal
+                                                                              Multiple Access (NOMA), Sparse Code Multiple Access
+                                                                              (SCMA), and Interleave Division Multiple Access (IDMA).
+1) CONNECTION DENSITY
+                                                                              These schemes can be combined with open- and closed-loop
+An immense challenge for 5G systems is to connect a massive                   MIMO schemes [137], [138].
+number of devices to the internet, taking IoT, and smart
+cities/homes/buildings to a higher level, from 100 thousand
+connections per km2 in 4G to 1 million connections per                        2) NETWORK ENERGY EFFICIENCY
+km2 in 5G. This requirement should be achieved for limited                    Network energy efficiency is important for eMBB, and
+bandwidth and transmission-reception points (TRxPs). The                      it is expected to increase from 1x on 4G, to 100x for
+emergence of IoT has given rise to a significant amount                       IMT-2020. Energy consumption from the devices con-
+of data, collected from sensors, user devices, and BSs,                       nected under mMTC applications needs to be considered
+
+VOLUME 7, 2019                                                                                                                        137195
+                                                      M. E. Morocho-Cayamcela et al.: Machine Learning for 5G/B5G Mobile and Wireless Communications
+
+
+
+
+                 FIGURE 9. Ultra Reliable Low Latency (URLLC) provides ultra-reliable and low-latency communication for
+                 demanding applications e.g., V2X, road and traffic safety, factory automation, precision industry, critical
+                 health-care communications, etc.
+
+
+
+
+in the future network design due to the new energy-hungry                    and provide the harvesting node with adaptation to energy
+multimedia applications. With a proliferation of wireless                    availability [21].
+devices in 5G applications (e.g., mobile phones, wire-
+less sensors, autonomous vehicles, drones, smart logis-                      C. ULTRA-RELIABLE LOW-LATENCY
+tics, etc.), energy-efficient wireless networking has been a                 COMMUNICATIONS (URLLC)
+critical and challenging issue addressed by industry and                     Forthcoming network services, e.g., connected healthcare,
+academia, and will remain a hot research area for a long                     remote surgery, mission-critical applications, autonomous
+time [132], [139].                                                           driving, vehicle-to-vehicle (V2V) communications, high-
+   Network energy efficiency is the capability of a RAT                      speed train connectivity, and smart industry applications, will
+to minimize the radio access network energy consump-                         prioritize extreme reliability, low-latency, and mobility, over
+tion in relation to the traffic capacity provided. The RAT                   data rates (Fig. 9). The crucial requirements to enable URLL
+must have the ability to support a high sleep-ratio and a                    communications are:
+long sleep duration. This requirement needs to be studied
+in two sub-aspects: efficient data transmission in a loaded                  1) LATENCY
+case, and low energy consumption when there is no data.                      Latency is probably one of the most influential performance
+Because the energy of sensor nodes is limited and usually un-                measures of 5G. A reliable 5G system requires extremely
+rechargeable, a fundamental problem that mMTC use cases                      low latency, and even a few milliseconds (ms) can make an
+applications need to solve is the scheduling of sleep and                    enormous difference, making it an extremely important field
+wake-up states of BSs and wireless sensor networks (WSN).                    for 5G researchers and engineers alike. The requirements
+The purpose is to keep nodes/BSs in sleep mode as long                       for IMT-2020 give no room for unbounded delay, from an
+as possible, maximizing the network energy. Previous tech-                   admissible 10 ms in 4G, to <1 ms in the specification for 5G.
+niques such as duty cycling incur a trade-off between energy                 Several authors have indicated that ultimately the success of
+saving and packet delivery efficiency. Reinforcement learn-                  URLLC will rely on an anticipatory network management,
+ing is helping in the creation of self-adaptive sleep-scheduling             capable of predicting the network needs and reacting accord-
+algorithms, enabling each node to autonomously decide                        ingly [140], [141]. URLLC will be the key to enable real-time
+the optimal operation mode (i.e., transmission, listen, and                  connections between autonomous vehicles, e-health, remote
+sleep), through trial-and-error interactions within a dynamic                robot operation, augmented & virtual reality (AR/VR), etc.
+environment [84]–[86].                                                       As an example, a self-driving car on the road must recognize
+   It is also desirable that the devices connected to mMTC                   other vehicles, pedestrians, bikes, and other objects in real-
+applications integrate energy harvesting technologies. The                   time, not tomorrow.
+concepts of ambient energy harvesting from radio fre-                           Latency increases with distance and congestion of net-
+quency (RF) signals and other renewable energy sources are                   work links, which is why not everything can be stored in
+also essential to extend the lifetime of battery constrained                 remote cloud servers away from the final users. The ideal
+devices. To optimize the harvested energy, researchers have                  case would be that the local BS always has the desired
+used linear regression and decision trees to derive energy pre-              content. If it does not, the user will have to download it
+diction models, allowing them to define scheduling policies                  from a cloud server very far away, increasing the latency
+
+137196                                                                                                                                VOLUME 7, 2019
+M. E. Morocho-Cayamcela et al.: Machine Learning for 5G/B5G Mobile and Wireless Communications
+
+
+
+
+proportionally [142], [143]. In the other hand, BSs have                     Additional promising uses of ML to leverage the mobility
+limited storage size, so they have to learn to predict user                  of wireless networks includes feature extraction or pattern
+needs. ML-based solutions (e.g., Q-learning, deep pol-                       recognition to identify, predict, and mitigate interference in
+icy gradient, non-parametric Bayesian learning, etc.) have                   flexible network deployments such as mobile relay nodes
+yielded good results for content popularity prediction and                   or nomadic nodes. Mobile networking is one of the most
+caching [6], [7], [9], [83], [94].                                           critical technologies for 5G mobile communications, but for-
+   Peak traffic demands can be substantially reduced by                      tunately, an anticipatory mobility management through ML
+proactively serving predictable user demands via caching at                  is opening a new road towards URLL networking. Fig. 10
+BSs and users’ devices. Researchers have obtained significant                shows a concise summary of the applications of ML in the
+improvements in the context of edge caching just by applying                 IMT-2020 requirements.
+off-the-shelf ML algorithms, such as k-means clustering and
+non-parametric Bayesian learning [64]. Because of the mas-                   IV. BEYOND 5G, EMERGING TRENDS
+sive amounts of data in future 5G networks, it would be much                 AND OPPORTUNITIES
+more efficient to fragment big servers into multiple smaller                 While 5G is being rolled out in different parts of the world,
+ones to run computations in parallel. With these tools, every                Beyond 5G systems (B5G) have gained significant interest
+BS will be able to store a reduced but adequate set of files                 and several research projects have recently started explor-
+or contents. This is one example of why our future networks                  ing B5G or the sixth generation (6G) systems [144], [145].
+must be predictive, and how ML becomes crucial in optimiz-                   In this section, considering the promising features of B5G,
+ing this type of problems. By deploying simple ML tools such                 the contributions of ML are investigated for B5G. In B5G,
+as k-means clustering, ML can assist in partitioning the data                the emergence of multi-service communication is expected.
+center contents in blocks before storage, reducing the data                  As opposed to the fixed service categorization into eMBB,
+travel among distributed storage systems and contributing                    mMTC, uRLLC classes in 5G, some applications in B5G
+significantly to latency reduction [56]. So far ML has been                  may demand dynamic and/or multiple service-type allo-
+focused on running algorithms in a centralized manner, with-                 cation [146]. For the services in fixed categories, they
+out caring about latency issues. Interesting future work would               are expected to be sophisticated, increasing the network
+investigate the use of distributed mini-servers with storage                 complexity. While the reliability and latency requirements
+and computing capabilities, instead of using a centralized                   in 6G could be use case specific, the most extreme val-
+cloud server, proactively referring to the BSs that serve users.             ues could be 10−9 and 0.1 ms, respectively, correspond-
+                                                                             ing to the requirements in Industry 4.0 applications [144].
+2) MOBILITY                                                                  For the device density, 3D connectivity will be an impor-
+Mobility is described as the maximum mobile station speed                    tant consideration [147]. With the 5G requirement of a
+at which a defined QoS can be achieved (in km/h). For the                    million devices per km2 , the network is anticipated to
+high-speed vehicular mobility scenario, it is assumed that                   support about 10 devices per m2 and 100 devices per
+the user is moving at the maximum speed of 500 km/h,                         m3 in 6G [146]. In terms of energy efficiency, authors
+as opposed to the previous 350 km/h on 4G. To support                        in [148] expect that 6G will support ultra-long battery life
+these highly-mobile use cases, particularly in dense mmWave                  to remove the need of carrying charging devices. Consid-
+deployments where the users need to frequently hand-off                      ering the ever-increasing network complexity and emer-
+between BSs, an optimal identification of the beamforming                    gence of multi-service applications, it would be essential to
+vectors is essential. ML models can use the uplink pilot                     enhance the network intelligence to realize self-organizing
+signal received at the terminal BSs, and learn the implicit                  features. That is, the network monitors changes in the envi-
+mapping function relating to the environment setup to predict                ronment and estimates uncertainties, and the network then
+and coordinate beamforming vectors at the BSs [33]. In a                     uses those monitoring results for network re-configuration.
+similar vein, smarter mechanisms in which SBSs need to                       In addition to self-organizing parameters, from multiple
+coordinate to do joint load balancing and content sharing are                perspectives, such as auto-building the network slices for
+also required. Mechanisms for handover control in wireless                   emerging services and sufficient flexibility for network main-
+systems using ML have been proposed previously, where                        tenance, it is essential for networks to observe environment
+the centralized controller clusters the UEs according to their               variations, learn uncertainties, plan response actions, and
+mobility patterns (i.e., speed information, locations of the                 adjust the network configurations accordingly [18]. ML has
+UEs, geographic context, as well as past trajectories) using                 actually been long exploited for self-organization [149]. In
+unsupervised learning in order to obtain an optimal handover                 B5G, ML is considered as a key element in the design of
+policy for each UE [57].                                                     the network to be more autonomous, self-organizing and
+   Mobility-aware network design also plays an important                     dynamic [147].
+role in the joint communication between high-mobility net-                      5G will only arrive gradually to our lives, yet future
+works. Deep Q-learning has been suggested to determine                       researchers should start looking at what 5G will leave on
+the sets of possible connecting neighboring vehicles, as well                the table. Even though it may seem early to talk about a 6G
+as to configure the parameters of caching placement [94].                    technology, we shall stay updated and focus on the emerging
+
+VOLUME 7, 2019                                                                                                                      137197
+                                                     M. E. Morocho-Cayamcela et al.: Machine Learning for 5G/B5G Mobile and Wireless Communications
+
+
+
+
+FIGURE 10. Requirements of IMT-2020 compared against previous IMT-Advanced demands, and a brief summary of its corresponding ML-driven
+approaches to cope with the demand of the 5G standards.
+
+
+
+
+trends to be able to steer the wheel of our research if it is                In the future all new spectrum is going to be shared,
+needed.                                                                   and as a consequence, the research of dynamic use of dif-
+   The first thing that comes into mind when envisioning any              ferent frequencies comes into play. Imagine if a network
+future generation network is a higher bit rate, which heavily             operator is running out of spectrum, instead of blocking
+depends on the available electromagnetic spectrum. Finding                additional users’ connections, they could use the inactive
+yet more usable frequencies in the current crowded spec-                  spectrum from another operator by listening and checking
+trum will remain as one of the main challenges beyond 5G.                 if the other operator’s spectrum is free (which most of the
+The actual use of mmWave frequencies to gain access to                    time is). This cognitive and cooperative spectrum sharing
+new spectrum at higher frequency bands has defined a new                  approach comes with a manifold of research opportunities,
+era of wireless communications [150], [151]. Nevertheless,                and of course ML is predicted to play a big part in solving a
+a subsequent expansion into sub-millimeter waves beyond                   new variety of challenges, including the maximization of the
+5G will bring new research opportunities on the effects of                utilization of unlicensed spectrum, adaptive smart-contracts,
+propagation, attenuation, and channel modeling for these                  opportunistic exploitation of white spaces, adaptive leasing
+new bands since EM waves are easily blocked by dense                      between carriers, and so on [81], [154], [155]. It is impor-
+structures, the position of the hand on the device, and even              tant to notice that each carrier has different traffic patterns,
+weather conditions at these higher frequencies [152], [153].              so they can be easily be distinguished and classified by an
+
+137198                                                                                                                               VOLUME 7, 2019
+M. E. Morocho-Cayamcela et al.: Machine Learning for 5G/B5G Mobile and Wireless Communications
+
+
+
+
+ML algorithm. The same methodology applies for the Wi-Fi                     can tune the network using ML to improve the network
+spectrum.                                                                    experience for every user. It is easy to see how we could
+   There has been also a strong expectation regarding the                    get more capacity on the edge of a cell by connecting to a
+antenna technology design for the mmWave and above                           neighboring cell. These and just a few optimization examples
+bands [156]–[158]. However, to access those promising                        that are becoming possible as the network is controlled by a
+bands above 30GHz, smaller and adaptive antennas need to                     centralized RAN.
+be designed and installed in the upcoming mobile devices                        The size configuration of an uplink control channel (which
+to receive the higher frequency waves. ML could help in                      transmits feedback on network quality), also uses spectrum,
+the operation of future millimeter antennas by making them                   meaning that there are fewer resources available for data
+adaptable to specific scenarios based on available data from                 transmission. It is a very important problem as we go to
+the environment, signal strength, user positioning, etc. Inter-              5G, given that the uplink control channel data will be more
+esting work has been done using metamaterials to guide                       contaminated with other control signals (e.g., information on
+surface waves and cloak antennas between each other at                       the beams in a massive MIMO network). An ML system
+certain frequency bands [159]–[162]. This technology could                   could predict user equipment characteristics, such as mobility
+allow to pack a massive number of antennas more tightly                      and traffic demand, and predict what the uplink/downlink
+than would be traditionally possible. It is envisioned that                  data rates would be against different settings, and choose the
+ML-based metamaterial antennas will be embedded on small                     optimal one.
+chip in handsets and small cells in the near future.                            On a different line, the evolution of 5G will require a
+   In addition, future applications, such as Tactile Internet,               global collaboration, including worldwide mobile commu-
+the Internet of Skills, autonomous vehicles, and Virtual Real-               nication companies and local governments. A lineal corre-
+ity will become a must-support application by the time the                   lation between the industry production and ML investment
+next standardization takes place, pushing the higher individ-                has already been proven [163], [164], and it seems that
+ual data rates and low latency more than any other application               the integration of ML in the development of forthcoming
+we know of so far. Applications such as smart city, e-health-                technology will return an extension of compatibility with
+care, and factory 4.0 will finally extend IoT to the inter-                  subsequent services and requirements. It would be expected
+net of everything (IoE), emphasizing machine-to-machine                      that ML will be fully integrated into an intelligent network
+(M2M), machine-to-people (M2P) and technology-assisted                       system in time for 6G. That being said, an important question
+people-to-people (P2P) communications. ML will have a                        needs to be raised: can 6G survive without ML? Clearly,
+leading role as a technique to manipulate the data gener-                    the dynamism of today’s data forces ML to be a necessity
+ated by IoE devices, giving meaning to information in order                  for many technology designs. Still, the industry has yet to
+to produce useful insights. These applications will require                  properly come to grips with how to measure the true ben-
+additional infrastructure, but certainly they will force the                 efit of ML, leaving many great technologies waiting to be
+network beyond 5G at some point. Several authors have                        properly motivated for production. A future 6G technology
+pointed towards the possibility that 6G will be the first stan-              might seem a lot like an extension of 5G right now, but
+dard of cellular designed primarily for M2M communication,                   as new technologies continue to emerge, especially in ML,
+heavily impacting the requirements for QoS and roaming.                      materials, antenna integration, and so on, there is room for
+As the number of connected devices increases, an accurate                    fundamental radio and network improvements. The path to a
+positioning technique will be required as well. Small cell data              next generation network can feel uncertain without a given
+can be used to train ML algorithms to infer the positions of                 specification, but thinking ahead will put us in a position
+network users’ equipment (e.g., inside a building), by using                 where we can see a world of opportunities for prospec-
+the received signal strengths from each cell. This information               tive research topics, where others just see drawbacks and
+can be later used to predict the location of a device, helping               difficulties.
+deliver wireless service closer to where customers are physi-
+cally located.                                                               V. SPECIAL CONSIDERATIONS TO DEPLOY
+   An additional trend that has proven to perform well is the                ML ON 5G AND B5G
+enhancement of the current state of spatial multiplexing angle               Bringing ML into 5G production incurs a unique set of
+with massive MIMO technology, allowing BSs to accurately                     challenges that needs to be addressed and understood before
+direct the beams to individual users. Even so, there is much                 starting any project or research. Even though a full outline
+left to be done in spatial bandwidth enhancement beyond the                  of the concerns in ML is beyond the scope of this article,
+current massive MIMO offerings. ML could perfectly assist                    we thoughtfully introduce the most prevailing ones.
+the scheduling of beams and configure channels in massive
+MIMO (e.g., training a neural network to predict the best                     A. THE CRITICAL ROLE OF DATA
+scheduling strategy on demand). Some studies assumes that                    High-quality data is an essential piece in ML applications,
+the user equipment connects to a single cell, but it is envi-                and the type of data (i.e., labeled, or unlabeled) is a key factor
+sioned that distributed massive MIMO allows us to connect                    when deciding which type of learning to use, especially when
+to several cells, getting better performance. The operator                   it comes to deploying applications for 5G use cases.
+
+VOLUME 7, 2019                                                                                                                          137199
+                                                 M. E. Morocho-Cayamcela et al.: Machine Learning for 5G/B5G Mobile and Wireless Communications
+
+
+
+
+   In the matter of wireless communications, it is important          or density threshold hyperparameters for a certain cluster
+to notice that generating a dataset from computer simulators          analysis [176]. In the case of RL the values of number of
+is not always the best practice since the ML algorithm will           averaged experiment trials, or the environmental character-
+end up learning the rules with which the simulator was pro-           istics are considered as the hyperparameters that control the
+grammed, and this will not reflect the un-observable features         learning process [177]. In the case of DNN, there are many
+from the real world (remember that the point is learning              other choices such as the number of layers, the number of
+from real data). The scarcity of real datasets available for 5G       neurons in each layer, the batch size to use during training,
+mobile and wireless communications is one of the biggest              etc. If an ML algorithm produces excellent results in one
+challenges for researchers and ML practitioners. For many             problem space, it might not be as effective or insightful in
+wireless problems, researchers work closely with domain               another field (e.g., mobile, and wireless communications).
+experts to formulate the best representation of their data.           Researchers that start from a solution that worked in another
+This is called feature engineering, and usually takes plenty          context, often find themselves making significant modifica-
+of effort and insights. For other cases, the need for manual          tions and improvements before they start getting results [178].
+feature engineering can be waived by ML automated feature             Accordingly, the probability that we might need to handcraft
+learning, especially in larger systems. This technique is called      a custom ML algorithm to tackle a novel 5G problem, is still
+feature learning or representation learning, and it operates by       high.
+feeding-in all data and letting the algorithm discover which
+features have the most relevance [165]. Certain wireless               D. INTERPRETABILITY VS. ACCURACY TRADE-OFF
+systems have the need to update and analyze the datasets              After deploying an ML algorithm in a given 5G scheme,
+simultaneously. This issue has been tackled by using online           we would like to know why a BS allocates more network
+learning to update the predictors in steps [166].                     resources to a given user than the other, or why a specific
+   Telecommunication industries that generate an immense              RAT is selected to connect certain UEs in HetNets. From a
+amount of data every day, safeguard this information as one           stakeholder standpoint, these complex interactions between
+of their most valuable business assets. Consequently, 5G              the independent variables are difficult to understand and
+research groups, academics, and key industry partners are             might not always make business sense [179]. To explain why
+defining and developing 5G infrastructure to generate their           a certain model is best suited in a particular situation and how
+own datasets for research [167]–[171]. For example in [172],          the selection of the algorithm is related to the given use case,
+a wireless network data resource is open for the research             a depth understanding of the trade-off between accuracy and
+community. This archive stores wireless trace data from many          interpretability becomes convenient (Fig. 11).
+contributing locations to develop ML algorithms and analyze
+the data.
+
+B. THE NO FREE LUNCH THEOREM
+The No Free Lunch Theorem in ML establishes that if we
+average all possible data-generated distributions, every ML
+algorithm will have the same performance when inferring
+unobserved data [173]. Otherwise stated, no ML algorithm is
+universally better than any other. These results hold when we
+average over all possible data generating distributions in real
+world applications. This means that the goal of ML is not to
+seek the absolute best learning algorithm. Instead, we need to
+understand what kind of distribution is relevant to our specific
+5G/B5G application, and which ML algorithm has the best
+performance on that specific data.
+                                                                      FIGURE 11. The trade-off between interpretability and accuracy of some
+                                                                      relevant ML models. Highly interpretable algorithms such as classification
+C. HYPERPARAMETERS SELECTION                                          rules, or linear regression, are often inaccurate. Very accurate DNNs are a
+Most ML algorithms have values that are set before the                classic example of black boxes.
+training begins. These settings are called hyperparameters
+because their choice influences the eventual parameters                  Depending on the application, our goal would be to find
+(i.e., the coefficients or weights) that are updated from the         the right balance in a model that provides both good accuracy
+learning outcomes [174]. For instance, in the case of polyno-         with high interpretability.
+mial regression, the learning rate hyperparameter influences             To be able to interpret DNN models it is essential to
+how fast the model converges in its search of the optimal             understand the functionality of the different hidden lay-
+weights, and the capacity hyperparameter controls the degree          ers, and how nodes are activated. Segmenting a network
+of the polynomial [175] (as explained in Fig. 3). In the case         by grouping interconnected neurons will provide a simpler
+of unsupervised learning, we can define the distance function         level of abstraction to understand its functionality [180].
+
+137200                                                                                                                            VOLUME 7, 2019
+M. E. Morocho-Cayamcela et al.: Machine Learning for 5G/B5G Mobile and Wireless Communications
+
+
+
+
+Understanding how DNN forms individual concepts that can                     (i.e., moving the decision boundaries apart to leave fewer
+then be assembled into the final output is another key for                   regions of ambiguity) [191], [192]. An ideal ML defensive
+building interpretability. Either way, when implementing DL                  strategy shall comprise countermeasures in the training, test-
+models, there could be a price to pay in terms of accuracy.                  ing and inferring phase, as well as security and privacy of the
+                                                                             dataset [193].
+E. PERFORMANCE METRICS                                                          Additionally, since a wide circulation of data will be
+In order to determine how well an ML algorithm will work                     inevitable in ML applications, it would be important to con-
+when deployed in a real scenario, it is important to measure                 sider the aspect of data security and privacy, such as authen-
+its performance on unseen/unlabeled data. Generally, the per-                tication/authorization, regulatory requirements, rotation of
+formance measure is specific to the task being carried out                   keys/certificates, etc. Native software security models and
+by the system. For tasks such as classification, the accu-                   the different ML sub-framework privacy policies need to be
+racy of the model is used as a measure of performance.                       adequately understood to achieve uniform security across the
+Accuracy is defined as the percentage of samples for which                   system. This is particularly important since, in ML, multi-
+the algorithm produces a correct output [181]. We can also                   ple components are often stacked upon each other to build
+obtain performance information by measuring the error rate,                  the end-to-end solution. Significant efforts shall be made to
+the proportion of examples for which the model produces                      improve the robustness and security of ML, especially for the
+an incorrect output. For these purposes, we evaluate these                   safety-sensitive wireless communication field, where minor
+performance measures using a test set of data that is sep-                   errors may lead to disastrous consequences.
+arate from the data used for training the ML system. The
+choice of performance measure may seem straightforward                        VI. CONCLUSION
+and objective, but it is often difficult to decide what should be            We have seen that there is enough promise in the value of ML
+measured.                                                                    to dream of and experiment with, a future in which ML can be
+   For unsupervised learning tasks, such as density estima-                  an inherent element of wireless communications. However,
+tion, we should use a different performance metric that can                  for adopting ML in 5G/B5G, it is needed to consider that
+give the model a continuous-valued score for each example.                   ML cannot be applied everywhere, bearing in mind that the
+The most common approach is to report the average log-                       costliness, time, latency, and delay introduced from some ML
+probability that the model assigns to some example [182].                    techniques are far from some real-time applications. ML and
+   Theoretically, RL algorithms come with a provable guar-                   5G have a lot of room to improve together as a discipline,
+antee of asymptotic convergence to optimal behavior [183].                   and until the major telecommunication industry fully trusts
+In practical terms, the agent quickly reaches a plateau at 99%               ML, the rate of development in the area will be significantly
+of optimality for most applications. Optimality is usually an                constrained by the need to be meticulous and not break
+asymptotic result, therefore, convergence speed is an impre-                 the current systems. Because ML could add uncertainty and
+cise performance metric [184]. An appropriate performance                    complication to any network, our passion must be tempered
+measure may be obtained by evaluating the expected decrease                  by extreme caution. It is important for future researchers to
+in reward gained due to executing the learning algorithm,                    make a critical evaluation of the trade-off between increas-
+instead of behaving optimally from the beginning. This mea-                  ing the accuracy of a wireless system using an ML-based
+sure is known as regret [185], and penalizes mistakes that                   approach and the interpretability of the model, especially for
+occur during the learning process.                                           applications in which regulatory requirements come into play.
+                                                                             Additionally, the explainability of any decision made by the
+F. PRIVACY AND SECURITY                                                      ML algorithm needs to be emphasized, as these decisions
+The ability of ML to swiftly overcome to changing sit-                       must be timely, robust, and secure at the same time. Having
+uations has enabled it to become a fundamental tool for                      said that, the demand is clear, and the goal is in fact simplicity.
+computer security, intrusion detection, and cyber-physical                   After all, it is all about going back to the fundamentals, and
+attacks on mobile and wireless communications [186]. Iron-                   from a communications engineer point of view, the end goal
+ically, that adaptability is also a vulnerability that may pro-              should not be ML per se, but how to lever techniques, such
+duce unexpected results in the network [187]. For instance,                  as ML algorithms, to optimize and improve 5G networks.
+a CNN can be easily deceived by malicious designed noised                    This is particularly true now, considering that ML is becom-
+images [188], or the agents in RL may be tricked to find                     ing a mandatory skill set for any professional field seeking
+unsuitable ways to increase the reward delivered by their                    to optimize complex real-world problems. It is interesting
+interacting environment [189]. One of the limitations of                     to see how ML technology will impact the definition of
+ML algorithms in practice is that they might be subject to                   next-generation wireless network standards, proving the level
+adversarial attacks, that is, an input sample can be modified                of commitment of the wireless academic and industrial areas
+to force a model to classify them in a category different                    to ML. As a consequence, the question is no longer whether
+from their genuine class [190]. In practice, model resilience                ML will be integrated into mobile and wireless communica-
+(i.e., the robustness of a model to perturbations on its inputs)             tion systems, but rather when such integration will fully take
+can be achieved by requiring higher confidence in the outputs                place.
+
+VOLUME 7, 2019                                                                                                                           137201
+                                                             M. E. Morocho-Cayamcela et al.: Machine Learning for 5G/B5G Mobile and Wireless Communications
+
+
+
+
+REFERENCES                                                                          [23] A. Martin, J. Egaña, J. Flórez, J. Montalbán, I. G. Olaizola, M. Quartulli,
+ [1] M. E. M. Cayamcela and W. Lim, ‘‘Artificial intelligence in 5G tech-                R. Viola, and M. Zorrilla, ‘‘Network resource allocation system for qoe-
+     nology: A survey,’’ in Proc. Int. Conf. Inf. Commun. Technol. Con-                  aware delivery of media services in 5G networks,’’ IEEE Trans. Broad-
+     verg. (ICTC), vol. 1, Oct. 2018, pp. 860–865.                                       cast., vol. 64, no. 2, pp. 561–574, Jun. 2018.
+ [2] C. Zhang, P. Patras, and H. Haddadi, ‘‘Deep learning in mobile and             [24] R. D. A. Timoteo, D. Cunha, and G. D. C. Cavalcanti, ‘‘A proposal for
+     wireless networking: A survey,’’ IEEE Commun. Surveys Tuts., vol. 21,               path loss prediction in urban environments using support vector regres-
+     no. 3, pp. 2224–2287, 3rd Quart., 2019.                                             sion,’’ in Proc. Adv. Int. Conf. Telecommun., vol. 10, 2014, pp. 119–124.
+ [3] Y. Fu, S. Wang, C. Wang, X. Hong, and S. McLaughlin, ‘‘Artificial intel-       [25] M. Sanchez-Fernandez, M. de-Prado-Cumplido, J. Arenas-Garcia, and
+     ligence to manage network traffic of 5G wireless networks,’’ IEEE/ACM               F. Perez-Cruz, ‘‘SVM multiregression for nonlinear channel estimation
+     Trans. Netw., vol. 32, no. 6, pp. 58–64, Nov./Dec. 2018.                            in multiple-input multiple-output systems,’’ IEEE Trans. Signal Process.,
+ [4] A. Osseiran, J. F. Monserrat, and P. Marsch, 5G Mobile and Wireless                 vol. 52, no. 8, pp. 2298–2307, Aug. 2004.
+     Communications Technology, 1st ed. Cambridge, U.K.: Cambridge Univ.            [26] J. Liu, R. Deng, S. Zhou, and Z. Niu, ‘‘Seeing the unobservable: Channel
+     Press, 2017.                                                                        learning for wireless communication networks,’’ in Proc. IEEE Global
+ [5] N. Taherkhani and S. Pierre, ‘‘Centralized and localized data congestion            Commun. Conf. (GLOBECOM), Dec. 2015, pp. 1–6.
+     control strategy for vehicular ad hoc networks using a machine learning        [27] P. Sarigiannidis, A. Sarigiannidis, I. Moscholios, and P. Zwierzykowski,
+     clustering algorithm,’’ IEEE Trans. Intell. Transp. Syst., vol. 17, no. 11,         ‘‘DIANA: A machine learning mechanism for adjusting the TDD uplink-
+     pp. 3275–3285, Nov. 2016.                                                           downlink configuration in XG-PON-LTE systems,’’ Mobile Inf. Syst.,
+ [6] J. Kwak, Y. Kim, L. B. Le, and S. Chong, ‘‘Hybrid content caching in 5G             vol. 2017, Jul. 2017, Art. no. 8198017.
+     wireless networks: Cloud versus edge caching,’’ IEEE Trans. Wireless           [28] M. Ayadi, A. B. Zineb, and S. Tabbane, ‘‘A UHF path loss model using
+     Commun., vol. 17, no. 5, pp. 3030–3045, May 2018.                                   learning machine for heterogeneous networks,’’ IEEE Trans. Antennas
+ [7] Z. Chang, L. Lei, Z. Zhou, S. Mao, and T. Ristaniemi, ‘‘Learn to cache:             Propag., vol. 65, no. 7, pp. 3675–3683, Jul. 2017.
+     Machine learning for network edge caching in the big data era,’’ IEEE          [29] S. P. Sotiroudis, S. K. Goudos, K. A. Gotsis, K. Siakavara, and
+     Wireless Commun., vol. 25, no. 3, pp. 28–35, Jun. 2018.                             J. N. Sahalos, ‘‘Application of a composite differential evolution algo-
+ [8] A. Saeed and M. Kolberg, ‘‘Towards optimizing WLANs power saving:                   rithm in optimal neural network design for propagation path-loss pre-
+     Novel context-aware network traffic classification based on a machine               diction in mobile communication systems,’’ IEEE Antennas Wireless
+     learning approach,’’ IEEE Access, vol. 7, pp. 3122–3135, 2019.                      Propag. Lett., vol. 12, pp. 364–367, 2013.
+ [9] E. Baştuǧ, M. Bennis, E. Zeydan, M. A. Kader, I. A. Karatepe,                 [30] J. M. Mom, C. O. Mgbe, and G. A. Igwue, ‘‘Application of artificial neural
+     A. S. Er, and M. Debbah, ‘‘Big data meets telcos: A proactive caching               network for path loss prediction in urban macrocellular environment,’’
+     perspective,’’ J. Commun. Netw., vol. 17, no. 6, pp. 549–557, Dec. 2015.            Amer. J. Eng. Res., vol. 3, no. 2, pp. 270–275, 2014.
+[10] A. Imran, A. Zoha, and A. Abu-Dayya, ‘‘Challenges in 5G: How to                [31] I. Popescu, D. Nikitopoulos, I. Nafornita, and P. Constantinou, ‘‘ANN pre-
+     empower SON with big data for enabling 5G,’’ IEEE Netw., vol. 28, no. 6,            diction models for indoor environment,’’ in Proc. IEEE Int. Conf. Wireless
+     pp. 27–33, Nov./Dec. 2014.                                                          Mobile Comput., Netw. Commun. (WiMob), Jun. 2006, pp. 366–371.
+[11] H. Li, K. Ota, and M. Dong, ‘‘Learning IoT in edge: Deep learning for          [32] S. P. Sotiroudis, K. Siakavara, and J. N. Sahalos, ‘‘A neural network
+     the Internet of Things with edge computing,’’ IEEE Netw., vol. 32, no. 1,           approach to the prediction of the propagation path-loss for mobile com-
+     pp. 96–101, Jan./Feb. 2018.                                                         munications systems in urban environments,’’ PIERS Online, vol. 3, no. 8,
+[12] E. Zeydan, E. Bastug, M. Bennis, M. A. Kader, I. A. Karatepe, A. S. Er,             pp. 1175–1179, 2007.
+     and M. Debbah, ‘‘Big data caching for networking: Moving from cloud            [33] A. Alkhateeb, S. Alex, P. Varkey, Y. Li, Q. Qu, and D. Tujkovic, ‘‘Deep
+     to edge,’’ IEEE Commun. Mag., vol. 54, no. 9, pp. 36–42, Sep. 2016.                 learning coordinated beamforming for highly-mobile millimeter wave
+[13] X. Chen, H. Zhang, C. Wu, S. Mao, Y. Ji, and M. Bennis, ‘‘Optimized                 systems,’’ IEEE Access, vol. 6, pp. 37328–37348, 2018.
+     computation offloading performance in virtual edge computing systems           [34] H. Huang, J. Yang, H. Huang, Y. Song, and G. Gui, ‘‘Deep learn-
+     via deep reinforcement learning,’’ IEEE Internet Things J., vol. 6, no. 3,          ing for super-resolution channel estimation and doa estimation based
+     pp. 4005–4018, Jun. 2019.                                                           massive MIMO system,’’ IEEE Trans. Veh. Technol., vol. 67, no. 9,
+[14] Z. M. Fadlullah, F. Tang, B. Mao, N. Kato, O. Akashi, T. Inoue, and                 pp. 8549–8560, Sep. 2018.
+     K. Mizutani, ‘‘State-of-the-art deep learning: Evolving machine intel-         [35] T. M. Mitchell, Machine Learning, 1st ed. New York, NY, USA:
+     ligence toward tomorrow’s intelligent network traffic control sys-                  McGraw-Hill, 1997.
+     tems,’’ IEEE Commun. Surveys Tuts., vol. 19, no. 4, pp. 2432–2455,
+                                                                                    [36] I. Goodfellow, Y. Bengio, and A. Courville, Deep Learning,
+     1st Quart., 2017.
+                                                                                         T. Dietterich, Ed., 1st ed. Cambridge, MA, USA: MIT Press, 2016.
+[15] A. Geron, Hands-On Machine Learning With Scikit-Learn and Tensor-
+                                                                                    [37] R. Caruana, S. Lawrence, and C. L. Giles, ‘‘Overfitting in neural nets:
+     Flow: Concepts, Tools, and Techniques to Build Intelligent Systems, N.
+                                                                                         Backpropagation, conjugate gradient, and early stopping,’’ in Proc. Adv.
+     Tache, Ed., 1st ed. Sebastopol, CA, USA: O’Reilly Media, 2017, p. 543.
+                                                                                         Neural Inf. Process. Syst., 2001, pp. 402–408.
+     [Online]. Available: http://shop.oreilly.com/product/0636920052289.do
+[16] A. Rosebrock, Deep Learning for Computer Vision, 1st ed.                       [38] G.-B. Huang, X. Ding, and H. Zhou, ‘‘Optimization method based
+     Baltimore, MD, USA: PyImageSearch, 2017. [Online]. Available:                       extreme learning machine for classification,’’ Neurocomputing, vol. 74,
+     https://www.pyimagesearch.com/deep-learning-computer-vision-                        pp. 155–163, Dec. 2010.
+     python-book/                                                                   [39] C. Cortes, L. D. Jackel, and W.-P. Chiang, ‘‘Limits on learning machine
+[17] G. Villarrubia, J. F. De Paz, P. Chamoso, and F. D. la Prieta, ‘‘Artifi-            accuracy imposed by data quality,’’ in Proc. Adv. Neural Inf. Syst., 1995,
+     cial neural networks used in optimization problems,’’ Neurocomputing,               pp. 57–62.
+     vol. 272, pp. 10–16, Jan. 2018.                                                [40] J. Ba and R. Caruana, ‘‘Do deep nets really need to be deep?’’ in Proc.
+[18] R. Li, Z. Zhao, X. Zhou, G. Ding, Y. Chen, Z. Wang, and H. Zhang,                   Adv. Neural Inf. Process. Syst., 2014, pp. 2654–2662.
+     ‘‘Intelligent 5G: When cellular networks meet artificial intelligence,’’       [41] J. Quiñonero-Candela, M. Sugiyama, A. Schwaighofer, and
+     IEEE Wireless Commun., vol. 24, no. 5, pp. 175–183, Oct. 2017.                      N. D. Lawrence, Dataset Shift in Machine Learning. Cambridge,
+[19] T. E. Bogale, X. Wang, and L. B. Le, ‘‘Machine intelligence tech-                   MA, USA: MIT Press, 2009.
+     niques for next-generation context-aware wireless networks,’’ 2018,            [42] J. G. Moreno-Torres, T. Raeder, R. Alaiz-Rodríguez, N. V. Chawla, and
+     arXiv:1801.04223. [Online]. Available: https://arxiv.org/abs/1801.04223             F. Herrera, ‘‘A unifying view on dataset shift in classification,’’ Pattern
+[20] C. Jiang, H. Zhang, Y. Ren, Z. Han, K.-C. Chen, and L. Hanzo, ‘‘Machine             Recognit., vol. 45, no. 1, pp. 521–530, Jan. 2012.
+     learning paradigms for next-generation wireless networks,’’ IEEE Wire-         [43] M. Kubat, R. C. Holte, and S. Matwin, ‘‘Machine learning for the detec-
+     less Commun., vol. 24, no. 2, pp. 98–105, Apr. 2017.                                tion of oil spills in satellite radar images,’’ Mach. Learn., vol. 30, nos. 2–3,
+[21] F. Azmat, Y. Chen, and N. Stocks, ‘‘Predictive modelling of RF energy for           pp. 195–215, 1998.
+     wireless powered communications,’’ IEEE Commun. Lett., vol. 20, no. 1,         [44] M. G. Kelly, D. J. Hand, and N. M. Adams, ‘‘The impact of changing pop-
+     pp. 173–176, Jan. 2016.                                                             ulations on classifier performance,’’ in Proc. Int. Conf. Knowl. Discovery
+[22] B. Bojović, E. Meshkova, N. Baldo, J. Riihijärvi, and M. Petrova,                   Data Mining, 2004, pp. 367–371.
+     ‘‘Machine learning-based dynamic frequency and bandwidth allocation in         [45] M. Saerens, P. Latinne, and C. Decaestecker, ‘‘Adjusting the outputs of
+     self-organized LTE dense small cell deployments,’’ EURASIP J. Wireless              a classifier to new a priori probabilities: A simple procedure,’’ Neural
+     Commun. Netw., vol. 2016, no. 1, 2016, Art. no. 183.                                Comput., vol. 14, no. 1, pp. 21–41, Jan. 2002.
+
+137202                                                                                                                                                  VOLUME 7, 2019
+M. E. Morocho-Cayamcela et al.: Machine Learning for 5G/B5G Mobile and Wireless Communications
+
+
+
+
+ [46] R. Alaiz-Rodríguez, A. Guerrero-Curieses, and J. Cid-Sueiro, ‘‘Improv-        [68] M. Coupechoux, J.-M. Kelif, and P. Godlewski, ‘‘SMDP approach for
+      ing classification under changes in class and within-class distributions,’’        JRRM analysis in heterogeneous networks,’’ in Proc. 14th Eur. Wireless
+      in Proc. Int. Work-Conf. Artif. Neural Netw. Berlin, Germany: Springer,            Conf., Jun. 2008, pp. 1–7.
+      2009, pp. 122–130.                                                            [69] M. Levorato, S. Firouzabadi, and A. Goldsmith, ‘‘A learning framework
+ [47] J. Deng, W. Dong, R. Socher, L.-J. Li, K. Li, and L. Fei-Fei, ‘‘ImageNet:          for cognitive interference networks with partial and noisy observations,’’
+      A large-scale hierarchical image database,’’ in Proc. IEEE Comput. Vis.            IEEE Trans. Wireless Commun., vol. 11, no. 9, pp. 3101–3111, Sep. 2012.
+      Pattern Recognit., Jun. 2009, pp. 248–255.                                    [70] T. Kudo and T. Ohtsuki, ‘‘Cell range expansion using distributed
+ [48] A. Krizhevsky, I. Sutskever, and G. E. Hinton, ‘‘ImageNet classification           Q-learning in heterogeneous networks,’’ EURASIP J. Wireless Commun.
+      with deep convolutional neural networks,’’ Commun. ACM, vol. 60, no. 6,            Netw., vol. 2013, no. 1, p. 61, 2013.
+      pp. 84–90, Jun. 2017.                                                         [71] T. Kudo and T. Ohtsuki, ‘‘Cell range expansion using distributed
+ [49] K. Simonyan and A. Zisserman, ‘‘Very deep convolutional networks                   Q-learning in heterogeneous networks,’’ in Proc. IEEE 78th Veh. Technol.
+      for large-scale image recognition,’’ in Proc. Int. Conf. Learn. Repre-             Conf. (VTC Fall), Sep. 2013, pp. 1–5.
+      sent. (ICRL), 2015, pp. 1–14.                                                 [72] M. Simsek, M. Bennis, and I. Güvenç, ‘‘Learning based frequency-
+ [50] C. Szegedy, W. Liu, Y. Jia, P. Sermanet, S. Reed, D. Anguelov,                     and time-domain inter-cell interference coordination in HetNets,’’ IEEE
+      D. Erhan, V. Vanhoucke, and A. Rabinovich, ‘‘Going deeper with con-                Trans. Veh. Technol., vol. 64, no. 10, pp. 4589–4602, Oct. 2015.
+      volutions,’’ in Proc. IEEE Comput. Soc. Conf. Comput. Vis. Pattern            [73] C. Dhahri and T. Ohtsuki, ‘‘Learning-based cell selection method for fem-
+      Recognit., Jun. 2015, pp. 1–9.                                                     tocell networks,’’ in Proc. IEEE 75th Veh. Technol. Conf. (VTC Spring),
+ [51] S. Y. Han, N. B. Abu-Ghazaleh, and D. Lee, ‘‘Efficient and consistent path         May 2012, pp. 1–5.
+      loss model for mobile network simulation,’’ IEEE/ACM Trans. Netw.,            [74] C. Dhahri and T. Ohtsuki, ‘‘Q-learning cell selection for femtocell net-
+      vol. 24, no. 3, pp. 1774–1786, Jun. 2016.                                          works: Single- and multi-user case,’’ in Proc. IEEE Global Commun.
+ [52] A. Molish, ‘‘The Okumura-Hata model,’’ in Wireless Communications,                 Conf. (GLOBECOM), Dec. 2012, pp. 4975–4980.
+      2nd ed. Wiley, 2011, ch. 7.                                                   [75] H. Tabrizi, G. Farhadi, and J. Cioffi, ‘‘Dynamic handoff decision in
+ [53] A Path-Specific Propagation Prediction Method for Point-to-Area Ter-               heterogeneous wireless systems: Q-learning approach,’’ in Proc. IEEE
+      restrial Services in the VHF and UHF Bands, document P.1812-4, ITU                 Int. Conf. Commun. (ICC), Jun. 2012, pp. 3217–3222.
+      P-Series Radiowave Propagation, 2015, pp. 1–35.                               [76] M. E. Helou, M. Ibrahim, S. Lahoud, K. Khawam, D. Mezher, and
+ [54] G. C. Sobabe, Y. Song, X. Bai, and B. Guo, ‘‘A cooperative spectrum                B. Cousin, ‘‘A network-assisted approach for RAT selection in hetero-
+      sensing algorithm based on unsupervised learning,’’ in Proc. 10th Int.             geneous cellular networks,’’ IEEE J. Sel. Areas Commun., vol. 33, no. 6,
+      Congr. Image Signal Process., Biomed. Eng. Inform. (CISP-BMEI), vol. 1,            pp. 1055–1067, Jun. 2015.
+      Oct. 2017, pp. 198–201.                                                       [77] H. Lee, S. Vahid, and K. Moessner, ‘‘Machine learning based RATs
+                                                                                         selection supporting multi-connectivity for reliability (invited paper),’’
+ [55] M. S. Parwez, D. Rawat, and M. Garuba, ‘‘Big data analytics for user-
+                                                                                         in Proc. 14th EAI Int. Conf. Cognit. Radio Oriented Wireless Netw.,
+      activity analysis and user-anomaly detection in mobile wireless network,’’
+                                                                                         Jun. 2019, pp. 31–41.
+      IEEE Trans. Ind. Informat., vol. 13, no. 4, pp. 2058–2065, Aug. 2017.
+                                                                                    [78] M. Mihaylov, Y.-A. Le Borgne, K. Tuyls, and A. Nowé, ‘‘Decentralised
+ [56] Z. Liao, R. Zhang, S. He, D. Zeng, J. Wang, and H.-J. Kim, ‘‘Deep
+                                                                                         reinforcement learning for energy-efficient scheduling in wireless sensor
+      learning-based data storage for low latency in data center networks,’’
+                                                                                         networks,’’ Int. J. Commun. Netw. Distrib. Syst., vol. 9, pp. 207–224,
+      IEEE Access, vol. 7, pp. 26411–26417, 2019.
+                                                                                         Jan. 2012.
+ [57] Z. Wang, L. Li, Y. Xu, H. Tian, and S. Cui, ‘‘Handover control in wireless
+                                                                                    [79] M. Mihaylov, Y.-A. Le Borgne, K. Tuyls, and A. Nowé, ‘‘Reinforcement
+      systems via asynchronous multiuser deep reinforcement learning,’’ IEEE
+                                                                                         learning for self-organizing wake-up scheduling in wireless sensor net-
+      Internet Things J., vol. 5, no. 6, pp. 4296–4307, Dec. 2018.
+                                                                                         works,’’ in Agents and Artificial Intelligence. Berlin, Germany: Springer,
+ [58] W. Song, F. Zeng, J. Hu, Z. Wang, and X. Mao, ‘‘An unsupervised-                   2013, pp. 382–396.
+      learning-based method for multi-hop wireless broadcast relay selection in
+                                                                                    [80] V. Maglogiannis, D. Naudts, A. Shahid, and I. Moerman, ‘‘A Q-learning
+      urban vehicular networks,’’ in Proc. IEEE Veh. Technol. Conf., Jun. 2017,
+                                                                                         scheme for fair coexistence between LTE and Wi-Fi in unlicensed spec-
+      pp. 1–5.
+                                                                                         trum,’’ IEEE Access, vol. 6, pp. 27278–27293, 2018.
+ [59] E. Balevi and R. D. Gitlin, ‘‘Unsupervised machine learning in 5G net-        [81] M. Tonnemacher, C. Tarver, V. Chandrasekhar, H. Chen, P. Huang,
+      works for low latency communications,’’ in Proc. IEEE 36th Int. Perform.           B. L. Ng, J. C. Zhang, J. R. Cavallaro, and J. Camp, ‘‘Opportunistic
+      Comput. Commun. Conf. (IPCCC), Dec. 2017, pp. 1–2.                                 channel access using reinforcement learning in tiered CBRS networks,’’
+ [60] J. Gazda, E. Šlapak, G. Bugár, D. Horváth, T. Maksymyuk, and M. Jo,                in Proc. IEEE Int. Symp. Dyn. Spectr. Access Netw. (DySPAN), Oct. 2018,
+      ‘‘Unsupervised learning algorithm for intelligent coverage planning and            pp. 1–10.
+      performance optimization of multitier heterogeneous network,’’ IEEE           [82] K. Hamidouche, A. T. Z. Kasgari, W. Saad, M. Bennis, and
+      Access, vol. 6, pp. 39807–39819, 2018.                                             M. Debbah, ‘‘Collaborative artificial intelligence (AI) for user-cell associ-
+ [61] T. O’Shea and J. Hoydis, ‘‘An introduction to deep learning for the physi-         ation in ultra-dense cellular systems,’’ in Proc. IEEE Int. Conf. Commun.
+      cal layer,’’ IEEE Trans. Cogn. Commun. Netw., vol. 3, no. 4, pp. 563–575,          Workshops (ICC Workshops), May 2018, pp. 1–6.
+      Dec. 2017.                                                                    [83] A. Sadeghi, F. Sheikholeslami, and G. B. Giannakis, ‘‘Optimal and scal-
+ [62] S. Rajendran, W. Meert, V. Lenders, and S. Pollin, ‘‘SAIFE: Unsupervised           able caching for 5g using reinforcement learning of space-time popular-
+      wireless spectrum anomaly detection with interpretable features,’’ in              ities,’’ IEEE J. Sel. Topics Signal Process., vol. 12, no. 1, pp. 180–190,
+      Proc. IEEE Int. Symp. Dyn. Spectr. Access Netw. (DySPAN), Oct. 2018,               Feb. 2018.
+      pp. 1–9.                                                                      [84] D. Ye and M. Zhang, ‘‘A self-adaptive sleep/wake-up scheduling
+ [63] L.-C. Wang and S. H. Cheng, ‘‘Data-driven resource management for                  approach for wireless sensor networks,’’ IEEE Trans. Cybern., vol. 48,
+      ultra-dense small cells: An affinity propagation clustering approach,’’            no. 3, pp. 979–992, Mar. 2018.
+      IEEE Trans. Netw. Sci. Eng., vol. 6, no. 3, pp. 267–279, Jul./Sep. 2018.      [85] H. Chen, X. Li, and F. Zhao, ‘‘A reinforcement learning-based sleep
+ [64] E. Bastug, M. Bennis, and M. Debbah, ‘‘Living on the edge: The role                scheduling algorithm for desired area coverage in solar-powered wire-
+      of proactive caching in 5G wireless networks,’’ IEEE Commun. Mag.,                 less sensor networks,’’ IEEE Sensors J., vol. 16, no. 8, pp. 2763–2774,
+      vol. 52, no. 8, pp. 82–89, Aug. 2014.                                              Sep. 2016.
+ [65] M. Zorzi, A. Zanella, A. Testolin, M. De F. De Grazia, and M. Zorzi,          [86] J. Liu, B. Krishnamachari, S. Zhou, and Z. Niu, ‘‘DeepNap: Data-driven
+      ‘‘Cognition-based networks: A new perspective on network optimiza-                 base station sleeping operations through deep reinforcement learning,’’
+      tion using learning and distributed intelligence,’’ IEEE Access, vol. 3,           IEEE Internet Things J., vol. 5, no. 6, pp. 4273–4282, Dec. 2018.
+      pp. 1512–1530, Aug. 2015.                                                     [87] C. Dhahri and T. Ohtsuki, ‘‘Cell selection for open-access femtocell
+ [66] H. Bourlard and Y. Kamp, ‘‘Auto-association by multilayer perceptrons              networks: Learning in changing environment,’’ Phys. Commun., vol. 13,
+      and singular value decomposition,’’ Biol. Cybern., vol. 59, nos. 4–5,              pp. 42–52, Dec. 2014.
+      pp. 291–294, 1988.                                                            [88] M. Simsek, M. Bennis, and I. Guvenc, ‘‘Mobility management in
+ [67] E. Stevens-Navarro, Y. Lin, and V. W. S. Wong, ‘‘An MDP-based vertical             HetNets: A learning-based perspective,’’ EURASIP J. Wireless Commun.
+      handoff decision algorithm for heterogeneous wireless networks,’’ IEEE             Netw., vol. 2015, no. 1, p. 26, Feb. 2015.
+      Trans. Veh. Technol., vol. 57, no. 2, pp. 1243–1254, Mar. 2008.               [89] A. Feki, V. Capdevielle, and E. Sorsy, ‘‘Self-organized resource allocation
+
+VOLUME 7, 2019                                                                                                                                               137203
+                                                                M. E. Morocho-Cayamcela et al.: Machine Learning for 5G/B5G Mobile and Wireless Communications
+
+
+
+
+        for LTE Pico cells: A reinforcement learning approach,’’ in Proc. IEEE        [113] W. Wang, A. Kwasinski, D. Niyato, and Z. Han, ‘‘A survey on applications
+        75th Veh. Technol. Conf. (VTC Spring), May 2012, pp. 1–5.                           of model-free strategy learning in cognitive wireless networks,’’ IEEE
+ [90]   Y. Wei, F. R. Yu, M. Song, and Z. Han, ‘‘User scheduling and resource               Commun. Surveys Tuts., vol. 18, no. 3, pp. 1717–1757, 3rd Quart., 2016.
+        allocation in HetNets with hybrid energy supply: An actor-critic rein-        [114] R. El Hattachi and J. Erfanian, ‘‘Next generation mobile networks alliance
+        forcement learning approach,’’ IEEE Trans. Wireless Commun., vol. 17,               5G initiative,’’ Berkshire, U.K., 5G White Paper 1.0, 2015.
+        no. 1, pp. 680–692, Jan. 2018.                                                [115] J. G. Andrews, S. Buzzi, W. Choi, S. V. Hanly, A. Lozano, A. C. K. Soong,
+ [91]   G. Alnwaimi, S. Vahid, and K. Moessner, ‘‘Dynamic heterogeneous                     and J. C. Zhang, ‘‘What will 5G be?’’ IEEE J. Sel. Areas Commun.,
+        learning games for opportunistic access in LTE-based macro/femtocell                vol. 32, no. 6, pp. 1065–1082, Jun. 2014.
+        deployments,’’ IEEE Trans. Wireless Commun., vol. 14, no. 4,                  [116] P. K. Agyapong, M. Iwamura, D. Staehle, W. Kiess, and A. Benjebbour,
+        pp. 2294–2308, Apr. 2015.                                                           ‘‘Design considerations for a 5G network architecture,’’ IEEE Commun.
+ [92]   G. Han, L. Xiao, and H. V. Poor, ‘‘Two-dimensional anti-jamming                     Mag., vol. 52, no. 11, pp. 65–75, Nov. 2014.
+        communication based on deep reinforcement learning,’’ in Proc. IEEE           [117] M. Shafi, A. F. Molisch ; P. J. Smith, T. Haustein, P. Zhu, P. De Silva,
+        Int. Conf. Acoust., Speech Signal Process., New Orleans, LA, USA,                   F. Tufvesson, A. Benjebbour, and G. Wunder, ‘‘5G: A tutorial overview
+        Mar. 2017, pp. 2087–2091.                                                           of standards, trials, challenges, deployment, and practice,’’ IEEE J. Sel.
+ [93]   L. Xiao, D. Jiang, D. Xu, H. Zhu, Y. Zhang, and H. V. Poor, ‘‘Two-                  Areas Commun., vol. 35, no. 6, pp. 1201–1221, Jun. 2017.
+        dimensional antijamming mobile communication based on reinforcement           [118] F. Rusek, D. Persson, B. K. Lau, E. G. Larsson, T. L. Marzetta, O. Edfors,
+        learning,’’ IEEE Trans. Veh. Technol., vol. 67, no. 10, pp. 9499–9512,              and F. Tufvesson, ‘‘Scaling up MIMO: Opportunities and challenges with
+        Oct. 2018.                                                                          very large arrays,’’ IEEE Signal Process. Mag., vol. 30, no. 1, pp. 40–60,
+ [94]   L. T. Tan and R. Q. Hu, ‘‘Mobility-aware edge caching and computing                 Jan. 2013.
+        in vehicle networks: A deep reinforcement learning,’’ IEEE Trans. Veh.        [119] L. Lu, G. Y. Li, A. L. Swindlehurst, A. Ashikhmin, and R. Zhang,
+        Technol., vol. 67, no. 11, pp. 10190–10203, Nov. 2018.                              ‘‘An overview of massive MIMO: Benefits and challenges,’’ IEEE J. Sel.
+ [95]   U. Challita, L. Dong, and W. Saad, ‘‘Deep learning for proactive resource           Topics Signal Process., vol. 8, no. 5, pp. 742–758, Oct. 2014.
+        allocation in LTE-U networks,’’ in Proc. 23rd Eur. Wireless Conf. Eur.        [120] J. Joung, ‘‘Machine learning-based antenna selection in wireless com-
+        Wireless, May 2017, pp. 1–6.                                                        munications,’’ IEEE Commun. Lett., vol. 20, no. 11, pp. 2241–2244,
+ [96]   B. F. Lo and I. F. Akyildiz, ‘‘Multiagent jamming-resilient control channel         Nov. 2016.
+        game for cognitive radio ad hoc networks,’’ in Proc. IEEE Int. Conf.          [121] E. Hossain and M. Hasan, ‘‘5G cellular: Key enabling technologies
+        Commun., Jun. 2012, pp. 1821–1826.                                                  and research challenges,’’ IEEE Instrum. Meas. Mag., vol. 18, no. 3,
+ [97]   M. A. Aref, S. K. Jayaweera, and S. Machuzak, ‘‘Multi-agent reinforce-              pp. 11–21, Jun. 2015.
+        ment learning based cognitive anti-jamming,’’ in Proc.IEEE Wireless           [122] S. Bera, S. Misra, and A. V. Vasilakos, ‘‘Software-defined networking
+        Commun. Netw. Conf. (WCNC), Mar. 2017, pp. 1–6.                                     for Internet of Things: A survey,’’ IEEE Internet Things J., vol. 4, no. 6,
+ [98]   X. He, H. Dai, and P. Ning, ‘‘Faster learning and adaptation in security            pp. 1994–2008, Dec. 2017.
+        games by exploiting information asymmetry,’’ IEEE Trans. Signal Pro-          [123] S. Ayoubi, N. Limam, M. A. Salahuddin, N. Shahriar, R. Boutaba,
+        cess., vol. 64, no. 13, pp. 3429–3443, Jul. 2016.                                   F. Estrada-Solano, and O. M. Caicedo, ‘‘Machine learning for cog-
+ [99]   D. D. Nguyen, H. X. Nguyen, and L. B. White, ‘‘Reinforcement learning               nitive network management,’’ IEEE Commun. Mag., vol. 56, no. 1,
+        with network-assisted feedback for heterogeneous RAT selection,’’ IEEE              pp. 158–165, Jan. 2018.
+        Trans. Wireless Commun., vol. 16, no. 9, pp. 6062–6076, Sep. 2017.            [124] W.-X. Liu, J. Zhang, Z.-W. Liang, L.-X. Peng, and J. Cai, ‘‘Content
+                                                                                            popularity prediction and caching for ICN: A deep learning approach with
+[100]   M. Abu Alsheikh, D. T. Hoang, D. Niyato, H.-P. Tan, and S. Lin,
+                                                                                            SDN,’’ IEEE Access, vol. 6, pp. 5075–5089, 2018.
+        ‘‘Markov decision processes with applications in wireless sensor net-
+        works: A survey,’’ IEEE Commun. Surveys Tuts., vol. 17, no. 3,                [125] N. Bhushan, J. Li, D. Malladi, R. Gilmore, D. Brenner, A. Damnjanovic,
+        pp. 1239–1267, 3rd Quart., 2015.                                                    R. T. Sukhavasi, C. Patel, and S. Geirhofer, ‘‘Network densification: The
+                                                                                            dominant theme for wireless evolution into 5G,’’ IEEE Commun. Mag.,
+[101]   T. Jaakkola, S. P. Singh, and M. I. Jordan, ‘‘Reinforcement learning
+                                                                                            vol. 52, no. 2, pp. 82–89, Feb. 2014.
+        algorithm for partially observable Markov decision problems,’’ in Proc.
+                                                                                      [126] M. Kamel, W. Hamouda, and A. Youssef, ‘‘Ultra-dense networks: A sur-
+        Adv. Neural Inf. Process. Syst., vol. 7, 1995, pp. 345–352.
+                                                                                            vey,’’ IEEE Commun. Surveys Tuts., vol. 18, no. 4, pp. 2522–2545, 4th
+[102]   M. Van Otterlo and M. Wiering, Reinforcement Learning and Markov
+                                                                                            Quart., 2016.
+        Decision Processes. Berlin, Germany: Springer, 2012, pp. 3–42.
+                                                                                      [127] S. Bassoy, H. Farooq, M. A. Imran, and A. Imran, ‘‘Coordinated multi-
+[103]   R. S. Sutton and A. G. Barto, Reinforcement Learning: An Introduction,
+                                                                                            point clustering schemes: A survey,’’ IEEE Commun. Surveys Tuts.,
+        2nd ed. London, U.K.: MIT Press, 2018.
+                                                                                            vol. 19, no. 2, pp. 743–764, 2nd Quart., 2017.
+[104]   L. P. Kaelbling, M. L. Littman, and A. W. Moore, ‘‘Reinforcement              [128] N. Golrezaei, A. F. Molisch, A. G. Dimakis, and G. Caire, ‘‘Femtocaching
+        learning: A survey,’’ J. Artif. Intell. Res., vol. 4, no. 1, pp. 237–285,           and device-to-device collaboration: A new architecture for wireless
+        Jan. 1996.                                                                          video distribution,’’ IEEE Commun. Mag., vol. 51, no. 4, pp. 142–149,
+[105]   G. Weiss, Ed., Multiagent Systems: A Modern Approach to Distributed                 Apr. 2013.
+        Artificial Intelligence. Cambridge, MA, USA: MIT Press, 1999.                 [129] M. Gregori, J. Gómez-Vilardebó, J. Matamoros, and D. Gündüz, ‘‘Wire-
+[106]   V. Cherkassky and F. M. Mulier, Learning From Data: Concepts, Theory,               less content caching for small cell and D2D networks,’’ IEEE J. Sel. Areas
+        and Methods. Hoboken, NJ, USA: Wiley, 2007.                                         Commun., vol. 34, no. 5, pp. 1222–1234, May 2016.
+[107]   L. Busoniu, R. Babuska, and B. De Schutter, ‘‘A comprehensive survey of       [130] E. M. Noam, ‘‘Taking the next step beyond spectrum auctions: Open
+        multiagent reinforcement learning,’’ IEEE Trans. Syst., Man, Cybern. C,             spectrum access,’’ IEEE Commun. Mag., vol. 33, no. 12, pp. 66–73,
+        Appl. Rev., vol. 38, no. 2, pp. 156–172, Mar. 2008.                                 Dec. 1995.
+[108]   T. J. Sejnowski and G. Hinton, Unsupervised Learning: Foundations of          [131] N. Javaid, A. Sher, H. Nasir, and N. Guizani, ‘‘Intelligence in IoT-based
+        Neural Computation. Cambridge, MA, USA: MIT Press, 1999.                            5G networks: Opportunities and challenges,’’ IEEE Commun. Mag.,
+[109]   K.-L. A. Yau, P. Komisarczuk, and P. D. Teal, ‘‘Reinforcement learning              vol. 56, no. 10, pp. 94–100, Oct. 2018.
+        for context awareness and intelligence in wireless networks: Review,          [132] W. Ejaz, M. Naeem, A. Shahid, A. Anpalagan, and M. Jo, ‘‘Efficient
+        new features and open issues,’’ J. Netw. Comput. Appl., vol. 35, no. 1,             energy management for the Internet of Things in smart cities,’’ IEEE
+        pp. 253–267, 2011.                                                                  Commun. Mag., vol. 55, no. 1, pp. 84–91, Jan. 2017.
+[110]   G. Gódor, Z. Jakó, Á. Knapp, and S. Imre, ‘‘A survey of handover              [133] M. Sauter, From GSM to LTE-Advanced: An Introduction to Mobile
+        management in LTE-based multi-tier femtocell networks: Requirements,                Networks and Mobile Broadband. Hoboken, NJ, USA: Wiley, 2014.
+        challenges and solutions,’’ Comput. Netw., vol. 76, pp. 17–41, Jan. 2015.     [134] H. Beyranvand, W. Lim, M. Maier, C. Verikoukis, and J. A. Salehi,
+[111]   H. Jiang, Z. Pan, N. Liu, X. You, and T. Deng, ‘‘Gibbs-sampling-based               ‘‘Backhaul-aware user association in FiWi enhanced LTE—A hetero-
+        CRE bias optimization algorithm for ultradense networks,’’ IEEE Trans.              geneous networks,’’ IEEE Trans. Wireless Commun., vol. 14, no. 6,
+        Veh. Technol., vol. 66, no. 2, pp. 1334–1350, Feb. 2017.                            pp. 2992–3003, Jun. 2015.
+[112]   H. Lee, Y. Ko, S. Vahid, and K. Moessner, ‘‘Practical spectrum aggrega-       [135] X. Wang, M. Chen, T. Taleb, A. Ksentini, and V. C. M. Leung, ‘‘Cache
+        tion for secondary networks with imperfect sensing,’’ IEEE Trans. Veh.              in the air: Exploiting content caching and delivery techniques for 5G
+        Technol., vol. 65, no. 7, pp. 5474–5484, Jul. 2016.                                 systems,’’ IEEE Commun. Mag., vol. 52, no. 2, pp. 131–139, Feb. 2014.
+
+137204                                                                                                                                                 VOLUME 7, 2019
+M. E. Morocho-Cayamcela et al.: Machine Learning for 5G/B5G Mobile and Wireless Communications
+
+
+
+
+[136] G. Paschos, E. Bastug, I. Land, G. Caire, and M. Debbah, ‘‘Wire-              [157] W. Hong, K.-H. Baek, Y. Lee, Y. Kim, and S.-T. Ko, ‘‘Study and proto-
+      less caching: Technical misconceptions and business barriers,’’ IEEE                typing of practically large-scale mmWave antenna systems for 5G cellular
+      Commun. Mag., vol. 54, no. 8, pp. 16–22, Aug. 2016.                                 devices,’’ IEEE Commun. Mag., vol. 52, no. 9, pp. 63–69, Sep. 2014.
+[137] G. Wunder, P. Jung, M. Kasparick, T. Wild, F. Schaich, Y. Chen,               [158] S. Han, C.-L. I, Z. Xu, and C. Rowell, ‘‘Large-scale antenna systems with
+      S. Ten Brink, I. Gaspar, N. Michailow, A. Festag, L. Mendes, N. Cassiau,            hybrid analog and digital beamforming for millimeter wave 5G,’’ IEEE
+      D. Ktenas, M. Dryjanski, S. Pietrzyk, B. Eged, P. Vago, and F. Wiedmann,            Commun. Mag., vol. 53, no. 1, pp. 186–194, Jan. 2015.
+      ‘‘5GNOW: Non-orthogonal, asynchronous waveforms for future mobile             [159] D.-H. Kwon and D. H. Werner, ‘‘Transformation electromagnetics:
+      applications,’’ IEEE Commun. Mag., vol. 52, no. 2, pp. 97–105,                      An overview of the theory and applications,’’ IEEE Antennas Propag.
+      Feb. 2014.                                                                          Mag., vol. 52, no. 1, pp. 24–46, Feb. 2010.
+[138] Y. Liu, Z. Qin, M. Elkashlan, Z. Ding, A. Nallanathan, and L. Hanzo,          [160] A. Dadgarpour, M. S. Sorkherizi, and A. A. Kishk, ‘‘Wideband
+      ‘‘Nonorthogonal multiple access for 5G and beyond,’’ Proc. IEEE,                    low-loss magnetoelectric dipole antenna for 5G wireless network
+      vol. 105, no. 12, pp. 2347–2381, Dec. 2017.                                         with gain enhancement using meta lens and gap waveguide tech-
+[139] X. Cao, L. Liu, Y. Cheng, and X. S. Shen, ‘‘Towards energy-efficient                nology feeding,’’ IEEE Trans. Antennas Propag., vol. 64, no. 12,
+      wireless networking in the big data era: A survey,’’ IEEE Commun.                   pp. 5094–5101, Dec. 2016.
+      Surveys Tuts., vol. 20, no. 1, pp. 303–332, 1st Quart., 2018.                 [161] M. E. M. Cayamcela, S. R. Angsanto, W. Lim, and A. Caliwag, ‘‘An arti-
+[140] K.-C. Chen, T. Zhang, R. D. Gitlin, and G. Fettweis, ‘‘Ultra-low                    ficially structured step-index metasurface for 10GHz leaky waveguides
+      latency mobile networking,’’ IEEE Netw., vol. 33, no. 2, pp. 181–187,               and antennas,’’ in Proc. IEEE 4th World Forum Internet Things (WF-IoT),
+      Mar./Apr. 2019.                                                                     Feb. 2018, pp. 568–573.
+[141] A. Azari, M. Ozger, and C. Cavdar, ‘‘Risk-aware resource allocation           [162] A. Dadgarpour, B. Zarghooni, B. S. Virdee, and T. A. Denidni, ‘‘Single
+      for URLLC: Challenges and strategies with machine learning,’’ IEEE                  end-fire antenna for dual-beam and broad beamwidth operation at 60 GHz
+      Commun. Mag., vol. 57, no. 3, pp. 42–48, Mar. 2019.                                 by artificially modifying the permittivity of the antenna substrate,’’ IEEE
+[142] Y. Mao, C. You, J. Zhang, K. Huang, and K. B. Letaief, ‘‘A survey on                Trans. Antennas Propag., vol. 64, no. 9, pp. 4068–4073, Sep. 2016.
+      mobile edge computing: The communication perspective,’’ IEEE Com-             [163] T. Wuest, D. Weimer, C. Irgens, and K.-D. Thoben, ‘‘Machine learning in
+      mun. Surveys Tuts., vol. 19, no. 4, pp. 2322–2358, 4th Quart., 2017.                manufacturing: Advantages, challenges, and applications,’’ Prod. Manuf.
+[143] S. Wang, X. Zhang, Y. Zhang, L. Wang, J. Yang, and W. Wang, ‘‘A sur-                Res., vol. 4, no. 1, pp. 23–45, Jan. 2016.
+      vey on mobile edge networks: Convergence of computing, caching and            [164] A. B. Tulcanaza-Prieto and M. Morocho-Cayamcela, ‘‘Elasticity of the
+      communications,’’ IEEE Access, vol. 5, pp. 6757–6779, 2017.                         total production measured by the investment in information and commu-
+[144] G. Berardinelli, N. H. Mahmood, I. Rodriguez, and P. Mogensen,                      nication technologies: An evidence from the Ecuadorian manufacturing
+      ‘‘Beyond 5G wireless IRT for industry 4.0: Design principles and                    companies,’’ X-Pedientes Económicos, vol. 2, no. 3, pp. 6–27, 2018.
+      spectrum aspects,’’ in Proc. IEEE Globecom Workshops (GC Wkshps),             [165] A. Argyriou, T. Evgeniou, and M. Pontil, ‘‘Convex multi-task feature
+      Dec. 2018, pp. 1–6.                                                                 learning,’’ Mach. Learn., vol. 73, no. 3, pp. 243–272, 2008.
+[145] M. Katz, M. Matinmikko-Blue, and M. Latva-Aho, ‘‘6Genesis flagship            [166] H. Soleimani, R. Parada, S. Tomasin, and M. Zorzi, ‘‘Fast initial access
+      program: Building the bridges towards 6G-enabled wireless smart society             for mmWave 5G systems with hybrid beamforming using online statistics
+      and ecosystem,’’ in Proc. IEEE 10th Latin-Amer. Conf. Commun. (LAT-                 learning,’’ IEEE Commun. Mag., to be published.
+      INCOM), Nov. 2018, pp. 1–9.
+                                                                                    [167] L.-V. Le, D. Sinh, B.-S. P. Lin, and L.-P. Tung, ‘‘Applying big data,
+[146] N. H. Mahmood, H. Alves, O. A. López, M. Shehab, D. P. M. Osorio,
+                                                                                          machine learning, and SDN/NFV to 5G traffic clustering, forecasting, and
+      and M. Latva-Aho, ‘‘Six key enablers for machine type communication
+                                                                                          management,’’ in Proc. 4th IEEE Conf. Netw. Softwarization Workshops
+      in 6G,’’ IEEE Commun. Mag., to be published.
+                                                                                          (NetSoft), Jun. 2018, pp. 168–176.
+[147] E. C. Strinati, S. Barbarossa, J. L. Gonzalez-Jimenez, D. Kténas,
+                                                                                    [168] E. Anderson, C. Phillips, G. Yee, D. Sicker, and D. Grunwald, ‘‘Chal-
+      N. Cassiau, and C. Dehos, ‘‘6G: The next frontier,’’ IEEE Veh. Technol.
+                                                                                          lenges in deploying steerable wireless testbeds,’’ in Proc. Int. Conf.
+      Mag., to be published.
+                                                                                          Testbeds Res. Infrastruct., vol. 46, 2011, pp. 231–240.
+[148] K. David and H. Berndt, ‘‘6G vision and requirements: Is there any need
+                                                                                    [169] M. Wellens, ‘‘Empirical modelling of spectrum use and evaluation of
+      for beyond 5G?’’ IEEE Veh. Technol. Mag., vol. 13, no. 3, pp. 72–80,
+                                                                                          adaptive spectrum sensing in dynamic spectrum access networks,’’ Ph.D.
+      Sep. 2018.
+                                                                                          dissertation, RWTH Aachen Univ., Aachen, Germany, 2010.
+[149] P. V. Klaine, M. A. Imran, O. Onireti, and R. D. Souza, ‘‘A survey
+      of machine learning techniques applied to self-organizing cellular net-       [170] C. de Vrieze, L. Simic, and P. Mahonen, ‘‘The importance of being
+      works,’’ IEEE Commun. Surveys Tuts., vol. 19, no. 4, pp. 2392–2431,                 earnest: Performance of modulation classification for real RF signals,’’ in
+      4th Quart., 2017.                                                                   Proc. IEEE Int. Symp. Dyn. Spectr. Access Netw. (DySPAN), Oct. 2018,
+[150] T. S. Rappaport, S. Sun, R. Mayzus, H. Zhao, Y. Azar, K. Wang,                      pp. 1–5.
+      G. N. Wong, J. K. Schulz, M. Samimi, and F. Gutierrez, ‘‘Millimeter wave      [171] H. Koumaras, D. Tsolkas, G. Gardikis, P. M. Gomez, V. Frascolla,
+      mobile communications for 5G cellular: It will work!’’ IEEE Access,                 D. Triantafyllopoulou, M. Emmelmann, V. Koumaras, M. L. G. Osma,
+      vol. 1, pp. 335–349, 2013.                                                          D. Munaretto, E. Atxutegi, J. S. de Puga, O. Alay, A. Brunstrom, and
+[151] R. W. Heath, N. González-Prelcic, S. Rangan, W. Roh, and                            A. M. C. Bosneag, ‘‘5GENESIS: The genesis of a flexible 5G facility,’’
+      A. M. Sayeed, ‘‘An overview of signal processing techniques for                     in Proc. IEEE 23rd Int. Workshop Comput. Aided Modeling Design
+      millimeter wave MIMO systems,’’ IEEE J. Sel. Topics Signal Process.,                Commun. Links Netw. (CAMAD), Sep. 2018, pp. 1–6.
+      vol. 10, no. 3, pp. 436–453, Apr. 2016.                                       [172] D. Kotz and T. Henderson, ‘‘CRAWDAD: A community resource for
+[152] T. S. Rappaport, G. R. Maccartney, M. K. Samimi, and S. Sun, ‘‘Wide-                archiving wireless data at Dartmouth,’’ IEEE Pervasive Comput., vol. 4,
+      band millimeter-wave propagation measurements and channel models for                no. 4, pp. 12–24, Apr. 2005.
+      future wireless communication system design,’’ IEEE Trans. Commun.,           [173] D. H. Wolpert and W. G. Macready, ‘‘No free lunch theorems for
+      vol. 63, no. 9, pp. 3029–3056, Sep. 2015.                                           optimization,’’ IEEE Trans. Evol. Comput., vol. 1, no. 1, pp. 67–82,
+[153] V. Raghavan and J. Li, ‘‘Evolution of physical-layer communications                 Apr. 1997.
+      research in the post-5G era,’’ IEEE Access, vol. 7, pp. 10392–10401,          [174] Y. Bengio, ‘‘Gradient-based optimization of hyperparameters,’’ Neural
+      2019.                                                                               Comput., vol. 12, no. 8, pp. 1889–1900, 2000.
+[154] C. Yang, J. Li, M. Guizani, A. Anpalagan, and M. Elkashlan, ‘‘Advanced        [175] J. Snoek, H. Larochelle, and R. P. Adams, ‘‘Practical Bayesian opti-
+      spectrum sharing in 5G cognitive heterogeneous networks,’’ IEEE                     mization of machine learning algorithms,’’ in Proc. 25th Adv. Neural Inf.
+      Wireless Commun., vol. 23, no. 2, pp. 94–101, Apr. 2016.                            Process. Syst., 2012, pp. 2951–2959.
+[155] S. Bayhan, A. Zubow, and A. Wolisz, ‘‘Spass: Spectrum sensing as a            [176] J. Xie, R. Girshick, and A. Farhadi, ‘‘Unsupervised deep embedding for
+      service via smart contracts,’’ in Proc. IEEE Int. Symp. Dyn. Spectr. Access         clustering analysis,’’ in Proc. Int. Conf. Mach. Learn., vol. 48, 2015,
+      Netw. (DySPAN), Oct. 2018, pp. 1–10.                                                pp. 478–487.
+[156] W. Roh, J.-Y. Seol, J. Park, B. Lee, J. Lee, Y. Kim, J. Cho, K. Cheun,        [177] P. Henderson, R. Islam, P. Bachman, J. Pineau, D. Precup, and D. Meger,
+      and F. Aryanfar, ‘‘Millimeter-wave beamforming as an enabling tech-                 ‘‘Deep reinforcement learning that matters,’’ in Proc. 32nd AAAI Conf.
+      nology for 5G cellular communications: Theoretical feasibility and pro-             Artif. Intell., Apr. 2018, pp. 1–26.
+      totype results,’’ IEEE Commun. Mag., vol. 52, no. 2, pp. 106–113,             [178] S. J. Pan and Q. Yang, ‘‘A survey on transfer learning,’’ IEEE Trans.
+      Feb. 2014.                                                                          Knowl. Data Eng., vol. 22, no. 10, pp. 1345–1359, Oct. 2010.
+
+VOLUME 7, 2019                                                                                                                                              137205
+                                                               M. E. Morocho-Cayamcela et al.: Machine Learning for 5G/B5G Mobile and Wireless Communications
+
+
+
+
+[179] P. J. G. Lisboa, ‘‘Interpretability in machine learning—Principles and                                  HAEYOUNG LEE (M’14) received the M.Sc.
+      practice,’’ in Proc. Int. Workshop Fuzzy Logic Appl. Cham, Switzerland:                                 degree in information and communication engi-
+      Springer, Nov. 2013, pp. 15–21.                                                                         neering from the Gwangju Institute of Science
+[180] I. Bratko, ‘‘Machine learning: Between accuracy and interpretability,’’                                 and Technology, South Korea, in 2004, and the
+      in Learning, Networks and Statistics. Vienna, Austria: Springer, 1997,                                  Ph.D. degree from the Centre of Communication
+      pp. 163–177.                                                                                            of Communication System Research, University
+[181] S. B. Kotsiantis, ‘‘Supervised machine learning: A review of classification                             of Surrey, U.K., in 2014.
+      techniques,’’ Informatica, vol. 31, no. 1, pp. 249–268, 2007.
+                                                                                                                 From 2004 to 2007, she was a Research Engi-
+[182] D. Wang and G. Hinton, ‘‘Unsupervised learning: Foundations of neural
+                                                                                                              neer with Samsung Electronics Company Ltd.,
+      computation,’’ Comput. Math. Appl., vol. 38, nos. 5–6, p. 256, 2003.
+[183] C. J. Watkins and P. Dayan, ‘‘Technical note: Q-learning,’’ Mach. Learn.,                               South Korea. From 2007 to 2015, she was the
+      vol. 8, nos. 3–4, pp. 279–292, May 1992.                                       Research Officer of the National Radio Research Agency, Ministry of Sci-
+[184] L. P. Kaelbling, M. L. Littman, and A. W. Moore, ‘‘Reinforcement               ences, ICT and Future Planning, South Korea. From 2015 to 2016, she was
+      Learning: A Survey,’’ J. Artif. Intell. Res., vol. 4, pp. 237–285, May 1996.   a Senior Researcher with the Telecommunications Technology Association,
+[185] D. A. Berry and B. Fristedt, Bandit Problems (Monographs on Statistics         South Korea. She has been a Research Fellow with the Institute of Commu-
+      and Applied Probability). Dordrecht, The Netherlands: Springer, 1985.          nication Systems, University of Surrey, since 2016. Her research interests
+[186] Q. Liu, P. Li, W. Zhao, W. Cai, S. Yu, and V. C. M. Leung, ‘‘A survey          include the radio resource management, cross-layer design, and cognitive
+      on security threats and defensive techniques of machine learning: A data       radio networks.
+      driven view,’’ IEEE Access, vol. 6, pp. 12103–12117, 2018.
+[187] D. Amodei, C. Olah, J. Steinhardt, P. Christiano, J. Schulman, and
+      D. Mané, ‘‘Concrete problems in AI safety,’’ Jun. 2016,
+      arXiv:1606.06565. [Online]. Available: https://arxiv.org/abs/1606.06565
+[188] A. Nguyen, J. Yosinski, and J. Clune, ‘‘Deep neural networks are eas-
+      ily fooled: High confidence predictions for unrecognizable images,’’ in
+      Proc. IEEE Conf. Comput. Vis. Pattern Recognit. (CVPR), Jun. 2015,
+      pp. 427–436.
+[189] M. Ring and L. Orseau, ‘‘Delusion, survival, and intelligent agents,’’
+      in Artificial General Intelligence. Berlin, Germany: Springer, 2011,
+      pp. 11–20.
+[190] M. Barreno, B. Nelson, A. D. Joseph, and J. D. Tygar, ‘‘The security of
+      machine learning,’’ Mach. Learn., vol. 81, no. 2, pp. 121–148, 2010.
+[191] P. McDaniel, N. Papernot, and Z. B. Celik, ‘‘Machine learning in
+      adversarial settings,’’ IEEE Security Privacy, vol. 14, no. 3, pp. 68–72,
+      May/Jun. 2016.
+[192] K. Rieck, ‘‘Computer security and machine learning: Worst enemies or
+      best friends?’’ in Proc. 1st SysSec Workshop, Jul. 2011, pp. 107–110.
+[193] B. Biggio, I. Corona, D. Maiorca, B. Nelson, N. Šrndić, P. Laskov,
+      G. Giacinto, and F. Roli, ‘‘Evasion attacks against machine learning at
+      test time,’’ in Proc. Eur. Conf. Mach. Learn. Knowl. Discovery Databases.
+      Berlin, Germany: Springer, 2013, pp. 387–402.
+
+
+                          MANUEL EUGENIO MOROCHO-CAYAMCELA
+                          (M’12) received the B.S. degree in electronic engi-
+                          neering from the Universidad Politécnica Sale-
+                          siana, Cuenca, Ecuador, in 2012, and the M.Sc.                                       WANSU LIM (M’10) received the M.Sc. and
+                          degree in communications engineering and net-                                        Ph.D. degrees from the Gwangju Institute Sci-
+                          works from The University of Birmingham, U.K.,                                       ence and Technology (GIST), South Korea,
+                          in 2016. He is currently pursuing the Ph.D. degree                                   in 2007 and 2010, respectively. From 2010 to
+                          in electronic engineering with the Kumoh National                                    2013, he was a Research Fellow with the
+                          Institute of Technology, Gumi, South Korea.                                          University of Hertfordshire, U.K., and then a
+                             Since 2017, he has been a Research Assistant                                      Postdoctoral Researcher with the Institut National
+with the KIT Future Communications and Systems Laboratory. His research                                        de la Recherche Scientifique (INRS), Canada,
+interests include communications engineering and networks, artificial intel-                                   from 2013 to 2014. He is currently an Associate
+ligence, signal processing, statistical analysis, and optimization techniques.                                 Professor with the Kumoh National Institute of
+   Mr. Morocho-Cayamcela is a member of the Institute of Electrical and              Technology (KIT), South Korea, leading the activities of the Communication
+Electronic Engineers, and has served as the Session Chair in technical               Technologies, Machine Learning Research and Computer Vision Processing.
+conferences, including the IEEE WF-IoT 2018 and WIITC 2018. He was                   He is a Technical Committee member of the Elsevier Computer Commu-
+a recipient of the SENESCYT Fellowship from the National Secretariat for             nications and a member of the IEEE Communications Society. He has
+Higher Education, Science, Technology and Innovation of Ecuador, in 2015,            authored over 60 peer-reviewed journals and conference papers and served
+the KIT Doctoral Grant from the Kumoh National Institute of Technology,              as a Reviewer for several IEEE conferences and journals.
+in 2017, and the Best Paper Award at ICNGC, in 2017.
+
+
+
+
+137206                                                                                                                                            VOLUME 7, 2019
+

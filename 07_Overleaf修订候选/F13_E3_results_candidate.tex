@@ -1,36 +1,43 @@
 % Candidate fragment generated from E3 artifacts on 2026-10-12.
 % Do not merge into Overleaf until authors verify section numbering, citations, and figure format.
 % Evidence: 06_执行台账/formal_e3_20261011/condition_summary.csv
-\subsection{Held-out validation under equal RTT}
-The frozen F07-v1 hold-out matrix contained eight network cases at 50 or
-200~Mbps, 10 or 60~ms RTT, and two buffer settings. We ran two BBRv3 flows
+\subsection{Additional comparison under equal RTT}
+The additional experiment matrix contains eight network cases at 50 or
+200~Mbps, 10 or 60~ms RTT, and two frozen buffer labels.
+For the 50-Mbps cases, the configured absolute buffers correspond
+to 4 and 16 times the physical reference BDP, although the frozen file
+labels them 1 and 4. For the 200-Mbps cases, those labels are consistent
+with the capacity-times-reference-RTT BDP. The original predictions
+are retained; the affected cases do not validate the intended buffer bins. We ran two BBRv3 flows
 and two CUBIC flows separately for five independent repetitions per case
-(80 runs in total). All runs completed with the configured ECN setting off;
-the bottleneck queue recorded no drops in this matrix.
+(80 runs in total). ECN is disabled in all cases.
 
 Table~\ref{tab:e3_candidate} reports mean total goodput and Jain fairness.
 The values are condition-specific observations rather than universal
 version rankings. The BBRv3 fairness values were close to one in these equal
-RTT cases, while CUBIC showed more variation. Because the queue did not
-drop packets, this experiment does not validate loss-response or
-retransmission predictions.
+RTT cases, while CUBIC showed more variation. The queue snapshots do not cover the complete measurement window;
+this experiment therefore does not establish full-run congestion-loss
+or retransmission behavior.
+The archived goodput and Jain values use full-run receiver summaries.
+A separate post-warmup interval sensitivity analysis is retained;
+the table does not report warmup-excluded steady-state estimates.
 
 \begin{table}[htbp]
 \centering
-\caption{Candidate E3 held-out results. Each cell reports BBRv3/CUBIC.}
+\caption{Descriptive E3 full-run means. Goodput (Mbps) and Jain cells report BBRv3/CUBIC. C is Mbps and RTT is ms. Buffer uses decimal kB; actual target Q/BDP is computed from capacity and reference RTT, before packet-limit rounding. Frozen labels are preserved in the input audit.}
 \label{tab:e3_candidate}
 \begin{tabular}{lrrrrrr}
 \toprule
-Case & C (Mbps) & RTT (ms) & Q/BDP & Goodput (Mbps) & Jain \\
+Case & C & RTT & Buffer (kB) & Actual Q/BDP & Goodput & Jain \\
 \midrule
-E3\_001 & 50 & 10 & 1.0 & 47.1 / 47.8 & 1.000 / 0.969 \\
-E3\_002 & 50 & 10 & 4.0 & 47.2 / 47.8 & 1.000 / 0.917 \\
-E3\_003 & 50 & 60 & 1.0 & 46.9 / 47.7 & 1.000 / 0.928 \\
-E3\_004 & 50 & 60 & 4.0 & 46.8 / 47.7 & 1.000 / 0.987 \\
-E3\_005 & 200 & 10 & 1.0 & 188.2 / 191.2 & 0.995 / 0.963 \\
-E3\_006 & 200 & 10 & 4.0 & 188.0 / 191.2 & 0.999 / 0.955 \\
-E3\_007 & 200 & 60 & 1.0 & 187.0 / 190.8 & 0.997 / 0.963 \\
-E3\_008 & 200 & 60 & 4.0 & 187.1 / 190.8 & 0.996 / 0.938 \\
+E3\_001 & 50 & 10 & 250 & 4 & 47.1/47.8 & 1.000/0.969 \\
+E3\_002 & 50 & 10 & 1000 & 16 & 47.2/47.8 & 1.000/0.917 \\
+E3\_003 & 50 & 60 & 1500 & 4 & 46.9/47.7 & 1.000/0.928 \\
+E3\_004 & 50 & 60 & 6000 & 16 & 46.8/47.7 & 1.000/0.987 \\
+E3\_005 & 200 & 10 & 250 & 1 & 188.2/191.2 & 0.995/0.963 \\
+E3\_006 & 200 & 10 & 1000 & 4 & 188.0/191.2 & 0.999/0.955 \\
+E3\_007 & 200 & 60 & 1500 & 1 & 187.0/190.8 & 0.997/0.963 \\
+E3\_008 & 200 & 60 & 6000 & 4 & 187.1/190.8 & 0.996/0.938 \\
 \bottomrule
 \end{tabular}
 \end{table}

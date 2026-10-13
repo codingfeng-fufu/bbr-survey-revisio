@@ -1,0 +1,664 @@
+Received December 1, 2019, accepted December 12, 2019, date of publication December 25, 2019, date of current version January 8, 2020.
+Digital Object Identifier 10.1109/ACCESS.2019.2962213
+
+
+
+
+Delay-Aware BBR Congestion Control
+Algorithm for RTT Fairness Improvement
+GEON-HWAN KIM                      AND YOU-ZE CHO , (Senior Member, IEEE)
+School of Electronics Engineering, Kyungpook National University, Daegu 41566, South Korea
+Corresponding author: You-Ze Cho (yzcho@ee.knu.ac.kr)
+This work was supported in part by the Next-Generation Information Computing Development Program through NRF funded by the
+Ministry of Science and ICT under Grant NRF-2017M3C4A7083676, in part by the Basic Science Research Program through the National
+Research Foundation of Korea (NRF) funded by the Ministry of Education under Grant NRF-2018R1A6A1A03025109, and in part by the
+National Research Foundation of Korea (NRF) funded by the Korea Government (MSIT) under Grant NRF-2019R1A2C1006249.
+
+
+
+
+  ABSTRACT In late 2016, Google proposed the Bottleneck Bandwidth and Round-trip propagation time
+  (BBR) congestion control algorithm to achieve high bandwidth and low latency for Internet traffic. Unlike
+  loss-based congestion control algorithms, BBR works without filling the bottleneck buffer. Consequently,
+  BBR can reduce packet loss and minimize end-to-end packet delay, which has attracted the attention of many
+  researchers in recent years. However, some studies have reported the creation of persistent queues that cause
+  unintended problems, resulting in a serious fairness issue between TCP BBR flows with different round-trip
+  times (RTTs). Although existing congestion control algorithms also exhibit fairness issue between different
+  RTT flows, BBR has a more serious problem in that the imbalance is considerable even with small RTT
+  difference between the two flows, and the long RTT flow uses most of the bandwidth. The preponderance of
+  long RTT flows is a serious problem because a particular user may cause imbalance by maliciously increasing
+  the delay. Therefore, we propose a Delay-Aware BBR (DA-BBR) congestion control algorithm to mitigate
+  the RTT fairness issue between BBR flows. In a network emulation experiment using the Mininet, the DA-
+  BBR increased the fairness index by 1.6 times that of the original BBR, and the retransmission was greatly
+  reduced. DA-BBR flow with short RTT demonstrated fair throughput even in competition with DA-BBR
+  flows where RTT is five times higher.
+
+
+  INDEX TERMS BBR, congestion control, fairness, round-trip time, TCP.
+
+
+I. INTRODUCTION                                                                                 approaches have been proposed to satisfy the requirements
+The TCP congestion control algorithm, introduced in the                                         of today’s Internet traffic.
+1980s, uses packet loss to indicate congestion [1]. This loss-                                     Google announced a new concept for congestion con-
+based congestion control algorithm has worked well without                                      trol, the Bottleneck Bandwidth and Round-trip propagation
+throughput degradation for many years under conditions such                                     time (BBR) congestion control algorithm [2], to replace the
+as insufficient link bandwidth, small buffers in the network                                    loss-based congestion control algorithms. The end-to-end
+infrastructure, and Ethernet communications where packet                                        throughput of the TCP flow is determined by the bottleneck
+loss is typically caused by buffer overflows. However, loss-                                    bandwidth (BtlBw), which is the data rate of the bottleneck
+based congestion control algorithms, which reduce the trans-                                    link. Furthermore, the minimum round-trip delay for data
+mission window when a packet loss occurs, suffer throughput                                     transmission is the round-trip propagation time (RTprop) of
+degradation in wireless environments because of packet loss                                     the end-to-end link, as illustrated in Fig. 1. Therefore, until
+unrelated to congestion. Moreover, the continuous develop-                                      the Bandwidth-Delay Product (BDP) is reached, the value
+ment of buffer capacity has resulted in a large delay because                                   of RTprop is constant and then increases beyond the BDP.
+congestion is only detected when the bottleneck buffer is full.                                 However, BtlBw increases until the BDP is reached and
+Thus, new congestion control algorithms based on various                                        then no longer increases. BBR is a new paradigm of con-
+                                                                                                gestion control algorithms that dynamically controls sending
+                                                                                                rates by periodically measuring the end-to-end RTprop and
+   The associate editor coordinating the review of this manuscript and                          the BtlBw to operate at the optimum operating point of
+approving it for publication was Mubashir Husain Rehmani                 .                      Kleinrock [3].
+
+                      This work is licensed under a Creative Commons Attribution 4.0 License. For more information, see http://creativecommons.org/licenses/by/4.0/
+VOLUME 8, 2020                                                                                                                                                        4099
+                                                         G.-H. Kim, Y.-Z. Cho: Delay-Aware BBR Congestion Control Algorithm for RTT Fairness Improvement
+
+
+
+
+                                                                             FIGURE 2. Throughput comparisons when a 10 ms RTT flow coexists with
+                                                                             a different RTT flow.
+FIGURE 1. Delivery rate and round-trip time based on the amount of data
+inflight.
+                                                                                2) How can the RTT fairness problem be solved? Contrary
+                                                                             to its intent, BBR transmits excessive data when multiple
+   Google has already introduced BBR as a congestion con-                    flows exist [5]. Excessive data transmission causes BBR to
+trol algorithm and applied it to its YouTube server and cloud                operate at the point where it is moved to the right from
+platform; Google’s experiments demonstrate that TCP BBR’s                    the initially-intended Kleinrock’s operating point presented
+throughput shows an improvement of 2 to 20 times that of                     in Fig. 1. If two BBR flows with different RTTs exist, both
+the traditional TCP CUBIC algorithm [1], [4]. TCP BBR is                     flows transmit an additional 1.5 BDP of inflight data [6].
+currently deployed and released on Linux’s network stack and                 Because the BDP is determined by the RTprop of each flow,
+is being improved to BBR v2 [4].                                             the long RTT flow has a larger BDP than the short RTT
+   Improvements from BBR v1 to BBR v2 include increased                      flow. Thus, the long RTT flow transmits more excess data
+fairness when sharing a bottleneck with Reno/CUBIC,                          than the short RTT flow, making more of the buffer backlog.
+reduced loss rates when the bottleneck buffer size is less                   The difference in the occupancy in the buffer results in a
+than 1.5 × BDP, and increased throughput of the Wi-Fi path.                  throughput fairness problem between the end hosts. Thus,
+Also, the DCTCP/L4S-style Explicit Congestion Notification                   we predict that RTT fairness can be improved by reducing
+(ECN) signal is used to cope with packet loss, and some                      the excessive data transmission of each BBR flow.
+behavior of the algorithm is modified.                                          Therefore, we propose a Delay-Aware BBR (DA-BBR)
+   Because BBR is a work in progress, many issues [5]–[9]                    algorithm to mitigate RTT imbalance and improve BBR
+were reported for the initial BBR v1 announced by Google.                    throughput. DA-BBR uses RTT and RTprop to reduce the
+One of the serious issues is throughput imbalance due to                     excessive data transmission of the original BBR and varies
+the RTT differences of BBR flows. A long RTT flow uses                       the reduction of the sending rate depending on the RTprop
+significant bandwidth; thus, a short RTT flow suffers a severe               of each BBR flow. The larger the RTprop, the greater the
+throughput degradation [5], [8].                                             reduction in the sending rate, thus eliminating a larger amount
+   1) Why is RTT fairness a serious issue? In traditional TCP                of buffer backlog.
+congestion control algorithms [1], [10]–[12], a shorter RTT                     We implemented DA-BBR based on BBR v1 [13] in Linux
+corresponds with increased performance. Efforts to reduce                    kernel v4.14 [14] and experimented on a network emulator
+RTT in both hardware and software are ongoing. However,                      using the Mininet.
+BBR experiences a throughput fairness problem that dis-                         The emulation results demonstrated that DA-BBR
+agrees with conventional wisdom.                                             improved the fairness index by approximately 1.6 times that
+   As illustrated in Fig. 2, Reno demonstrated that the                      of the original BBR algorithm. Consequently, the short RTT
+throughput of a 10 ms RTT flow increased with an                             flow can use sufficient bandwidth when competing with
+increase in the RTT gap, and a long RTT flow had suf-                        the long RTT flow. Together with the improvement of the
+ficient throughput up to a 3 × RTT difference. However,                      throughput fairness problem provided by the RTT difference,
+BBR exhibited a considerable increase in the throughput                      the reduced buffer backlog and appropriate countermeasures
+of the long RTT flow with an increase in the RTT gap.                        against the packet loss significantly reduced the number of
+More serious was the problem that the throughput imbal-                      retransmissions.
+ance began with a small RTT difference of only 5 ms.                            We analyzed the relationship between RTT and RTprop
+This bias toward a long RTT flow in TCP BBR could                            to improve BBR’s RTT fairness, thereby providing a new
+cause critical fairness problems because certain users could                 approach and solution. Among the changes to BBR v2,
+acquire significant bandwidth by maliciously increasing                      improvement in RTT fairness between BBR flows was not
+the delays.                                                                  mentioned, and many researchers have been evaluating and
+
+4100                                                                                                                                     VOLUME 8, 2020
+G.-H. Kim, Y.-Z. Cho: Delay-Aware BBR Congestion Control Algorithm for RTT Fairness Improvement
+
+
+
+
+validating BBR v2 alpha since it was released. Because the                      Tao et al. [19] demonstrated that the bandwidth occupancy
+RTT fairness problem between BBR v2 flows has not been                          between different RTT flows depends on the RTT ratio and
+verified yet, the approach proposed in this paper can be used                   built a theoretical model to characterize BBR bandwidth
+if similar fairness problems arise in BBR v2.                                   dynamics.
+   The rest of the paper is organized as follows. We discuss                       In our previous paper [20], the inflight cap was limited
+related studies in Section II. In Section III, we present an                    to less than 2 BDP in ProbeBW to suppress queue cre-
+overview of the BBR algorithm. In Section IV, we investigate                    ation. If the link is not fully utilized, it behaves similar to
+the throughput fairness problem in BBR based on the emula-                      the original BBR; otherwise, it is limited to 1 BDP when
+tion experiment results. We introduce the DA-BBR algorithm                      sending data. However, this method was slow and unsta-
+details in Section V. In Section VI, we evaluate our DA-                        ble in convergence, and the limitation to 1 BDP caused a
+BBR algorithm against the benchmark algorithm based on the                      decrease in total throughput. Therefore, we modified the
+emulation experiment results. Finally, we conclude this paper                   previous method to increase total throughput and stabilize
+in Section VII.                                                                 behavior [21]. However, because this modified method sim-
+                                                                                ply reduced the amount of data transferred over the original
+II. RELATED WORK                                                                BBR, inter-protocol fairness problem was still a concern.
+After the release of the BBR algorithm by Google [2], many                         To this end, this paper provides a new approach and solu-
+papers evaluating the performance of TCP BBR were pre-                          tion to improve BBR’s RTT fairness by explaining the rela-
+sented [5], [6], [15]. Hock et al. [5] identified the design                    tionship between RTT and RTprop. It also improves the
+problem of the BBR algorithm: multiple BBR flows can                            throughput of short RTT flows that were suppressed. Because
+result in the creation of a persistent queue in the bottleneck.                 RTT fairness between BBR v2 flows has not yet been verified,
+Scholz et al. [6] performed a performance evaluation of BBR                     the approach proposed in this paper can be used for similar
+using the Mininet emulation rather than a testbed experiment.                   RTT fairness problems.
+They analyzed the flow-to-flow synchronization behavior
+of BBR. Atxutegi et al. [15] compared the performance of                        III. BBR OVERVIEW
+BBR, NewReno, and CUBIC over emulation and real mobile                          This section discusses the operating points of TCP congestion
+networks. They concluded that BBR outperforms other algo-                       control and describes the features and states of the BBR
+rithms in a mobile environment but does not always pro-                         algorithm.
+vide consistent results depending on the operator’s network
+state or flow type.                                                             A. OPERATING POINT OF THE TCP CONGESTION
+   A study focusing on interactions with each other, rather                     CONTROL ALGORITHM
+than performance evaluation with other algorithms, was                          The traditional TCP loss-based congestion control algorithm
+also proposed [16]–[18]. Ware et al. [16] argued that                           uses packet loss as an indicator of congestion. The sending
+BBR’s inflight cap is a key element of BBR behavior                             host continuously increases the sending rate until a packet
+and demonstrated that BBR becomes window-limited and                            loss occurs in the bottleneck, and if a packet loss occurs,
+ACK-clocked—similar to traditional congestion control—                          it judges this loss as congestion and reduces the sending rate.
+when BBR flows compete with other algorithms.                                   Transmitting data beyond the BDP creates a queue at the
+Sasaki et al. [17] Miyazawa et al. [18] examined fairness                       bottleneck and results in an increase in the end-to-end propa-
+between CUBIC and BBR and found extreme inter-protocol                          gation delay. When the amount of excess inflight data reaches
+throughput imbalances and periodic throughput variations                        the maximum buffer size of the bottleneck link, the buffer
+when coexisting with CUBIC. Zhang et al. [9] proposed                           is full and the newly arrived packets are dropped. Point (B)
+Modest BBR to mitigate the aggressiveness of BBR when the                       in Fig. 1 is the point at which a packet loss occurs because of
+bottleneck buffer is small. BBR was modified to be sensitive                    the buffer overflow, which is the operating point of the loss-
+to packet loss, reducing the sending rate based on loss so the                  based congestion control. Therefore, RTT is highly relative
+CUBIC flow could use the proper bandwidth.                                      to the size of the buffer because of its characteristic of filling
+   These studies address the issue of fairness between BBR                      the bottleneck buffer fully.
+and other congestion control algorithms. However, the intra-                        The end-to-end throughput of the TCP flow is determined
+protocol fairness problem of BBR is also evident, with a very                   by the delivery rate of the bottleneck link. The BDP is
+large degree of imbalance. Unlike traditional congestion con-                   obtained by multiplying BtlBw (the delivery rate of the
+trol, where short RTT flows increase the congestion window                      bottleneck) and RTprop (the round-trip propagation time of
+(cwnd) rapidly and use more bandwidth, short RTT BBR                            the link). To use 100% of the available capacity of the link,
+flows are significantly suppressed by long RTT BBR flows.                       the amount of inflight data delivered across the entire link
+   Several studies evaluating BBR have also presented exper-                    should be equal to the BDP.
+imental results for RTT fairness problem [5], [6]. Ma et al. [8]                    In 1979, Leonard Kleinrock [3] proved that point (A)
+analyzed the causes of BBR’s RTT fairness problem and                           in Fig. 1 is the optimum operating point for obtaining the
+proposed the BBQ algorithm as a solution. BBQ improved                          maximum throughput and minimum transmission delay. BBR
+RTT fairness by reducing probing time for long RTT flows.                       is a congestion control algorithm that periodically measures
+
+VOLUME 8, 2020                                                                                                                               4101
+                                                        G.-H. Kim, Y.-Z. Cho: Delay-Aware BBR Congestion Control Algorithm for RTT Fairness Improvement
+
+
+
+
+RTprop and BtlBw to operate at Kleinrock’s optimum oper-                    the pacing_gain in the Startup state is used to remove
+ating point and dynamically controls the sending rate while                 the excess queue. This value is approximately 0.35, and if
+keeping the bottleneck full but not fuller.                                 the amount of data being transferred decreases to 1 BDP,
+                                                                            the Drain state is terminated and the ProbeBW state is per-
+B. DATA DELIVERY OF BBR                                                     formed.
+Fig. 3 illustrates the data delivery process of BBR. It builds                 3) ProbeBW: BBR stays in ProbeBW most of the time
+an explicit model for the available BtlBw and RTprop of                     to probe the available bandwidth. This state consists of
+the pipes by using periodically-measured bandwidth and end-                 eight cycles with a pacing_gain of [1.25, 0.75, 1, 1, 1,
+to-end propagation delay samples. The BtlBw and RTprop                      1, 1, 1], each cycle lasting for RTprop. First, when the
+measurements are fed to a type of probing state machine that                pacing_gain is 1.25, it sends more data to check whether
+increases or decreases the amount of data in transit (inflight)             there is any available bandwidth. For the subsequent value
+to maintain an adequate number of packets in the pipe. Then,                of 0.75, BBR removes any excess queue generated from the
+the data delivered from the higher layer are reduced to a                   previous probing. In the remaining six cycles, the maximum
+quantum size by a transport layer protocol such as TCP and                  bottleneck bandwidth obtained by probing is used to send the
+forwarded at a given rate so that they do not exceed the                    data at a constant speed of pacing_gain=1.
+maximum amount of data (cwnd).                                                 4) ProbeRTT: If the new RTprop (lower measured value)
+                                                                            is not measured for 10 s during the ProbeBW state, BBR
+                                                                            enters the ProbeRTT state. In ProbeRTT, to measure the
+                                                                            actual RTprop of the pipe, the maximum number of pack-
+                                                                            ets is reduced to four to remove all possible queues from
+                                                                            the bottleneck. To ensure the measurement of the minimum
+                                                                            RTprop, this state lasts for 200 ms + RTprop, and when a
+                                                                            new peak value is measured, it is updated to the RTprop and
+                                                                            maintained for 10 s.
+
+                                                                            IV. SUPPRESSED SHORT RTT FLOW
+                                                                            In this section, we investigate the RTT fairness issue of BBR
+                                                                            based on the experimental results and analyze the cause of
+                                                                            the bias towards the long RTT BBR flow. We conducted a
+FIGURE 3. Data delivery process of the BBR algorithm.
+                                                                            test with BBR v1 and found that the short RTT flow was
+                                                                            excessively suppressed by the long RTT flow during the entire
+                                                                            test duration.
+C. FOUR STATES OF BBR
+The BBR algorithm operates through four states as illustrated               A. EMULATION ENVIRONMENT
+in Fig. 4.                                                                  The experimental environment for evaluating the RTT fair-
+                                                                            ness problem was constructed as illustrated in Fig. 5. We used
+                                                                            the framework implemented by Jaeger et al. [22]. Mininet
+                                                                            was run on Ubuntu with Linux kernel version 4.14, and both
+                                                                            the senders and destinations used BBR v1. Based on the
+                                                                            considered scenario, network parameters such as RTT, bot-
+FIGURE 4. BBR operational states.                                           tleneck buffer size, and bandwidth were configured through
+                                                                            Netem (network emulator) [23]. Furthermore, we changed the
+   1) Startup: At the beginning of the BBR flow, the sending                queuing discipline to fair queueing (fq) [24] to enable pacing.
+rate is considerably increased by an exponential increase in                The data were transmitted by each sender to the destination
+each RTT. If the increase in the sending rate does not exceed               by using iPerf3 [25]. Because the RTT fairness problem of
+25% for three consecutive attempts at increasing the sending                BBR always occurs in sufficient buffer environments, we set
+rate, the bottleneck bandwidth is considered to be found                    the bottleneck buffer size to 7 BDP on the basis of the 10 ms
+and the Startup state is terminated. The pacing_gain in                     RTT flow when the bottleneck bandwidth is 100 Mbps.
+the Startup state is approximately 2.885, and the maximum
+amount of data that can be delivered is limited to 3 BDP. Thus,             B. TEST RESULTS
+an excess queue of 2 BDP can be created except for 1 BDP                    Figs. 6(a)–(b) illustrate the throughput of the BBR flows, one
+that fills the pipe.                                                        with 10 ms RTT and the other with 50 ms and 12 ms RTT
+   2) Drain: If the bottleneck bandwidth is found in the                    each, competing on a 100 Mbps bottleneck link. When the
+Startup state, the Drain state is performed. A process to                   50 ms 10 ms TCP BBR flows compete, the 50 ms flow uses
+eliminate a queue created from rapid increases in the pre-                  most of the bandwidth, as illustrated in Fig. 6(a). The 10 ms
+vious state is executed. In the Drain state, the reciprocal of              BBR flow exhibits an increase in throughput immediately
+
+4102                                                                                                                                    VOLUME 8, 2020
+G.-H. Kim, Y.-Z. Cho: Delay-Aware BBR Congestion Control Algorithm for RTT Fairness Improvement
+
+
+
+
+                                                                                flow uses 2 × bandwidth, even when the RTprop is only
+                                                                                2 ms larger than the 10 ms RTT flow.
+
+                                                                                C. CAUSES OF RTT FAIRNESS PROBLEM
+                                                                                There are two causes of BBR’s RTT fairness problem [8].
+                                                                                First, probing more bandwidth with pacing_gain =
+                                                                                1.25 during the ProbeBW state creates an excessive persistent
+                                                                                queue on the bottleneck. Second, the BDP, which determines
+FIGURE 5. Emulation topology with the Mininet.                                  the amount of data to be delivered, is calculated with the
+                                                                                measured BtlBw and RTprop; because the long RTT BBR
+                                                                                flow has a higher BDP, it sends a larger amount of data
+                                                                                and uses more of the bottleneck buffer. In contrast, the short
+                                                                                RTT flow does not use sufficient bandwidth or bottleneck
+                                                                                buffer. Moreover, the short RTT flow is limited by the cwnd,
+                                                                                which is set to 2 BDP and fails to find available bandwidth
+                                                                                during probing. Accordingly, the short RTT flow does not
+                                                                                find additional bandwidth despite more frequent probing.
+                                                                                   We analyzed the changes in cwnd and the amount of
+                                                                                inflight data for 30–40 s for the two BBR flows in Fig. 6(a)
+                                                                                to investigate the limitation caused by cwnd that decreased
+                                                                                performance. As illustrated in Fig. 7(a), the 10 ms BBR flow
+                                                                                no longer increases after reaching its upper limit (cwnd)
+                                                                                and does not deliver additional packets. The dominant 50 ms
+                                                                                BBR flow in Fig. 7(b) reveals that probing for additional
+                                                                                bandwidth was performed because it had sufficient free space
+                                                                                even though it was sending considerably more data than the
+                                                                                10 ms BBR flow. Thus, the short RTT flow limits itself and
+                                                                                does not have a chance to reverse.
+
+                                                                                V. DA-BBR: DELAY-AWARE BBR ALGORITHM
+                                                                                To solve the two main causes of the RTT fairness problem,
+                                                                                the inherent issue of the BBR algorithm must be addressed.
+                                                                                According to [5], when multiple BBR flows exist, the queuing
+                                                                                delay that occurs is approximately 1–1.5 times the RTT.
+                                                                                Therefore, if multiple BBR flows share a common bottleneck
+FIGURE 6. Throughput of two BBR flows: (a) 10 ms vs. 50 ms. (b) 10 ms           link, BBR does not operate at the operating point of Kleinrock
+vs. 12 ms.                                                                      but rather at the point where it has moved slightly to the right.
+
+after the ProbeRTT state, but this increase is only transient
+and has a lower throughput during the entire ProbeBW state.
+The bias toward the long RTT flow of TCP BBR also occurs
+when the RTT difference between the two BBR flows is
+only 2 ms. A large throughput gap between the two flows is
+apparent in Fig. 6(b) when a 10 ms BBR flow competes with
+a 12 ms BBR flow.
+   The result of the long RTT flow overwhelming the short
+RTT flow is opposite of the bias towards the short RTT
+flow in the traditional TCP congestion control algorithm. The
+bias toward the long RTT flow in TCP BBR might cause
+serious fairness problems because certain users could acquire
+high bandwidth by maliciously increasing the delays. Also,
+as illustrated in Fig. 2, the RTT fairness worsens as the
+RTT difference between the two TCP BBR flows increases.
+However, the large throughput gap due to only the small RTT
+                                                                                FIGURE 7. cwnd and the amount of inflight data of two BBR flows:
+differences (10 ms to 15 ms) is more remarkable than the                        (a) 10 ms BBR flow is limited by cwnd. (b) 50 ms BBR flow has free space
+imbalance caused by the large RTT differences. The long RTT                     for probing.
+
+
+VOLUME 8, 2020                                                                                                                                     4103
+                                                            G.-H. Kim, Y.-Z. Cho: Delay-Aware BBR Congestion Control Algorithm for RTT Fairness Improvement
+
+
+
+
+                                                                                Algorithm 1 Improvement of RTT Fairness
+                                                                                 1: if bbr → mode = BBR_PROBE_BW then
+                                                                                 2:    if RTprop > α × RTpropprev then
+                                                                                 3:       bdp = bw × RTprop
+                                                                                 4:    else
+                                                                                 5:       bdp = bw × RTprop × γ
+                                                                                 6:    end if
+                                                                                 7: else
+                                                                                 8:    bdp = bw × RTprop
+                                                                                 9: end if
+
+
+                                                                                A. IMPROVEMENT OF RTT FAIRNESS
+                                                                                To solve the problem of BBR transmitting excessive data
+FIGURE 8. Intended operating point and actual operating point of BBR.           unlike its intended behavior, the measured RTT and RTprop
+                                                                                are used to reduce the amount of inflight data from each
+                                                                                flow. Although all BBR flows send more data than intended,
+                                                                                long RTT flows transmit significantly larger amounts, and
+                                                                                therefore differential reduction is required based on the RTT
+                                                                                of each flow. We investigated the relationship between RTT
+                                                                                and RTprop, and defined a regulating factor with a value less
+                                                                                than 1, and this regulating factor was observed as illustrated
+                                                                                in Fig. 9 based on the RTT differences. The regulating factor
+                                                                                has a value of 0.7 in the competition between BBR flows
+                                                                                with the same RTT, and as the difference of RTT between the
+                                                                                two flows increases, the regulating factor of the short RTT
+                                                                                flow increases. Simultaneously, the regulating factor of the
+                                                                                long RTT flow decreases, and the competition between the
+                                                                                10 ms RTT flow and the 50 ms RTT flow produces values of
+                                                                                approximately 0.8 and 0.6. The BDP calculation multiplies
+                                                                                the regulating factor γ to reduce the amount of inflight data
+                                                                                differently depending on the RTT. The regulating factor γ is
+                                                                                defined as follows:
+                                                                                                                   RTT
+                                                                                                        γ =
+                                                                                                               RTT + RTprop
+                                                                                The long RTT flow has a lower γ than the short RTT
+                                                                                flow, and the reduction of the long RTT flow is greater
+                                                                                than the BDP reduction of the short RTT flow. Therefore,
+FIGURE 9. Regulating factor based on the RTT differences.
+                                                                                as it sends less data than the original BBR that generated a
+                                                                                queuing delay by sending excessive data, the buffer share of
+We have illustrated the delivery rate and the round-trip time
+                                                                                the long RTT flow is considerably reduced, thus improving
+graphs in Fig. 1 for BBR and with different RTTs in Fig. 8.
+                                                                                RTT fairness.
+The intended operating point is slightly different for the two
+                                                                                   However, sending less data than the original BBR may
+flows: the long RTT flow had a BDP larger than that of the
+                                                                                lead to a different result in the competition with the loss-
+short RTT flow. Because of the additional 1.5 BDP data,
+                                                                                based congestion control algorithm. The original BBR that
+the long RTT flow sends more data into the pipe. Thus, if two
+                                                                                competes with CUBIC in a large bottleneck buffer shows
+BBR flows with different RTTs compete, the gap between the
+                                                                                periodic throughput variation due to the measured RTprop.
+actual operating points of the two flows becomes wider and
+                                                                                CUBIC is dominant when the measured RTprop of BBR is
+the long RTT flow uses significantly more of the buffer and
+                                                                                similar to the actual propagation time, and BBR is dominant
+bandwidth, resulting in throughput imbalance.
+                                                                                when the measured RTprop is high because of the queuing
+   To address this inherent design issue, we propose
+                                                                                delay created by CUBIC. To ensure that co-existence with the
+DA-BBR to identify the changes in RTT and RTprop and
+                                                                                existing CUBIC is maintained, DA-BBR behaves similar to
+reduce the amount of inflight data based on the RTT values
+                                                                                the original BBR when the current RTprop is greater than
+of each BBR flow. Two modifications are added to improve
+                                                                                the threshold:
+the throughput of BBR, along with the improvement of RTT
+fairness.                                                                                            RTprop > α × RTpropprev
+
+4104                                                                                                                                        VOLUME 8, 2020
+G.-H. Kim, Y.-Z. Cho: Delay-Aware BBR Congestion Control Algorithm for RTT Fairness Improvement
+
+
+
+
+FIGURE 10. Comparison of throughput and buffer backlog: (a) BBR with 1 BDP buffer. (b) BBQ with 1 BDP buffer. (c) DA-BBR with 1 BDP buffer. (d) BBR
+with 4 BDP buffer. (e) BBQ with 4 BDP buffer. (f) DA-BBR with 4 BDP buffer.
+
+
+
+
+where RTpropprev is the RTprop used in the previous                             packet loss, whether it was caused by congestion or a network
+ProbeBW state and α = 1.2 to distinguish whether the oppo-                      flaw. To reduce the high number of packet retransmissions,
+nent is CUBIC or not. Algorithm 1 describes the improve-                        we modified the algorithm to reduce the pacing_gain
+ment of RTT fairness in DA-BBR.                                                 when a packet loss occurred. Moreover, ‘‘restore’’ was not
+                                                                                performed, as it was deemed unnecessary in the event of
+B. IMPROVEMENT OF THROUGHPUT                                                    a packet loss. The detailed modifications are described in
+Besides the RTT fairness improvement, additional changes                        Algorithm 2.
+have been made to increase the throughput of the original
+BBR and to react appropriately to packet loss.
+                                                                                VI. EVALUATION OF DA-BBR
+   Mitigation of cwnd reduction. Using Algorithm 1,
+                                                                                The performance of DA-BBR is evaluated in this section.
+DA-BBR transmits less data than the original BBR. This
+                                                                                We conducted an emulation test based on Linux network
+reduces the load on the bottleneck buffer, so the through-
+                                                                                namespaces with the Mininet [22], [26].
+put can be improved by adjusting the cwnd reduction in
+the ProbeRTT state. Delivering four packets during the
+ProbeRTT state is a drastic change and causes instability
+in the inter-protocol competition. Consequently, BBR v2 is
+                                                                                Algorithm 2 Improvement of Throughput
+intended to reduce the cwnd by 50%. However, because DA-
+                                                                                 1: if state   == TCP_CArecovery and state_prev 6 =
+BBR is an algorithm based on BBR v1, if cwnd reduction is
+applied in the same way as BBR v2, then sufficient queues                           TCP_CArecovery then
+are not removed during the ProbeRTT state when competing                         2:    cwnd = packet_inflight(tp)
+with CUBIC. Therefore, we led a throughput improvement                           3:    bbr → pacing_gain = 0.75
+                                                                                 4: else if state_prev ≥ TCP_CArecovery and state <
+by decreasing the cwnd value by only one-third during the
+ProbeRTT state.                                                                     TCP_CArecovery then
+   Reaction to packet loss. BBR v1 causes considerable                           5:    bbr → restore_cwnd = 0
+                                                                                 6: end if
+packet loss because it does not react appropriately to the
+
+VOLUME 8, 2020                                                                                                                                 4105
+                                                         G.-H. Kim, Y.-Z. Cho: Delay-Aware BBR Congestion Control Algorithm for RTT Fairness Improvement
+
+
+
+
+FIGURE 11. Throughput comparison when a 10 ms RTT flow coexists with a different RTT flow: (a) BBR with 1 BDP buffer. (b) BBQ with 1 BDP buffer. (c)
+DA-BBR with 1 BDP buffer. (d) BBR with 4 BDP buffer. (e) BBQ with 4 BDP buffer. (f) DA-BBR with 4 BDP buffer.
+
+
+
+
+A. BENCHMARK ALGORITHM                                                       reference. The details of the BBQ algorithm are described
+The BBQ algorithm [8] and the original BBR algorithm                         in Algorithm 3.
+were used as benchmark algorithms for the performance
+comparison. BBQ is the proposed algorithm to address the                     Algorithm 3 BBQ Algorithm
+problem of RTT fairness of the original BBR. It contin-                       1: bool is_full_length = tcp_stamp_us_delta > RTprop
+uously detected the excess queues and limited the time                        2: bool is_full_length_for_BBQ = tcp_stamp_us_delta >
+for probing when a queue was created to prevent long                             α
+RTT flows from transmitting a considerable amount of traf-                    3: if pacing_gain > 1.0 then
+fic to the pipe. When the pipe was full, the two BBQ                          4:    if RTT ≥ 1.5 × RTprop and RTprop > α then
+flows had a similar buffer backlog because they per-                          5:       return (is_full_length_for_BBQ) and (rs →
+formed the probing with pacing_gain = 1.25 simulta-                                    losses or inflight ≥ bbr_target_cwnd)
+neously (α = 3 ms). When the pipe had available space,                        6:    else
+the algorithm performed similarly to the original BBR to                      7:       return (is_full_length) and (rs → losses or
+prevent performance degradation. Because the code was                                  inflight ≥ bbr_target_cwnd)
+not disclosed, we implemented the BBQ algorithm our-                          8:    end if
+selves based on the information provided in the related                       9: end if
+
+
+
+4106                                                                                                                                     VOLUME 8, 2020
+G.-H. Kim, Y.-Z. Cho: Delay-Aware BBR Congestion Control Algorithm for RTT Fairness Improvement
+
+
+
+
+B. EMULATION RESULTS                                                            bandwidth, except when the RTT is the same (Fig. 11(d)).
+We obtained emulation results for DA-BBR, BBQ, and BBR                          As illustrated in Fig. 11(e), BBQ demonstrates greater fair-
+for the throughput and the buffer backlog of the bottleneck                     ness than BBR, but the change is inconsistent, as in the
+link, as illustrated in Fig. 10.                                                1 BDP buffer case. The 10 ms DA-BBR flow in Fig. 11(f)
+   The results of experiments conducted using small bottle-                     demonstrates dominance up to the competition with a 40 ms
+neck buffers (1 BDP for a 50 ms RTT flow) are shown in                          RTT flow and then reverses.
+the order BBR, BBQ, and DA-BBR in Fig. 10(a)–(c). BBR                              None of the algorithms have a fair share when competing
+demonstrated a 50 ms RTT flow, overwhelming the 10 ms                           with the 100 ms RTT flow. However, for the 10 ms DA-BBR
+RTT flow during the entire test time, while the backlogs                        flow, the improvement is noticeable because it uses four times
+in bottleneck buffers averaged approximately 3 Mbit. After                      more bandwidth than the BBR flow.
+the ProbeRTT state, which occurred every 10 s, the 10 ms
+RTT flow increased the sending rate temporarily but did                         2) FAIRNESS INDEX
+not reverse the 50 ms RTT flow. Instead, the aggressive-                        For a fairness comparison, we used Jain’s index [27] based
+ness of the 10 ms RTT flow at that time caused a consid-                        on throughput to represent how flows share bandwidth fairly.
+erable number of lost packets. For the BBQ in Fig. 10(b),                       For two flows, the fairness index is obtained as follows:
+the throughput gap between the two flows decreased, but                                                          (x1 +x2 )2
+                                                                                                          F=
+the 50 ms RTT flow still had the upper hand. In the case                                                         2(x12 +x22 )
+of the buffer backlog, the occupancy in the ProbeBW state                           If one flow does not occupy any bandwidth, a value of 0.5 is
+was reduced noticeably as compared to BBR, but the buffer                       obtained, with the other flow at a value of 1.
+backlog after the ProbeRTT state was similar to that of BBR.                        Fig. 12 illustrates the fairness index of each algorithm
+For DA-BBR (Fig. 10(c)), the gap between the two flows                          for (a) the bottleneck bandwidth of 10 Mbps and (b) the
+gradually decreased over time, demonstrating equitable                          result of 100 Mbps. For the 10 Mbps bottleneck bandwidth,
+throughput after the third ProbeRTT state. The buffer back-                     the 10 ms DA-BBR flow has a high fairness index in compe-
+log also demonstrated considerably more stability and lower                     tition with the 100 ms RTT flow. With a fairness of at least
+occupancy than the two aforementioned algorithms. This                          0.95, the RTT fairness problem is considerably improved.
+indicates the buffer backlog decreased significantly.                           For BBQ, the competition until the 50 ms RTT flow demon-
+   As illustrated in Figs. 10(d)–(f), we observed the perfor-                   strates similar fairness to DA-BBR but does not use sufficient
+mance of each algorithm for a large buffer (4 BDP for the
+50 ms RTT flow). All three algorithms yielded similar results
+regardless of the buffer size, but packet loss was reduced
+because of the sufficient buffer size. DA-BBR demonstrated
+a slight gap compared with the previous results, but this gap
+was soon reduced.
+
+C. EMULATION EVALUATION
+We evaluated the emulation results for the three algorithms
+for throughput, Jain’s fairness index [27], and the number of
+retransmissions.
+
+1) THROUGHPUT
+Figs. 11(a)–(c) illustrate the throughput of the three algo-
+rithms based on the RTT changes of the long RTT flow at the
+1 BDP buffer. For a BBR in the 1 BDP buffer, the throughput
+difference is significant from the point where the RTT differ-
+ence doubles. From the 3 × RTT difference, the long RTT
+flow uses approximately 90% of the bandwidth. The BBQ
+in Fig. 11(b) demonstrates sufficient throughput for the 10 ms
+flow, but it does not show a constant change depending on
+the RTT difference. For the DA-BBR algorithm, 10 ms DA-
+BBR flow uses sufficient bandwidth when competing with
+the 50 ms RTT flow, and overall, the DA-BBR algorithm
+demonstrates greater fairness than the BBQ algorithm. When
+the size of the bottleneck buffer is set to 4 BDP based on                      FIGURE 12. Fairness index comparison when a 10 ms RTT flow coexists
+the long RTT flow, the throughput difference between the                        with a different RTT flow: (a) 10 Mbps bottleneck bandwidth.
+two flows increases. The long RTT BBR flow occupies 80%                         (b) 100 Mbps bottleneck bandwidth.
+
+
+VOLUME 8, 2020                                                                                                                                  4107
+                                                       G.-H. Kim, Y.-Z. Cho: Delay-Aware BBR Congestion Control Algorithm for RTT Fairness Improvement
+
+
+
+
+                                                                           few retransmissions. DA-BBR has the lowest packet loss
+                                                                           among all RTTs, while competition for the same 10 ms
+                                                                           RTT flow has 42,817 retransmissions for the original BBR;
+                                                                           DA-BBR has only 414 retransmissions.
+
+                                                                           VII. CONCLUSION
+                                                                           In this paper, we proposed DA-BBR to improve both the RTT
+                                                                           fairness problem and the throughput of BBR. The original
+                                                                           BBR had the problem of transmitting excessive data, which
+                                                                           resulted in throughput imbalance for different RTTs. This
+                                                                           RTT fairness became a critical problem because the long
+                                                                           RTT flow prevailed. The bias toward the long RTT flow in
+                                                                           TCP BBR could cause significant fairness problems by mali-
+                                                                           ciously increasing delays. To solve this issue, a regulating
+                                                                           factor using RTT and RTprop was defined and applied to
+                                                                           the BDP calculation of BBR to adjust the amount of inflight
+                                                                           data. The flow with long RTprop decreased more signifi-
+                                                                           cantly, mitigating the throughput imbalance. The proposed
+                                                                           DA-BBR was implemented in the Linux kernel and tested in
+                                                                           the emulation environment using the Mininet.
+                                                                              We performed experiments to investigate the RTT fairness
+                                                                           issue of BBR, and a Mininet-based emulation was performed
+                                                                           to evaluate the proposed DA-BBR. The emulation results
+                                                                           revealed that the proposed DA-BBR demonstrates a fairness
+FIGURE 13. Number of retransmissions when a 10 ms RTT flow coexists
+with a different RTT flow: (a) 10 Mbps bottleneck bandwidth.
+                                                                           index of 0.95 or higher in most cases, and the bandwidth share
+(b) 100 Mbps bottleneck bandwidth.                                         of the short RTT flow increases by approximately four times
+                                                                           as compared to the original BBR. Moreover, because of the
+                                                                           prevention of excessive data transmission and the appropriate
+bandwidth in the competition with the 100 ms RTT flow.
+                                                                           response to packet loss, the number of retransmissions in
+BBR demonstrates a gradual decrease in the fairness index
+                                                                           the environment where excessive retransmission occurred in
+as the RTT differences increase, with results below 0.7 in
+                                                                           the original BBR is significantly reduced. Future work will
+competition with the 100 ms RTT flow.
+                                                                           investigate the RTT fairness of BBR v2, and if the same RTT
+   When the bottleneck bandwidth is set to 100 Mbps, all
+                                                                           fairness problem exists, the approach proposed in this paper
+algorithms demonstrate a low fairness index in competition
+                                                                           offers a suitable solution.
+with the 100 ms RTT flow. In particular, BBR has a minimum
+value of 0.55 after showing a very low fairness index except
+                                                                           REFERENCES
+for the same RTT. BBQ fluctuates unevenly, but its fairness
+                                                                            [1] V. Jacobson, ‘‘Congestion avoidance and control,’’ ACM SIGCOMM Com-
+improves over BBR. DA-BBR demonstrates excellent fair-                          put. Commun. Rev., vol. 18, no. 4, pp. 314–329, 1988.
+ness up to the competition with the 50 ms RTT flow and uses                 [2] N. Cardwell, Y. Cheng, C. S. Gunn, S. H. Yeganeh, and V. Jacobson,
+sufficient bandwidth as compared to the other algorithms in                     ‘‘BBR: Congestion-based congestion control,’’ Queue, vol. 14, no. 5,
+                                                                                pp. 50-20–50-53, Oct. 2016.
+competition with the 100 ms RTT flow.                                       [3] L. Kleinrock, ‘‘Power and deterministic rules of thumb for probabilistic
+                                                                                problems in computer communications,’’ in Proc. Int. Conf. Commun.,
+                                                                                vol. 43, 1979, pp. 1–10.
+3) NUMBER OF RETRANSMISSIONS                                                [4] N. Cardwell, ‘‘BBR v2: A model-based congestion control,’’ in Proc.
+Together with the RTT fairness improvement method,                              ICCRG IETF 104th Meeting, Mar. 2019. [Online]. Available: https://
+                                                                                datatracker.ietf.org/meeting/104/materials/slides-104-iccrg-an-update-on-
+because of the proposed appropriate countermeasures against                     bbr-00
+packet loss, DA-BBR reduces the sending rate when packet                    [5] M. Hock, R. Bless, and M. Zitterbart, ‘‘Experimental evaluation of BBR
+loss occurs, unlike the original BBR. To check the reduced                      congestion control,’’ in Proc. Int. Conf. Netw. Protocols (ICNP) Oct. 2017.
+number of retransmissions, we experimented with the 1 BDP                   [6] D. Scholz, B. Jaeger, L. Schwaighofer, D. Raumer, F. Geyer, and G. Carle,
+                                                                                ‘‘Towards a deeper understanding of TCP BBR congestion control,’’ in
+buffer setting, as illustrated in Figs. 13(a)–(b).                              Proc. IFIP Netw. May 2018.
+   In the 10 Mbps environment, the smaller the RTT gap,                     [7] R. J. Borgli and J. Misund. Comparing BBR and CUBIC Congestion Con-
+the larger the number of retransmissions, a majority of which                   trols. [Online]. Available: https://www.uio.no/studier/emner/matnat/ifi/
+                                                                                INF5072/v18/inf5072_example1.pdf
+occur in the Startup state. As the RTT difference increases,                [8] S. Ma, J. Jiang, W. Wang, and B. Li, ‘‘Fairness of congestion-based
+the number of retransmissions decreases for all three algo-                     congestion control: Experimental evaluation and analysis,’’ Jun. 2017,
+rithms, with the largest reduction for the proposed DA-BBR.                     arXiv:1706.09115. [Online]. Available: https://arxiv.org/abs/1706.09115
+                                                                            [9] Y. Zhang, L. Cui, and F. P. Tso, ‘‘Modest BBR: Enabling better fairness for
+   At 100 Mbps, BBR demonstrates a large number of retrans-                     BBR congestion control,’’ in Proc. IEEE Symp. Comput. Commun. (ISCC),
+missions, while the other algorithms demonstrate relatively                     Jun. 2018, pp. 00646–00651.
+
+4108                                                                                                                                       VOLUME 8, 2020
+G.-H. Kim, Y.-Z. Cho: Delay-Aware BBR Congestion Control Algorithm for RTT Fairness Improvement
+
+
+
+
+[10] S. Floyd and T. Henderson. The NewReno Modification to TCP’s                  [26] B. Lantz, B. Heller, and N. McKeown, ‘‘A network in a laptop: Rapid
+     Fast Recovery Algorithm’. Accessed: 1999. [Online]. Available: https://            prototyping for software-defined networks,’’ in Proc. ACM SIGCOMM
+     tools.ietf.org/html/rfc2582                                                        Workshop Hot Topics Netw., 2010.
+[11] L. Xu, K. Harfoush, and I. Rhee, ‘‘Binary increase congestion con-            [27] R. Jain, D. M. Chiu, and W. R. Hawe, ‘‘A quantitative measure of fairness
+     trol (BIC) for fast long-distance networks,’’ in Proc. IEEE INFOCOM,               and discrimination for resource allocation in shared computer system,’’
+     Mar. 2004, pp. 2514–2524.                                                          Digit. Equip. Corp., Maynard, MA, USA, Tech. Rep. TR-301, 1984.
+[12] S. Ha, I. Rhee, and L. Xu, ‘‘CUBIC: A new TCP-friendly high-speed TCP
+     variant,’’ ACM SIGOPS Operat. Syst. Rev., vol. 42, no. 5, pp. 64–74, 2008.
+[13] N. Cardwell. BBR V1 Release. Accessed: Sep. 9, 2019. [Online].
+     Available: https://git.kernel.org/pub/scm/linux/kernel/git/davem/net-next.
+     git/tree/net/ipv4/tcp_bbr.c
+                                                                                                             GEON-HWAN KIM received the B.S. and
+[14] (Nov. 2017). Linux 4.14. Accessed: Sep. 9, 2019. [Online]. Available:
+     https://kernelnewbies.org/Linux_4.14/                                                                   M.S. degrees in electronics engineering from
+[15] E. Atxutegi, F. Liberal, H. K. Haile, K.-J. Grinnemo, A. Brunstrom, and                                 Kyungpook National University, in 2015 and
+     A. Arvidsson, ‘‘On the use of TCP BBR in cellular networks,’’ IEEE                                      2017, respectively, where he is currently pursuing
+     Commun. Mag., vol. 56, no. 3, pp. 172–179, Mar. 2018.                                                   the Ph.D. degree in electronics engineering from
+[16] R. Ware, M. K. Mukerjee, S. Seshan, and J. Sherry, ‘‘Modeling BBR’s                                     the Telecommunication and Network Laboratory.
+     interactions with loss-based congestion control,’’ in Proc. ACM Internet                                His current research interests include FANETs and
+     Meas. Conf. Oct. 2019.                                                                                  TCP congestion control algorithms.
+[17] K. Sasaki, M. Hanai, K. Miyazawa, A. Kobayashi, N. Oda, and
+     S. Yamaguchi, ‘‘TCP fairness among modern TCP congestion control
+     algorithms including TCP BBR,’’ in Proc. IEEE 7th Int. Conf. Cloud
+     Netw. (CloudNet), Oct. 2018, pp. 1–4.
+[18] K. Miyazawa, K. Sasaki, N. Oda, and S. Yamaguchi, ‘‘Cycle and diver-
+     gence of performance on TCP BBR,’’ in Proc. IEEE 7th Int. Conf. Cloud
+     Netw. (CloudNet), Oct. 2018, pp. 1–6.
+[19] Y. Tao, J. Jiang, S. Ma, L. Wang, W. Wang, and B. Li, ‘‘Unraveling the
+     RTT-fairness Problem for BBR: A queueing model,’’ in Proc. IEEE Global                                   YOU-ZE CHO (Senior Member, IEEE) received
+     Commun. Conf. (GLOBECOM), Dec. 2018, pp. 1–6.                                                            the B.S. degree in electronics engineering from
+[20] G. H. Kim, I. Mahmud, and Y. Z. Cho, ‘‘Fairness improvement of BBR                                       Seoul National University, South Korea, in 1982,
+     congestion control algorithm for different RTT flows,’’ in Proc. Int. Conf.                              and the M.S. and Ph.D. degrees in electrical
+     Electron., Inf., Commun. (ICEIC), Jan. 2019.                                                             engineering from the Korea Advanced Institute
+[21] G. H. Kim, Y. J. Song, I. Mahmud, and Y. Z. Cho, ‘‘Enhanced BBR                                          of Science and Technology, in 1985 and 1988,
+     congestion control algorithm for improving RTT fAIRNESs,’’ in Proc. Int.                                 respectively. Since 1989, he has been with Kyung-
+     Conf. Ubiquitous Future Netw. (ICUFN), Jul. 2019.                                                        pook National University (KNU), South Korea,
+[22] B. Jaeger, D. Scholz, D. Raumer, F. Geyer, and G. Carle, ‘‘Reproducible                                  where he is currently a Professor with the School
+     measurements of TCP BBR congestion control,’’ Comput. Commun.,
+                                                                                                              of Electronics Engineering and the Dean of the
+     vol. 144, pp. 31–43, Aug. 2019.
+                                                                                   College of Information Technology Engineering. From August 1992 to
+[23] S. Hemminger, F. Ludovici, and H. Paul, NetEm—Network Emu-
+     lator. Accessed: Sep. 9, 2019. [Online]. Available: http://manpages.          January 1994, he was a Visiting Researcher with the University of Toronto,
+     ubuntu.com/manpages/bionic/man8/tc-netem.8.html/                              Canada. From March 2002 to February 2003, he was a Guest Researcher with
+[24] L. Neukirchen. Fq—Job Queue Log Viewer. Accessed: Sep. 9, 2019.               the National Institute of Standards and Technology, USA. In 2017, he served
+     [Online]. Available: http://manpages.ubuntu.com/manpages/bionic/en/           as the President of the Korean Institute of Communications and Information
+     man1/fq.1.html/                                                               Sciences (KICS). His research interests include mobility management and
+[25] J. Dugan. Iperf3—Perform Network Throughput Tests. Accessed:                  traffic engineering for wireless and mobile networks, and the transport
+     Sep. 9, 2019. [Online]. Available: http://manpages.ubuntu.com/manpages/       protocols for future Internet.
+     bionic/en/man1/iperf3.1.html/
+
+
+
+
+VOLUME 8, 2020                                                                                                                                             4109
+

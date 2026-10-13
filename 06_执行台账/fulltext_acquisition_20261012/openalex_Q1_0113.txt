@@ -1,0 +1,1890 @@
+Article
+
+Ad-BBR: Enhancing Round-Trip Time Fairness and Transmission
+Stability in TCP-BBR
+Mingjun Wang 1,2 , Xuezhi Zhang 1,2 , Feng Jing 2,3 and Mei Gao 2,3, *
+
+                                         1   School of Automation and Information Engineering, Xi’an University of Technology, Xi’an 710048, China
+                                         2   Shaanxi Key Laboratory of Intelligence Coordination Networks, Xi’an 710106, China
+                                         3   Test and Training Base, National University of Defense Technology, Xi’an 710106, China
+                                         *   Correspondence: gao_mei@nudt.edu.cn
+
+
+                                         Abstract: The rapid development of wireless network technology and the continuous
+                                         evolution of network service demands have raised higher requirements for congestion
+                                         control algorithms. In 2016, Google proposed the Bottleneck Bandwidth and Round-trip
+                                         propagation time (BBR) congestion control algorithm based on the Transmission Control
+                                         Protocol (TCP) protocol. While BBR offers lower latency and higher throughput compared
+                                         to traditional congestion control algorithms, it still faces challenges. These include the
+                                         periodic triggering of the ProbeRTT phase, which impairs data transmission efficiency,
+                                         data over-injection caused by the congestion window (CWND) value-setting policy, and
+                                         the difficulty of coordinating resource allocation across multiple concurrent flows. These
+                                         limitations make BBR less effective in multi-stream competition scenarios in high-speed
+                                         wireless networks. This paper analyzes the design limitations of the BBR algorithm from
+                                         a theoretical perspective and proposes the Adaptive-BBR (Ad-BBR) algorithm. The Ad-BBR
+                                         algorithm incorporates real-time RTT and link queue-state information, introduces a new
+                                         RTprop determination mechanism, and implements a finer-grained, RTT-based adaptive
+                                         transmission rate adjustment mechanism to reduce data over-injection and improve RTT
+                                         fairness. Additionally, the ProbeRTT phase-triggering mechanism is updated to ensure
+                                         more stable and smoother data transmission. In the NS3, 5G, and Wi-Fi simulation exper-
+                                         iments, Ad-BBR outperformed all comparison algorithms by effectively mitigating data
+                                         over-injection and minimizing unnecessary entries into the ProbeRTT phase. Compared
+                                         to the BBRv1 algorithm, Ad-BBR achieved a 17% increase in throughput and a 30% im-
+Academic Editor: Gianluigi Ferrari       provement in RTT fairness, along with a 13% reduction in the retransmission rate and
+Received: 13 March 2025
+                                         an approximate 20% decrease in latency.
+Revised: 16 April 2025
+Accepted: 16 April 2025                  Keywords: TCP congestion control; BBR; multi-flow competition; RTT fairness
+Published: 22 April 2025
+
+Citation: Wang, M.; Zhang, X.; Jing,
+F.; Gao, M. Ad-BBR: Enhancing
+Round-Trip Time Fairness and             1. Introduction
+Transmission Stability in TCP-BBR.
+                                              With the rapid growth of Internet applications and the continuous evolution of wireless
+Future Internet 2025, 17, 189.
+                                         network technologies, such as IoT, 5G, and Wi-Fi, global data traffic is experiencing an
+https://doi.org/10.3390/fi17050189
+                                         explosive increase. Simultaneously, the network environment is becoming increasingly
+Copyright: © 2025 by the authors.
+                                         complex and dynamic, with factors like diverse user behaviors, constant updates to terminal
+Licensee MDPI, Basel, Switzerland.
+                                         devices, and frequent link condition fluctuations presenting unprecedented challenges to
+This article is an open access article
+distributed under the terms and
+                                         transport layer protocols and congestion control algorithms. Traditional congestion control
+conditions of the Creative Commons       algorithms based on packet loss (e.g., Reno and Cubic) often struggle to balance high
+Attribution (CC BY) license              throughput and low latency in high-bandwidth, low-latency, and highly dynamic scenarios
+(https://creativecommons.org/            while also exhibiting fairness issues in multi-stream competitive environments [1,2].
+licenses/by/4.0/).
+
+
+
+
+Future Internet 2025, 17, 189                                                                                     https://doi.org/10.3390/fi17050189
+Future Internet 2025, 17, 189                                                                                             2 of 23
+
+
+
+                                      To address these bottlenecks, Google introduced the BBR algorithm in 2016 [3], which
+                                models link transmission by actively probing the bottleneck bandwidth (BtlBw) and the
+                                minimum round-trip propagation time (RTprop). BBR defines the maximum effective trans-
+                                mission rate of a link as the product of the BtlBw and RTprop (i.e., the bandwidth-delay
+                                product, BDP). By estimating these parameters in real time, BBR dynamically adjusts the
+                                sending rate to approximate the BDP, maximizing throughput while minimizing transmis-
+                                sion latency. The BBR algorithm has been deployed across various Google platforms, such
+                                as B4 WAN and YouTube, and integrated into the Linux kernel.
+                                      In real high-speed wireless network environments (e.g., 5G and Wi-Fi), applications
+                                often involve both bandwidth-demanding long RTT streams and delay-sensitive short
+                                RTT streams, resulting in increasingly noticeable bandwidth competition between the
+                                two types of streams [4,5]. Due to their distinct characteristics and diverse causes, these
+                                streams have different QoS (Quality of Service) requirements and round-trip times (RTTs),
+                                posing significant challenges for the BBR algorithm. Specifically, to account for potential
+                                Acknowledge character (ACK) delays and queue buildup in real networks, BBR’s control
+                                logic adjusts the congestion window (CWND) to be slightly larger than the calculated ideal
+                                value, preventing transmission stalls [6]. While this strategy helps avoid link idling, it also
+                                allows excess data to be injected into the network, leading to the phenomenon of data over-
+                                injection [7]. This not only causes queue buildup and increases the RTT but also heightens
+                                the risk of packet loss, ultimately affecting overall transmission performance and network
+                                stability. In terms of fairness, when multiple BBR flows share the same network bottleneck
+                                link, flows with different round-trip times (RTTs) are unable to allocate bandwidth fairly,
+                                as long RTT flows tend to obtain excessive bandwidth, while short RTT flows struggle to
+                                achieve reasonable transmission rates. Bandwidth allocation is, thus, heavily influenced
+                                by the RTTs of competing flows [7,8]. This phenomenon further limits the applicability
+                                of the BBR algorithm in multi-flow competitive environments [6]. Additionally, the BBR
+                                algorithm periodically enters the ProbeRTT phase without assessing its necessity, aiming to
+                                determine the minimum RTT with emptied queues. This results in bandwidth wastage and
+                                transmission interruptions, leading to unstable data transmission and undermining the
+                                original goals of the BBR algorithm [9].
+                                      To address these issues, the focus of current research is on effectively preventing
+                                data over-injection and reducing queue delay while preserving the high-throughput and
+                                low-latency advantages of BBR. Additionally, improving fairness in multi-stream competi-
+                                tion to achieve smoother transmission has been a key challenge. However, most studies
+                                have concentrated on enhancing RTT fairness while largely overlooking throughput degra-
+                                dation and failing to thoroughly investigate the redundant triggering behavior of the
+                                ProbeRTT phase. Although Google’s official versions—BBRv2 and BBRv3—aim to improve
+                                the adaptivity and fairness of the BBR algorithm, they suffer from significant throughput
+                                degradation compared to BBRv1 [10,11]. While these modifications do enhance congestion
+                                control, they also deteriorate overall link performance. Similarly, several unofficial variants,
+                                such as BBQ—which suppresses the sending rate of long RTT streams [12]—have been
+                                shown, through analysis and experiments [13,14], to possess inherent limitations. More-
+                                over, BBR-PG [15] improves overall fairness but lacks fine-grained adjustment, resulting
+                                in persistent bandwidth wastage. To the best of our knowledge, few studies have success-
+                                fully balanced RTT fairness with throughput performance, achieving significant fairness
+                                enhancements without substantially compromising throughput. This paper analyzes the
+                                limitations of BBR’s design mechanisms from a theoretical perspective and proposes the
+                                Ad-BBR algorithm. This algorithm incorporates real-time RTT and link queue-state moni-
+                                toring, as well as introduces a new RTprop determination mechanism and finer-grained
+                                adaptive rate adjustment based on the RTT to mitigate over-injection and improve RTT fair-
+Future Internet 2025, 17, 189                                                                                          3 of 23
+
+
+
+                                ness. Moreover, the ProbeRTT phase trigger mechanism is updated to enhance the stability
+                                and smoothness of data transmission. The proposed approach aims to offer a practical
+                                optimization solution for congestion control in high-speed wireless network environments.
+                                Inspired by these motivations, this paper presents the following contributions:
+                                1.   This paper analyzes the data over-injection phenomenon, the long- and short-flow
+                                     RTT unfairness, and some of the unnecessary ProbeRTT phase triggers in the BBR
+                                     congestion control algorithm through formula derivation and theoretical proofs.
+                                2.   The Ad-BBR algorithm is proposed to mitigate the data over-injection issue and
+                                     enhance RTT fairness in multi-stream contention scenarios. This is achieved by
+                                     replacing the RTprop with a dynamically varying nRTT and adaptively adjusting the
+                                     sending rate based on the real-time RTT and nRTT. Additionally, a new ProbeRTT
+                                     phase entry logic is introduced to reduce unnecessary send-rate degradation and
+                                     bandwidth waste.
+                                3.   The function and performance of the Ad-BBR algorithm are verified through NS3
+                                     and 5G and Wi-Fi simulation network experiments, and the proposed algorithm
+                                     in this paper is evaluated in terms of the throughput, RTT fairness, retransmission
+                                     rate, and latency, respectively, and the results show that Ad-BBR achieves higher
+                                     throughput, better fairness, more stable data transmission, and improves the multi-
+                                     stream contention in most cases of congestion control performance in multi-stream
+                                     competition scenarios.
+                                     The remaining sections of this paper are organized as follows: Section 2 reviews
+                                existing research on optimizing the BBR congestion control algorithm. Section 3 discusses
+                                the principles of the BBR algorithm and the motivation for its improvement. Section 4
+                                provides a detailed description of the design and structure of Ad-BBR. Section 5 presents
+                                experimental results and analysis, while Section 6 concludes the paper.
+
+                                2. Related Work
+                                     In 2016, Google introduced the BBR congestion control algorithm, which redefined the
+                                concept of congestion control [3]. It introduced the delayed bandwidth product (BDP) and
+                                calculated the BDP value by alternately measuring the link’s BtlBw and RTprop, ensuring
+                                the amount of inflight data remains close to the BDP value. This approach also solved the
+                                problem of identifying Kleinrock’s optimal operating point [16]. BBR’s operational method
+                                fundamentally differs from traditional algorithms that rely on packet loss, marking a shift
+                                in congestion control strategies. As a policy-based algorithm, BBR uses a feedback-driven
+                                mechanism that dynamically adjusts the congestion window in real time, optimizing the
+                                use of available bandwidth to improve performance.
+                                     However, many studies have shown that BBR seems to have some unfairness problems.
+                                Kim et al. [17] tested its fairness by building a testbed and observed that long RTT streams
+                                consistently outperform short RTT streams, especially during bandwidth allocation. To ad-
+                                dress this, they proposed a bottleneck queue buildup suppression algorithm that limits the
+                                flight cap to below 2 BDPs when a bottleneck queue forms, thereby suppressing excessive
+                                data transfers and minimizing the transmission queue. If no bottleneck is detected, the
+                                flight cap is set to 1 BDP. This was the first attempt to address the RTT fairness problem in
+                                the BBR algorithm. Although it improves RTT fairness to some extent, the convergence
+                                remains slow and unstable, and setting the upper limit to 1 BDP significantly impacts the
+                                total throughput. Ma et al. [12] found, through extensive experiments, that the probing
+                                duration of long RTT streams is always longer than that of short RTT streams. This results in
+                                long RTT streams dominating the transmission queue and increasing the likelihood of data
+                                pileup. To address this, they proposed an algorithm that limits the probing duration of long
+                                RTT streams, reducing their bandwidth pre-emption and consumption while improving
+Future Internet 2025, 17, 189                                                                                       4 of 23
+
+
+
+                                the competition fairness between long and short RTT streams. However, this algorithm is
+                                only effective when a small number of streams compete for bandwidth. Its performance
+                                significantly degrades when multiple streams compete simultaneously. The BBQ algo-
+                                rithm improves RTT fairness and reduces latency by reconfiguring the pacing_gain cycle’s
+                                first phase with additional conditional constraints [12]. Meanwhile, Mahmud et al. [18]
+                                identified high packet loss, high retransmission rates, and throughput unfairness in the
+                                BBR algorithm. To address these issues, they developed an algorithm that reduces the
+                                congestion window (CWND) by half and decreases the transmission rate by 25% under
+                                high network congestion and packet loss. However, this approach performs poorly for
+                                delay-sensitive applications and services. Kim et al. observed that BBR algorithms often
+                                transmit excessive data, causing an imbalance in throughput across different RTT streams.
+                                To address this, they proposed the delay-aware BBR algorithm (DA-BBR), which improves
+                                RTT fairness and throughput by controlling the client’s transmission rate and congestion
+                                window (CWND) based on the relationship between the RTT and RTprop [19]. Pan et al.
+                                noted that many existing algorithms use a fixed congestion window gain of 2, which results
+                                in smaller congestion windows for short RTT streams compared to long RTT ones. To
+                                overcome this, they developed the BBR adaptive congestion window (BBR-ace) algorithm,
+                                which dynamically adjusts the congestion window gain based on the sending rate and
+                                RTT [20]. Njogu et al. [21] proposed the BBR-EFRA algorithm to address competitive
+                                fairness issues between long and short RTT streams, as well as the potential for the mali-
+                                cious exploitation of fairness loopholes in buffer queue states. Yinker [22] introduced an
+                                algorithm for dynamically adjusting pacer_gain based on packet loss rates and conges-
+                                tion levels in wireless networks. Xu et al. [15] tackled RTT fairness issues in BBR under
+                                high-speed wireless network conditions, such as 5G and Wi-Fi. They developed a fluid
+                                model to analyze fairness differences and proposed real-time adjustments to ProbeBw and
+                                pacing_gain to improve fairness, maintain high throughput, and minimize retransmissions.
+                                However, their approach lacks fine-grained analysis of the regulation process, leading
+                                to unnecessary sending rate reductions and bandwidth waste in situations where rate
+                                adjustments are not needed. This issue arises because the adaptive regulation mechanism
+                                does not account for varying queueing states, preventing the link from operating at max-
+                                imum efficiency. Deng Z et al. [23] proposed a BBR-based congestion control algorithm
+                                (S2B2C) along with a flow-path bounded priority scheduling mechanism (S2PS) in 2024.
+                                Their approach enhances MPQUIC throughput and fairness in heterogeneous networks
+                                through shared bottleneck detection and dynamic rate adjustment and mitigates network
+                                instability by employing mixed-integer programming for scheduling. However, the study
+                                did not verify BBRv2 compatibility and was limited to static topologies, which restricts
+                                the analysis of dynamic network adaptability. Tong V et al. [24] introduced a reinforce-
+                                ment learning-based adaptive congestion control algorithm, ABBR, designed to optimize
+                                network throughput, delay, and fairness by dynamically selecting pacing gain sequences
+                                among various BBR variants. However, ABBR exhibits poor fairness when deployed
+                                alongside loss-based algorithms (e.g., Cubic) and does not adequately address schedul-
+                                ing optimization via mixed-integer programming. In 2025, Han Z et al. [25] proposed the
+                                BBR-R algorithm, which enhances RTT fairness and reduces queuing delays in multi-
+                                stream scenarios by dynamically adjusting delay detection intervals and optimizing packet
+                                counts during the probing phase. However, the experiments were conducted in idealized
+                                scenarios—excluding large-scale multi-stream and complex network topologies—and the
+                                parameter settings were based on empirical observations rather than adaptive mechanisms.
+                                Moreover, the algorithm’s fairness when coexisting with other congestion control methods
+                                was not sufficiently validated. Kihungi et al. [26] proposed the BBR-EBE+ algorithm, which
+                                enhances BBR’s bandwidth estimation by accurately detecting and filtering excessively
+   Future Internet 2025, 17, x FOR PEER REVIEW                                                                                               5 of 25
+
+
+Future Internet 2025, 17, 189                                                                                                            5 of 23
+                                        bandwidth estimation by accurately detecting and filtering excessively high ACK rates
+                                        and delaying bandwidth update estimations. This approach eﬀectively reduces average
+                                    high   ACK rates
+                                        queuing   delaysandanddelaying
+                                                                modestlybandwidth
+                                                                            increasesupdate    estimations.
+                                                                                       throughput,            Thisfaces
+                                                                                                      yet it still    approach
+                                                                                                                            notable  effectively
+                                                                                                                                       challenges in
+                                    reduces   average  queuing
+                                        terms of RTT fairness.    delays  and modestly   increases  throughput,     yet  it still faces  notable
+                                    challenges   in terms
+                                              Google   has ofintroduced
+                                                               RTT fairness.
+                                                                           the BBRv2 algorithm [27] to address the shortcomings of
+                                        BBRv1. BBRv2 improvesthe
+                                          Google  has  introduced        BBRv2 algorithm
+                                                                      bandwidth             [27]and
+                                                                                   estimation    to address
+                                                                                                      adaptsthe
+                                                                                                              more shortcomings
+                                                                                                                       accuratelyof    toBBRv1.
+                                                                                                                                          the availa-
+                                    BBRv2
+                                        ble link bandwidth while minimizing queue buildup. By incorporating packet link
+                                             improves    bandwidth     estimation  and  adapts   more   accurately     to  the  available   loss rate
+                                    bandwidth
+                                        and ECNwhile     minimizing
+                                                   (Explicit            queue
+                                                               Congestion      buildup. Byinformation,
+                                                                             Notification)    incorporating    packet
+                                                                                                           BBRv2          loss rate
+                                                                                                                      allows          and ECN
+                                                                                                                                 for quicker   deter-
+                                    (Explicit  Congestion     Notification)  information,   BBRv2    allows  for   quicker
+                                        mination of when the StartUp phase ends, avoiding excessive queuing caused by over-    determination
+                                    of when    theWhile
+                                        probing.    StartUp    phaseoﬀers
+                                                           BBRv2      ends,better
+                                                                             avoiding   excessivethan
+                                                                                   adaptability     queuing
+                                                                                                         BBRv1 caused
+                                                                                                                    [28,29],by itover-probing.
+                                                                                                                                   still faces issues
+                                    While BBRv2 offers better adaptability than BBRv1 [28,29], it still faces issues with fairness,
+                                        with fairness, especially in packet loss scenarios, which leads to competitive unfairness
+                                    especially in packet loss scenarios, which leads to competitive unfairness [10]. In response,
+                                        [10]. In response, Google introduced BBRv3 in July 2023 [11] to address fairness conver-
+                                    Google introduced BBRv3 in July 2023 [11] to address fairness convergence and post-
+                                        gence and post-congestion recovery speed. BBRv3 provides better fairness than its prede-
+                                    congestion recovery speed. BBRv3 provides better fairness than its predecessors when
+                                        cessors when operating alongside traditional packet loss-based congestion control algo-
+                                    operating alongside traditional packet loss-based congestion control algorithms. However,
+                                        rithms. However, its performance in high-speed wireless networks with varying RTTs
+                                    its performance in high-speed wireless networks with varying RTTs remains unsatisfactory.
+                                        remains unsatisfactory. Despite ongoing updates from Google, experiments have revealed
+                                    Despite ongoing updates from Google, experiments have revealed that the long–short-
+                                        that the long–short-flow RTT fairness problem persists in BBR congestion control applica-
+                                    flow RTT fairness problem persists in BBR congestion control applications [30]. Therefore,
+                                        tions [30]. Therefore, continued research is necessary to enhance RTT fairness and ensure
+                                    continued research is necessary to enhance RTT fairness and ensure stable, smooth data
+                                        stable, smooth data transmission based on real-time link states, ultimately contributing to
+                                    transmission based on real-time link states, ultimately contributing to the final version
+                                        the final version of BBR
+                                    of BBR
+
+                                       3. Overview
+                                    3. Overview  of of
+                                                    BBRBBR
+                                    3.1.3.1.
+                                         BBR BBR Algorithm
+                                              Algorithm
+                                         TheThe operating
+                                             operating    mechanism
+                                                       mechanism     of BBR
+                                                                 of the the BBR  algorithm
+                                                                             algorithm       is shown
+                                                                                        is shown        in Figure
+                                                                                                   in Figure 1: 1:
+
+
+                    The operational mechanism of the BBR Algorithm
+
+                                Input: Link Parameter Measurement                                  State Machine
+
+
+                                                                                                        Startup
+                                   BtlBw                        RTprop
+
+
+                                                                                                         Drain
+
+
+
+
+                                    Output: Control parameters                                         ProbeBw
+
+
+
+                                 BDP           CWND             Pacing rate                           ProbeRTT
+
+
+
+
+                                       Figure
+                                    Figure     1. The
+                                           1. The     operational
+                                                   operational    mechanism
+                                                               mechanism      of BBR
+                                                                         of the  the BBR algorithm.
+                                                                                     algorithm.
+
+                                         TheThe
+                                              BBR algorithm
+                                                BBR           proposed
+                                                      algorithm         by by
+                                                                 proposed   Google  differs
+                                                                               Google       from
+                                                                                       diﬀers     traditional
+                                                                                               from           packet
+                                                                                                    traditional packetloss-based
+                                                                                                                        loss-based or
+                                    or delay-based probing models. ItIt introduces
+                                                                         introduces the
+                                                                                     theconcept
+                                                                                          conceptof
+                                                                                                  ofaaBDP,
+                                                                                                       BDP,proposed
+                                                                                                             proposedby byWestwood
+                                                                                                                           West-
+                                    wood  [31], which  models  the network   link controlled by  BBR as  a physical pipe. In this
+                                       [31], which models the network link controlled by BBR as a physical pipe. In this analogy,
+                                    analogy, the bottleneck bandwidth (BtlBw) represents the cross-sectional area of the pipe,
+            Future Internet 2025, 17, x FOR PEER REVIEW                                                                                        6 of 2
+
+Future Internet 2025, 17, 189                                                                                                        6 of 23
+
+                                            the bottleneck bandwidth (BtlBw) represents the cross-sectional area of the pipe, and the
+                                            length of
+                                   and the length  of the
+                                                      the link
+                                                           link (RTprop)
+                                                                (RTprop) represents
+                                                                           representsthethelength
+                                                                                            lengthofofthe
+                                                                                                       thepipe. The
+                                                                                                            pipe.   ideal
+                                                                                                                  The     BDP
+                                                                                                                       ideal   is the
+                                                                                                                             BDP   is produc
+                                            of these
+                                   the product       two values,
+                                                of these  two values,   i.e., BDP
+                                                                  i.e., BDP     BtlBw
+                                                                                    =* RTprop
+                                                                                       BtlBw∗.RTThe  BDPThe
+                                                                                                  prop.    represents the theoretical
+                                                                                                                BDP represents   the amoun
+                                   theoreticalof amount
+                                                 “inflight” ofdata  (packets
+                                                               “inflight”    sent
+                                                                          data      but notsent
+                                                                                (packets    yet but
+                                                                                                ACKed)    that
+                                                                                                    not yet     the linkthat
+                                                                                                             ACKed)      can the
+                                                                                                                              hold,
+                                                                                                                                  linkspecifically
+                                                                                                                                        can        the
+                                              total number
+                                   hold, specifically          of unacknowledged
+                                                         the total                    packets. Thispackets.
+                                                                   number of unacknowledged          includesThis
+                                                                                                               the amount
+                                                                                                                   includesoftheinflight
+                                                                                                                                  amount data. When
+                                   of inflightthe amount
+                                                data.  Whenofthe inflight
+                                                                    amountdata
+                                                                             ofisinflight
+                                                                                   exactlydata
+                                                                                           equal  to the BDP,
+                                                                                               is exactly equaltheto link is fully
+                                                                                                                     the BDP,   theutilized,
+                                                                                                                                     link is i.e., the
+                                              following
+                                   fully utilized,         equation:
+                                                    i.e., the following equation:
+                                                                               Inflight_data=BDPtarget =BtlBw* RTprop                              (1
+                                                               Inflight_data = BDPtarget = BtlBw∗ RTprop                                (1)
+                                                 At this point, the link reaches Kleinrock’s optimal operating point [32], as shown in
+                                       At this  point,
+                                             Figure 2. the link reaches Kleinrock’s optimal operating point [32], as shown in
+                                   Figure 2.
+
+                                                   App-Limited            Bandwidth-Limited              Buffer-Limited
+
+                                                                 BDP
+                                   RTT
+
+
+
+
+                                                   RTprop
+                                                                                         BBR Actual
+                                                                                         operating
+                                                                                         point
+
+
+                                                   (A) Kleinrock's optimal
+                                                   operating point
+                                   Delivery Rate
+
+
+
+
+                                                                                          BtlBw
+
+
+
+
+                                                                   Amount of Inflight Data
+
+                                              The optimal
+                                   Figure 2. Figure   2. The operating point ofpoint
+                                                             optimal operating  BBR of
+                                                                                     and theand
+                                                                                       BBR   loss-based  operating
+                                                                                                the loss-based     point point
+                                                                                                               operating of congestion
+                                                                                                                               of congestion con
+                                   control algorithms.
+                                              trol algorithms.
+
+                                        To achieve Kleinrock’s optimal operating point, accurate measurement and estimation
+                                                  To achieve Kleinrock’s optimal operating point, accurate measurement and estima
+                                   of the BtlBw and RTprop are essential. Since both values can vary throughout the data
+                                             tion of the BtlBw and RTprop are essential. Since both values can vary throughout the
+                                   transmission process, BBR must continuously estimate these dynamic changes.
+                                             data transmission process, BBR must continuously estimate these dynamic changes.
+                                        The RTT value (the time interval between sending a packet and receiving its acknowl-
+                                                  The RTT value (the time interval between sending a packet and receiving its acknowl
+                                   edgment) at any given moment in a BBR-controlled TCP link may consist of the link’s
+                                             edgment) at any given moment in a BBR-controlled TCP link may consist of the link’
+                                   intrinsic delay RTprop and the queuing delay ηt , as shown in Equation (2):
+                                             intrinsic delay RTprop and the queuing delay 𝜂 , as shown in Equation (2):
+                                                                                      RTT
+                                                                           RTTt = RTprop +t =RTprop+η
+                                                                                            ηt       t                                  (2)        (2
+
+                                                  Thebeing
+                                        The RTprop,    RTprop,  being property
+                                                           a physical  a physical   property
+                                                                                of the          of changes
+                                                                                        link, only   the link,whenonlythe  changes    when the path
+                                                                                                                              path changes.
+                                   Therefore, the minimum RTT at time t, which is involved in subsequent operations, can be opera
+                                            changes.  Therefore,  the minimum     RTT    at time t, which    is  involved      in  subsequent
+                                            tions,
+                                   replaced by  thecan be replaced
+                                                    unbiased        by the
+                                                              estimator  of unbiased
+                                                                             RTprop at estimator
+                                                                                       time t, as of   RTprop
+                                                                                                   shown         at time t, as
+                                                                                                            in Equation        (3):shown in Equation
+                                            (3):
+                                                  min( RTTt ) = RT  prop
+                                                                  min(   t =) 
+                                                                       RTT    RT prop + min
+                                                                                RTprop         (ηt ) ∀tmin(
+                                                                                             RTprop     ∈ [t −)W       , t[t‐W
+                                                                                                                  Rt   ]      ,t]    (3)
+                                                                            t            t                     t                R                 (3
+                                   where WR represents the running time of the time window (ranging from several seconds
+                                   to a few minutes).
+Future Internet 2025, 17, 189                                                                                            7 of 23
+
+
+
+                                     On the other hand, the measurement of the BtlBw is determined by evaluating the
+                                data transmission rate, as the average transmission rate between the transmitter and the
+                                ACK satisfies Equation (4):
+                                                                                ∆delivered
+                                                                 deliveryRate =                                       (4)
+                                                                                   ∆t
+                                     The bottleneck rate, calculated as the ratio of the amount of data transmitted to the time
+                                taken, also represents the upper limit of the BtlBw, allowing the maximum transmission rate
+                                within this window to serve as an unbiased estimate of the BtlBw, as shown in Equation (5):
+
+                                                        BtlBw = max (deliveryRatet ) ∀t ∈ [t − WB , t]                      (5)
+
+                                     BBR considers the following:
+                                •    The minimum RTT measured over the past ten seconds as the RTprop;
+                                •    The maximum transmission rate observed within the most recent ten RTT intervals
+                                     as BtlBw.
+                                     Based on these parameters, BBR calculates the following:
+                                •    Bandwidth-delay product (BDP);
+                                •    Pacing rate;
+                                •    Congestion window (CWND).
+                                     Notably, the calculations of the pacing rate and CWND incorporate the scaling factors
+                                pacing_gain and cwnd_gain, respectively. Their computational formulas are detailed in
+                                Equations (6) and (7):
+                                                             Pacing Rate = pacing_gain∗ BtlBw                           (6)
+
+                                                  CWND = cwnd_gain∗ BDP = cwnd_gain∗ BtlBw∗ RTprop                          (7)
+
+                                      The BBR algorithm’s state machine module consists of four phases: StartUp, Drain,
+                                ProbeBw, and ProbeRTT.
+                                      StartUp phase: The sender employs a mechanism analogous to the slow-start algo-
+                                rithm, where both pacing_gain and cwnd_gain (set to 2/ln2 ≈ 2.89) act as multiplicative
+                                factors to exponentially increase the sending rate for probing the maximum bottleneck
+                                bandwidth of the network. However, unlike traditional slow-start, BBR’s StartUp phase
+                                incorporates three consecutive rounds of multiplicative rate increases and transitions to the
+                                Drain phase only when bandwidth growth is deemed ineffective, ensuring no premature
+                                exit from the probing phase. By this point, the system’s operating state has already shifted to
+                                the right side of Kleinrock’s optimal operating point (indicating persistent queue buildup).
+                                      Drain phase: In this phase, the sender dynamically adjusts the transmission rate by
+                                applying the multiplicative inverse of the startup parameter (set to ln2/2) to systematically
+                                drain potential queues created during the StartUp phase. This rate-limiting mechanism
+                                persists until the inflight data volume falls below or equals the estimated bandwidth-delay
+                                product (1*BDP), at which point the algorithm transitions into the ProbeBw phase for
+                                bandwidth utilization balancing.
+                                      ProbeBw phase: This operational logic constitutes the core of BBR’s congestion control
+                                mechanism. The algorithm cyclically modulates transmission rates using a deterministic
+                                pacing gain sequence [1.25, 0.75, 1, 1, 1, 1, 1, 1, 1] for bandwidth probing. In the up-
+                                ward probing phase (pacing_gain = 1.25), BBR aggressively increases transmission rates to
+                                detect unused bandwidth. The subsequent RTT triggers a downward adjustment phase
+                                (pacing_gain = 0.75), explicitly designed to drain excess queues accumulated during upward
+                                probing. For the next six RTT intervals, pacing_gain is held at 1 to stabilize transmission
+                                rates, with the concurrent congestion window gain (cwnd_gain) fixed at 2 throughout these
+                                phases to maintain sufficient inflight data for reliable network state inference. A critical
+Future Internet 2025, 17, 189                                                                                            8 of 23
+
+
+
+                                timeout mechanism governs persistent congestion detection: if the minimum RTT sampling
+                                process fails to update the RTprop (propagation delay estimate) within 10 s, BBR infers
+                                sustained path congestion and transitions to the ProbeRTT phase, initiating aggressive
+                                buffer drainage by reducing the congestion window to a single packet.
+                                     ProbeRTT phase: In this phase, the congestion window size (CWND) is initialized
+                                to 4*MSS with rigorous pacing control, limiting transmissions to four packets per round
+                                within a 200 ms timeout threshold to aggressively drain existing network queues while
+                                probing for the minimum RTT. Upon timeout expiration, the algorithm evaluates the cur-
+                                rent network load metrics (e.g., sustained bandwidth/RTT ratios) to determine whether
+                                to restart bandwidth probing via the StartUp phase or transition to steady-state band-
+                                width balancing in the ProbeBw phase, ensuring operational adaptability under dynamic
+                                network conditions.
+
+                                3.2. Motivation
+                                3.2.1. A Discussion on the Phenomenon of Data Over-Injection and the Issue of RTT Unfairness
+                                     One of the original design goals of the BBR algorithm is to operate the link’s data
+                                transmission state at Kleinrock’s optimal operating point. This ensures the maximum
+                                delivery rate and the minimum delay time (RTprop) while avoiding queue formation and
+                                minimizing latency. However, since BDP values differ for flows with varying RTTs, each
+                                flow achieves a different optimal operating point on the link. The long RTT flow will
+                                occupy a larger portion of the bottleneck bandwidth and buffer due to its higher RTT value.
+                                As the RTprop increases, the short RTT flow enters the CWND’s bounded phase, allowing
+                                the long RTT flow to further seize bandwidth and buffer resources, depriving the short
+                                RTT flow of these resources.
+                                     Although the BBR congestion control algorithm dynamically adjusts the sending rate
+                                by calculating the BDP to proactively avoid excessive data influx, potential overestimation
+                                of the bottleneck bandwidth (BtlBw) and underestimation of the RTprop can occur. To
+                                compensate for this, BBR sets the CWND value slightly higher than the calculated BDP to
+                                buffer ACK delays and queuing within the link. However, this results in an instantaneous
+                                rate exceeding the network capacity, especially when multiple streams share the link. Their
+                                synchronized probing of bandwidth causes collective data over-injection. Regardless of
+                                whether the RTT streams are long or short, the CWND values tend to be slightly larger
+                                than the ideal values, leading to a sending rate that surpasses the link’s capacity and results
+                                in queues shared across all streams.
+                                     As shown in Figure 3, when multiple streams with different RTT values compete for
+                                the same bottleneck link, the original BBR algorithm operates slightly to the right of the
+                                predicted ideal optimal points A and B, reaching the actual operating points C and D.
+                                     This results in the total transmission rate exceeding the available bottleneck bandwidth.
+                                Over time, this leads to the formation of a persistent queue on the bottleneck link, causing
+                                queue-induced delays. Since this persistent queue is shared by all existing streams, long
+                                RTT streams, which occupy more bandwidth and buffer space and have higher sending
+                                rates, push short RTT streams into a vicious cycle. As fairness continuously deteriorates,
+                                long RTT streams eventually become limited by the CWND, but by this point, short RTT
+                                streams are left with minimal bandwidth. This situation is highly detrimental to the current
+                                scenario, where long RTT streams are prevalent and short RTT streams frequently appear
+                                in 5G and Wi-Fi networks.
+Future Internet 2025, 17, x FOR PEER REVIEW                                                                                                9 of 25
+   Future Internet 2025, 17, 189                                                                                                 9 of 23
+
+
+
+
+                                                        App-Limited            Bandwidth-Limited                   Buffer-Limited
+                                                                      BDP short BDP long
+
+
+
+                                                        Long RTT
+
+
+                                    RTT
+                                                        Short RTT
+
+                                                                         A         B          C          D
+                                    Delivery rate
+
+
+
+
+                                                                               Excess Data
+
+                                                                                           Excess Data
+
+
+                                                     Buffer-Limited            Amount of Inflight Data
+                                   Figure 3. A comparison of the theoretical optimal operating points and the actual operating points
+                                   Figure 3. A comparison of the theoretical optimal operating points and the actual operating points
+                                   for flows with varying RTTs.
+                                   for flows with varying RTTs.
+                                        Additionally, because BBR is not sensitive to packet loss events, when the bottleneck
+                                        This
+                                   buffer     results
+                                          is small,    inover-injection
+                                                    data  the total transmission   rate exceeding
+                                                                        leads to queuing, resulting inthe  available
+                                                                                                        a higher      bottleneck band-
+                                                                                                                 retransmission
+                                   width.
+                                   rate on Over  time,link.
+                                           the current  this leads to the formation of a persistent queue on the bottleneck link,
+                                   causing queue-induced delays. Since this persistent queue is shared by all existing
+                                    3.2.2. Partially Periodic Entry but Meaningless ProbeRTT Phase
+                                   streams, long RTT streams, which occupy more bandwidth and buﬀer space and have
+                                          To prevent real-time RTT estimation failure caused by prolonged periods without
+                                   higher sending rates, push short RTT streams into a vicious cycle. As fairness continu-
+                                    exploration, BBR is designed to automatically enter the ProbeRTT phase if the mini-
+                                   ously deteriorates, long RTT streams eventually become limited by the CWND, but by
+                                    mum RTT remains unchanged for ten seconds or if network conditions—such as queuing
+                                   this  point, short RTT streams are left with minimal bandwidth. This situation is highly
+                                    congestion—necessitate exploration. However, when the link’s bottleneck has high band-
+                                   detrimental
+                                    width, traffic to   the current
+                                                    is low,          scenario,
+                                                            or the RTT remains where    long RTT
+                                                                                stable, entering thestreams
+                                                                                                      ProbeRTTarephase
+                                                                                                                  prevalent   and short RTT
+                                                                                                                       is unnecessary
+                                   streams
+                                    and mayfrequently        appear in
+                                               lead to a temporary      5G andin
+                                                                      reduction  Wi-Fi   networks.
+                                                                                   the sending   rate and performance degradation,
+                                         Additionally,
+                                    particularly            because
+                                                   for long-term      BBR is not
+                                                                   connections    sensitive
+                                                                               with           to packet
+                                                                                     steady but          loss
+                                                                                                  low-rate    events, when
+                                                                                                           transmissions.     the bottleneck
+                                                                                                                            Therefore,
+                                   buﬀer    is small,
+                                    we propose           data over-injection
+                                                   adapting                   leads to queuing,
+                                                               the ProbeRTT triggering    mechanism  resulting  in a or
+                                                                                                        using time-  higher  retransmission
+                                                                                                                        event-driven
+                                    conditions,
+                                   rate           so that the
+                                         on the current         ProbeRTT phase is initiated only when it is truly needed to detect
+                                                             link.
+                                   a new minimum RTT and drain any existing queues on the link.
+                                   3.2.2. Partially Periodic Entry but Meaningless ProbeRTT Phase
+                                   4. The Optimization Algorithm: Ad-BBR
+                                         To prevent real-time RTT estimation failure caused by prolonged periods without
+                                         In this paper, we propose the Ad-BBR algorithm to address these issues by introducing
+                                   exploration, BBR is designed to automatically enter the ProbeRTT phase if the minimum
+                                    a novel minimum RTT determination mechanism, determining the link state based on the
+                                   RTT   remains
+                                    minimum     RTT,unchanged
+                                                     formulating for   ten seconds
+                                                                   finer-grained   rulesorforifadjusting
+                                                                                                networktransmission
+                                                                                                           conditions—such       as queuing
+                                                                                                                        rates according to   con-
+                                   gestion—necessitate
+                                    different link states, andexploration.
+                                                               modifying the  However,
+                                                                                 trigger logic when
+                                                                                                 of thethe  link’s bottleneck
+                                                                                                         ProbeRTT                has high band-
+                                                                                                                   phase. This approach
+                                   width,
+                                    aims to traﬃc   is over-injection
+                                             mitigate  low, or the RTT      remains
+                                                                       effects, improvestable,    entering
+                                                                                           the fairness   andthe  ProbeRTT
+                                                                                                               competition     phase long
+                                                                                                                            between   is unneces-
+                                   sary  and may
+                                    and short        lead to aand
+                                                RTT streams,    temporary
+                                                                    enhance the reduction
+                                                                                   stability inof the
+                                                                                                  datasending    rate and
+                                                                                                        transmission.       performance
+                                                                                                                      Consequently,    the degra-
+                                    fairness particularly
+                                   dation,   between long forand long-term
+                                                                  short RTT streams     is improved,
+                                                                                connections               and databut
+                                                                                                  with steady      transmission
+                                                                                                                       low-rate stability
+                                                                                                                                  transmissions.
+                                    is enhanced.
+                                   Therefore, we propose adapting the ProbeRTT triggering mechanism using time- or
+                                   event-driven conditions, so that the ProbeRTT phase is initiated only when it is truly
+                                   needed to detect a new minimum RTT and drain any existing queues on the link.
+
+                                   4. The Optimization Algorithm: Ad-BBR
+                                                    In this paper, we propose the Ad-BBR algorithm to address these issues by introduc-
+Future Internet 2025, 17, 189                                                                                            10 of 23
+
+
+
+                                4.1. Adaptive Sending Rate Adjustment Mechanism
+                                     The adaptive transmit rate regulator employs a novel minimum RTT determination
+                                logic to track real-time RTT fluctuations and evaluates the link state based on this new
+                                minimum RTT value, thereby achieving more accurate adaptive transmit rate regulation.
+
+                                4.1.1. Minimum RTT Determination Logic
+                                      In high-speed wireless network links, rapid fluctuations in the network state can occur,
+                                making it difficult for the RTprop to reflect real-time dynamic changes. Additionally, the BBR
+                                congestion control algorithm may fail to update the RTprop correctly during the ProbeBw
+                                phase due to continuous packet over-injection. To address this, this paper introduces an adap-
+                                tive dynamic regulation mechanism with a new RTT (nRTT) to replace the old RTprop value
+                                for link state determination. By tracking the current RTT in real time and comparing it with the
+                                smallest RTT, the nRTT is determined. This value is then used to assess the current link state
+                                and adjust the transmission state, enabling the algorithm to better handle dynamic links and
+                                maintain robust link state determination. The nRTT update rule is presented in Algorithm 1.
+                                 Algorithm 1. Ad-BBR, minimum RTT determination logic.
+                                 1 : if measured_rtt ≤ self.α∗ RTprop then
+                                 2:      nRTT ← RTprop
+                                 3:     over_α_duration = 0.0
+                                 4: else
+                                 5:          over_α _duration ← over_α_duration + dt
+                                 6:         if over_α_duration ≥ 0.3 then
+                                 7:               nRTT ← RTprop
+                                 8:               over_α _duration ← 0.0
+                                 9:     end if
+                                 10: end if
+
+                                4.1.2. Adaptive Transmit Rate Regulation Based on Real-Time Link State
+                                      Assume that β is the adaptive adjustment factor applied when queues begin to form,
+                                while γ is the factor used under severe queueing conditions. The link bandwidth allocation
+                                for RTT streams should be fair under the influence of β and γ. When the link bandwidth
+                                is ideally allocated fairly, the bandwidths detected and utilized by two BBR streams with
+                                different RTT values should be equal. Given that BDP = BtlBw∗ RTprop, the ratio of BDP for
+                                different RTT streams will correspond to the ratio of their RTTs. Let streams 1 and 2 exist,
+                                where the RTT obtained from real-time measurements is denoted as rRTT, and the possible
+                                queuing delay is ηt . These two streams satisfy Equation (8):
+
+                                                          BDP1   rRTT1  β ∗ nRTT1 ∗ BtlBw1 (t)
+                                                               =       = 1∗                                                  (8)
+                                                          BDP2   rRTT2  β 2 nRTT2 ∗ BtlBw2 (t)
+
+                                     At this point, where BtlBw1 = BtlBw2 the following Equation (9) holds:
+
+                                                             β 1 ∗ nRTT1   rRTT1   nRTT1 + ηt
+                                                                         =       =                                           (9)
+                                                             β 2 ∗ nRTT2   rRTT2   nRTT2 + ηt
+
+                                     This results in Equation (10), which describes the relationship between β and nRTT:
+
+                                                                             nRTT+ηt       ηt
+                                                            β = g(nRTT) =            = 1+                                   (10)
+                                                                              nRTT        nRTT
+Future Internet 2025, 17, 189                                                                                            11 of 23
+
+
+
+                                    Since the queuing delay equals the difference between the actual measured RTT and the
+                                minimum RTT, i.e., ηt = sRTT − nRTT, the final expression for β is given by Equation (11):
+
+                                                                ηt    nRTT + rRTT − nRTT   rRTT
+                                                      β = 1+        =                    =                                  (11)
+                                                               nRTT          nRTT          nRTT
+                                     When rRTT > nRTT for a cumulative number of times ≤ 10, when rRTT ≥ nRTT
+                                for three consecutive times, or when the cumulative count exceeds 10 and the current
+                                rRTT > 1.25nRTT, this indicates significant queuing on the link with a larger queuing delay.
+                                In such cases, a larger γ regulating factor is required to adjust the sending rate. Thus, the
+                                regulating factor γ is set as the reciprocal of the queuing delay ηt , as shown in Equation (12):
+
+                                                                        1         1
+                                                                   γ=      =                                                (12)
+                                                                        ηt   rRTT − nRTT
+
+                                      The link reduces the sending rate between different streams by a factor of γ. Due to the
+                                varying rRTT across streams, the regulation factor γ for the long RTT stream is smaller than
+                                that for the short RTT stream. As a result, long RTT streams are more affected by the sending
+                                rate adjustment, enabling both long and short RTT streams to empty their queues more
+                                effectively. When the short RTT stream quickly empties its queue, link resources become
+                                idle, allowing the long RTT stream to gradually resume its sending rate after a period of
+                                reduced speed and queue clearing. This adjustment is based on the bottleneck bandwidth
+                                size, ensuring the continued transmission of long RTT flow data. The fairness between
+                                streams in the link is enhanced by two adaptive adjustment factors, β and γ. The Adaptive
+                                Transmit Rate Regulation Based on Real-Time Link State is presented in Algorithm 2.
+                                 Algorithm 2. Ad-BBR, adaptive sending rate adjustment mechanism.
+                                 1: rRTT ← measured_rtt
+                                 2: if phase ==′′ ProbeBw′′ then
+                                 3: if rRTT < 1.25∗ nRTT then
+                                 4:      Pacing Rate ← BtlBw∗ pacing _gain
+                                 5: else if (1.25∗ nRTT) ≤ rRTT <(1.5∗ nRTT) then
+                                 6:       β ← rRTT/nRTT
+                                 7:       Pacing Rate ← BtlBw∗ Pacing_gain/β
+                                 8: else
+                                 9:       γ ← 1/(rRTT − nRTT + 1e − 6)
+                                 10:        Pacing Rate ← BtlBw∗ pacing_gain∗ γ
+                                 11: end if
+                                 12: end if
+
+                                4.2. Adjustments to the ProbeRTT Phase Trigger Mechanism
+                                     The adaptive regulation mechanism in the ProbeBw phase facilitates the formation and
+                                elimination of link congestion and introduces a new method for determining the RTprop.
+                                This reduces the frequency with which the ProbeRTT phase needs to be entered.
+                                     The ProbeRTT phase in BBR proactively reduces the sending rate and forces the
+                                network queue to empty in order to measure the current link’s minimum RTT (i.e., the
+                                RTprop value used to compute the BDP). This ensures the algorithm can perform congestion
+                                control based on accurate latency information and prevents network changes (e.g., route
+                                switching and link quality fluctuations) from resulting in outdated RTprop values. In
+                                standard BBR, the ProbeRTT phase is entered every 10 s by default. However, this does
+                                not mean that every entry is meaningful during data transmission. In particular, when the
+                                network bandwidth is sufficient, there is no competing traffic or queues, the link transmits
+Future Internet 2025, 17, 189                                                                                        12 of 23
+
+
+
+                                low-rate or intermittent traffic, or the latest minimum RTT is naturally observed as RTprop,
+                                the entry becomes unnecessary. In such cases, unnecessary entries into the ProbeRTT phase
+                                waste bandwidth, reduce the sending rate, and cause instability in data transmission.
+                                     Based on the two reasons mentioned above, this paper modifies the ProbeRTT phase-
+                                triggering logic. The new mechanism no longer triggers the ProbeRTT phase automati-
+                                cally every ten seconds; instead, it decides whether to enter the phase according to the
+                                current link state. By incorporating a dynamic error term derived from the standard
+                                deviation of historical RTT data, the algorithm can more accurately determine when
+                                to initiate the ProbeRTT phase—taking into account network delay stability and noise
+                                levels—without compromising the efficiency of minimum RTT detection. This modifi-
+                                cation significantly improves transmission stability. To the best of our knowledge, exist-
+                                ing studies on improving the ProbeRTT phase trigger logic rarely incorporate dynamic
+                                error adjustments based on network delay stability and noise levels to refine the trigger-
+                                ing conditions. The revised ProbeRTT phase trigger logic is presented in Algorithm 3.
+                                 Algorithm 3. Ad-BBR, the new triggering mechanism for ProbeRTT.
+                                 1: If length(rt_history)> 1 then
+                                 2: rtt_std ← standard_deviation(rt_history)
+                                 3: else
+                                 4: rtt_std ← 0.0
+                                 5: Y ← max( X ∗ rtt_std, 5.0)
+                                 6: if measured_rtt > RTprop + Y then
+                                 7: phase_timer ← phase _timer + dt
+                                 8: if phase_timer >= 10.0 s then
+                                 9:       phase ← ′′ ProbeRTT′′
+                                 10:      phase_timer ← 0.0
+                                 11: end if
+                                 12: else
+                                 13: phase_timer ← 0.0
+                                 14: end if
+                                 15: else if phase =′′ ProbeRTT′′ then
+                                 16: end if
+                                     In this context, Y represents an allowable dynamic error, designed to adapt to varying
+                                noise levels in real-world wireless networks. This dynamic value Y is calculated using
+                                the standard deviation of historical RTT data, which quantifies the fluctuations in the RTT
+                                measurements. This approach enables a better response to network latency stability and
+                                noise levels. The formula for Y is shown in Equation (13):
+
+                                                              Y = max( X ∗ RTT_std, Z _min)                             (13)
+
+                                     RTT_std denotes the standard deviation of RTT samples, X is the noise sensitivity
+                                factor (set to 0.5 in this paper), and Z _min is the protection threshold (set to 5 ms).
+                                     The new trigger logic determines when to enter the ProbeRTT phase by recording
+                                the minimum RTT timestamp. Under this mechanism, the ProbeRTT phase is triggered to
+                                explore the RTprop when more than 10 s have passed since the condition was first met and
+                                the buffer queue size exceeds Y ∗ BtlBw for 10 s, based on the recorded timestamps.
+
+                                5. Experiment and Evaluation
+                                     In this section, we compare the performance of the proposed Ad-BBR algorithm with
+                                traditional congestion control algorithms (BBRv1, BBRv3, BBQ, Cubic, and Reno) in terms
+                                of throughput, RTT fairness, and transmission stability.
+Future Internet 2025, 17, 189                                                                                                               13 of 23
+
+
+
+                                5.1. Simulation Setup
+                                          In this paper, the performance of the Ad-BBR algorithm is evaluated using the NS3
+                                     network simulation environment, which includes 5G and Wi-Fi simulations. NS3 simula-
+                                     tion experiments are conducted by integrating new algorithms and Python APIs into the
+                                    TCP module of NS3 via TypeId. This integration enables the construction of simulation
+                                     scenarios—such as multi-stream competition scenarios—using NS3′ s Python binding inter-
+                                     face, as illustrated in Figure 4. A dumbbell network topology is constructed using NS3′ s
+                                     Python binding interface to simulate multi-stream contention scenarios, with parameters
+                                     such as RTTs, bottleneck buffer sizes, and bottleneck bandwidths configured according to
+                                     experimental requirements. The 5G network simulation experiments utilize LteHelper and
+                                     NrHelper to set up 5G gNB and UE terminals for testing the TCP performance of Ad-BBR
+                                     under 5G/NR networks. Wi-Fi network simulation experiments employ WifiHelper to
+                                     configure Wi-Fi AP and STA terminals, evaluating the TCP performance of Ad-BBR under
+                                    Wi-Fi 802.11n/ac/ax standards. Finally, a Python script iterates over various experimen-
+Future Internet 2025, 17, x FOR PEER tal parameters—including 5G power levels, Wi-Fi rates, and the number of streams—to
+                                     REVIEW                                                                             14 of 25
+                                     record experimental results for the throughput, RTT, packet loss rate, fairness index, and
+                                     other metrics.
+
+                  Sender                                                                                                Receiver
+
+
+
+
+                                  S（1）                                                             R（1）
+
+
+
+                                  S（2）                        Bottleneck link                      R（2）
+                                               Router1                                Router2
+                    …
+
+
+
+
+                                  S（n）                                                             R（n）                     …
+
+
+
+
+                                Figure 4.
+                                Figure 4. Experimental
+                                          Experimental network
+                                                       network topology
+                                                               topology of
+                                                                        of the
+                                                                           the NS3.
+                                                                               NS3.
+
+                                5.2.
+                                5.2. Throughput
+                                     Throughput
+                                      To
+                                      To assess
+                                          assess whether
+                                                   whether thethe Ad-BBR
+                                                                  Ad-BBR algorithm
+                                                                            algorithm achieves        superior throughput
+                                                                                           achieves superior       throughput performance,
+                                                                                                                                     performance,
+                                this
+                                this experiment measures the average throughput and latency of each algorithm using
+                                     experiment      measures    the average   throughput      and   latency   of   each   algorithm      using the
+                                                                                                                                                 the
+                                NS3
+                                NS3 simulator.
+                                      simulator. Packet
+                                                     Packet loss
+                                                              loss rates
+                                                                   rates are
+                                                                         are set
+                                                                              set to
+                                                                                  to 0%,
+                                                                                       0%, 10%,
+                                                                                            10%, and
+                                                                                                   and 20%,
+                                                                                                         20%, and
+                                                                                                                and the the bottleneck
+                                                                                                                             bottleneck buffers
+                                                                                                                                            buﬀers
+                                are
+                                are configured
+                                     configuredto   to0.5
+                                                       0.5BDP
+                                                           BDPand and55BDP.
+                                                                         BDP.Experiments
+                                                                                Experiments    areare
+                                                                                                    conducted
+                                                                                                       conducted    forfor
+                                                                                                                         each
+                                                                                                                            eachalgorithm
+                                                                                                                                   algorithm under
+                                                                                                                                                un-
+                                six different   conditions,    and  the simulation     results  are  presented
+                                der six diﬀerent conditions, and the simulation results are presented in Figure 5.  in  Figure    5.
+                                      The
+                                      The experimental
+                                            experimentalresults
+                                                              resultsshow
+                                                                      showthat
+                                                                             thatasasthethepacket
+                                                                                            packet loss  rate
+                                                                                                      loss     increases,
+                                                                                                            rate  increases,  thethe
+                                                                                                                                   throughput
+                                                                                                                                      throughput  of
+                                each  congestion     control   algorithm  decreases      and  the  delay   increases,
+                                of each congestion control algorithm decreases and the delay increases, while increasing  while    increasing   the
+                                buffer  size size
+                                the buﬀer     leadsleads
+                                                     to higher   throughput
+                                                           to higher           but also
+                                                                       throughput      butgreater    delay. delay.
+                                                                                            also greater     PacketPacket
+                                                                                                                        loss-based     congestion
+                                                                                                                                 loss-based    con-
+                                control  algorithms,     such   as  Cubic  and   Reno,    typically    exhibit   low
+                                gestion control algorithms, such as Cubic and Reno, typically exhibit low throughput    throughput        and high
+                                                                                                                                                and
+                                delay.  These    algorithms    rely on  packet  loss   as a congestion     signal;    when
+                                high delay. These algorithms rely on packet loss as a congestion signal; when a loss is        a loss  is detected,
+                                they  reduce
+                                detected,       thereduce
+                                             they    congestion    window and
+                                                             the congestion        sacrifice
+                                                                               window       andthroughput.      Moreover, they
+                                                                                                  sacrifice throughput.                 tend tothey
+                                                                                                                                 Moreover,       fill
+                                the
+                                tendbuffer
+                                       to filluntil  packetuntil
+                                               the buﬀer      loss occurs,  which
+                                                                    packet loss       further
+                                                                                 occurs,        increases
+                                                                                             which    furtherdelay,    especially
+                                                                                                                increases      delay,with    larger
+                                                                                                                                         especially
+                                buffers.  The    BBRv1    algorithm    consistently     achieves    high   throughput
+                                with larger buﬀers. The BBRv1 algorithm consistently achieves high throughput in most        in  most    scenarios,
+                                scenarios, but its latency performance is poor. In contrast, while the BBRv3 and BBQ al-
+                                gorithms perform well under normal conditions, both their throughput and latency dete-
+                                riorate under high-packet-loss scenarios. In contrast, the Ad-BBR algorithm demonstrates
+                                stable and robust throughput across various environments, particularly under high-
+Future Internet 2025, 17, x FOR PEER REVIEW                                                                                          15 of 25
+
+
+
+Future Internet 2025, 17, 189                                                                                                          14 of 23
+
+
+
+                                    but its latency performance is poor. In contrast, while the BBRv3 and BBQ algorithms
+                                    perform well under normal conditions, both their throughput and latency deteriorate
+                                    under high-packet-loss scenarios. In contrast, the Ad-BBR algorithm demonstrates stable
+                                    and robust throughput across various environments, particularly under high-packet-loss
+                                    conditions, indicating superior packet loss tolerance. Furthermore, Ad-BBR consistently
+                                    ranks among the top three in terms of latency performance. Overall, the Ad-BBR algorithm
+                                    maintains strong performance compared to all other algorithms when packet loss rates
+                                    or buffer sizes vary. For instance, while its throughput may be slightly lower than 15
+Future Internet 2025, 17, x FOR PEER REVIEW
+                                                                                                                        that of
+                                                                                                                           of 25
+                                    some algorithms, its latency performance is superior, and it sustains high throughput even
+                                    when latency is marginally compromised.
+
+
+
+
+                                  Figure 5. NS3 environment: throughput and latency under diﬀerent loss and buﬀer conditions.
+
+                                        Additionally, this experiment configures bottleneck buﬀers of 0.5 BDPs and 5 BDPs
+                                  in 5G and Wi-Fi network simulations. A 5 Gbps file is downloaded over a TCP link con-
+                                  trolled by diﬀerent congestion algorithms, and the download rates are recorded. The re-
+                                  sults are presented in Figures 6 and 7.
+                                        In both 5G and Wi-Fi environments, increasing the buﬀer size leads to higher down-
+                                  load rates for all algorithms. Notably, BBR-based algorithms achieve significantly greater
+                                  throughput than packet loss-based algorithms such as Cubic and Reno, particularly in 5G
+                                  scenarios, where BBR-based algorithms consistently outperform Cubic and Reno. This ad-
+                                  vantage likely stems from the fact that BBR-based algorithms do not rely solely on packet
+                                  loss for congestion detection; instead, they perform congestion control by continuously
+                                  measuring the bandwidth-delay product (BDP) in real time, making them better suited
+                                  Figure
+                                   Figure
+                                  for      5. NS3
+                                          5.  NS3 environment:
+                                      high-speed   environment:   throughput
+                                                                  throughput
+                                                     wireless networks        and
+                                                                              and latency
+                                                                                  latency under
+                                                                           characterized   under    different loss
+                                                                                                               loss and
+                                                                                                                    and buffer
+                                                                                                    diﬀerentbandwidth,
+                                                                                            by abundant                  buﬀer conditions.
+                                                                                                                                conditions.
+                                                                                                                             random    packet
+                                  loss, and considerable delay fluctuations. Among all evaluated algorithms, Ad-BBR ex-
+                                        Additionally, this
+                                                         thisexperiment    configures
+                                                                            configuresbottleneck       buffers   of 0.50.5
+                                                                                                                        BDPs   and  5 BDPs   in
+                                  hibitsAdditionally,          experiment
+                                          outstanding performance       by achieving      bottleneck
+                                                                                        download         buﬀers
+                                                                                                       rates  that of      BDPs   and
+                                                                                                                    are approximately  5 BDPs
+                                                                                                                                          17%
+                                  5G  andand
+                                   in 5G    Wi-Fi network     simulations.  A 5 Gbps   file isfile
+                                                                                                downloaded       over aover
+                                                                                                                         TCPalink  controlled
+                                  higher   thanWi-Fi
+                                                 thosenetwork      simulations.
+                                                        of the original         A 5 Gbps
+                                                                        BBRv1 and     26% higher   is than
+                                                                                                      downloaded
+                                                                                                            those of BBRv3,    TCP   link con-
+                                                                                                                                an improved
+                                  by  different
+                                   trolled  by    congestion
+                                                diﬀerent        algorithms,
+                                                           congestion        and  the
+                                                                        algorithms,    download
+                                                                                      and   the       rates
+                                                                                                  download   are  recorded.
+                                                                                                                rates  are    The  results
+                                                                                                                           recorded.   Theare
+                                                                                                                                            re-
+                                  version of BBRv1.
+                                  presented    in  Figures  6 and   7.
+                                   sults are presented in Figures 6 and 7.
+                                         In both 5G and Wi-Fi environments, increasing the buﬀer size leads to higher down-
+                                   load rates for all algorithms. Notably, BBR-based algorithms achieve significantly greater
+                                   throughput than packet loss-based algorithms such as Cubic and Reno, particularly in 5G
+                                   scenarios, where BBR-based algorithms consistently outperform Cubic and Reno. This ad-
+                                   vantage likely stems from the fact that BBR-based algorithms do not rely solely on packet
+                                   loss for congestion detection; instead, they perform congestion control by continuously
+                                   measuring the bandwidth-delay product (BDP) in real time, making them better suited
+                                   for high-speed wireless networks characterized by abundant bandwidth, random packet
+                                   loss, and considerable delay fluctuations. Among all evaluated algorithms, Ad-BBR ex-
+                                   hibits outstanding performance by achieving download rates that are approximately 17%
+                                   higher than those of the original BBRv1 and 26% higher than those of BBRv3, an improved
+                                   version of BBRv1.
+
+
+
+
+                                  Figure 6. 5G network simulation: download speed comparison in 0.5/5 BDP buffer.
+Future Internet 2025, 17, x FOR PEER REVIEW                                                                                             16 of 25
+
+
+
+Future Internet 2025, 17, 189                                                                                                            15 of 23
+                                  Figure 6. 5G network simulation: download speed comparison in 0.5/5 BDP buﬀer.
+
+
+
+
+                                  Figure 7. Wi-Fi network simulation: download speed comparison in 0.5/5 BDP buffer.
+                                  Figure 7. Wi-Fi network simulation: download speed comparison in 0.5/5 BDP buﬀer.
+
+                                        In both 5G and Wi-Fi environments, increasing the buffer size leads to higher down-
+                                  5.3. RTT Fairness
+                                  load rates for all algorithms. Notably, BBR-based algorithms achieve significantly greater
+                                         To evaluate
+                                  throughput           the fairness
+                                                 than packet            improvements
+                                                                loss-based    algorithms of
+                                                                                          suchtheasAd-BBR   algorithm
+                                                                                                    Cubic and             in multi-stream
+                                                                                                                Reno, particularly    in 5G
+                                  competition     scenarios,   this section   designs two   sets of experiments:  static
+                                  scenarios, where BBR-based algorithms consistently outperform Cubic and Reno. This       network   exper-
+                                  iments andlikely
+                                  advantage      dynamic
+                                                      stemsnetwork
+                                                              from the experiments.    Throughput
+                                                                         fact that BBR-based          performance
+                                                                                                algorithms           is a commonly
+                                                                                                            do not rely                used
+                                                                                                                          solely on packet
+                                  metric
+                                  loss  fortocongestion
+                                               evaluate RTT     fairness
+                                                         detection;        in congestion
+                                                                        instead,           controlcongestion
+                                                                                  they perform      algorithmscontrol
+                                                                                                                 under bymulti-flow    com-
+                                                                                                                              continuously
+                                  petition   scenarios. For   example,    in the case of the BBR   algorithm,  BBR  dynamically
+                                  measuring the bandwidth-delay product (BDP) in real time, making them better suited for           adjusts
+                                  its sending rate
+                                  high-speed         by estimating
+                                                 wireless networksthe       bottleneck bandwidth
+                                                                       characterized    by abundant  and  round-triprandom
+                                                                                                       bandwidth,      propagation
+                                                                                                                                packetdelay
+                                                                                                                                        loss,
+                                  (BDP),   which    results  in  flows   with   diﬀerent  RTTs   obtaining   diﬀerent
+                                  and considerable delay fluctuations. Among all evaluated algorithms, Ad-BBR exhibits   BDP    values  and,
+                                  thus, sharingperformance
+                                  outstanding      bandwidth unequally,
+                                                                  by achieving  leading  to noticeable
+                                                                                  download    rates thatdiﬀerences    in throughput
+                                                                                                         are approximately              per-
+                                                                                                                                17% higher
+                                  formance.     Moreover,   Jain’s  fairness  index, as defined   in Equation  (14) [33],
+                                  than those of the original BBRv1 and 26% higher than those of BBRv3, an improved version is used to quan-
+                                  tifyBBRv1.
+                                  of   the fairness performance of each algorithm.
+
+                                                                                     ( n d )2 
+                                  5.3. RTT Fairness
+                                                                                 J=
+                                                                                        i =1 i                                              (14)
+                                                                                     n n d 2 
+                                        To evaluate the fairness improvements of        the
+                                                                                            i =1 Ad-BBR
+                                                                                                   i
+                                                                                                            algorithm    in multi-stream    com-
+                                  petition scenarios, this section designs two sets of experiments: static network experiments
+                                        Here, n represents
+                                  and dynamic                 the number of
+                                                   network experiments.         streams inperformance
+                                                                             Throughput          the link, andisdenotes      the throughput
+                                                                                                                     a commonly      used metricof
+                                  theevaluate
+                                  to   i-th stream.
+                                                 RTTThe    parameter
+                                                      fairness          is defined
+                                                                in congestion       over algorithms
+                                                                                 control    the intervalunder [0, 1]; multi-flow
+                                                                                                                      a value closer    to 1 indi-
+                                                                                                                                    competition
+                                  cates  better  bandwidth    fairness   among   the  streams.
+                                  scenarios. For example, in the case of the BBR algorithm, BBR dynamically adjusts its
+                                  sending rate by estimating the bottleneck bandwidth and round-trip propagation delay
+                                  5.3.1. Static Network Experiments
+                                  (BDP), which results in flows with different RTTs obtaining different BDP values and, thus,
+                                        Thebandwidth
+                                  sharing     static network
+                                                         unequally,   leadingtest
+                                                               experiments         the static competitive
+                                                                               to noticeable         differences infairness  of Ad-BBR
+                                                                                                                     throughput            in NS3
+                                                                                                                                   performance.
+                                  simulation Jain’s
+                                  Moreover,      and 5G  and Wi-Fi
+                                                       fairness       simulation
+                                                                 index,            network
+                                                                          as defined   in Equationenvironments,
+                                                                                                           (14) [33],respectively.
+                                                                                                                       is used to quantify the
+                                        In  the  NS3  simulation    experiments,
+                                  fairness performance of each algorithm.           bottleneck         buﬀer  sizes of 0.5 BDPs and 5 BDPs
+                                  were configured. Two streams with round-trip times                 !
+                                                                                                          (RTTs) of 10 ms and 50 ms were
+                                                                                       n1 Gbps    2 bottleneck bandwidth. The through-
+                                  introduced simultaneously to compete for         ( ∑ i =1 d i )
+                                                                                      a
+                                                                             J=                                                               (14)
+                                  put diﬀerence between the two streams was         n∑incompared 2         under the control of various con-
+                                                                                         =1 d i
+                                  gestion control algorithms over a duration of 100 s. Jain’s fairness index was employed to
+                                        Here, n represents
+                                  quantitatively     evaluatetheRTTnumber    of streams
+                                                                      fairness.            in the link,
+                                                                                 Jain’s fairness             andquantifies
+                                                                                                         index     denotes thethethroughput
+                                                                                                                                   RTT fairness of
+                                  the i-thon
+                                  based    stream.   The parameter
+                                               the throughput         is defined
+                                                                  achieved        over
+                                                                             by the   10the
+                                                                                          msinterval
+                                                                                                 and 50 [0, ms1];streams.
+                                                                                                                   a value Acloser to 1closer
+                                                                                                                               value     indicates
+                                                                                                                                              to 1
+                                  better bandwidth fairness among the streams.
+Future Internet 2025, 17, 189                                                                                                                          16 of 23
+
+
+
+                                    5.3.1. Static Network Experiments
+                                           The static network experiments test the static competitive fairness of Ad-BBR in NS3
+    Future Internet 2025, 17, x FOR PEER REVIEW
+                                    simulation and 5G and Wi-Fi simulation network environments, respectively. 17 of 25
+                                           In the NS3 simulation experiments, bottleneck buffer sizes of 0.5 BDPs and 5 BDPs were
+                                    configured. Two streams with round-trip times (RTTs) of 10 ms and 50 ms were introduced
+                                       indicates that the
+                                    simultaneously       to throughput
+                                                            compete forofa the        two streams
+                                                                                 1 Gbps    bottleneck is more   balanced,The
+                                                                                                           bandwidth.         reflecting   a higher
+                                                                                                                                   throughput          level
+                                                                                                                                                   difference
+                                       of fairness under the control of the evaluated algorithm.
+                                    between the two streams was compared under the control of various congestion control
+                                             Figures 8 and 9 display the real-time throughput trends of each algorithm under dif-
+                                    algorithms over a duration of 100 s. Jain’s fairness index was employed to quantitatively
+                                       ferent buﬀer sizes, while Figures 10 and 11 present the corresponding average throughput
+                                    evaluate RTT fairness. Jain’s fairness index quantifies the RTT fairness based on the
+                                       and fairness index results. These figures clearly indicate that as the buﬀer size increases,
+                                    throughput achieved by the 10 ms and 50 ms streams. A value closer to 1 indicates that the
+                                       the total throughput of all algorithms also increases. For packet loss-based algorithms
+                                    throughput of the two streams is more balanced, reflecting a higher level of fairness under
+                                       such as CUBIC and Reno, the 10 ms stream achieves higher throughput than the 50 ms
+                                    the control of the evaluated algorithm.
+                                       stream; however, the throughput diﬀerence between the short and long streams does not
+                                           Figures 8 and
+                                       significantly        9 display
+                                                       increase    with the    real-time
+                                                                          larger   buﬀers. throughput
+                                                                                              Among the    trends    of each algorithms,
+                                                                                                               BBR-based       algorithm under BBRv1 different
+                                                                                                                                                          ex-
+                                    buffer
+                                       hibitssizes,   whileincrease
+                                               a dramatic    Figures in  10theand   11 presentofthe
+                                                                                 throughput         thecorresponding
+                                                                                                          50 ms stream asaverage the buﬀerthroughput
+                                                                                                                                              size grows,   and
+                                    fairness   index   results.  These    figures    clearly  indicate    that  as  the  buffer
+                                       while the throughput of the 10 ms stream declines, thereby widening the throughput gap      size increases,    the  total
+                                    throughput
+                                       and furtherofdeteriorating
+                                                       all algorithms      also increases.
+                                                                       fairness.               For for
+                                                                                    In contrast,    packet
+                                                                                                        BBRv3 loss-based
+                                                                                                                  and BBQ,   algorithms
+                                                                                                                                the fairnesssuch    as CUBIC
+                                                                                                                                                diﬀerence
+                                    andbetween the 10 ms and 50 ms streams is smaller; the 10 ms stream throughput underthe
+                                          Reno,   the  10  ms  stream    achieves      higher  throughput       than   the  50  ms   stream;   however,
+                                    throughput
+                                       BBRv3 is evendifference
+                                                         slightlybetween
+                                                                   higher the thanshort
+                                                                                     that and
+                                                                                          of thelong
+                                                                                                   50 streams
+                                                                                                       ms stream,does andnotthe
+                                                                                                                              significantly    increase
+                                                                                                                                  fairness index     diﬀer-with
+                                    larger
+                                       ences between BBRv3 and BBQ are minimal. Under a 5 BDP buﬀer, the fairness index ofthe
+                                             buffers.   Among     the  BBR-based        algorithms,     BBRv1     exhibits    a  dramatic    increase     in
+                                    throughput      of thehigher
+                                       BBQ is slightly      50 msthanstreamthatasofthe   buffer
+                                                                                     BBRv3.      size
+                                                                                               The      grows,algorithm
+                                                                                                    Ad-BBR       while the consistently
+                                                                                                                                throughput maintains
+                                                                                                                                                of the 10 ms
+                                       a narrow
+                                    stream         average
+                                              declines,      throughput
+                                                          thereby   widening  diﬀerence.    Althoughgap
+                                                                                   the throughput         its fairness   index
+                                                                                                               and further        may not be the
+                                                                                                                               deteriorating          high- In
+                                                                                                                                                  fairness.
+                                       est in every
+                                    contrast,           metric,
+                                                 for BBRv3    andoverall,
+                                                                    BBQ, the  the fairness
+                                                                                   throughput      diﬀerence
+                                                                                             difference           between
+                                                                                                            between      the 10thems 10and
+                                                                                                                                         ms 50andms50     ms
+                                                                                                                                                      streams
+                                    is streams
+                                        smaller;isthe
+                                                    much    smaller,
+                                                        10 ms   stream resulting     in more
+                                                                            throughput          stable
+                                                                                            under        transmission
+                                                                                                     BBRv3                 and a higher
+                                                                                                                is even slightly       higheroverall
+                                                                                                                                                than fair-
+                                                                                                                                                        that of
+                                    theness
+                                         50 index    in the and
+                                             ms stream,     staticthe
+                                                                    fairness
+                                                                       fairness tests.
+                                                                                   index differences between BBRv3 and BBQ are minimal.
+                                    UnderFigures
+                                              a 5 BDP8 buffer,
+                                                         and 9 show       that theindex
+                                                                  the fairness        real-time
+                                                                                            of BBQthroughput
+                                                                                                       is slightly ofhigher
+                                                                                                                      the BBRv1,than BBRv3,      and BBQThe
+                                                                                                                                       that of BBRv3.
+                                       algorithms     experiences    a  steep   drop    every   ten  seconds     due   to the
+                                    Ad-BBR algorithm consistently maintains a narrow average throughput difference. Although     periodic   triggering     of
+                                       the ProbeRTT      phase.  In  contrast,   the   Ad-BBR     algorithm     avoids   such
+                                    its fairness index may not be the highest in every metric, overall, the throughput differencesudden   drops    by   trig-
+                                       gering the ProbeRTT phase only when specific conditions are met. As a result, Ad-BBR
+                                    between     the 10 ms and 50 ms streams is much smaller, resulting in more stable transmission
+                                       achieves more stable and smoother transmission while also improving RTT fairness.
+                                    and a higher overall fairness index in the static fairness tests.
+
+
+
+
+                                       Figure8.8. Comparison
+                                    Figure                   ofreal-time
+                                                  Comparison of real-timethroughput
+                                                                           throughput
+                                                                                    forfor
+                                                                                        10 10
+                                                                                           ms ms
+                                                                                              RTTRTT  flows
+                                                                                                  flows  and and
+                                                                                                             50 ms50RTT
+                                                                                                                     ms flows
+                                                                                                                         RTT flows  with
+                                                                                                                              with 0.5
+                                    0.5BDP
+                                        BDP   buffer.
+                                           buﬀer.
+  Future Internet 2025, 17, x FOR PEER REVIEW                                                                                       18 of 25
+  Future Internet 2025, 17, x FOR PEER REVIEW                                                                                       18 of 25
+
+
+Future Internet
+    Future      2025,
+           Internet   17, 189
+                    2025, 17, x FOR PEER REVIEW                                                                                     18 of
+                                                                                                                                        1725
+                                                                                                                                           of 23
+
+
+
+
+                                     Figure 9. Comparison of real-time throughput for 10 ms RTT flows and 50 ms RTT flows with 5 BDP
+                                     Figure 9. Comparison of real-time throughput for 10 ms RTT flows and 50 ms RTT flows with 5 BDP
+                                     buﬀer.
+                                     buﬀer.
+                                    Figure 9. 9.Comparison
+                                      Figure     Comparisonof of
+                                                              real-time  throughput
+                                                                 real-time          for for
+                                                                            throughput  10 ms  RTTRTT
+                                                                                            10 ms  flows andand
+                                                                                                      flows  50 ms
+                                                                                                                50 RTT flows
+                                                                                                                   ms RTT    withwith
+                                                                                                                           flows  5 BDP  buffer.
+                                                                                                                                      5 BDP
+                                      buﬀer.
+
+
+
+
+                                     Figure 10. Average throughput and Jain’s fairness index for 10 ms RTT flows and 50 ms RTT flows
+                                    Figure   10.Average
+                                     Figure10.  Average throughput  and Jain’s
+                                                         throughput and  Jain’sfairness
+                                                                                fairnessindex
+                                                                                         indexfor
+                                                                                               for1010ms
+                                                                                                       msRTT
+                                                                                                          RTT  flows
+                                                                                                             flows   and
+                                                                                                                   and 5050
+                                                                                                                         msms RTT
+                                                                                                                            RTT    flows
+                                                                                                                                flows
+                                     with 0.5 BDP buﬀer.
+                                    with
+                                     with0.5
+                                          0.5BDP
+                                              BDPbuffer.
+                                                  buﬀer.
+                                      Figure 10. Average throughput and Jain’s fairness index for 10 ms RTT flows and 50 ms RTT flows
+                                      with 0.5 BDP buﬀer.
+
+
+
+
+                                    Figure 11. Average throughput and Jain’s fairness index for 10 ms RTT flows and 50 ms RTT flows
+                                    with 5 BDP buffer.
+
+                                         This portion of the static network experiment was repeated in 5G and Wi-Fi simulation
+                                    environments to evaluate the throughput ratio and fairness index of the 10 ms and 50 ms
+                                  nounced competitive unfairness in both 5G and Wi-Fi simulation environments, with the
+                                  throughput of 10 ms streams accounting for only one-third of the total throughput. In
+                                  contrast, the BBQ and BBRv3 algorithms demonstrated better fairness, with the 10 ms
+ Future Internet 2025, 17, 189    stream throughput approaching half of the overall throughput, while the Cubic and         18 Reno
+                                                                                                                               of 23
+                                  algorithms favored short streams, achieving a throughput ratio close to 0.6. Although
+                                  these trends vary slightly with increased buﬀer sizes, the overall competitive fairness re-
+                                   streams. The throughput ratio is defined as the proportion of the 10 ms stream’s throughput
+                                  mains largely unchanged. Under the Ad-BBR algorithm, the throughputs of 10 ms and 50
+                                   to the total throughput. Since only the 10 ms and 50 ms streams are present on the link,
+                                  ms streams are relatively balanced, and the fairness indices are significantly improved,
+                                   a throughput ratio close to 0.5 indicates that the two streams achieve nearly equal throughput,
+                                  resulting in an approximate 11% enhancement in competitive fairness compared to BBRv1
+                                   suggesting that their bandwidth acquisition capability is not significantly influenced by
+                                  and about 2% better than BBRv3, an improved version that focuses on RTT fairness.
+                                   their RTT differences. The experimental results are presented in Figures 12 and 13.
+
+
+
+
+Future Internet 2025, 17, x FOR PEER REVIEW                                                                                       20 of 25
+
+                                   Figure 12.
+                                  Figure      Throughput ratio
+                                          12. Throughput  ratioand
+                                                                andJain’s
+                                                                    Jain’sfairness index
+                                                                            fairness     with
+                                                                                     index    0.5/5
+                                                                                           with     BDP
+                                                                                                 0.5/5  buffer
+                                                                                                       BDP     in 5G
+                                                                                                           buﬀer   in network simulation.
+                                                                                                                      5G network  simula-
+                                  tion.
+
+
+
+
+                                   Figure 13.
+                                  Figure      Throughput ratio
+                                          13. Throughput  ratioand
+                                                                andJain’s fairness
+                                                                     Jain’s        index
+                                                                            fairness     with
+                                                                                      index   0.5/5
+                                                                                            with    BDPBDP
+                                                                                                  0.5/5 buffer in Wi-Fi
+                                                                                                            buﬀer       network
+                                                                                                                   in Wi-Fi     simulation.
+                                                                                                                            network   simu-
+                                  lation.
+                                         In the static network experiments, the BBRv1 algorithm exhibited the most pronounced
+                                   competitive unfairness in both 5G and Wi-Fi simulation environments, with the throughput
+                                  5.3.2. Dynamic Network Experiment
+                                   of 10 ms streams accounting for only one-third of the total throughput. In contrast, the BBQ
+                                        Using NS3, this experiment evaluates the dynamic RTT fairness of the Ad-BBR algo-
+                                  rithm. A 20 Mbps bottleneck link is established with an initial 50 ms flow at 0 s. At 30 s, a
+                                  10 ms flow is added, followed by a 100 ms flow at 60 s. The 50 ms and 10 ms flows are
+                                  withdrawn at 90 s and 120 s, respectively. The experiment monitors the change in Jain’s
+                                  fairness index over a 150 s period to assess dynamic RTT fairness, and the results are pre-
+Future Internet 2025, 17, 189                                                                                                     19 of 23
+
+
+
+                                    and BBRv3 algorithms demonstrated better fairness, with the 10 ms stream throughput
+                                    approaching half of the overall throughput, while the Cubic and Reno algorithms favored
+                                    short streams, achieving a throughput ratio close to 0.6. Although these trends vary slightly
+                                    with increased buffer sizes, the overall competitive fairness remains largely unchanged.
+                                    Under the Ad-BBR algorithm, the throughputs of 10 ms and 50 ms streams are relatively
+                                    balanced, and the fairness indices are significantly improved, resulting in an approximate
+                                    11% enhancement in competitive fairness compared to BBRv1 and about 2% better than
+                                    BBRv3, an improved version that focuses on RTT fairness.
+
+                                    5.3.2. Dynamic Network Experiment
+                                                Using NS3, this experiment evaluates the dynamic RTT fairness of the Ad-BBR algorithm.
+                                         A 20 Mbps bottleneck link is established with an initial 50 ms flow at 0 s. At 30 s, a 10 ms
+                                         flow is added, followed by a 100 ms flow at 60 s. The 50 ms and 10 ms flows are withdrawn
+                                         at 90 s and 120 s, respectively. The experiment monitors the change in Jain’s fairness index
+                                         over a 150 s period to assess dynamic RTT fairness, and the results are presented in Figure 14.
+                                         When only 50 ms streams exist in the link, no competition occurs, so the fairness index for
+                                         all algorithms remains at 1. At 30 s, when 10 ms streams are introduced, the bandwidth
+                                         allocation fluctuates and resource contention intensifies, causing the fairness indices of all
+                                         algorithms to drop steeply. In particular, the fairness indices of BBRv1 and BBQ decline
+                                         most significantly, while BBRv3 and Ad-BBR perform better. Notably, the fairness index of
+                                         Ad-BBR quickly recovers to a higher level, indicating that its adaptive sending rate adjustment
+                                         mechanism effectively mitigates the impact of the new streams. At 60 s, with the addition of
+                                         a 100 ms stream, the fairness indices of all algorithms begin to fluctuate dramatically. Due
+                                         to their distinct congestion control principles, the Cubic and Reno algorithms consistently
+                                         maintain higher fairness indices. Although Ad-BBR initially struggles to adapt to the drastic
+                                         changes, its fairness index remains relatively stable and quickly recovers after adjustment.
+                                         Overall, Ad-BBR performs well throughout the dynamic experiment, demonstrating more
+                        Future Internet 2025, 17, x FOR PEER REVIEW                                                                      21   of 25
+                                         stable dynamic RTT fairness than other BBR-based algorithms. This makes it a promising
+                                         solution for maintaining long-term link fairness.
+
+
+
+
+                                    Figure 14. Dynamic fairness
+                                                   Figure        variation.
+                                                           14. Dynamic  fairness variation.
+
+                                                      5.4. Retransmission
+                                                           To evaluate the impact of buﬀer size and the number of competing streams on the
+                                                      retransmission rate in multi-stream contention scenarios, this experiment configures 1, 2,
+  Future Internet 2025, 17, 189                                                                                                                      20 of 23
+
+
+
+                                       5.4. Retransmission
+                                                  To evaluate the impact of buffer size and the number of competing streams on the
+                                            retransmission rate in multi-stream contention scenarios, this experiment configures 1, 2, 4, 8,
+                                            and 16 streams with bottleneck buffers set to 0.1 BDPs and 1 BDP, respectively, and plots the
+                                            relationship between retransmission rate and the number of streams for each buffer size.
+                                                  Figure 15 shows that the retransmission rates of all six algorithms increase as the num-
+                                            ber of streams rises. Packet loss-based algorithms, such as Cubic and Reno, exhibit lower
+                                            retransmission rates than BBR-based algorithms. This is likely because with a buffer size of
+                                            0.1 BDPs, BBR-based algorithms aggressively multiply the sending rate during proactive
+                                            bandwidth probing, rapidly filling the buffer and causing quick queue buildup, which
+                                            leads to higher retransmission rates. When the buffer size increases from 0.1 BDPs to 1 BDP,
+Future Internet 2025, 17, x FOR PEER REVIEW                                                                              22 of 25
+                                            the retransmission rates decrease slightly, as the larger buffer makes the link more tolerant
+           Future Internet 2025, 17, x FOR PEER REVIEWtraffic. Notably, under multi-stream contention, Ad-BBR consistently 22
+                                            to bursty                                                                              of 25
+                                                                                                                                  maintains
+                                            a low and stable retransmission rate, achieving approximately a 13% improvement over
+                                            the original BBRv1 algorithm and about a 7% improvement over BBRv3.
+
+
+
+
+                                  Figure 15. Retransmission rate vs. flow counts with 0.1/1 BDP buﬀer.
+                                       Figure      Retransmission
+                                               15. 15.
+                                           Figure      Retransmissionrate
+                                                                       ratevs.
+                                                                            vs.flow
+                                                                                flow counts with0.1/1
+                                                                                     counts with 0.1/1BDP
+                                                                                                       BDP  buffer.
+                                                                                                          buﬀer.
+                                  5.5. Latency
+                                       5.5. Latency
+                                       This5.5.  Latency examines the relationship between link delay and the number of
+                                             experiment
+                                  competingThis     experiment
+                                                streams
+                                                  This    under the
+                                                        experiment   examines
+                                                                         Ad-BBR the
+                                                                        examines      the relationship
+                                                                                      algorithm              betweenlink
+                                                                                                    in a multi-stream
+                                                                                            relationship    between       link   delay
+                                                                                                                            contention
+                                                                                                                              delay  andand
+                                                                                                                                          thethe
+                                                                                                                                         scenario. number
+                                                                                                                                               number   of of
+                                       competing
+                                  The setupcompeting streams
+                                              involves   streams under
+                                                          1, 2, 4, 8,under
+                                                                       and  the
+                                                                              16 Ad-BBR
+                                                                               thestreams
+                                                                                    Ad-BBR   algorithm
+                                                                                             competing
+                                                                                                algorithm  in
+                                                                                                            fora amulti-stream
+                                                                                                              in  a 100           contention
+                                                                                                                        Mbps bottleneck
+                                                                                                                     multi-stream               scenario.
+                                                                                                                                            band-
+                                                                                                                                    contention   scenario. The
+                                  width  with
+                                       setup    asetup
+                                                  1 BDPinvolves
+                                           Theinvolves    bottleneck     buﬀer.
+                                                            1, 2, 4,1,8,2,and       The
+                                                                            4, 8,16and   link
+                                                                                    streams
+                                                                                        16     delay  is
+                                                                                                competing
+                                                                                            streams       observed
+                                                                                                       competing       and
+                                                                                                                for afor  a plotted
+                                                                                                                        100  Mbps
+                                                                                                                            100     as abottleneck
+                                                                                                                                         functionbandwidth
+                                                                                                                                    bottleneck
+                                                                                                                                 Mbps               band-
+                                  of the number
+                                       withwidth
+                                             a 1 BDPof streams,
+                                                   with   a 1 BDPwith
+                                                         bottleneck        the results
+                                                                    bottleneck
+                                                                         buffer.    The  presented
+                                                                                    buﬀer.   The
+                                                                                          link     linkindelay
+                                                                                                delay    isFigure    16. and plotted
+                                                                                                                 is observed
+                                                                                                            observed           and plotted
+                                                                                                                                        as aasfunction
+                                                                                                                                                a function
+                                                                                                                                                        of the
+                                           of the  number     of streams,     with   the  results
+                                       number of streams, with the results presented in Figure 16. presented      in Figure  16.
+
+
+
+
+                                       Figure 16. Link delay vs. flow count under (100 Mbps, 1 BDP) conditions.
+                                  Figure 16. Link delay vs. flow count under (100 Mbps, 1 BDP) conditions.
+                                          Figure 16. Link delay vs. flow count under (100 Mbps, 1 BDP) conditions.
+                                       When there is only one flow in the link, all six algorithms exhibit relatively low la-
+                                  tency. As theWhen  there
+                                                 number  of isflows
+                                                                only increases,
+                                                                      one flow in
+                                                                                thethe link, all
+                                                                                     latency     six for
+                                                                                              rises  algorithms   exhibit However,
+                                                                                                         all algorithms.  relatively low la-
+                                          tency. As the number     of  flows increases,  the latency   rises for all algorithms.
+                                  packet loss-based algorithms like Cubic and Reno experience a sharper and more signifi-         However,
+Future Internet 2025, 17, 189                                                                                              21 of 23
+
+
+
+                                     When there is only one flow in the link, all six algorithms exhibit relatively low latency.
+                                As the number of flows increases, the latency rises for all algorithms. However, packet
+                                loss-based algorithms like Cubic and Reno experience a sharper and more significant
+                                latency increase compared to BBR-related algorithms. This is because Cubic and Reno
+                                attempt to achieve higher throughput with limited buffer space, leading to faster queue
+                                buildup and increased queuing delays. BBRv1 exhibits more drastic delay variations than
+                                improved BBR algorithms due to its data over-injection problem and the dominance of
+                                long RTT flows. Among them, the BBQ algorithm achieves better queue delay reduction
+                                through its joint bandwidth- and queue-awareness mechanism, making its queue delay
+                                more stable and lower than BBRv3 in this experiment. Compared to other algorithms,
+                                Ad-BBR demonstrates more stable and minimal delay variations. Its delay increase with
+                                the growing number of streams is the smallest, and it maintains the lowest latency for
+                                a given number of streams. This performance represents a ~20% improvement over BBRv1
+                                and represents a ~17% improvement over BBRv3, highlighting the importance of reducing
+                                data over-injection and enhancing RTT fairness in minimizing queue delays.
+
+                                6. Conclusions
+                                      In this paper, we propose the Ad-BBR algorithm to address the issues of data over-
+                                injection, unfairness between long and short RTT streams, and transmission instability
+                                caused by the periodic ProbeRTT phase observed in the BBR algorithm within multi-stream
+                                concurrent scenarios in high-speed wireless networks.
+                                      The Ad-BBR algorithm determines the value of nRTT by tracking the size relationship
+                                between the current RTT and the previous minimum RTT in real time to determine the
+                                current link state, and based on the nRTT and the real-time link state, it distinguishes
+                                the transmission rate adjustment rules corresponding to different link states with finer
+                                granularity so as to reduce the phenomenon of over-injection of data and improve the
+                                fairness of the RTT in the multi-stream competition scenario. In addition, the new ProbeRTT
+                                phase-triggering mechanism determines whether to enter the phase based on the link state,
+                                which reduces the frequency of meaningless ProbeRTT phases and greatly improves the
+                                transmission stability.
+                                      The experimental results indicate that compared with BBRv1, Ad-BBR demonstrates
+                                more stable and smoother data transmission in multi-stream competition scenarios. Specif-
+                                ically, its throughput increases by 17%, RTT fairness improves by approximately 30%,
+                                the retransmission rate decreases by 13%, and latency is reduced by about 20%. Overall,
+                                Ad-BBR outperforms several comparative algorithms across all key performance metrics.
+                                      Future work may explore extracting state-space parameters from real network envi-
+                                ronments to train reinforcement learning models. By leveraging reinforcement learning,
+                                the agent can dynamically determine key parameters that affect BBR performance—such
+                                as the congestion window, sending rate, exploration interval, and ProbeRTT phase trigger
+                                conditions—thus enabling more adaptive and efficient congestion control. Furthermore,
+                                after completing simulation experiments, real network tests will be conducted to evalu-
+                                ate the reasonableness of the algorithm’s complexity and to verify the consistency of the
+                                performance improvements.
+
+                                Author Contributions: Conceptualization, M.W., X.Z. and M.G.; methodology, M.W., X.Z. and
+                                M.G.; software, X.Z. and M.G.; validation, X.Z. and M.G.; writing—original draft preparation, X.Z.;
+                                writing—review and editing, M.W., X.Z. and M.G.; visualization, M.W., X.Z. and M.G.; supervision,
+                                M.W., X.Z. and M.G.; project administration, M.W., X.Z., F.J. and M.G. All authors have read and
+                                agreed to the published version of the manuscript.
+Future Internet 2025, 17, 189                                                                                                       22 of 23
+
+
+
+                                   Funding: This study was funded by the Information and Communication Business Cost Project of
+                                   JSCMC, Grant/Award Number SXJD-XXTXF-202303, and the Scientific Research Plan of JSLLKYJH,
+                                   Grant/Award Number 23-JSLLKY011.
+
+                                   Data Availability Statement: The raw data supporting the conclusions of this article will be made
+                                   available by the authors on request.
+
+                                   Conflicts of Interest: The authors declare no conflicts of interest.
+
+References
+1.    Yang, Y.R.; Lam, S.S. General AIMD congestion control. In Proceedings of the 2000 International Conference on Network Protocols,
+      Osaka, Japan, 14–17 November 2000; IEEE: Piscataway, NJ, USA, 2000; pp. 187–198.
+2.    Kesselman, A.; Mansour, Y. Adaptive AIMD congestion control. In Proceedings of the of the Twenty-Second Annual Symposium
+      on Principles of Distributed Computing, Boston, MA, USA, 13–16 July 2003; pp. 352–359.
+3.    Cardwell, N.; Cheng, Y.; Gunn, C.S.; Yeganeh, S.H.; Jacobson, V. Bbr: Congestion-based congestion control: Measuring bottleneck
+      bandwidth and round-trip propagation time. Queue 2016, 14, 20–53. [CrossRef]
+4.    Lim, H.; Lee, J.; Lee, J.; Sathyanarayana, S.D.; Kim, J.; Nguyen, A.; Kim, K.T.; Im, Y.; Chiang, M.; Grunwald, D.; et al. An empirical
+      study of 5G: Effect of edge on transport protocol and application performance. IEEE Trans. Mob. Comput. 2023, 23, 3172–3186.
+      [CrossRef]
+5.    Chaccour, C.; Soorki, M.N.; Saad, W.; Bennis, M.; Popovski, P.; Debbah, M. Seven defining features of terahertz (THz) wireless
+      systems: A fellowship of communication and sensing. IEEE Commun. Surv. Tutor. 2022, 24, 967–993. [CrossRef]
+6.    Zheng, S.; Liu, J.; Yan, X.; Xing, Z.; Di, X.; Qi, H. BBR-R: Improving BBR performance in multi-flow competition scenarios.
+      Comput. Netw. 2024, 254, 110816. [CrossRef]
+7.    Hock, M.; Bless, R.; Zitterbart, M. Experimental evaluation of BBR congestion control. In Proceedings of the 2017 IEEE 25th
+      International Conference on Network Protocols (ICNP), Toronto, ON, Canada, 10–13 October 2017; IEEE: Piscataway, NJ, USA,
+      2017; pp. 1–10.
+8.    Ware, R.; Mukerjee, M.K.; Seshan, S.; Sherry, J. Modeling BBR’s interactions with loss-based congestion control. In Proceedings of
+      the Internet Measurement Conference, Amsterdam The Netherlands, 21–23 October 2019; pp. 137–143.
+9.    Jain, R.K.; Chiu, D.M.W.; Hawe, W.R. Congestion Control for Low-Latency Interactive Video Streaming. U.S. Patent Application
+      17/712,476, 5 October 2023.
+10.   Drucker, R.; Baraskar, G.; Balasubramanian, A.; Gandhi, A. Bbr vs. bbrv2: A performance evaluation. In Proceedings of the
+      2024 16th International Conference on Communication Systems & NETworkS (COMSNETS), Bengaluru, India, 3–7 January 2024;
+      IEEE: Piscataway, NJ, USA, 2024; pp. 379–387.
+11.   Zeynali, D.; Weyulu, E.N.; Fathalli, S.; Chandrasekaran, B.; Feldmann, A. BBRv3: Algorithm bug fixes and public internet
+      deployment. In Proceedings of the IETF Meeting, Vancouver, BC, Canada, 23 July 2023; pp. 1–36.
+12.   Ma, S.; Jiang, J.; Wang, W.; Li, B. Fairness of congestion-based congestion control: Experimental evaluation and analysis. arXiv
+      2017, arXiv:1706.09115.
+13.   Yang, M.; Yang, P.; Wen, C.; Liu, Q.; Luo, J.; Yu, L. Adaptive-BBR: Fine-grained congestion control with improved fairness and low
+      latency. In Proceedings of the 2019 IEEE Wireless Communications and Networking Conference (WCNC), Marrakech, Morocco,
+      15–18 April 2019; IEEE: Piscataway, NJ, USA, 2019; pp. 1–6.
+14.   Scherrer, S.; Legner, M.; Perrig, A.; Schmid, S. Model-based insights on the performance, fairness, and stability of BBR.
+      In Proceedings of the 22nd ACM Internet Measurement Conference, Nice, France, 25–27 October 2022; pp. 519–537.
+15.   Xu, J.; Pan, W.; Tan, H.; Cheng, L.; Li, X.; Li, X. A Modified TCP BBR to Enable High Fairness in High-Speed Wireless Networks.
+      Future Internet 2024, 16, 392. [CrossRef]
+16.   Jaeger, B.; Scholz, D.; Raumer, D.; Geyer, F.; Carle, G. Reproducible measurements of TCP BBR congestion control.
+      Comput. Commun. 2019, 144, 31–43. [CrossRef]
+17.   Kim, G.H.; Mahmud, I.; Cho, Y.Z. Fairness improvement of BBR congestion control algorithm for different RTT flows.
+      In Proceedings of the 2019 International Conference on Electronics, Information, and Communication (ICEIC), Auckland,
+      New Zealand, 22–25 January 2025; IEEE: Piscataway, NJ, USA, 2019; pp. 1–2.
+18.   Mahmud, I.; Kim, G.H.; Lubna, T.; Cho, Y.Z. BBR-ACD: BBR with advanced congestion detection. Electronics 2020, 9, 136.
+      [CrossRef]
+19.   Kim, G.H.; Cho, Y.Z. Delay-aware BBR congestion control algorithm for RTT fairness improvement. IEEE Access 2019, 8, 4099–4109.
+      [CrossRef]
+20.   Pan, W.; Tan, H.; Li, X.; Li, X. Improved RTT fairness of BBR congestion control algorithm based on adaptive congestion window.
+      Electronics 2021, 10, 615. [CrossRef]
+Future Internet 2025, 17, 189                                                                                                      23 of 23
+
+
+
+21.   Njogu, C.K.; Yang, W.; Njogu, H.W.; Bosire, A. BBR-With Enhanced Fairness (BBR-EFRA): A new enhanced RTT fairness for BBR
+      congestion control algorithm. Comput. Commun. 2023, 200, 95–103. [CrossRef]
+22.   Xie, Y.; Jiang, X.; Gong, G.; Jiang, Z.; Jin, G.; Chen, H. Yinker: A flexible BBR to achieve the high-throughput and low-latency data
+      transmission over Wi-Fi and 5G networks. Comput. Netw. 2023, 222, 109530. [CrossRef]
+23.   Deng, Z.; Liu, Y.; Liu, J.; Argyriou, A.; Liu, D. BBR-based and fairness-guaranteed congestion control and packet scheduling for
+      MPQUIC over heterogeneous networks. Comput. Commun. 2024, 224, 213–224. [CrossRef]
+24.   Tong, V.; Souihi, S.; Tran, H.A.; Mellouk, A. Troubleshooting solution for traffic congestion control. J. Netw. Comput. Appl. 2024,
+      229, 103923. [CrossRef]
+25.   Han, Z.; Hasegawa, G. Overcoming Fairness and Latency Challenges in BBR with an Adaptive Delay Detection. IEEE Access 2025,
+      13, 37318–37327. [CrossRef]
+26.   Kihungi Njogu, C.; Yang, W.; Waita Njogu, H.; Bosire, A. BBR-with enhanced bandwidth estimation (BBR-EBE+): An improved
+      BBR congestion control algorithm based on TCP acknowledgment compression and aggregation. Telecommun. Syst. 2025, 88, 1–13.
+      [CrossRef]
+27.   Neal Cardwell, Y.C.; Yang, K.; Pj, S.H.Y.; Seung, Y.; Hsiao, L.; Mathis, M.; Jacobson, V. BBRv2: A model-based congestion control.
+      In Proceedings of the IETF Meeting, Online, 8 November 2021.
+28.   Kfoury, E.F.; Gomez, J.; Crichigno, J.; Bou-Harb, E. An emulation-based evaluation of TCP BBRv2 alpha for wired broadband.
+      Comput. Commun. 2020, 161, 212–224. [CrossRef]
+29.   Nandagiri, A.; Tahiliani, M.P.; Misra, V.; Ramakrishnan, K.K. BBRvl vs BBRv2: Examining performance differences through
+      experimental evaluation. In Proceedings of the 2020 IEEE International Symposium on Local and Metropolitan Area Networks
+      LANMAN, Orlando, FL, USA, 13–15 July 2020; IEEE: Piscataway, NJ, USA, 2020; pp. 1–6.
+30.   Zeynali, D.; Weyulu, E.N.; Fathalli, S.; Chandrasekaran, B.; Feldmann, A. Promises and Potential of BBRv3. In International
+      Conference on Passive and Active Network Measurement; Springer Nature: Cham, Switzerland, 2024; pp. 249–272.
+31.   Mascolo, S.; Casetti, C.; Gerla, M.; Sanadidi, M.Y.; Wang, R. TCP Westwood: Bandwidth estimation for enhanced transport over
+      wireless links. In Proceedings of the 7th Annual International Conference on Mobile Computing and Networking, Rome, Italy,
+      16–21 July 2001; pp. 287–297.
+32.   Kleinrock, L. Power and deterministic rules of thumb for probabilistic problems in computer communications. In Proceedings of
+      the ICC 1979 International Conference on Communications, Boston, MA, USA, 10–14 June 1979; Volume 3, pp. 43.1.1–43.1.10.
+33.   Jain, R.K.; Chiu, D.M.W.; Hawe, W.R. A Quantitative Measure of Fairness and Discrimination; Eastern Research Laboratory, Digital
+      Equipment Corporation: Hudson, MA, USA, 1984; Volume 21.
+
+
+Disclaimer/Publisher’s Note: The statements, opinions and data contained in all publications are solely those of the individual
+author(s) and contributor(s) and not of MDPI and/or the editor(s). MDPI and/or the editor(s) disclaim responsibility for any injury to
+people or property resulting from any ideas, methods, instructions or products referred to in the content.
+

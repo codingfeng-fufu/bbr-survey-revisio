@@ -1,0 +1,1951 @@
+                                                     ABC: A Simple Explicit Congestion Controller for Wireless Networks
+                                                 Prateesh Goyal1 , Anup Agarwal2 *, Ravi Netravali3†, Mohammad Alizadeh1 , Hari Balakrishnan1
+                                                                               1 MIT CSAIL, 2 CMU, 3 UCLA
+
+
+                                                                      Abstract                                    it by one on a brake (does not send any packet). This simple
+                                         We propose Accel-Brake Control (ABC), a simple and deploy-               mechanism allows the router to signal a large dynamic range
+                                         able explicit congestion control protocol for network paths              of window size changes within one RTT: from throttling the
+                                         with time-varying wireless links. ABC routers mark each                  window to 0, to doubling the window.
+                                         packet with an “accelerate” or “brake”, which causes senders                Central to ABC’s performance is a novel control algorithm
+                                         to slightly increase or decrease their congestion windows.               that helps routers provide very accurate feedback on
+arXiv:1905.03429v4 [cs.NI] 18 Mar 2021
+
+
+
+
+                                         Routers use this feedback to quickly guide senders towards               time-varying links. Existing explicit schemes like XCP
+                                         a desired target rate. ABC requires no changes to header                 and RCP calculate their feedback by comparing the current
+                                         formats or user devices, but achieves better performance                 enqueue rate of packets to the link capacity. An ABC router,
+                                         than XCP. ABC is also incrementally deployable; it operates              however, compares the dequeue rate of packets from its
+                                         correctly when the bottleneck is a non-ABC router, and can               queue to the link capacity to mark accelerates or brakes. This
+                                         coexist with non-ABC traffic sharing the same bottleneck                 change is rooted in the observation that, for an ACK-clocked
+                                         link. We evaluate ABC using a Wi-Fi implementation and                   protocol like ABC, the current dequeue rate of packets at the
+                                         trace-driven emulation of cellular links. ABC achieves                   router provides an accurate prediction of the future incoming
+                                         30-40% higher throughput than Cubic+Codel for similar                    rate of packets, one RTT in advance. In particular, if the
+                                         delays, and 2.2× lower delays than BBR on a Wi-Fi path. On               senders maintain the same window sizes in the next RTT,
+                                         cellular network paths, ABC achieves 50% higher throughput               they will send one packet for each ACK, and the incoming
+                                         than Cubic+Codel.                                                        rate in one RTT will be equal to the current dequeue rate.
+                                                                                                                  Therefore, rather than looking at the current enqueue rate,
+                                         1    Introduction                                                        the router should signal changes based on the anticipated
+                                         This paper proposes a new explicit congestion control pro-               enqueue rate in one RTT to better match the link capacity.
+                                         tocol for network paths with wireless links. Congestion                  The impact of this subtle change is particularly significant
+                                         control on such paths is challenging because of the rapid                on wireless links, since the enqueue and dequeue rates can
+                                         time variations of the link capacity. Explicit control proto-            differ significantly when the link capacity varies.
+                                         cols like XCP [29] and RCP [44] can in theory provide                       ABC also overcomes the deployability challenges of
+                                         superior performance on such paths compared to end-to-                   prior explicit schemes, since it can be implemented on top
+                                         end [10, 13, 14, 16, 23, 24, 47, 51] or active queue management          of the existing explicit congestion notification (ECN) [42]
+                                         (AQM) [37,38] approaches (§2). Unlike these approaches, ex-              infrastructure. We present techniques that enable ABC to
+                                         plicit control protocols enable the wireless router to directly          co-exist with non-ABC routers, and to share bandwidth fairly
+                                         specify a target rate for the sender, signaling both rate de-            with legacy flows traversing a bottleneck ABC router (§4).
+                                         creases and rate increases based on the real-time link capacity.            We have implemented ABC on a commodity Wi-Fi router
+                                            However, current explicit control protocols have two limita-          running OpenWrt [18]. Our implementation (§5.1) reveals an
+                                         tions, one conceptual and the other practical. First, existing ex-       important challenge for implementing explicit protocols on
+                                         plicit protocols were designed for fixed-capacity links; we find         wireless links: how to determine the link rate for a user at a
+                                         that their control algorithms are sub-optimal on time-varying            given time? The task is complicated by the intricacies of the
+                                         wireless links. Second, they require major changes to packet             Wi-Fi MAC’s batch scheduling and block acknowledgements.
+                                         headers, routers, and endpoints to deploy on the Internet.               We develop a method to estimate the Wi-Fi link rate and
+                                            Our contribution is a simple and deployable protocol,                 demonstrate its accuracy experimentally. For cellular links,
+                                         called Accel-Brake Control (ABC), that overcomes these                   the 3GPP standard [1] shows how to estimate the link rate;
+                                         limitations, building on concepts from a prior position                  our evaluation uses emulation with cellular packet traces.
+                                         paper [22]. In ABC (§3), a wireless router marks each packet                We have experimented with ABC in several wireless
+                                         with one bit of feedback corresponding to either accelerate or           network settings. Our results are:
+                                         brake based on a measured estimate of the current link rate.             1. In Wi-Fi, compared to Cubic+Codel, Vegas, and Copa,
+                                         Upon receiving this feedback via an ACK from the receiver,                   ABC achieves 30-40% higher throughput with similar
+                                         the sender increases its window by one on an accelerate                      delays. Cubic, PCC Vivace-latency and BBR incur
+                                         (sends two packets in response to the ACK), and decreases                    70%–6× higher 95th percentile packet delay with similar
+                                             * Work done largely while a visiting student at MIT CSAIL.               throughput.
+                                             † Work done largely while a PhD student at MIT CSAIL.                2. The results in emulation over 8 cellular traces are
+
+
+                                                                                                              1
+           Scheme        Norm. Utilization       Norm. Delay (95%)                    underutilize the link capacity (e.g., see Fig. 7). Sprout [47] and
+        ABC                   1 (78%)                  1 (242ms)                      Verus [51] are two other recent end-to-end protocols designed
+        XCP                     0.97                      2.04                        specifically for cellular networks. They also have difficulty
+     Cubic+Codel                0.67                      0.84                        tracking the link rate accurately; depending on parameter
+        Copa                    0.66                      0.85                        settings, they can be too aggressive (causing large queues)
+        Cubic                   1.18                      4.78                        or too conservative (hurting utilization). For example, Fig. 1b
+     PCC-Vivace                 1.12                      4.93                        shows how Verus performs on the same LTE trace as above.
+        BBR                     0.96                      2.83                           The fundamental challenge for any end-to-end scheme is
+       Sprout                   0.55                      1.08
+                                                                                      that to estimate the link capacity, it must utilize the link fully
+        Verus                   0.72                      2.01
+                                                                                      and build up a queue. When the queue is empty, signals such
+   summarized below. Despite relying on single-bit feedback,                          as the RTT and send/receive rate do not provide information
+   ABC achieves 2× lower 95th percentile packet delay                                 about the available capacity. Therefore, in such periods, all
+   compared to XCP.                                                                   end-to-end schemes must resort to some form of “blind” rate
+3. ABC bottlenecks can coexist with both ABC and non-                                 increase. But for networks with a large dynamic range of
+   ABC bottlenecks. ABC flows achieve high utilization and                            rates, it is very difficult to tune this rate increase correctly: if it
+   low queuing delays if the bottleneck router is ABC, while                          is slow, throughput suffers, but making it too fast causes over-
+   switching to Cubic when the bottleneck is a non-ABC                                shoots and large queuing delays.2 For schemes that attempt to
+   router.                                                                            limit queue buildup, periods in which queues go empty (and
+4. ABC competes fairly with both ABC and non-ABC flows.                               a blind rate increase is necessary) are common; they occur,
+   In scenarios with both ABC and non-ABC flows, the                                  for example, following a sharp increase in link capacity.
+   difference in average throughput of ABC and non-ABC                                AQM schemes do not signal increases: AQM schemes like
+   flows is under 5%.                                                                 RED [19], PIE [38] and CoDel [2] can be used to signal
+2     Motivation                                                                      congestion (via ECN or drops) before the buffer fills up at the
+Link rates in wireless networks can vary rapidly with time;                           bottleneck link, reducing delays. However, AQM schemes
+for example, within one second, a wireless link’s rate can                            do not signal rate increases. When capacity increases, the
+both double and halve [47].1 These variations make it difficult                       sender must again resort to a blind rate increase. Fig. 1c
+for transport protocols to achieve both high throughput and                           shows how CoDel performs when the sender is using Cubic.
+low delay. Here, we motivate the need for explicit congestion                         Cubic+CoDel reduces delays by 1 to 2 orders of magnitude
+control protocols that provide feedback to senders on both                            compared to Cubic alone but leaves the link underutilized
+rate increases and decreases based on direct knowledge of                             when capacity increases.
+the wireless link rate. We discuss why these protocols can                               Thus, we conclude that, both end-to-end and AQM-based
+track wireless link rates more accurately than end-to-end                             schemes will find it difficult to track time-varying wireless
+and AQM-based schemes. Finally, we discuss deployment                                 link rates accurately. Explicit control schemes, such as
+challenges for explicit control protocols, and our design goals                       XCP [29] and RCP [44] provide a compelling alternative. The
+for a deployable explicit protocol for wireless links.                                router provides multiple bits of feedback per packet to senders
+                                                                                      based on direct knowledge of the wireless link capacity. By
+Limitations of end-to-end congestion control: Traditional                             telling senders precisely how to increase or decrease their
+end-to-end congestion control schemes like Cubic [23] and                             rates, explicit schemes can quickly adapt to time-varying
+NewReno [24] rely on packet drops to infer congestion and ad-                         links, in principle, within an RTT of link capacity changes.
+just their rates. Such schemes tend to fill up the buffer, causing
+                                                                                      Deployment challenges for explicit congestion control:
+large queuing delays, especially in cellular networks that use
+                                                                                      Schemes like XCP and RCP require major changes to packet
+deep buffers to avoid packet loss [47]. Fig. 1a shows perfor-
+                                                                                      headers, routers, and endpoints. Although the changes are
+mance of Cubic on an LTE link, emulated using a LTE trace
+                                                                                      technically feasible, in practice, they create significant
+with Mahimahi [36]. The network round-trip time is 100 ms
+                                                                                      deployment challenges. For instance, these protocols require
+and the buffer size is set to 250 packets. Cubic causes signifi-
+                                                                                      new packet fields to carry multi-bit feedback information. IP
+cant queuing delay, particularly when the link capacity drops.
+                                                                                      or TCP options could in principle be used for these fields. But
+   Recent proposals such as BBR [14], PCC-Vivace [16] and
+                                                                                      many wide-area routers drop packets with IP options [20], and
+Copa [10] use RTT and send/receive rate measurements to es-
+                                                                                      using TCP options creates problems due to middleboxes [25]
+timate the available link rate more accurately. Although these
+                                                                                      and IPSec encryption [30]. Another important challenge
+schemes are an improvement over loss-based schemes, their
+                                                                                      is co-existence with legacy routers and legacy transport
+performance is far from optimal on highly-variable links. Our
+experiments show that they either cause excessive queuing or                              2 BBR attempts to mitigate this problem by periodically increasing its rate
+
+                                                                                      in short pulses, but our experiments show that BBR frequently overshoots
+    1 Wedefine the link rate for a user as the rate that user can achieve if it       the link capacity with variable-bandwidth links, causing excessive queuing
+keeps the bottleneck router backlogged (see §5).                                      (see Appendix A).
+
+
+                                                                                  2
+                         15                                                                    15                                                                    15         Underutilization                                            15
+ Delay (ms) Throughput
+
+
+
+
+                                                                       Delay (ms) Throughput
+
+
+
+
+                                                                                                                                             Delay (ms) Throughput
+
+
+
+
+                                                                                                                                                                                                                    Delay (ms) Throughput
+                                                                                                                                                                                                                                            10
+              (Mbps)
+
+
+
+
+                                                                                    (Mbps)
+
+
+
+
+                                                                                                                                                          (Mbps)
+                         10                                                                    10                                                                    10
+
+
+
+
+                                                                                                                                                                                                                                 (Mbps)
+                          5                                                                     5                                                                     5                                                                      5
+                          0                                                                     0                                                                     0                                                                      0
+                1500                  Bufferbloat                                     1500                                                                  1500                                                                   1500
+
+
+
+
+                                                                                                                                                                                                                     Queuing
+  Queuing
+
+
+
+
+                                                                        Queuing
+
+
+
+
+                                                                                                                                              Queuing
+                1000                                                                  1000                                                                  1000                                                                   1000
+                 500                                                                   500                                                                   500                                                                    500
+                   0                                                                     0                                                                     0                                                                      0
+                              0   5     10     15       20   25   30                                0   5     10     15       20   25   30                                0     5    10     15       20   25   30                                0   5    10     15       20   25   30
+                                             Time (s)                                                              Time (s)                                                               Time (s)                                                             Time (s)
+                                      (a) Cubic                                                             (b) Verus                                                         (c) Cubic+CoDel                                                            (d) ABC
+Figure 1: Performance on a emulated cellular trace — The dashed blue in the top graph represents link capacity, the solid orange line
+represents the achieved throughput. Cubic has high utilization but has very high delays (up to 1500 milliseconds). Verus has large rate variations
+and incurs high delays. Cubic+CoDel reduces queuing delays significantly, but leaves the link underutilized when capacity increases. ABC
+achieves close to 100% utilization while maintaining low queuing delays (similar to that of Cubic+CoDel).
+protocols. To be deployable, an explicit protocol must handle                                                                                             congestion than rate-based schemes [11]. On a wireless link,
+scenarios where the bottleneck is at a legacy router, or when it                                                                                          when the capacity drops and the sender stops receiving ACKs,
+shares the link with standard end-to-end protocols like Cubic.                                                                                            ABC will stop sending packets immediately, avoiding further
+                                                                                                                                                          queue buildup. In contrast, a rate-based protocol would take
+Design goals: In designing ABC, we targeted the following
+                                                                                                                                                          time to reduce its rate and may queue up a large number of
+properties:
+                                                                                                                                                          packets at the bottleneck link in the meantime.
+1. Control algorithm for fast-varying wireless links: Prior ex-
+                                                                                                                                                             ABC senders adjust their window size based on explicit
+    plicit control algorithms like XCP and RCP were designed
+                                                                                                                                                          feedback from ABC routers. An ABC router uses its current
+    for fixed-capacity links. We design ABC’s control algo-
+                                                                                                                                                          estimate of the link rate and the queuing delay to compute
+    rithm specifically to handle the rapid bandwidth variations
+                                                                                                                                                          a target rate. The router then sets one bit of feedback in each
+    and packet transmission behavior of wireless links (e.g.,
+                                                                                                                                                          packet to guide the senders towards the target rate. Each bit
+    frame batching at the MAC layer).
+                                                                                                                                                          is echoed to a sender by a receiver in an ACK, and it signals
+2. No modifications to packet headers: ABC repurposes the
+                                                                                                                                                          either a one-packet increase (“accelerate”) or a one-packet
+    existing ECN [42] bits to signal both increases and de-
+                                                                                                                                                          decrease (“brake”) to the sender’s congestion window.
+    creases to the sender’s congestion window. By spreading
+    feedback over a sequence of 1-bit signals per packet, ABC                                                                                             3.1                   The ABC Protocol
+    routers precisely control sender congestion windows over                                                                                             We now present ABC’s design starting with the case where
+    a large dynamic range.                                                                                                                               all routers are ABC-capable and all flows use ABC. We later
+3. Coexistence with legacy bottleneck routers: ABC is robust                                                                                             discuss how to extend the design to handle non-ABC routers
+    to scenarios where the bottleneck link is not the wireless                                                                                           and scenarios with competing non-ABC flows.
+    link but a non-ABC link elsewhere on the path. Whenever
+    a non-ABC router becomes the bottleneck, ABC senders                                                                                                  3.1.1                 ABC Sender
+    ignore window increase feedback from the wireless link,                                                                                               On receiving an “accelerate” ACK, an ABC sender increases
+    and ensure that they send no faster than their fair share of                                                                                          its congestion window by 1 packet. This increase results
+    the bottleneck link.                                                                                                                                  in two packets being sent, one in response to the ACK and
+4. Coexistence with legacy transport protocols: ABC routers                                                                                               one due to the window increase. On receiving a “brake,” the
+    ensure that ABC and non-ABC flows share a wireless bot-                                                                                               sender reduces its congestion window by 1 packet, preventing
+    tleneck link fairly. To this end, ABC routers separate ABC                                                                                            the sender from transmitting a new packet in response to
+    and non-ABC flows into two queues, and use a simple                                                                                                   the received ACK. As we discuss in §4.3, the sender also
+    algorithm to schedule packets from these queues. ABC                                                                                                  performs an additive increase of 1 packet per RTT to achieve
+    makes no assumptions about the congestion control algo-                                                                                               fairness. For ease of exposition, let us ignore this additive
+    rithm of non-ABC flows, is robust to the presence of short                                                                                            increase for now.
+    or application-limited flows, and requires a small amount                                                                                                Though each bit of feedback translates to only a small
+    of state at the router.                                                                                                                               change in the congestion window, when aggregated over
+   Fig. 1d shows ABC on the same emulated LTE link. Using                                                                                                 an RTT, the feedback can express a large dynamic range of
+only one bit of feedback per packet, the ABC flow is able                                                                                                 window size adjustments. For example, suppose a sender’s
+to track the variations in bottleneck link closely, achieving                                                                                             window size is w, and the router marks accelerates on a
+both high throughput and low queuing delay.                                                                                                               fraction f of packets in that window. Over the next RTT,
+                                                                                                                                                          the sender will receive w· f accelerates and w−w· f brakes.
+3              Design                                                                                                                                     Then, the sender’s window size one RTT later will be
+ABC is a window-based protocol: the sender limits the                                                                                                     w+w f −(w−w f ) = 2w f packets. Thus, in one RTT, an ABC
+number of packets in flight to the current congestion window.                                                                                             router can vary the sender’s window size between zero ( f =
+Window-based protocols react faster to the sudden onset of                                                                                                0) and double its current value ( f = 1). The set of achievable
+
+
+                                                                                                                                             3
+                    15                                                               15
+                                                                                                                                      rate at which the router transmits packets — is cr(t). If the
+ Delay (ms) Throughput
+
+
+
+
+                                                                  Delay (ms) Throughput
+              (Mbps)
+
+
+
+
+                                                                               (Mbps)
+                    10                                                               10
+                     5                                                                5                                               accelerate fraction is f (t), for each packet that is ACKed, the
+                     0                                                                0
+                   200                                                              200                                               sender transmits 2 f (t) packets on average. Therefore, after
+                   150                                                              150
+  Queuing
+
+
+
+
+                                                                   Queuing
+                   100                                                              100
+                                                                                                                                      1 RTT, the enqueue rate — the rate at which packets arrive
+                    50                                                               50                                               to the router — will be 2cr(t) f (t). To achieve the target rate,
+                     0                                                                0
+                         0    10   20     30       40   50   60                           0   10   20     30       40   50   60
+                                        Time (s)                                                        Time (s)                       f (t) must be chosen such that 2cr(t) f (t) is equal to tr(t).
+                              (a) Dequeue                                                     (b) Enqueue                             Thus, f (t) is given by:
+Figure 2: Feedback — Calculating f (t) based on enqueue rate                                                                                                          n 1 tr(t) o
+increases 95th percentile queuing delay by 2×.
+                                                                                                                                                           f (t) = min ·        ,1 .               (2)
+                                                                                                                                                                        2 cr(t)
+window changes for the next RTT depends on the number                                                                                     An important consequence of the above calculation is that
+of packets in the current window w; the larger w, the higher                                                                           f (t) is computed based on the dequeue rate. Most explicit
+the granularity of control.                                                                                                           protocols compare the enqueue rate to the link capacity to
+   In practice, ABC senders increase or decrease their conges-                                                                        determine the feedback (e.g., see XCP [29]).
+tion window by the number of newly acknowledged bytes cov-                                                                                ABC uses the dequeue rate instead to exploit the ACK-
+ered by each ACK. Byte-based congestion window modifica-                                                                              clocking property of its window-based protocol. Specifically,
+tion is a standard technique in many TCP implementations [8],                                                                         Equation (2) accounts for the fact that when the link capacity
+and it makes ABC robust to variable packet sizes and delayed,                                                                         changes (and hence the dequeue rate changes), the rate at the
+lost, and partial ACKs. For simplicity, we describe the design                                                                        senders changes automatically within 1 RTT because of ACK
+with packet-based window modifications in this paper.                                                                                 clocking. Fig. 2 demonstrates that computing f (t) based on
+                                                                                                                                      the dequeue rate at the router enables ABC to track the link
+3.1.2                        ABC Router
+                                                                                                                                      capacity much more accurately than using the enqueue rate.
+Calculating the target rate: ABC routers compute the target                                                                               ABC recomputes f (t) on every dequeued packet, using
+rate tr(t) using the following rule:                                                                                                  measurements of cr(t) and µ(t) over a sliding time window of
+                                µ(t)                                                                                                  length T . Updating the feedback on every packet allows ABC
+                tr(t) = ηµ(t)−        (x(t)−dt )+ ,          (1)
+                                  δ                                                                                                   to react to link capacity changes more quickly than schemes
+where µ(t) is the link capacity, x(t) is the observed queuing                                                                         that use periodic feedback updates (e.g., XCP and RCP).
+delay, dt is a pre-configured delay threshold, η is a constant                                                                            Packet marking can be done deterministically or probabilis-
+less than 1, δ is a positive constant (in units of time), and y+                                                                      tically. To limit burstiness, ABC uses the deterministic method
+is max(y,0). This rule has the following interpretation. When                                                                         in Algorithm 1. The variable token implements a token
+queuing delay is low (x(t) < dt ), ABC sets the target rate to                                                                        bucket that is incremented by f (t) on each outgoing packet
+ηµ(t), for a value of η slightly less than 1 (e.g., η = 0.95).                                                                        (up to a maximum value tokenLimit), and decremented
+By setting the target rate a little lower than the link capacity,                                                                     when a packet is marked accelerate. To mark a packet acceler-
+ABC aims to trade a small amount of bandwidth for large                                                                               ate, token must exceed 1. This simple method ensures that no
+reductions in delay, similar to prior work [7, 27, 33]. However,                                                                      more than a fraction f (t) of the packets are marked accelerate.
+queues can still develop due to rapidly changing link capacity
+                                                                                                                                        token = 0;
+and the 1 RTT of delay it takes for senders to achieve the
+                                                                                                                                        for each outgoing packet do
+target rate. ABC uses the second term in Equation (1) to
+                                                                                                                                             calculate f (t) using Equation (2);
+drain queues. Whenever x(t) > dt , this term reduces the target                                                                              token = min(token + f (t), tokenLimit);
+rate by an amount that causes the queuing delay to decrease                                                                                  if packet marked with accelerate then
+to dt in at most δ seconds.                                                                                                                       if token > 1 then
+   The threshold dt ensures that the target rate does not react                                                                                        token = token − 1;
+to small increases in queuing delay. This is important because                                                                                         mark accelerate;
+wireless links often schedule packets in batches. Queuing                                                                                         else
+delay caused by batch packet scheduling does not imply con-                                                                                            mark brake;
+gestion, even though it occurs persistently. To prevent target                                                                            Algorithm 1: Packet marking at an ABC router.
+rate reductions due to this delay, dt must be configured to be                                                                        Multiple bottlenecks: An ABC flow may encounter multiple
+greater than the average inter-scheduling time at the router.                                                                         ABC routers on its path. An example of such a scenario
+   ABC’s target rate calculation requires an estimate of the                                                                          is when two smartphone users communicate over an
+underlying link capacity, µ(t). In §5, we discuss how to                                                                              ABC-compliant cellular network. Traffic sent from one
+estimate the link capacity in cellular and WiFi networks, and                                                                         user to the other will traverse a cellular uplink and cellular
+we present an implementation for WiFi.                                                                                                downlink, both of which could be the bottleneck. To support
+Packet marking: To achieve a target rate, tr(t), the router                                                                           such situations, an ABC sender should send traffic at the
+computes the fraction of packets, f (t), that should be marked                                                                        smallest of the router-computed target rates along their path.
+as accelerate. Assume that the current dequeue rate — the                                                                             To achieve this goal, each packet is initially marked accelerate
+
+
+                                                                                                                                  4
+by the sender. ABC routers may change a packet marked                                              20                                                 20
+
+
+
+
+                                                                                      Throughput
+
+
+
+
+                                                                                                                                         Throughput
+accelerate to a brake, but not vice versa (see Algorithm 1).                                       15                                                 15
+
+
+
+
+                                                                                        (Mbps)
+
+
+
+
+                                                                                                                                           (Mbps)
+This rule guarantees that an ABC router can unilaterally                                           10                                                 10
+reduce the fraction of packets marked accelerate to ensure                                          5                                                  5
+that its target rate is not exceeded, but it cannot increase this                                   0                                                  0
+                                                                                                        0   50   100   150   200   250                     0   50   100   150   200   250
+                                                                                                      Time (s)                          Time (s)
+fraction. Hence the fraction of packets marked accelerate will
+equal the minimum f (t) along the path.                                                        (a) ABC w/o AI                  (b) ABC with AI
+                                                                                      Figure 3: Fairness among competing ABC flows — 5 flows with
+3.1.3    Fairness                                                                     the same RTT start and depart one-by-one on a 24 Mbit/s link. The
+Multiple ABC flows sharing the same bottleneck link                                   additive-increase (AI) component leads to fairness.
+should be able to compete fairly with one another. However,
+the basic window update rule described in §3.1.1 is a                                 it will take for a queue to drain. In Appendix C, we prove the
+multiplicative-increase/multiplicative-decrease    (MIMD)                             following result for a fluid model of the ABC control loop.
+strategy,3 which does not provide fairness among contending                           Theorem 1. Consider a single ABC link, traversed by N ABC
+flows (see Fig. 3a for an illustration). To achieve fairness,                         flows. Let τ be the maximum round-trip propagation delay of
+we add an additive-increase (AI) component to the basic                               the flows. ABC is globally asymptotically stable if
+window update rule. Specifically, ABC senders adjust their
+                                                                                                                                      2
+congestion window on each ACK as follows:                                                                                          δ > ·τ.                                              (4)
+                                                                                                                                     3
+                     w+1+1/w if accelerate
+              w ← w−1+1/w if brake                       (3)
+                                                                                      Specifically, if µ(t) = µ for t > t0 (i.e., the link capacity stops
+   This rule increases the congestion window by 1 packet                              changing after some time t0 ), the enqueue/dequeue rate and
+each RTT, in addition to reacting to received accelerate and                          the queuing delay at the ABC router will converge to certain
+brake ACKs. This additive increase, coupled with ABC’s                                values r∗ and x∗ that depend on the system parameters and
+MIMD response, makes ABC a multiplicative-and-additive-                               the number of flows. In all cases: ηµ < r∗ ≤ µ.
+increase/multiplicative-decrease (MAIMD) scheme. Chiu and                                This stability criterion is simple and intuitive. It states that
+Jain [15] proved that MAIMD schemes converge to fairness                              δ should not be much smaller than the RTT (i.e, the feedback
+(see also [5]). Fig. 3b shows how with an AI component,                               delay). If δ is very small, ABC reacts too forcefully to queue
+competing ABC flows achieve fairness.                                                 build up, causing under-utilization and oscillations.4 Increas-
+   To give intuition, we provide a simple informal argument                           ing δ well beyond 2/3τ improves the stability margins of the
+for why including additive increase gives ABC fairness. Con-                          feedback loop, but hurts responsiveness. In our experiments,
+sider N ABC flows sharing a link, and suppose that in steady                          we used δ = 133 ms for a propagation RTT of 100 ms.
+state, the router marks a fraction f of the packets accelerate,                       4            Coexistence
+and the window size of flow i is wi . To be in steady state,
+each flow must send 1 packet on average for each ACK that it                          An ABC flow should be robust to presence of non-ABC
+receives. Now consider flow i. It will send 2 f +1/wi packets                         bottlenecks on its path and share resources fairly with
+on average for each ACK: 2 f for the two packets it sends                             non-ABC flows sharing the ABC router.
+on an accelerate (with probability f ), and 1/wi for the extra                        4.1               Deployment with non-ABC Routers
+packet it sends every wi ACKs. Therefore, to be in steady
+                                                                                      An ABC flow can encounter both ABC and non-ABC routers
+state, we must have: 2 f +1/wi = 1 =⇒ wi = 1/(1−2 f ). This
+                                                                                      on its path. For example, a Wi-Fi user’s traffic may traverse
+shows that the steady-state window size for all flows must be
+                                                                                      both a Wi-Fi router (running ABC) and an ISP router (not run-
+the same, since they all observe the same fraction f of accel-
+                                                                                      ning ABC); either router could be the bottleneck at any given
+erates. Hence, with equal RTTs, the flows will have the same
+                                                                                      time. ABC flows must therefore be able to detect and react
+throughput, and otherwise their throughput will be inversely
+                                                                                      to traditional congestion signals—both drops and ECN—and
+proportional to their RTT. Note that the RTT unfairness in
+                                                                                      they must determine when to ignore accelerate feedback from
+ABC is similar to that of schemes like Cubic, for which the
+                                                                                      ABC routers because the bottleneck is at a non-ABC router.
+throughput of a flow is inversely proportional to its RTT. In
+                                                                                         We augment the ABC sender to maintain two congestion
+§7.5, we show experiments where flows have different RTTs.
+                                                                                      windows, one for tracking the available rate on ABC
+3.1.4    Stability Analysis                                                           routers (wabc ), and one for tracking the rate on non-ABC
+ABC’s stability depends on the values of η and δ. η deter-                            bottlenecks (wnonabc ). wabc obeys accelerates/brakes
+mines the target link utilization, while δ controls how long                          using Equation (3), while wnonabc follows a rule such as
+     3 All the competing ABC senders will observe the same accelerate fraction,           4 Interestingly, if the sources do not perform additive increase or if the
+
+f , on average. Therefore, each flow will update its congestion window, w, in         additive increase is sufficiently “gentle,” ABC is stable for any value of δ. See
+a multiplicative manner, to 2 f w, in the next RTT.                                   the proof in Appendix C for details.
+
+
+                                                                                  5
+                                                                                           ECT    CE            Interpretation
+   (packets) Delay (ms) Throughput
+                          (Mbps)     20          ABC      Wireless   Wired
+                                                                                           0       0    Non-ECN-Capable Transport
+                                     10                                                    0       1   ECN-Capable Transport ECT(1)
+                                                                                           1       0   ECN-Capable Transport ECT(0)
+                               0                                                           1       1               ECN set
+                             100
+              Queuing
+
+
+
+                                                                                  Routers interpret both 01 and 10 to indicate that a flow is
+                                     50                                           ECN-capable, and routers change those bits to 11 to mark
+                                                                                  a packet with ECN. Upon receiving an ECN mark (11), the
+                               0                                                  receiver sets the ECN Echo (ECE) flag to signal congestion to
+                             600                 wabc                wcubic       the sender. ABC reinterprets the ECT and CE bits as follows:
+                             400
+     CWND
+
+
+
+
+                                                                                             ECT      CE            Interpretation
+                             200                                                               0       0      Non-ECN-Capable Transport
+                               0
+                                          0 20 40 60 80 100 120 140 160 180                    0       1             Accelerate
+                                                        Time (s)                               1       0                Brake
+Figure 4: Coexistence with non-ABC bottlenecks — When the                                      1       1              ECN set
+wired link is the bottleneck, ABC becomes limited by wcubic and
+                                                                                  ABC send all packets with accelerate (01) set, and ABC
+behaves like a Cubic flow. When the wireless link is the bottleneck,
+ABC uses wabc to achieve low delays and high utilization.
+                                                                                  routers signal brakes by flipping the bits to 10. Both 01 and
+                                                                                  10 indicate an ECN-capable transport to ECN-capable legacy
+Cubic [23] and responds to drop and ECN signals.5 An                              routers, which will continue to use (11) to signal congestion.
+ABC sender must send packets to match the lower of the                               With this design, receivers must be able to echo both
+two windows.6 Our implementation mimics Cubic for the                             standard ECN signals and accelerates/brakes for ABC.
+non-ABC method, but other methods could also be emulated.                         Traditional ECN feedback is signaled using the ECE flag.
+   With this approach, the window that is not the bottleneck                      For ABC feedback, we repurpose the NS (nonce sum) bit,
+could become large. For example, when a non-ABC router                            which was originally proposed to ensure ECN feedback
+is the bottleneck, the ABC router will continually send                           integrity [17] but has been reclassified as historic [32] due
+accelerate signals, causing wabc to grow. If the ABC router                       to lack of deployment. Thus, it appears possible to deploy
+later becomes the bottleneck, it will temporarily incur large                     ABC with only simple modifications to TCP receivers.
+queues. To prevent this problem, ABC senders cap both wabc                        Deployment in proxied networks: Cellular networks com-
+and wnonabc to 2× the number of in-flight packets.                                monly split TCP connections and deploy proxies at the
+                                                                                  edge [43, 46]. Here, it is unlikely that any non-ABC router
+   Fig. 4 shows the throughput and queuing delay for an ABC
+                                                                                  will be the bottleneck and interfere with the accel-brake mark-
+flow traversing a path with an ABC-capable wireless link and
+                                                                                  ings from the ABC router. In this case, deploying ABC may
+a wired link with a droptail queue. For illustration, we vary the
+                                                                                  not require any modifications to today’s TCP ECN receiver.
+rate of the wireless link in a series of steps every 5 seconds.
+                                                                                  ABC senders (running on the proxy) can use either 10 or 01 to
+Over the experiment, the bottleneck switches between the
+                                                                                  signal an accelerate, and routers can use 11 to indicate a brake.
+wired and wireless links several times. ABC is able to adapt
+                                                                                  The TCP receiver can echo this feedback using the ECE flag.
+its behavior quickly and accurately. Depending on which link
+is the bottleneck, either wnonabc (i.e., wcubic ) or wabc be-                     4.3     Non-ABC flows at an ABC Router
+comes smaller and controls the rate of the flow. When the                         ABC flows are potentially at a disadvantage when they
+wireless link is the bottleneck, ABC maintains low queuing                        share an ABC bottleneck link with non-ABC flows.7 If the
+delay, whereas the queuing delay exhibits standard Cubic be-                      non-ABC flows fill up queues and increase queuing delay, the
+havior when the wired link is the bottleneck. wcubic does not                     ABC router will reduce ABC’s target rate. To ensure fairness
+limit ABC’s ability to increase its rate when the wireless link                   in such scenarios, ABC routers isolate ABC and non-ABC
+is the bottleneck. At these times (e.g., around the 70 s mark),                   packets in separate queues.
+as soon on wabc increases, the number of in-flight packets and                       We assume that ABC routers can determine whether
+the cap on wcubic increases, and wcubic rises immediately.                        a packet belongs to an ABC flow. In some deployment
+4.2                 Multiplexing with ECN Bits                                    scenarios, this is relatively straightforward. For example, in
+                                                                                  a cellular network deployment with TCP proxies at the edge
+IP packets have two ECN-related bits: ECT and CE. These                           of the network [43, 46], the operator can deploy ABC at the
+two bits are traditionally interpreted as follows:                                proxy, and configure the base station to assume that all traffic
+                                                                                  from the proxy’s IP address uses ABC. Other deployment
+  5 We discuss how ABC senders distinguish between accelerate/brake and
+
+ECN marks in §4.2.                                                                   7 ABC and non-ABC flows may also share a non-ABC link, but in such
+  6 A concurrent work [31] proposed a similar methodology for this problem.       cases, ABC flows will behave like Cubic and compete fairly with other traffic.
+
+
+                                                                              6
+scenarios may require ABC senders to set a predefined value            solution when there is a single user (client) connected to the
+in a packet field like the IPv6 flow label or the IPv4 IPID.           AP. Next, we describe the multi-user case.
+   The ABC router assigns weights to the ABC and non-ABC                  We define link rate as the potential throughput of the user
+queues, respectively, and it schedules packets from the                (i.e., the MAC address of the Wi-Fi client) if it was backlogged
+queues in proportion to their weights. In addition, ABC’s              at the AP, i.e., if the user never ran out of packets at the AP.
+target rate calculation considers only ABC’s share of the link         In case the router queue goes empty at the AP, the achieved
+capacity (which is governed by the weights). The challenge             throughput will be less than the link rate.
+is to set the weights to ensure that the average throughput            Challenges: A strawman would be to estimate the link rate
+of long-running ABC and non-ABC flows is the same, no                  using the physical layer bit rate selected for each transmission,
+matter how many flows there are.                                       which would depend on the modulation and channel code
+   Prior explicit control schemes address this problem using           used for the transmission. Unfortunately, this method will
+the TCP loss-rate equation (XCP) or by estimating the                  overestimate the link rate as the packet transmission times
+number of flows with Zombie Lists (RCP). Relying on the                are governed not only by the bitrate, but also by delays for
+TCP equation requires a sufficient loss rate and does not              additional tasks (e.g., channel contention and retransmis-
+handle flows like BBR. RCP’s approach does not handle short            sions [12]). An alternative approach would be to use the
+flows. When one queue has a large number of short flows (and           fraction of time that the router queue was backlogged as a
+hence a low average throughput), RCP increases the weight              proxy for link utilization. However, the Wi-Fi MAC’s packet
+of that queue. However, the short flows cannot send faster,            batching confounds this approach. Wi-Fi routers transmit
+so the extra bandwidth is taken by long-running flows in the           packets (frames) in batches; a new batch is transmitted
+same queue, which get more throughput than long-running                only after receiving an ACK for the last batch. The AP may
+flows in the other queue (see §7.5 for experimental results).          accumulate packets while waiting for a link-layer ACK; this
+   To overcome these drawbacks, a ABC router measures the              queue buildup does not necessarily imply that the link is fully
+average rate of the K largest flows in each queue using the            utilized. Thus, accurately measuring the link rate requires a de-
+Space Saving Algorithm [35], which requires O (K) space. It            tailed consideration of Wi-Fi’s packet transmission protocols.
+considers any remaining flow in either queue to be short, and          Understanding batching: In 802.11n, data frames, also
+it calculates the total rate of the short flows in each queue by       known as MAC Protocol Data Units (MPDUs), are transmit-
+subtracting the rate of the largest K flows from the queue’s           ted in batches called A-MPDUs (Aggregated MPDUs). The
+aggregate throughput. ABC uses these rate measurements to              maximum number of frames that can be included in a single
+estimate the rate demands of the flows. Using these demands,           batch, M, is negotiated by the receiver and the router. When
+ABC periodically computes the max-min fair rate allocation             the user is not backlogged, the router might not have enough
+for the flows, and it sets the weight of each of the two               data to send a full-sized batch of M frames, but will instead
+queues to be equal to the total max-min rate allocation of its         use a smaller batch of size b < M. Upon receiving a batch, the
+component flows. This algorithm ensures that long-running              receiver responds with a single Block ACK. Thus, at a time
+flows in the two queues achieve the same average rate, while           t, given a batch size of b frames, a frame size of S bits,8 and
+accounting for demand-limited short flows.                             an ACK inter-arrival time (i.e., the time between receptions
+   To estimate the demand of the flows, the ABC router                 of consecutive block ACKs) of TIA (b,t), the current dequeue
+assumes that the demand for the top K flows in each queue              rate, cr(t), may be estimated as
+is X% higher than the current throughput of the flow, and
+                                                                                                              b·S
+the aggregate demand for the short flows is the same as                                          cr(t) =              .                      (5)
+                                                                                                            TIA (b,t)
+their throughput. If a top-K flow is unable to increase its
+sending rate by X%, its queue’s weight will be larger than               When the user is backlogged and b = M, then cr(t) above
+needed, but any unfairness in weight assignment is bounded             will be equal to the link capacity. However, if the user is not
+by X%. Small values of X limit unfairness but can slow down            backlogged and b < M, how can the AP estimate the link
+convergence to fairness; our experiments use X = 10%.                  capacity? Our approach calculates T̂IA (M,t), the estimated
+                                                                       ACK inter-arrival time if the user was backlogged and had
+5     Estimating Link Rate                                             sent M frames in the last batch.
+We describe how ABC routers can estimate the link capacity               We estimate the link capacity, µ̂(t), as
+for computing the target rate (§3.1.2). We present a technique                                                M·S
+for Wi-Fi that leverages the inner workings of the Wi-Fi                                         µ̂(t) =              .                      (6)
+                                                                                                           T̂IA (M,t)
+MAC layer, and we discuss options for cellular networks.
+                                                                         To accurately estimate T̂IA (M,t), we turn to the relationship
+5.1    Wi-Fi                                                           between the batch size and ACK inter-arrival time. We can
+We describe how an 802.11n access point (AP) can estimate                 8 Forsimplicity, we assume that all frames are of the same size, though
+the average link rate. For simplicity, we first describe our           our formulas can be generalized easily for varying frame sizes.
+
+
+                                                                   7
+                                  20.0
+   Inter-ACK Time TIA(x,t) (ms)
+                                  17.5
+                                  15.0
+                                  12.5
+                                  10.0
+                                   7.5
+                                   5.0
+                                   2.5
+                                   0.0
+                                         0   5         10          15     20
+                                                 A-MPDU Size, x (frame)
+Figure 5: Inter-ACK time v. batch (A-MPDU) size — Inter-ACK                        Figure 6: Wi-Fi Link Rate Prediction — ABC router link rate
+times for a given batch size exhibits variation. The solid black line              predictions for a user that was not backlogged and sent traffic at
+represents the average Inter-ACK time. The slope of the line is S/R,               multiple different rates over three different Wi-Fi links. Horizontal
+where S is the frame size in bits and R is the link rate in bits per second.       lines represent the true link capacity, solid lines summarize the ABC
+                                                                                   router’s link capacity prediction (each point is an average over 30
+decompose the ACK interval time into the batch transmission                        seconds of predictions), and the dashed slanted line represents the
+time and “overhead” time, the latter including physically                          prediction rate caps. ABC’s link rate predictions are within 5% of
+receiving an ACK, contending for the shared channel, and                           the ground truth across most sending rates (given the prediction cap).
+transmitting the physical layer preamble [21]. Each of these
+overhead components is independent of the batch size. We                           rates. We now present two variants of our technique for (1)
+denote the overhead time by h(t). If R is the bitrate used for                     when the router uses per-user queues to schedule packets of
+transmission, the router’s ACK inter-arrival time is                               different users, and (2) when the users share a single FIFO
+                                                                                   (first-in first-out) queue at the router.
+                                  b·S
+                                      +h(t). TIA (b,t) =      (7)                  Per-user queues. In this case each user calculates a separate
+                                   R                                               link rate estimate. Recall that the link rate for a given user
+   Fig. 5 illustrates this relationship empirically. There are                     is defined as the potential throughput of the user if it was
+two key properties to note. First, for a given batch size, the                     backlogged at the router. To determine the link rate for a
+ACK inter-arrival times vary due to overhead tasks. Second,                        user x, we repeat the single-user method for the packets and
+because the overhead time and batch size are independent,                          queue of user x alone, treating transmissions from other users
+connecting the average values of ACK inter-arrival times                           as overhead time. Specifically, user x uses Equations (8)
+across all considered batch sizes will produce a line with slope                   and (6) to compute its link rate (µ̂x (t)) based on its own values
+S/R. Using this property along with Equation (7), we can                           of the bit rate (Rx ) and maximum batch size (Mx ). It also
+estimate the ACK inter-arrival time for a backlogged user as                       computes its current dequeue rate (crx (t)) using Equation (5)
+                            M·S                                                    to calculate the accel-brake feedback. The inter-ACK time
+               TˆIA (M,t) =       +h(t)
+                              R                                                    (TIAx (b,t)), is defined as the time between the reception of
+                                       (M−b)·S                                     consecutive block-ACKs for user x. Thus, the overhead time
+                          = TIA (b,t)+           ·            (8)
+                                           R                                       (hx (t)) includes the time when other users at the same AP
+   We can then use T̂IA (M,t) to estimate the link capacity                        are scheduled to send packets. Fairness among different users
+with Equation (6). This computation is performed for each                          is ensured via scheduling users out of separate queues.
+batch transmission when the batch ACK arrives, and passed                          Single queue. In this case the router calculates a single
+through a weighted moving average filter over a sliding                            aggregate link rate estimate. The inter-ACK time here is the
+window of time T to estimate the smoothed time-varying                             time between two consecutive block-ACKs, regardless of the
+link rate. T must be greater than the inter-ACK time (up to                        user to which the block-ACKs belong to. The router tries to
+20 ms in Fig. 5); we use T = 40 ms. Because ABC cannot                             match the aggregate rate of the senders to the aggregate link
+exceed a rate-doubling per RTT, we cap the predicted link                          rate, and uses the aggregate current dequeue rate to calculate
+rate to double the current rate (dashed slanted line in Fig. 5).                   accel-brake feedback.
+   To evaluate the accuracy of our link rate estimates, we
+transmit data to a single client through our modified ABC                          5.2    Cellular Networks
+router (§7.1) at multiple different rates over three Wi-Fi                         Cellular networks schedule users from separate queues to
+links (with different modulation and coding schemes). Fig. 6                       ensure inter-user fairness. Each user will observe a different
+summarizes the accuracy of the ABC router’s link rate                              link rate and queuing delay. As a result, every user requires a
+estimates. With this method, the ABC Wi-Fi router is able                          separate target rate calculation at the ABC router. The 3GPP
+to predict link rates within 5% of the true link capacities.                       cellular standard [1] describes how scheduling information at
+Extension to multiple users. In multi-user scenarios, each                         the cellular base station can be used to calculate per-user link
+receiver will negotiate its own maximum batch size (M) with                        rates. This method is able to estimate capacity even if a given
+the router, and different users can have different transmission                    user is not backlogged at the base station, a key property for
+
+
+                                                                               8
+the target rate estimation in Equation (1).                               7.1    Prototype ABC Implementation
+6    Discussion
+                                                                          ABC transport: We implemented ABC endpoints in Linux
+We discuss practical issues pertaining to ABC’s deployment.               as kernel modules using the pluggable TCP API.
+Delayed Acks: To support delayed ACKs, ABC uses byte
+counting at the sender; the sender increases/decreases its                ABC router: We implemented ABC as a Linux queuing dis-
+window by the new bytes ACKed. At the receiver, ABC uses                  cipline (qdisc) kernel module using OpenWrt, an open source
+the state machine from DCTCP [6] for generating ACKs                      operating system for embedded networked devices [18]. We
+and echoing accel/brake marks. The receiver maintains the                 used a NETGEAR WNDR 3800 router configured to 802.11n.
+state of the last packet (accel or brake). Whenever the state             We note that our implementation is portable as OpenWrt is
+changes, the receiver sends an ACK with the new state. If                 supported on many other commodity Wi-Fi routers.
+the receiver is in the same state after receiving m packets
+                                                                             ABC’s WiFi link rate estimation exploits the inner
+(the number of ACKs to coalesce), then it sends a delayed
+                                                                          workings of the MAC 802.11n protocol, and thus requires
+ACK with the current state. Our TCP implementation and
+                                                                          fine-grained values at this layer. In particular, the ABC qdisc
+the experiments in §7 use delayed ACKs with m = 2.
+                                                                          must know A-MPDU sizes, Block ACK receive times, and
+Lost ACKs: ABC’s window adjustment is robust to ACK                       packet transmission bitrates. These values are not natively ex-
+losses. Consider a situation where the sender receives a                  posed to Linux router qdiscs, and instead are only available at
+fraction p < 1 of the ACKs. If the accelerate fraction at the             the network driver. To bridge this gap, we modified the router
+router is f , the current window of the sender is wabc , then in          to log the relevant MAC layer data in the cross-layer socket
+the next RTT, the change in congestion window of the sender               buffer data structure (skb) that it already maintains per packet.
+is f pwabc − (1 − f )pwabc = (2 f − 1)pwabc . As a result, lost
+ACKs only slow down the changes in the congestion window,                 7.2    Experimental Setup
+but whether it increases or decreases doesn’t depend on p.
+                                                                          We evaluated ABC in both Wi-Fi and cellular network settings.
+ABC routers don’t change prior ECN marks: ABC routers
+                                                                          For Wi-Fi, experiments we used a live Wi-Fi network and the
+don’t mark accel-brake on incoming packets that contain ECN
+                                                                          ABC router described in §7.1. For cellular settings, we use
+marks set by an upstream non-ABC router. Since packets with
+                                                                          Mahimahi [36] to emulate multiple cellular networks (Veri-
+ECN set can’t convey accel-brake marks, they can slow down
+                                                                          zon LTE, AT&T, and TMobile). Mahimahi’s emulation uses
+changes in wabc (similar to lost ACKs). In case the fraction of
+                                                                          packet delivery traces (separate for uplink and downlink) that
+packets with ECN set is small, then, the slow down in changes
+                                                                          were captured directly on those networks, and thus include
+to wabc will be small. If the fraction is large, then the non-ABC
+                                                                          outages (highlighting ABC’s ability to handle ACK losses).
+router is the likely bottleneck, and the sender will not use wabc .
+ECN routers clobbering ABC marks: An ECN router can                         We compare ABC to end-to-end protocols designed for
+overwrite accel-brake marks. The ABC sender will still track              cellular networks (Sprout [47] and Verus [51]), loss-based
+the non-ABC window, wnonabc , but such marks can slow                     end-to-end protocols both with and without AQM (Cubic [23],
+down adjustment to the ABC window, wabc .                                 Cubic+Codel [37], and Cubic+PIE [38]), recently-proposed
+                                                                          end-to-end protocols (BBR [14], Copa [10], PCC Vivace-
+ABC on fixed-rate links: ABC can also be deployed on
+                                                                          Latency (referred as PCC)) [16]), and TCP Vegas [13]), and
+fixed-rate links. On such links, its performance is similar to
+                                                                          explicit control protocols (XCP [29], RCP [44] and VCP [48]).
+prior explicit schemes like XCP.
+                                                                          We used TCP kernel modules for ABC, BBR, Cubic, PCC, and
+7    Evaluation                                                           Vegas; for these schemes, we generated traffic using iperf [45].
+We evaluate ABC by considering the following properties:                  For the end-to-end schemes that are not implemented as TCP
+1. Performance: We measure ABC’s ability to achieve                       kernel modules (i.e., Copa, Sprout, Verus), we used the UDP
+   low delay and high throughput and compare ABC to                       implementations provided by the authors. Lastly, for the
+   end-to-end schemes, AQM schemes, and explicit control                  explicit control protocols (i.e., XCP, RCP, and VCP), we used
+   schemes (§7.3).                                                        our own implementations as qdiscs with Mahimahi to ensure
+2. Multiple Bottlenecks: We test ABC in scenarios with                    compatibility with our emulation setup. We used Mahimahi’s
+   multiple ABC bottlenecks and mixtures of ABC and                       support of Codel and Pie to evaluate AQM.
+   non-ABC bottlenecks (§7.4).                                               Our emulated cellular network experiments used a mini-
+3. Fairness: We evaluate ABC’s fairness while competing                   mum RTT of 100 ms and a buffer size of 250 MTU-sized pack-
+   against other ABC and non-ABC flows (§7.5).                            ets. Additionally, ABC’s target rate calculation (Equation (1))
+4. Additional Considerations: We evaluate how ABC                         used η = 0.98 and δ = 133 ms. Our Wi-Fi implementation
+   performs with application-limited flows and different                  uses the link rate estimator from §5, while our emulated cel-
+   network delays. We also demonstrate ABC’s impact on                    lular network setup assumes the realistic scenario that ABC’s
+   a real application’s performance (§7.6).                               router has knowledge of the underlying link capacity [1].
+
+
+                                                                      9
+                1.0                                      Cubic                 1.0                                                       Cubic                                      4.0                                       Cubic
+                                            BBR                                                         BBR                               PCC                                                                 BBR               PCC
+                0.9                                     PCC                    0.9
+
+
+
+
+                                                                                                                                                           Throughput (Mbits/sec)
+                          ABC       Vegas                                                ABC                                                                                        3.5
+                          XCPW XCP Verus                                                  XCPW      Verus                                                                                     ABC          Vegas
+                0.8                                                            0.8           Vegas XCP                                                                                        XCPW
+                                                                                                                                                                                                   XCP Verus
+  Utilization
+
+
+
+
+                                                                 Utilization
+                                                                                                                                                                                    3.0
+                0.7       Copa                                                 0.7
+                                                                                       Copa                                                                                                  Copa
+                0.6        Cubic+Codel                                         0.6     Cubic+Codel                                                                                  2.5
+                                                                                                                                                                                            Cubic+Codel
+
+                                            Be
+                        Cubic+PIE                                                                                                                                                           Cubic+PIE
+
+                                                tte
+                0.5                                                            0.5   Cubic+PIE                                                                                      2.0
+
+
+
+                                                  r
+                0.4                                                            0.4                                                                                                  1.5
+                        Sprout                                                        Sprout                                                                                                Sprout
+                0.3                                                            0.3
+                        200           500    800 1100 1400                             200          400            600            800 1000                                                 200              600   1000 1400 1800
+                        95th percentile packet delay (ms)                            95th percentile packet delay (ms)                                                                       95th percentile packet delay (ms)
+                                 (a) Downlink                                                  (b) Uplink                                                                                        (c) Uplink+Downlink
+Figure 7: ABC vs. previous schemes on three Verizon cellular network traces — In each case, ABC outperforms all other schemes and
+sits well outside the Pareto frontier of previous schemes (denoted by the dashed lines).
+7.3                   Performance                                                                                               Verizon 1         Verizon 2   TMobile 1   ATT 1  Verizon 3                                    Verizon 4
+                                                                                                                                                        TMobile 2   ATT 2   AVERAGE
+Cellular: Fig. 7a and 7b show the utilization and           per-                     95th                                           1
+centile per packet delay that a single backlogged flow achieves                                                                   0.75
+using each aforementioned scheme on two Verizon LTE cel-
+
+
+
+                                                                                                            Utilization
+                                                                                                                                   0.5
+lular link traces. ABC exhibits a better (i.e., higher) through-                                                                  0.25
+put/delay tradeoff than all prior schemes. In particular, ABC
+                                                                                                                                    0
+sits well outside the Pareto frontier of the existing schemes,                                                                           AB
+                                                                                                                                             C
+                                                                                                                                                  XC
+                                                                                                                                                       P     Pw   de
+                                                                                                                                                                     l               t
+                                                                                                                                                                        PIE Copa prou egas erus                         BB
+                                                                                                                                                                                                                          R
+                                                                                                                                                                                                                              PC
+                                                                                                                                                                                                                                   C     bic
+                                                                                                                                                           XC c+Co bic+         S      V   V                                           Cu
+which represents the prior schemes that achieve higher                                                                                                      Cu
+                                                                                                                                                               bi Cu
+
+throughput or lower delay than any other prior schemes.                                                                                                                                   (a) Utilization
+                                                                                                                                 Verizon 1        Verizon 2   TMobile 1   ATT 1  Verizon 3                                    Verizon 4
+   Further analysis of Fig. 7a and 7b reveals that Cubic+Codel,
+                                                                                                                                                        TMobile 2   ATT 2   AVERAGE
+Cubic+PIE, Copa, and Sprout are all able to achieve low
+delays that are comparable to ABC. However, these schemes                                                                        2000
+                                                                                                            95%ile Delay (ms)
+
+
+
+
+heavily underutilize the link. The reason is that, though                                                                         800
+                                                                                                                                  400
+these schemes are able to infer and react to queue buildups
+                                                                                                                                  200
+in a way that reduces delays, they lack a way of quickly                                                                          100
+inferring increases in link capacity (a common occurrence                                                                                AB
+                                                                                                                                              C
+                                                                                                                                                  XC
+                                                                                                                                                       P     Pw   de
+                                                                                                                                                                    l                t
+                                                                                                                                                                        PIE Copa prou egas erus                         BB
+                                                                                                                                                                                                                          R
+                                                                                                                                                                                                                              PC
+                                                                                                                                                                                                                                   C     bic
+                                                                                                                                                           XC c+Co bic+         S      V   V                                           Cu
+on time-varying wireless links), leading to underutilization.                                                                                                  bi Cu
+                                                                                                                                                            Cu
+In contrast, schemes like BBR, Cubic, and PCC are able to                                                                                         (b) 95th percentile per-packet delay
+rapidly saturate the network (achieving high utilization), but                                            Figure 8:                      95th
+                                                                                                                           percentile per-packet delay across 8 cellular link
+these schemes also quickly fill buffers and thus suffer from                                              traces — On average, ABC achieves similar delays and 50% higher
+high queuing delays. Unlike these prior schemes, ABC is able                                              utilization than Copa and Cubic+Codel. PCC and Cubic achieve
+to quickly react to both increases and decreases in available                                             slightly higher throughput than ABC, but incur 380% higher 95th
+link capacity, enabling high throughput and low delays.                                                   percentile delay than ABC.
+   We observed similar trends across a larger set of 8 different
+                                                                                                          gence. XCP achieves similar average throughput to ABC, but
+cellular network traces (Fig. 8). ABC achieves 50% higher
+                                                                                                          with 105% higher 95th percentile delays. This performance
+throughput than Cubic+Codel and Copa, while only incurring
+                                                                                                          discrepancy can be attributed to the fact that ABC’s control
+17% higher 95th percentile packet delays. PCC and Cubic
+                                                                                                          rule is better suited for the link rate variations in wireless net-
+achieve slightly higher link utilization values than ABC
+                                                                                                          works. In particular, unlike ABC which updates its feedback
+(12%, and 18%, respectively), but incur significantly higher
+                                                                                                          on every packet, XCP computes aggregate feedback values (φ)
+per-packet delays than ABC (394%, and 382%, respectively).
+                                                                                                          only once per RTT and may thus take an entire RTT to inform
+Finally, compared to BBR, Verus, and Sprout, ABC achieves
+                                                                                                          a sender to reduce its window. To overcome this, we also con-
+higher link utilization (4%, 39%, and 79%, respectively).
+                                                                                                          sidered an improved version of XCP that recomputes aggre-
+BBR and Verus incur higher delays (183% and 100%,
+                                                                                                          gate feedback on each packet based on the rate and delay mea-
+respectively) than ABC. Appendix E shows mean packet
+                                                                                                          surements from the past RTT; we refer to this version as XCPw
+delay over the same conditions, and shows the same trends.
+                                                                                                          (short for XCP wireless). As shown in Fig. 7 and Fig. 8, XCPw
+Comparison with Explicit Protocols: Fig. 7 and 8 also show                                                reduces delay compared to XCP, but still incurs 40% higher
+that ABC outperforms the explicit control protocol, XCP, de-                                              95th percentile delays (averaged across traces) than ABC.
+spite not using multi-bit per-packet feedback as XCP does. For                                            We also compared with two other explicit schemes, RCP and
+XCP we used α = 0.55 and β = 0.4, the highest permissible                                                 VCP, and found that ABC consistently outperformed both,
+stable values that achieve the fastest possible link rate conver-                                         achieving 20% more utilization on average. (Appendix F).
+
+
+                                                                                                   10
+                                           ABC_100               Cubic    BBR                                                                  ABC             Ideal      Wired
+                                       ABC_60                                                      PCC                                         Cross tfk       Wireless
+                                    ABC_20
+         Throughput (Mbps)
+                             15
+
+
+
+
+                                                                                                                Delay (ms) Throughput
+                                    Vegas COPA
+                                       Cubic+Codel                                                                                 10
+
+
+
+
+                                                                                                                             (Mbps)
+                             10
+                                                                                                                                    5
+                              5                                                                                                     0
+                                                                                                                                  150
+
+
+
+
+                                                                                                                 Queuing
+                              0
+                                  300         400        600     800 1000        1500 2000                                        100
+                                                    95 percentile per packet delay (ms)
+                                                            (a) Single user
+                                                                                                                                   50
+                            20                ABC_20
+                                    ABC_60 ABC_100                        BBR      Cubic                                                0   10 20 30 40 50 60 70 80
+                                                                                                                                                           Time (s)
+        Throughput (Mbps)
+
+
+
+
+                                                                                               PCC
+                            15           Vegas
+                                         COPA
+                                    Cubic+Codel                                                               Figure 10: Coexistence with non-ABC bottlenecks — ABC
+                                                                                                              tracks the ideal rate closely (fair share) and reduces queuing delays
+                            10
+                                                                                                              in the absence of cross traffic (white region).
+                             5
+                                                                                                              up to 29% higher throughput than Cubic+Codel, Copa
+Be
+
+
+
+
+                             0                                                                                and Vegas. Though PCC-Vivace, Cubic and BBR achieve
+tte
+
+
+
+
+                                        400           600      800 1000         1500   2000 2500
+                                                    95 percentile per packet delay (ms)                       slightly higher throughput (4%) than this ABC configuration,
+ r
+
+
+
+
+                                                    (b) Two users, shared queue                               their delay values are considerably higher (67%-6×). The
+                                                                                                              multi-user scenario showed similar results. For instance,
+     Figure 9: Throughout and mean delay on Wi-Fi — For the
+     multi-user scenario, we report the sum of achieved throughputs and                                       ABC achieves 38%, 41% and 31% higher average throughput
+     the average of observed 95th percentile delay across both users. We                                      than Cubic+Codel, Copa and Vegas, respectively.
+     consider three versions of ABC (denoted ABC _*) for different delay
+                                                                                                              7.4          Coexistence with Various Bottlenecks
+     thresholds. All versions of ABC outperform all prior schemes and
+     sit outside the pareto frontier.                                                                         Coexistence with ABC bottlenecks: Fig. 7c compares ABC
+                                                                                                              and prior protocols on a network path with two cellular
+     Wi-Fi: We performed similar evaluations on a live Wi-Fi
+                                                                                                              links. In this scenario, ABC tracks the bottleneck link rate
+     link, considering both single and multi-user scenarios. We
+                                                                                                              and achieves a better throughput/delay tradeoff than prior
+     connect senders to a WiFi router via Ethernet. Each sender
+                                                                                                              schemes, and again sits well outside the Pareto frontier.
+     transmits data through the WiFi router to one receiver. All
+     receivers’ packets share the same FIFO queue at the router.                                              Coexistence with non-ABC bottlenecks: Fig. 10 illustrates
+     In this experiment, we excluded Verus and Sprout as they are                                             throughput and queuing delay values for an ABC flow travers-
+     designed specifically for cellular networks. To mimic com-                                               ing a network path with both an emulated wireless link and
+     mon Wi-Fi usage scenarios where endpoints can move and                                                   an emulated 12 Mbits/s fixed rate (wired) link. The wireless
+     create variations in signal-to-noise ratios (and thus bitrates),                                         link runs ABC, while the wired link operates a droptail buffer.
+     we varied the Wi-Fi router’s bitrate selections by varying                                               ABC shares the wired link with on-off cubic cross traffic. In
+     the MCS index using the Linux iw utility; we alternated the                                              the absence of cross traffic (white region), the wireless link is
+     MCS index between values of 1 and 7 every 2 seconds. In                                                  always the bottleneck. However, with cross traffic (yellow and
+     Appendix 16, we also list results for an experiment where we                                             grey regions), due to contention, the wired link can become
+     model MCS index variations as Brownian motion—results                                                    the bottleneck. In this case, ABC’s fair share on the wired link
+     show the same trends as described below. This experiment                                                 is half of the link’s capacity (i.e., 6 Mbit/s). If the wireless
+     was performed in a crowded computer lab with contention                                                  link rate is lower than the fair share on the wired link (yellow
+     from other Wi-Fi networks. We report average performance                                                 region), the wireless link remains the bottleneck; otherwise,
+     values across three, 45 second runs. We considered three                                                 the wired link becomes the bottleneck (grey region).
+     different ABC delay threshold (dt ) values of 20 ms, 60 ms,                                                 The black dashed line in the top graph represents the ideal
+     and 100 ms; note that increasing ABC’s delay threshold will                                              fair throughput for the ABC flow throughout the experiment.
+     increase both observed throughput and RTT values.                                                        As shown, in all regions, ABC is able to track the ideal rate
+        Fig. 9 shows the throughput and 95th percentile per-packet                                            closely, even as the bottleneck shifts. In the absence of cross
+     delay for each protocol. For the multi-user scenario, we                                                 traffic, ABC achieves low delays while maintaining high link
+     report the sum of achieved throughputs and the average                                                   utilization. With cross traffic, ABC appropriately tracks the
+     95th percentile delay across all users. In both the single and                                           wireless link rate (yellow region) or achieves its fair share of
+     multi-user scenarios, ABC achieves a better throughput/delay                                             the wired link (grey region) like Cubic. In the former cross
+     tradeoff than all prior schemes, and falls well outside                                                  traffic scenario, increased queuing delays are due to conges-
+     the Pareto frontier for those schemes. In the single user                                                tion caused by the Cubic flow on the wired link. Further, devi-
+     scenario, the ABC configuration with dt = 100 ms achieves                                                ations from the ideal rate in the latter cross traffic scenario can
+
+
+                                                                                                         11
+                           ABC       Cubic+Codel     Cubic       BBR         Vegas                                     6                                RTT (ms)                            Tput (Mbps)
+                 1.0           124816 816                          12 4816                                             5
+
+
+
+
+                                                                                             Throughput Ratio
+                                    4                                  4816                                                                                           20                          6.62
+                                                                                                                       4
+                 0.8             2      8 16                 1       2                                                                                                40                          4.94
+   Utilization
+
+
+                               1                                                                                       3
+                                    4                                                                                  2
+                                                                                                                                                                      60                          4.27
+                 0.6                                                                                                                                                  80                          3.0
+                           2                                                                                           1
+                                                                                                                       0
+                                                                                                                                                                     100                          2.75
+                 0.4   1                                                                                                   0      2         4    6                   120                          2.40
+                                                                                                                                  RTT Ratio
+                                       200             300             400      500
+                                 95 percentile per packet delay (ms)                       Figure 12: RTT unfairness                                    Table 1: RTT unfairness
+Figure 11: Coexistence among ABC flows — ABC achieves                                                                  25                                                         25
+
+
+
+
+                                                                                              Throughput (Mbits/sec)
+
+
+
+
+                                                                                                                                                         Throughput (Mbits/sec)
+                                                                                                                                      ABC       Cubic                                       ABC          Cubic
+similar aggregate utilization and delay irrespective of the number                                                     20                                                         20
+of connections. ABC outperforms all previous schemes.                                                                  15                                                         15
+                                                                                                                       10                                                         10
+be attributed to the fact that the ABC flow is running as Cubic,
+                                                                                                                        5                                                          5
+which in itself takes time to converge to the fair share [23].                                                          0 6.25                                                     0 6.25
+                                                                                                                                    12.5 25        50                                     12.5 25        50
+7.5              Fairness among ABC and non-ABC flows                                                                             Offered Load (%)                                      Offered Load (%)
+                                                                                                                                  (a) ABC                                         (b) RCP’s Zombie List
+Coexistence among ABC flows: We simultaneously run
+multiple ABC flows on a fixed 24 Mbits/s link. We varied                                   Figure 13: Coexistence with non-ABC flows — Across all
+                                                                                           scenarios, the standard deviation for ABC flows is small and the
+the number of competing flows from 2 to 32 (each run was
+                                                                                           flows are fair to each other. Compared to RCP’s Zombie List strategy,
+60 s). In each case, the Jain Fairness Index [28] was within                               ABC’s max-min allocation provides better fairness between ABC
+5% from the ideal fairness value of 1, highlighting ABC’s                                  and non-ABC flows. With ABC’s strategy, the difference in average
+ability to ensure fairness.                                                                throughput of ABC and Cubic flows is under 5%.
+   Fig. 11 shows the aggregate utilization and delay for con-
+current flows (all flows running the same scheme) competing                                results across 10 runs (40 seconds each). We compare ABC’s
+on a Verizon cellular link. We varied the number of com-                                   strategy to coexist with non-ABC flows to RPC’s Zombie
+peting flows from 1 to 16. ABC achieves similar aggregate                                  list approach (§4.3).
+utilization and delay across all scenarios, and, outperforms                                  Fig. 13 shows the mean and standard deviation of
+all other schemes. For all the schemes, the utilization and                                throughput for long-lived ABC and Cubic flows. As shown in
+delay increase when the number of flows increases. For ABC,                                Fig. 13a, ABC’s coexistence strategy allows ABC and Cubic
+this increase can be attributed to the additional packets that                             flows to fairly share the bottleneck link across all offered
+result from additive increase (1 packet per RTT per flow).                                 load values. Specifically, the difference in average throughput
+For other schemes, this increase is because multiple flows                                 between the ABC and Cubic flows is under 5%. In contrast,
+in aggregate ramp-up their rates faster than a single flow.                                Fig. 13b shows that RCP’s coexistence strategy gives higher
+                                                                                           priority to Cubic flows. This discrepancy increases as the
+RTT Unfairness: We simultaneously ran 2 ABC flows on a                                     offered load increases, with Cubic flows achieving 17-165%
+24 Mbits wired bottleneck. We varied the RTT of flow 1 from                                higher throughput than ABC flows. The reason, as discussed
+20ms to 120ms. RTT of flow 2 was fixed to 20ms. Fig. 12                                    in §4.3, is that long-lived Cubic flows receive higher through-
+shows the ratio of the average throughput of these 2 flows                                 put than the average throughput that RCP estimates for Cubic
+(average throughput of flow 2 / flow 1, across 5 runs) against                             flows. This leads to unfairness because RCP attempts to
+the ratio of their RTTs (RTT of flow 1 / flow 2). Increasing                               match average throughput for each scheme.Fig. 13 also shows
+the RTT ratio increases the throughput ratio almost linearly                               that the standard deviation of ABC flows is small (under
+and the throughput is inversely proportional to the RTT. Thus,                             10%) across all scenarios. This implies that in each run of the
+the unfairness is similar to existing protocols like Cubic.                                experiment, the throughput for each of the three concurrent
+   Next, we simultaneously ran 6 ABC flows. The RTT of                                     ABC flows is close to each other, implying fairness across
+the flows vary from 20ms to 120ms. Table 1 shows the RTT                                   ABC flows. Importantly, the standard deviation values for
+and the average throughput across 5 runs. Flows with higher                                ABC are smaller than those for Cubic. Thus, ABC flows
+RTTs have lower throughput. However, note that the flow                                    converge to fairness faster than Cubic flows do.
+with the highest RTT (120ms) still achieves ∼35 % of the
+throughput as flow with the lowest RTT (20ms).                                             7.6                                 Additional Results
+Coexistence with non-ABC flows: We consider a scenario                                     ABC’s sensitivity to network latency: Thus far, our emula-
+where 3 ABC and 3 non-ABC (in this case, Cubic) long-lived                                 tion experiments have considered fixed minimum RTT values
+flows share the same 96 Mbits/s bottleneck link. In addition,                              of 100 ms. To evaluate the impact that propagation delay on
+we create varying numbers of non-ABC short flows (each                                     ABC’s performance, we repeated the experiment from Fig. 8
+of size 10 KB) with Poisson flow arrival times to offer a fixed                            on the RTT values of 20 ms, 50 ms, 100 ms, and 200 ms.
+average load. We vary the offered load values, and report                                  Across all RTTs, ABC outperforms all prior schemes, again
+
+
+                                                                                      12
+achieving a more desirable throughput/latency trade off (see             This coarse-grained update limits VCP’s effectiveness on
+Appendix G).                                                             time-varying wireless paths. For instance, it can take 12
+Application-limited flows: We created a single long-lived                RTTs to double the window. VCP is also incompatible with
+ABC flow that shared a cellular link with 200 application-               ECN, making it difficult to deploy.
+limited ABC flows that send traffic at an aggregate of 1                    In BMCC [40, 41], a router uses ADPM [9] to send link
+Mbit/s. Despite the fact that the application-limited flows do           load information to the receiver on ECN bits, relying on
+not have traffic to properly respond to ABC’s feedback, the              TCP options to relay the feedback from the receiver to the
+ABC flows (in aggregate) still achieve low queuing delays                sender. MTG proposed modifying cellular base stations
+and high link utilization. See Appendix G for details.                   to communicate the link rate explicitly using a new TCP
+Perfect future capacity knowledge: We considered a variant               option [26]. Both approaches do not work with IPSec
+of ABC, PK-ABC, which knows an entire emulated link trace                encryption [30], and such packet modifications trigger the
+in advance. This experiment reflects the possibility of resource         risk of packets being dropped silently by middleboxes [25].
+allocation predictions at cellular base stations. Rather than us-        Moreover, unlike ABC, MTG does not ensure fairness among
+ing an estimate of the current link rate to compute a target rate        multiple flows for a user, while BMCC has the same problem
+(as ABC does), PK-ABC uses the expected link rate 1 RTT                  with non-BMCC flows [39, 40].
+in the future. On the same setup as Fig. 7b, PK-ABC reduces                 XCP-b [4] is a variant of XCP designed for wireless links
+95th percentile per-packet-delays from 97 ms to 28 ms, com-              with unknown capacity. XCP-b routers use the queue size to
+pared to ABC, while achieving similar utilization (∼90%).                determine the feedback. When the queue is backlogged, the
+ABC’s improvement on real applications: We evaluated                     XCP-b router calculates spare capacity using the change in
+ABC’s improvement for real user-facing applications on                   queue size and uses the same control rule as XCP. When the
+a multiplayer interactive game, Slither.io [3]. We loaded                queue goes to zero, XCP-b cannot estimate spare capacity, and
+Slither.io using a Google Chrome browser which ran inside                resorts to a blind fixed additive increase. Such blind increase
+an emulated cellular link with a background backlogged flow.             can cause both under-utilization and increased delays (§2.)
+We considered three schemes for the backlogged flow: Cubic,                 Although several prior schemes (XCP, RCP, VCP, BMCC,
+Cubic+Codel, and ABC. Cubic fully utilizes the link, but adds            XCP-b) attempt to match the current enqueue rate to the
+excessive queuing delays hindering gameplay. Cubic+Codel                 capacity, none match the future enqueue rate to the capacity,
+reduces queuing delays (improving user experience in the                 and so do not perform as well as ABC on time-varying links.
+game), but underutilizes the link. Only ABC is able to achieve           9   Conclusion
+both high link utilization for the backlogged flow and low
+queuing delays for the game. A video demo of this experiment             This paper presented a simple new explicit congestion control
+can be viewed at https://youtu.be/Dauq-tfJmyU.                           protocol for time-varying wireless links called ABC. ABC
+Impact of η: This parameter presents a trade-off between                 routers use a single bit to mark each packet with “accelerate”
+throughput and delay. Increasing η increases the throughput              or “brake”, which causes senders to slightly increase or
+but at the cost of additional delay (see Appendix B).                    decrease their congestion windows. Routers use this succinct
+                                                                         feedback to quickly guide senders towards a desired target
+8   Related Work                                                         rate. ABC outperforms the best existing explicit flow control
+Several prior works have proposed using LTE infrastructure to            scheme, XCP, but unlike XCP, ABC does not require mod-
+infer the underlying link capacity [26, 34, 49]. CQIC [34] and           ifications to packet formats or user devices, making it simpler
+piStream [49] use physical layer information at the receiver             to deploy. ABC is also incrementally deployable: ABC can
+to estimate link capacity. However, these approaches have sev-           operate correctly with multiple ABC and non-ABC bottle-
+eral limitations that lead to inaccurate estimates. CQIC’s esti-         necks, and can fairly coexist with ABC and non-ABC traffic
+mation approach considers historical resource usage (not the             sharing the same bottleneck link. We evaluated ABC using
+available physical resources) [49], while piStream’s technique           a WiFi router implementation and trace-driven emulation
+relies on second-level video segment downloads and thus does             of cellular links. ABC achieves 30-40% higher throughput
+not account for the short timescale variations in link rate re-          than Cubic+Codel for similar delays, and 2.2× lower delays
+quired for per-packet congestion control. These inaccuracies             than BBR on a Wi-Fi path. On cellular network paths, ABC
+stem from the opacity of the base station’s resource alloca-             achieves 50% higher throughput than Cubic+Codel.
+tion process at the receiver. ABC circumvents these issues by            Acknowledgments. We thank Anirudh Sivaraman, Peter
+accurately estimating link capacity directly at the base station.        Iannucci, and Srinivas Narayana for useful discussions. We
+   In VCP [48], router classifies congestion as low, medium,             are grateful to the anonymous reviewers and our shepherd
+or high, and signals the sender to either perform a mul-                 Jitendra Padhye for their feedback and useful comments.
+tiplicative increase, additive increase, or multiplicative               This work was supported in part by DARPA under Contract
+decrease in response. Unlike an ABC sender, which reacts                 No. HR001117C0048, and NSF grants CNS-1407470,
+to ACKs individually, VCP senders act once per RTT.                      CNS-1751009, and CNS-1617702.
+
+
+                                                                    13
+References                                                                  for Computer Communication, August 27-31, 2001, San
+ [1] 3GPP technical specification for lte. https://www.                     Diego, CA, USA, pages 263–274. ACM, 2001.
+     etsi.org/deliver/etsi_ts/132400_132499/
+     132450/09.01.00_60/ts_132450v090100p.pdf.                         [12] J. C. Bicket. Bit-rate selection in wireless networks. PhD
+                                                                            thesis, Massachusetts Institute of Technology, 2005.
+ [2] sfqCoDel.    http://www.pollere.net/Txtdocs/
+     sfqcodel.cc.                                                      [13] L. S. Brakmo, S. W. O’Malley, and L. L. Peterson. TCP
+                                                                            vegas: New techniques for congestion detection and
+ [3] Slither.io interactive multiplayer game.        http://                avoidance. In J. Crowcroft, editor, Proceedings of the
+     slither.io.                                                            ACM SIGCOMM ’94 Conference on Communications Ar-
+                                                                            chitectures, Protocols and Applications, London, UK, Au-
+ [4] F. Abrantes and M. Ricardo. XCP for shared-access                      gust 31 - September 2, 1994, pages 24–35. ACM, 1994.
+     multi-rate media. Computer Communication Review,
+     36(3):27–38, 2006.                                                [14] N. Cardwell, Y. Cheng, C. S. Gunn, S. H. Yeganeh,
+                                                                            and V. Jacobson. BBR: congestion-based congestion
+ [5] A. Akella, S. Seshan, S. Shenker, and I. Stoica. Explor-
+                                                                            control. ACM Queue, 14(5):20–53, 2016.
+     ing congestion control. Technical report, CMU School
+     of Computer Science, 2002.                                        [15] D. Chiu and R. Jain. Analysis of the increase and de-
+ [6] M. Alizadeh, A. G. Greenberg, D. A. Maltz, J. Padhye,                  crease algorithms for congestion avoidance in computer
+     P. Patel, B. Prabhakar, S. Sengupta, and M. Sridharan.                 networks. Computer Networks, 17:1–14, 1989.
+     Data center TCP (DCTCP). In S. Kalyanaraman, V. N.
+                                                                       [16] M. Dong, T. Meng, D. Zarchy, E. Arslan, Y. Gilad,
+     Padmanabhan, K. K. Ramakrishnan, R. Shorey, and
+                                                                            B. Godfrey, and M. Schapira. PCC vivace: Online-
+     G. M. Voelker, editors, Proceedings of the ACM SIG-
+                                                                            learning congestion control. In S. Banerjee and
+     COMM 2010 Conference on Applications, Technologies,
+                                                                            S. Seshan, editors, 15th USENIX Symposium on Net-
+     Architectures, and Protocols for Computer Communica-
+                                                                            worked Systems Design and Implementation, NSDI 2018,
+     tions, New Delhi, India, August 30 -September 3, 2010,
+                                                                            Renton, WA, USA, April 9-11, 2018, pages 343–356.
+     pages 63–74. ACM, 2010.
+                                                                            USENIX Association, 2018.
+ [7] M. Alizadeh, A. Kabbani, T. Edsall, B. Prabhakar,
+     A. Vahdat, and M. Yasuda. Less is more: Trading a                 [17] D. Ely, N. Spring, D. Wetherall, S. Savage, and
+     little bandwidth for ultra-low latency in the data center.             T. Anderson. Robust congestion signaling. In Network
+     In S. D. Gribble and D. Katabi, editors, Proceedings                   Protocols, 2001. Ninth International Conference on,
+     of the 9th USENIX Symposium on Networked Systems                       pages 332–341. IEEE, 2001.
+     Design and Implementation, NSDI 2012, San Jose, CA,
+                                                                       [18] F. Fainelli. The openwrt embedded development
+     USA, April 25-27, 2012, pages 253–266. USENIX
+                                                                            framework. In Proceedings of the Free and Open Source
+     Association, 2012.
+                                                                            Software Developers European Meeting, 2008.
+ [8] M. Allman. Tcp congestion control with appropriate
+                                                                       [19] S. Floyd and V. Jacobson. Random early detection
+     byte counting (abc)", rfc 3465. 2003.
+                                                                            gateways for congestion avoidance. IEEE/ACM Trans.
+ [9] L. L. H. Andrew, S. V. Hanly, S. Chan, and T. Cui.                     Netw., 1(4):397–413, 1993.
+     Adaptive deterministic packet marking.        IEEE
+     Communications Letters, 10(11):790–792, 2006.                     [20] R. Fonseca, G. Porter, R. Katz, S. Shenker, and I. Stoica.
+                                                                            Ip options are not an option. University of California at
+[10] V. Arun and H. Balakrishnan. Copa: Practical delay-                    Berkeley, Technical Report UCB/EECS-2005-24, 2005.
+     based congestion control for the internet. In S. Banerjee
+     and S. Seshan, editors, 15th USENIX Symposium                     [21] B. Ginzburg and A. Kesselman. Performance analysis
+     on Networked Systems Design and Implementation,                        of a-mpdu and a-msdu aggregation in ieee 802.11 n. In
+     NSDI 2018, Renton, WA, USA, April 9-11, 2018, pages                    Sarnoff symposium, 2007 IEEE, pages 1–5. IEEE, 2007.
+     329–342. USENIX Association, 2018.
+                                                                       [22] P. Goyal, M. Alizadeh, and H. Balakrishnan. Rethinking
+[11] D. Bansal, H. Balakrishnan, S. Floyd, and S. Shenker.                  congestion control for cellular networks. In S. Banerjee,
+     Dynamic behavior of slowly-responsive congestion con-                  B. Karp, and M. Walfish, editors, Proceedings of the
+     trol algorithms. In R. L. Cruz and G. Varghese, editors,               16th ACM Workshop on Hot Topics in Networks, Palo
+     Proceedings of the ACM SIGCOMM 2001 Conference on                      Alto, CA, USA, HotNets 2017, November 30 - December
+     Applications, Technologies, Architectures, and Protocols               01, 2017, pages 29–35. ACM, 2017.
+
+
+                                                                  14
+[23] S. Ha, I. Rhee, and L. Xu. CUBIC: a new tcp-friendly                  Proceedings of the ACM SIGCOMM 2001 Conference on
+     high-speed TCP variant. Operating Systems Review,                     Applications, Technologies, Architectures, and Protocols
+     42(5):64–74, 2008.                                                    for Computer Communication, August 27-31, 2001, San
+                                                                           Diego, CA, USA, pages 123–134. ACM, 2001.
+[24] J. C. Hoe. Improving the start-up behavior of a
+     congestion control scheme for TCP. In D. Estrin,                 [34] F. Lu, H. Du, A. Jain, G. M. Voelker, A. C. Snoeren,
+     S. Floyd, C. Partridge, and M. Steenstrup, editors,                   and A. Terzis. CQIC: revisiting cross-layer congestion
+     Proceedings of the ACM SIGCOMM 1996 Conference                        control for cellular networks. In J. Manweiler and
+     on Applications, Technologies, Architectures, and                     R. R. Choudhury, editors, Proceedings of the 16th
+     Protocols for Computer Communication, Stanford, CA,                   International Workshop on Mobile Computing Systems
+     USA, August 26-30, 1996, pages 270–280. ACM, 1996.                    and Applications, HotMobile 2015, Santa Fe, NM, USA,
+                                                                           February 12-13, 2015, pages 45–50. ACM, 2015.
+[25] M. Honda, Y. Nishida, C. Raiciu, A. Greenhalgh,
+     M. Handley, and H. Tokuda. Is it still possible to extend        [35] A. Metwally, D. Agrawal, and A. El Abbadi. Efficient
+     tcp? In P. Thiran and W. Willinger, editors, Proceedings              computation of frequent and top-k elements in data
+     of the 11th ACM SIGCOMM Internet Measurement                          streams. In T. Eiter and L. Libkin, editors, Database
+     Conference, IMC ’11, Berlin, Germany, November 2-,                    Theory - ICDT 2005, 10th International Conference,
+     2011, pages 181–194. ACM, 2011.                                       Edinburgh, UK, January 5-7, 2005, Proceedings, volume
+[26] A. Jain, A. Terzis, H. Flinck, N. Sprecher, S. Arunacha-              3363 of Lecture Notes in Computer Science, pages
+     lam, and K. Smith. Mobile throughput guidance inband                  398–412. Springer, 2005.
+     signaling protocol. IETF, work in progress, 2015.
+                                                                      [36] R. Netravali, A. Sivaraman, S. Das, A. Goyal, K. Win-
+[27] R. Jain. Congestion control and traffic management in                 stein, J. Mickens, and H. Balakrishnan. Mahimahi:
+     ATM networks: Recent advances and a survey. Com-                      Accurate record-and-replay for HTTP. In S. Lu and
+     puter Networks and ISDN Systems, 28(13):1723–1738,                    E. Riedel, editors, 2015 USENIX Annual Technical
+     1996.                                                                 Conference, USENIX ATC ’15, July 8-10, Santa Clara,
+                                                                           CA, USA, pages 417–429. USENIX Association, 2015.
+[28] R. Jain, A. Durresi, and G. Babic. Throughput fairness
+     index: An explanation. In ATM Forum contribution,                [37] K. M. Nichols and V. Jacobson. Controlling queue
+     volume 99, 1999.                                                      delay. Commun. ACM, 55(7):42–50, 2012.
+[29] D. Katabi, M. Handley, and C. E. Rohrs. Congestion               [38] R. Pan, P. Natarajan, C. Piglione, M. S. Prabhu, V. Sub-
+     control for high bandwidth-delay product networks. In                 ramanian, F. Baker, and B. VerSteeg. PIE: A lightweight
+     M. Mathis, P. Steenkiste, H. Balakrishnan, and V. Pax-                control scheme to address the bufferbloat problem.
+     son, editors, Proceedings of the ACM SIGCOMM 2002                     In IEEE 14th International Conference on High
+     Conference on Applications, Technologies, Architectures,              Performance Switching and Routing, HPSR 2013, Taipei,
+     and Protocols for Computer Communication, August                      Taiwan, July 8-11, 2013, pages 148–155. IEEE, 2013.
+     19-23, 2002, Pittsburgh, PA, USA, pages 89–102. ACM,
+     2002.                                                            [39] I. A. Qazi, L. Andrew, and T. Znati. Incremental
+                                                                           deployment of new ecn-compatible congestion control.
+[30] S. T. Kent and K. Seo. Security architecture for the
+                                                                           In Proc. PFLDNeT, 2009.
+     internet protocol. RFC, 4301:1–101, 2005.
+[31] Z. Krämer, S. Molnár, A. Mihály, and S. Nádas. Towards           [40] I. A. Qazi, L. L. H. Andrew, and T. Znati. Congestion
+     multi-domain congestion control in next-generation net-               control with multipacket feedback. IEEE/ACM Trans.
+     works. In 2019 IEEE Wireless Communications and Net-                  Netw., 20(6):1721–1733, 2012.
+     working Conference (WCNC), pages 1–7. IEEE, 2019.
+                                                                      [41] I. A. Qazi, T. Znati, and L. L. H. Andrew. Congestion
+[32] M. Kühlewind and R. Scheffenegger. Design and                         control using efficient explicit feedback. In INFOCOM
+     evaluation of schemes for more accurate ECN feedback.                 2009. 28th IEEE International Conference on Computer
+     In Proceedings of IEEE International Conference on                    Communications, Joint Conference of the IEEE Com-
+     Communications, ICC 2012, Ottawa, ON, Canada, June                    puter and Communications Societies, 19-25 April 2009,
+     10-15, 2012, pages 6937–6941. IEEE, 2012.                             Rio de Janeiro, Brazil, pages 10–18. IEEE, 2009.
+
+[33] S. S. Kunniyur and R. Srikant. Analysis and design of an         [42] K. K. Ramakrishnan, S. Floyd, and D. L. Black. The
+     adaptive virtual queue (AVQ) algorithm for active queue               addition of explicit congestion notification (ECN) to
+     management. In R. L. Cruz and G. Varghese, editors,                   IP. RFC, 3168:1–63, 2001.
+
+
+                                                                 15
+[43] L. Ravindranath, J. Padhye, R. Mahajan, and H. Balakr-           [51] Y. Zaki, T. Pötsch, J. Chen, L. Subramanian, and
+     ishnan. Timecard: controlling user-perceived delays in                C. Görg. Adaptive congestion control for unpredictable
+     server-based mobile applications. In M. Kaminsky and                  cellular networks. In S. Uhlig, O. Maennel, B. Karp,
+     M. Dahlin, editors, ACM SIGOPS 24th Symposium on                      and J. Padhye, editors, Proceedings of the 2015 ACM
+     Operating Systems Principles, SOSP ’13, Farmington,                   Conference on Special Interest Group on Data Commu-
+     PA, USA, November 3-6, 2013, pages 85–100. ACM,                       nication, SIGCOMM 2015, London, United Kingdom,
+     2013.                                                                 August 17-21, 2015, pages 509–522. ACM, 2015.
+
+[44] C. Tai, J. Zhu, and N. Dukkipati. Making large scale
+     deployment of RCP practical for real networks. In INFO-
+     COM 2008. 27th IEEE International Conference on Com-
+     puter Communications, Joint Conference of the IEEE
+     Computer and Communications Societies, 13-18 April
+     2008, Phoenix, AZ, USA, pages 2180–2188. IEEE, 2008.
+
+[45] A. Tirumala, F. Qin, J. Dugan, J. Ferguson, and K. Gibbs.
+     Iperf: The TCP/UDP bandwidth measurement tool.
+     http://dast.nlanr.net/Projects, 2005.
+
+[46] Z. Wang, Z. Qian, Q. Xu, Z. M. Mao, and M. Zhang.
+     An untold story of middleboxes in cellular networks.
+     In S. Keshav, J. Liebeherr, J. W. Byers, and J. C. Mogul,
+     editors, Proceedings of the ACM SIGCOMM 2011
+     Conference on Applications, Technologies, Architectures,
+     and Protocols for Computer Communications, Toronto,
+     ON, Canada, August 15-19, 2011, pages 374–385. ACM,
+     2011.
+
+[47] K. Winstein, A. Sivaraman, and H. Balakrishnan.
+     Stochastic forecasts achieve high throughput and
+     low delay over cellular networks. In N. Feamster
+     and J. C. Mogul, editors, Proceedings of the 10th
+     USENIX Symposium on Networked Systems Design and
+     Implementation, NSDI 2013, Lombard, IL, USA, April
+     2-5, 2013, pages 459–471. USENIX Association, 2013.
+
+[48] Y. Xia, L. Subramanian, I. Stoica, and S. Kalyanaraman.
+     One more bit is enough. In R. Guérin, R. Govindan,
+     and G. Minshall, editors, Proceedings of the ACM
+     SIGCOMM 2005 Conference on Applications, Tech-
+     nologies, Architectures, and Protocols for Computer
+     Communications, Philadelphia, Pennsylvania, USA,
+     August 22-26, 2005, pages 37–48. ACM, 2005.
+
+[49] X. Xie, X. Zhang, S. Kumar, and L. E. Li. pistream:
+     Physical layer informed adaptive video streaming over
+     LTE. In S. Fdida, G. Pau, S. K. Kasera, and H. Zheng,
+     editors, Proceedings of the 21st Annual International
+     Conference on Mobile Computing and Networking,
+     MobiCom 2015, Paris, France, September 7-11, 2015,
+     pages 413–425. ACM, 2015.
+
+[50] J. A. Yorke. Asymptotic stability for one dimensional
+     differential-delay equations. Journal of Differential
+     equations, 7(1):189–202, 1970.
+
+
+                                                                 16
+                    15                                                                                   15
+                                                                                                                                                               will be equal to the dequeue rate at the router at time t −τr :
+
+
+
+
+                                                                                     Delay (ms) Rate (Mbps)
+Delay (ms) Rate (Mbps)
+
+                    10                                                                                   10
+                     5                                                                                    5
+                     0                                                                                    0                                                                           R(t) = cr(t −τr ).                      (9)
+                   800                                                                                  800
+                   600                                                                                  600
+ Queuing
+
+
+
+
+                                                                                      Queuing
+                   400                                                                                  400                                                    In response to an accelerate, a sender will send 2 packets,
+                   200                                                                                  200
+                     0
+                         0                 5      10     15       20     25     30
+                                                                                                          0
+                                                                                                               0     5     10     15       20   25   30        and, for a brake, a sender won’t send anything. In addition
+                                                       Time (s)                                                                 Time (s)
+                                                                                                                                                               to responding to accel-brakes, each sender will also send an
+                                               (a) BBR                                                                    (b) ABC                              additional packet every l seconds (because of AI). Therefore,
+Figure 14: Comparison with BBR — BBR overshoots the link                                                                                                       the aggregate sending rate for all senders at time t, S(t), will be
+capacity, causing excessive queuing. Same setup as Fig. 1.
+                                                                                                                                                                                                              N
+                                           1.0
+                                                                                                                    1.0                                                        S(t) = R(t)·2· f (t −τr )+
+                                                                       0.9           0.950.98                                                                                                                 l
+                                           0.8     0.8                                                                                                                                                            N
+                             Utilization
+
+
+
+
+                                                                                                                                                                                    = 2cr(t −τr ) f (t −τr )+       .        (10)
+                                                                                                                                                                                                                  l
+                                           0.6
+                                                                                                                                                               Substituting f (t −τr ) from Equation (2), we get
+                                           0.4
+                                                 150      160      170        180    190                      200    210    220        230                                                                  N
+                                                              95 percentile per packet delay (ms)                                                                                   S(t) = tr(t −τr )+        .              (11)
+Figure 15: Impact of η — Performance of ABC with various values                                                                                                                                             l
+of η (target utilization). η presents a trade-off between throughput                                                                                           Let τ f be the propagation delay between a sender and the
+and delay. Same setup as Fig. 1.                                                                                                                               ABC router, and eq(t) be the enqueue rate at the router at
+A                        BBR overestimates the sending rate                                                                                                    time t. Then eq(t) is given by
+Fig. 14 shows the throughput and queuing delay of BBR on a
+                                                                                                                                                                                eq(t) = S(t −τ f )
+Verizon cellular trace. BBR periodically increases its rate in
+short pulses, and frequently overshoots the link capacity with                                                                                                                                                    N
+                                                                                                                                                                                       = tr(t −(τr +τ f ))+
+variable-bandwidth links, causing excessive queuing.                                                                                                                                                              l
+                                                                                                                                                                                                      N
+B                        Impact of η                                                                                                                                                   = tr(t −τ)+      .                    (12)
+                                                                                                                                                                                                      l
+Fig. 15 shows the performance of ABC with various values
+                                                                                                                                                               Here, τ = τr +τ f is the round-trip propagation delay.
+of η on a Verizon cellular trace. Increasing η increases the
+                                                                                                                                                                  Let q(t) be the queue size, and, x(t) be the queuing delay
+link utilization, but, also increases the delay. Thus, η presents
+                                                                                                                                                               at time t:
+a trade-off between throughput and delay.
+                                                                                                                                                                                                  q(t)
+C                        Stability Analysis                                                                                                                                              x(t) =        .
+                                                                                                                                                                                                   µ
+This section establishes the stability bounds for ABC’s
+control algorithm (Theorem 1).                                                                                                                                 Ignoring the boundary conditions for simplicity (q(t) must
+Model: Consider a single ABC link, traversed by N ABC                                                                                                          be ≥ 0), the queue length has the following dynamics:
+flows. Let µ(t) be the link capacity at time t. As µ(t) can be
+time-varying, we define stability as follows. Suppose that                                                                                                             q̇(t) = eq(t)−µ
+at some time t0 , µ(t) stops changing, i.e., for t > t0 µ(t) = µ                                                                                                                       N
+                                                                                                                                                                            = tr(t −τ)+ −µ
+for some constant µ. We aim to derive conditions on ABC’s                                                                                                                              l
+                                                                                                                                                                                          
+parameters which guarantee that the aggregate rate of the                                                                                                                                N    µ
+senders and the queue size at the routers will converge to                                                                                                                  = (η−1)·µ+       − (x(t −τ)−dt )+ ,
+                                                                                                                                                                                         l    δ
+certain fixed-point values (to be determined) as t → ∞.
+   Let τ be the common round-trip propagation delay on the                                                                                                     where in the last step we have used Equation (1). Therefore
+path for all users. For additive increase (§4.3), assume that                                                                                                  the dynamics of x(t) can be described by:
+each sender increases its congestion window by 1 every l                                                                                                                                     
+                                                                                                                                                                                           N      1
+seconds. Let f (t) be the fraction of packets marked accelerate,                                                                                                       ẋ(t) = (η−1)+           − (x(t −τ)−dt )+
+and, cr(t) be the dequeue rate at the ABC router at time t. Let                                                                                                                           µ·l     δ
+τr be time it takes accel-brake marks leaving the ABC router                                                                                                                        1
+                                                                                                                                                                             = A− (x(t −τ)−dt )+ ,                      (13)
+to reach the sender. Assuming that there are no queues other                                                                                                                        δ
+than at the ABC router, τr will be the sum of the propagation                                                                                                                            
+                                                                                                                                                                                        N
+delay between ABC router and the receiver and the propa-                                                                                                       where A = (η−1)+ µ·l        , and, A is a constant given a
+gation delay between receiver and the senders. The aggregate                                                                                                   fixed number of flows N. The delay-differential equation in
+incoming rate of ACKs across all the senders at time t, R(t),                                                                                                  Equation (13) captures the behavior of the entire system. We
+
+
+                                                                                                                                                          17
+use it to analyze the behavior of the queuing delay, x(t), which                                25                      BBR
+in turn informs the dynamics of the target rate, tr(t), and                                                             Cubic
+
+
+
+
+                                                                            Throughput (Mbps)
+                                                                                                20    ABC Cubic+Codel                           PCC
+enqueue rate, eq(t), using Equations (1) and (12) respectively.
+                                                                                                            COPA
+Stability: For stability, we consider two possible scenarios                                    15   Vegas
+1) A < 0, and 2) A ≥ 0. We argue the stability in each case.
+                                                                                                10
+Case 1: A < 0. In this case, the stability analysis is straight-
+forward. The fixed point for queuing delay, x∗ , is 0. From                                      5
+Equation (13), we get                                                                            0      300    400    500 600 700 800900
+                                                                                                                                  800 1000      1500
+                       1                                                                                  95 percentile per packet delay (ms)
+             ẋ(t) = A− (x(t −τ)−dt )+ ≤ A < 0.                (14)
+                       δ
+                                                                            Figure 16: Throughput and 95th percentile delay for a single
+The above equation implies that the queue delay will decrease               user in WiFi — We model changes in MCS index as bownian motion,
+at least as fast as A. Thus, the queue will go empty in a                   with values changing every 2 seconds. We limit the MCS index
+bounded amount of time. Once the queue is empty, it will                    values to be between 3 and 7. ABC outperforms all other schemes.
+remain empty forever, and the enqueue rate will converge to
+a fixed value. Using Equation (12), the enqueue rate can will
+converge to                                                                 both H2 and H3 if
+
+                                 N                                                                            1     3      2
+              eq(t) = tr(t −τ)+                                                                                 ·τ < =⇒ δ > ·τ.                        (17)
+                                 l                                                                            δ     2      3
+                             N µ                                            This proves that ABC’s control rule is asymptotically stable if
+                       = ηµ+ − (x(t −τ)−dt )+
+                             l δ                                            Equation (17) holds. Having established that x(t) converges
+                             N                                              to x∗ = A · δ + dt , we can again use Equation (12) to derive
+                       = ηµ+
+                             l                                              the fixed point for the enqueue rate:
+                       = (1+A)µ.                               (15)
+                                                                                                                     N µ
+                                                                                                     eq(t) = ηµ+      − (x(t −τ)−dt )+ → µ,            (18)
+Note that ηµ < (1+A)µ < µ. Since both the enqueue rate and                                                           l δ
+the queuing delay converge to fixed values, the system is                   as t → ∞.
+stable for any value of δ.                                                     Note while, we proved stability assuming that the feedback
+Case 2: A > 0: The fixed point for the queuing delay in this                delay τ is a constant and the same value for all the senders, the
+                              ∼                                             proof works even if the senders have different time-varying
+case is x∗ = A · δ + dt . Let x(t) = x(t) − x∗ be the deviation
+of the queuing delay from its fixed point. Substituting in                  feedback delays (see Corollary 3.2 in [50]). The modified
+Equation (13), we get                                                       stability criterion in this case is δ > 23 · τ∗ , where τ∗ is the
+                                                                            maximum feedback delay across all senders.
+                 ˙
+                 ∼         1 ∼
+                 x(t) = A− ( x(t −τ)+A·δ)+                                  D                    Wi-Fi Evaluation
+                           δ
+                                   1∼                                       In this experiment we use the setup from Fig. 9a. To emulate
+                      = −max(−A, x(t −τ))                                   movement of the receiver, we model changes in MCS index
+                                   δ
+                           ∼                                                as brownian motion, with values changing every 2 seconds.
+                      = −g( x(t −τ)),                          (16)         Fig. 16 shows throughput and 95th percentile per packet delay
+                                                                            for a number of schemes. Again, ABC outperforms all other
+where g(u) = max(−A, 1δ u) and A > 0.                                       schemes achieving better throughput and latency trade off.
+   In [50] (Corollary 3.1), Yorke established that delay-
+differential equations of this type are globally asymptotically             E                    Low Delays and High Throughput
+              ∼
+stable (i.e., x(t) → 0 as t → ∞ irrespective of the initial                 Fig. 17 shows the mean per packet delay achieved by various
+condition), if the following conditions are met:                            schemes in the experiment from Fig. 8. We observe the trend
+                                                                            in mean delay is similar to that of 95th percentile delay (
+  1. H1 : g is continuous.                                                  Fig. 8b). ABC achieves delays comparable to Cubic+Codel,
+  2. H2 : There exists some α, s.t. α · u2 > ug(u) > 0 for all              Cubic+PIE and Copa. BBR, PCC Vivace-latency and Cubic
+     u 6= 0.                                                                incur 70-240% higher mean delay than ABC.
+                                                                            F                   ABC vs Explicit Control Schemes
+  3. H3 : α·τ < 32 .
+                                                                            In this section we compare ABC’s performance with explicit
+  The function g(·) trivially satisfies H1 . H2 holds for any               congestion control schemes. We consider XCP, VCP, RCP
+α ∈ ( 1δ ,∞). Therefore, there exists an α ∈ ( 1δ ,∞) that satisfies        and our modified implementation of XCP (XCPw ). For XCP
+
+
+                                                                       18
+                       Verizon 1          Verizon 2    TMobile 1    ATT 1  Verizon 3                                             Verizon 4            explicit flow control scheme, XCPw , without using multibit
+                                                 TMobile 2    ATT 2   AVERAGE                                                                         per-packet feedback. We note that XCPw ’s 95th percentile
+                                                                                                                                                      per-packet delays are 40% higher than ABC’s. ABC is
+                      1000
+                       800                                                                                                                            also able to outperform RCP and VCP. Specifically, ABC
+                       600                                                                                                                            achieves 20% higher utilization than RCP. This improvement
+  Mean Delay (ms)
+
+
+
+
+                       400                                                                                                                            stems from the fact that RCP is a rate based protocol (not
+                                                                                                                                                      a window based protocol)—by signaling rates, RCP is
+                       200
+                                                                                                                                                      slower to react to link rate fluctuations (Figure 19 illustrates
+                                                                                                                                                      this behavior). ABC also achieves 20% higher throughput
+                       100
+                                                                                                                                                      than VCP, while incurring slightly higher delays. VCP also
+                                                    l
+
+
+
+
+                                                                                                                      s
+                                                  E
+                                                 _W
+
+
+
+
+                                                                                                                                    C
+                                C
+
+
+
+
+                                                                                                            s
+                                                  P
+
+
+
+
+                                                                                                                                             c
+                                                                        a
+
+                                                                                                  ut
+
+
+
+
+                                                                                                                             R
+                                                 de
+
+
+
+
+                                                                                                                    ru
+                                                                                                          ga
+
+
+
+
+                                                                                                                                          bi
+                                                PI
+
+
+                                                                         p
+
+
+
+
+                                                                                                                                 PC
+                             AB
+
+                                               XC
+
+
+
+
+                                                                                                                          BB
+                                                                                                 ro
+                                                                      Co
+                                              Co
+                                               P
+
+
+
+
+                                                                                                                                        Cu
+                                                                                                                 Ve
+                                             c+
+
+
+
+
+                                                                                                       Ve
+                                                                                                                                                      signals multiplicative-increase/multiplicative-decrease to the
+                                                                                    Sp
+                                           XC
+
+                                          c+
+
+
+                                           bi
+                                       Cu
+                                        bi
+                                     Cu
+
+
+
+
+                                                                                                                                                      sender. But unlike ABC, the multiplicative increase/decrease
+                                                                                                                                                      constants are fixed. This coarse grained feedback limits
+Figure 17: Utilization and mean per-packet delay across 8                                                                                             VCP’s performance on time varying links.
+different cellular network traces — On average, ABC achieves
+similar delays and 50% higher utilization than Copa and Cubic+Codel.
+                                                                                                                                                         Fig. 19 shows performance of ABC, RCP and XCPw on a
+BBR, PCC, and Cubic achieve slightly higher throughput than ABC,                                                                                      simple time varying link. The capacity alternated between 12
+but incur 70-240% higher mean per-packet delays.                                                                                                      Mbit/sec and 24 Mbit/sec every 500 milliseconds. ABC and
+                                                                                                                                                      XCPw adapt quickly and accurately to the variations in bottle-
+                    Verizon 1        Verizon 2            TMobile 1                              Verizon 1           Verizon 2      TMobile 1
+                                                                                                                                                      neck rate, achieving close to 100% utilization. RCP is a rate
+                      ATT 1         Verizon 3            Verizon 4                                 ATT 1            Verizon 3      Verizon 4          base protocol and is inherently slower in reacting to conges-
+                     TMobile 2        ATT 2              AVERAGE                                  TMobile 2           ATT 2        AVERAGE            tion. When the link capacity drops, RCP takes time to drain
+                         1
+                                                                                                                                                      queues and over reduces its rates, leading to under-utilization.
+                                                                                                   1000
+                      0.75
+                                                                                                      800
+                                                                                                                                                      G    Other experiments
+                                                                             95%ile Delay (ms)
+
+
+
+
+                                                                                                      600
+     Utilization
+
+
+
+
+                       0.5                                                                                                                            Application limited flows
+                                                                                                      400
+                                                                                                                                                         We created a single long-lived ABC flow that shared a
+                      0.25
+                                                                                                                                                      cellular link with 200 application-limited ABC flows that
+                                                                                                      200
+                         0
+                                                                                                                                                      send traffic at an aggregate of 1 Mbit/s. Fig. 20 shows that,
+                             AB
+                                C
+                                     XC
+                                          P
+                                                   P_
+                                                     W
+                                                         VC
+                                                           P
+                                                               RC
+                                                                  P
+                                                                                                            AB
+                                                                                                                C      P
+                                                                                                                     XC CP_
+                                                                                                                            W
+                                                                                                                                  VC
+                                                                                                                                    P
+                                                                                                                                         RC
+                                                                                                                                            P         despite the fact that the application-limited flows do not have
+                                              XC                                                                         X
+                                                                                                                                                      traffic to properly respond to ABC’s feedback, the ABC flows
+                             (a) Utilization                                                                    (b) Delay                             (in aggregate) are still able to achieve low queuing delays
+                                                                                                                                                      and high link utilization.
+Figure 18: ABC vs explicit flow control — ABC achieves similar                                                                                        ABC’s sensitivity to network latency:
+utilization and 95th percentile per-packet delay as XCP and XCPw
+across all traces. Compared to RCP and VCP, ABC achieves 20%                                                                                             Thus far, our emulation experiments have considered fixed
+more utilization.                                                                                                                                     minimum RTT values of 100 ms. To evaluate the impact that
+                                                                                                                                                      propagation delay has on ABC’s performance, we used a
+                                                                                                                                                      modified version of the experimental setup from Fig. 8. In
+and XCPw , we used constant values of α = 0.55 and β = 0.4,                                                                                           particular, we consider RTT values of 20 ms, 50 ms, 100 ms,
+which the authors note are the highest permissible stable                                                                                             and 200 ms. Fig. 21 shows that, across all propagation delays,
+values that achieve the fastest possible link rate convergence.                                                                                       ABC is still able to outperform all prior schemes, again achiev-
+For RCP and VCP, we used the author-specified parameter                                                                                               ing a more desirable throughput/latency trade off. ABC’s
+values of α = 0.5 and β = 0.25, and α = 1, β = 0.875                                                                                                  benefits persist even though schemes like Cubic+Codel and
+and κ = 0.25, respectively. Fig. 18 shows utilizations and                                                                                            Cubic+PIE actually improve with decreasing propagation
+mean per packet delays achieved by each of these schemes                                                                                              delays. Performance with these schemes improves because
+over eight different cellular link traces. As shown, ABC is                                                                                           bandwidth delay products decrease, making Cubic’s additive
+able to achieve similar throughput as the best performing                                                                                             increase more aggressive (improving link utilization).
+
+
+
+
+                                                                                                                                                 19
+                             Delay (ms) Throughput
+
+
+
+
+                                                                                                                         Delay (ms) Throughput
+
+
+
+
+                                                                                                                                                                                          Delay (ms) Throughput
+                                                     20                                                                                          20                                                               20
+                                          (Mbps)
+
+
+
+
+                                                                                                                                      (Mbps)
+
+
+
+
+                                                                                                                                                                                                       (Mbps)
+                                                     10                                                                                          10                                                               10
+                                                 0                                                                                           0                                                                0
+                                               200                                                                                         200                                                              200
+                                               150                                                                                         150                                                              150
+                              Queuing
+
+
+
+
+                                                                                                                          Queuing
+
+
+
+
+                                                                                                                                                                                           Queuing
+                                               100                                                                                         100                                                              100
+                                                50                                                                                          50                                                               50
+                                                 0                                                                                           0                                                                0
+                                                          0         2         4          6             8         10                                   0        2      4      6   8   10                                0   2      4       6   8   10
+                                                                              Time (s)                                                                                Time (s)                                                    Time (s)
+                                                                         (a) ABC                                                                                   (b) RCP                                                     (c) XCPw
+
+Figure 19: Time series for explicit schemes — We vary the link capacity every 500ms between two rates 12 Mbit/sec and 24 Mbit/sec.The
+dashed blue in the top graph represents bottleneck link capacity. ABC and XCPw adapt quickly and accurately to the variations in bottleneck
+rate, achieving close to 100% utilization. RCP is a rate base protocol and is inherently slower in reacting to congestion. When the link capacity
+drops, RCP takes time to drain queues and over reduces its rates, leading to under-utilization.
+
+
+
+
+                                                      15
+                             Delay (ms) Throughput
+
+
+
+
+                                                      10
+                                          (Mbps)
+
+
+
+
+                                                       5
+                                                       0
+                                                     100
+                                                      80
+                              Queuing
+
+
+
+
+                                                      60
+                                                      40
+                                                      20
+                                                       0
+                                                                    24    26        28        30           32       34               36
+                                                                                         Time (s)
+Figure 20: ABC’s robustness to flow size — With a single
+backlogged ABC flow and multiple concurrent application-limited
+ABC flows, all flows achieve high utilization and low delays.
+
+
+
+                             RTT 20ms                          RTT 50ms           RTT 100ms                 RTT 200ms                             AVERAGE
+                                     1
+
+                             0.75
+ Utilization
+
+
+
+
+                                0.5
+
+                             0.25
+
+                                     0
+                                                                                                                         s
+                                                                              l
+
+
+
+
+                                                                                                                                                      C
+                                                 C
+
+
+
+
+                                                                                                                s
+                                                              P
+
+                                                                    Pw
+
+
+
+
+                                                                                     E
+
+
+
+
+                                                                                                                                                             c
+                                                                                             pa
+
+
+                                                                                                       t
+
+
+
+
+                                                                                                                                     R
+                                                                          de
+
+
+
+
+                                                                                                   ou
+
+
+
+
+                                                                                                                      ru
+                                                                                                            ga
+
+
+
+
+                                                                                                                                                           bi
+                                                                                  PI
+
+
+
+
+                                                                                                                                                  PC
+                                           AB
+
+                                                          XC
+
+
+
+
+                                                                                                                                  BB
+                                                                                         Co
+                                                                         Co
+
+
+
+
+                                                                                                                                                          Cu
+                                                                                                                    Ve
+                                                                   XC
+
+
+
+
+                                                                                                 r
+                                                                                                           Ve
+                                                                                              Sp
+
+
+
+
+                                                                              (a) Utilization
+                             RTT 20ms                          RTT 50ms           RTT 100ms                 RTT 200ms                             AVERAGE
+                             1000
+ 95%ile Queuing Delay (ms)
+
+
+
+
+                                500
+
+
+
+                                100
+                                    50
+                                                                                                                         s
+                                                                              l
+
+
+
+
+                                                                                                                                                       C
+                                                     C
+
+
+
+
+                                                                                                              s
+                                                               P
+
+                                                                    Pw
+
+
+
+
+                                                                                    E
+
+
+
+
+                                                                                                                                                        c
+                                                                                             pa
+
+
+                                                                                                       t
+
+
+
+
+                                                                                                                                        R
+                                                                          de
+
+
+
+
+                                                                                                      u
+
+
+
+                                                                                                                      ru
+                                                                                                            ga
+
+
+
+
+                                                                                                                                                     bi
+                                                                                  PI
+
+
+
+
+                                                                                                                                                   PC
+                                             AB
+
+                                                              XC
+
+
+
+
+                                                                                                                                  BB
+                                                                                                   ro
+                                                                                         Co
+                                                                         Co
+
+
+
+
+                                                                                                                                                  Cu
+                                                                                                                    Ve
+                                                                   XC
+
+
+
+
+                                                                                                           Ve
+                                                                                                  Sp
+
+
+
+
+                                                                   (b) per-packet queuing delay
+Figure 21: Impact of propagation delay on performance — On a
+Verizon cellular network trace with different propagation delays, ABC
+achieves a better throughput/delay tradeoff than all other schemes.
+
+
+
+                                                                                                                                                                     20
+

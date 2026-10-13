@@ -1,0 +1,91 @@
+\section{Controlled Experiments}
+\label{sec:controlled_experiments}
+
+\subsection{Implementation identity and experimental design}
+We use E1 to examine bandwidth sharing between two flows of the same
+implementation as RTT asymmetry and queue depth change, and E2 to examine
+coexistence with CUBIC. E3 extends the equal-RTT comparison across capacity
+and propagation delay. An artificial-loss extension separates configured
+access-link loss from bottleneck congestion. These tests evaluate the
+framework's assessment dimensions under stated conditions, Each experiment addresses a separate assessment question.
+
+The Linux emulation uses Mininet 2.3.0, Open vSwitch bridges, iperf3 3.9
+and iproute2 5.15.0. Two sender hosts connect through switches $s_1$ and
+$s_2$ to one receiver: $h_1,h_2\rightarrow s_1\rightarrow s_2\rightarrow h_3$.
+The $s_1$--$s_2$ link is the bottleneck, configured with a token-bucket
+rate limiter and child netem FIFO packet limit, without AQM or ECN.
+The receiver access link supplies the base propagation delay; additional
+delay on the second sender's access link creates RTT asymmetry. Each
+sender opens one TCP connection to a separate receiver port (5201 or
+5202), with one-second iperf3 reporting intervals. The topology is rebuilt
+between runs. The MTU is 1,500 bytes. In E1/E2, the reference BDP is
+$100\,\mathrm{Mbps}\times20\,\mathrm{ms}/8=250,000$ bytes, using the first
+flow's configured propagation RTT, including when the second RTT differs.
+Queue targets of 125,000, 500,000 and 2,500,000 bytes are rounded up to
+84, 334 and 1,667 MTU-sized packets, respectively.
+
+The archived experiments comprise 340 two-flow runs: 60 each for the
+Ubuntu 5.15.0-181-generic in-tree baseline, the separately loaded BBRv1 module, BBR2, and
+BBRv3; 80 E3 runs; and 20 artificial-loss runs. The manifests identify
+BBRv3 by the 6.13.7-bbr3 kernel, source marker BBR\_VERSION=3, and runtime
+name \texttt{bbr}. The BBRv1 module registers as \texttt{bbr1} and uses
+a recorded compatibility patch for an unexported TSO helper. BBR2 uses
+a separate 5.13.12-bbr2alpha kernel and runtime name \texttt{bbr2}.
+The in-tree baseline remains a distinct implementation label.
+Different kernel environments and the module patch limit causal
+attribution of performance differences to algorithm version alone.
+
+The E1/E2 matrix uses a 100-Mbps bottleneck, a 20-ms first-flow RTT,
+second-flow RTTs of 20, 40, or 80 ms for the same-algorithm comparison,
+and equal-RTT BBR/CUBIC competition. Queue targets are 0.5, 2, or 10
+times the reference BDP. Each condition has five 180-s repetitions,
+with ECN disabled. Receiver-side iperf3 summaries provide the archived
+full-run goodput. Jain fairness and flow shares are derived from those
+per-flow rates. For each run, with receiver rates $x_1,x_2$, we compute
+$G=x_1+x_2$, $J=(x_1+x_2)^2/[2(x_1^2+x_2^2)]$ and
+$S_2=x_2/(x_1+x_2)$. Reported Jain indices and shares are means of
+these run-level quantities, rather than values calculated from mean rates.
+In E2, flow 1 is BBR and flow 2 is CUBIC, so the mean BBR share is
+$1-\overline{S_2}$. Receiver goodput excludes protocol headers; therefore
+it need not equal the configured link rate. The supplement supplies
+per-run values and variability; five repetitions support descriptive
+comparisons, not population-wide significance claims.
+
+The configuration declares a 30-s warmup; the primary archived analysis
+uses the complete receiver summary. A separate sensitivity analysis uses
+complete receiver intervals within the configured 30--180-s window,
+without estimating bytes in boundary intervals. Across 68 condition
+summaries, the largest absolute changes in mean total goodput, Jain
+index, and second-flow share are 1.313 Mbps, 0.02949, and 0.01678,
+respectively. The separate window analysis quantifies the sensitivity of these summaries.
+
+Loaded RTT measurements are sequential early ping samples from the two
+senders. Queue counters were sampled before the transfers completed.
+The RTT and queue observations use different windows from the receiver
+goodput summary; their values are reported as complementary measurements.
+
+\input{F15_cross_version_results_candidate.tex}
+\input{F13_E3_results_candidate.tex}
+
+\subsection{Goodput under artificial access-link loss}
+The artificial-loss extension compares BBRv3 and CUBIC at configured
+loss probabilities of zero and 0.1\% on a separate access link. Each run
+uses two flows of the same algorithm, a 100-Mbps bottleneck, equal 20-ms
+RTTs and a 500,000-byte queue target (2 reference BDP),
+with five runs per algorithm and loss setting. Archived full-run mean total
+goodput changes from 93.87 to 94.25 Mbps for BBRv3 and from 95.58 to
+81.06 Mbps for CUBIC. The small BBRv3 increase is a descriptive observation
+and is not evidence that loss improves performance. The loss generator's
+seed was not exposed in the retained configuration; this setup does not
+represent correlated wireless or satellite errors.
+
+The additional equal-RTT cases extend the capacity and RTT settings of
+the main matrix. Their physical queue sizes are reported explicitly in
+Table~\ref{tab:e3_candidate}. Because four cases differ from the intended
+buffer labels, we use these results as an additional empirical comparison,
+rather than as a validation of the original buffer-category predictions.
+The experiments evaluate goodput and bandwidth sharing under controlled
+conditions; they do not establish universal suitability thresholds or
+isolate the causal effect of an individual controller mechanism.
+
+\input{F25_framework_transfer.tex}

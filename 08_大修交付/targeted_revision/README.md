@@ -1,0 +1,11 @@
+# Targeted revision: R2-1, R2-2 and R3-3
+
+This revision adds (1) a retrospective identity/role register for all 165 original reference entries, with exact DOI and normalized-title candidate matching against retained search reports; (2) an analytical assessment procedure separating algebraic identifiability, normalized utilization, Jain/share feasibility and requirement-dependent decisions; and (3) a retrospective transfer evaluation from 15 equal-RTT BBRv3 E1 calibration runs to E3 conditions, with errors against a constant baseline and a threshold sensitivity grid.
+
+The reference register is citation-level, not study-level or final full-text inclusion. It does not reconstruct missing historical screening. Title/metadata roles were assigned during revision after inspecting titles and manuscript use. Exact title matches are candidates, not confirmed identities. Background citations are not counted as primary BBR evidence. Existing citation is not an inclusion criterion for the supplemental search.
+
+The transfer analysis was designed after the archived outcomes were available. Calibration and evaluation rows are disjoint, and E3 is not fitted or tuned, but it is not an untouched or preregistered test. Four 200-Mbps cases match frozen physical labels; four 50-Mbps cases use corrected Q/BDP=4,16 as extra comparisons. The interpolation predictor has worse Jain MAE than the constant baseline in the corrected group. This failure is retained. The old F07 protocol and predictions are preserved; the new analysis does not revise their acceptance margins or manufacture a success rate.
+
+The illustrative utilization/fairness limits and sensitivity grid are retrospective service requirements, not physical thresholds or experimental acceptance tests. Missing aligned delay measurements produce undetermined suitability. Sender retransmission summaries and queue snapshots are separate observations; zero saved queue drops cannot establish zero full-transfer congestion loss.
+
+Run `python analyze_framework_transfer.py` and `python build_reference_traceability.py` in this directory. A minimal data snapshot is supplied for portable regeneration; the full raw experiment and search archives are separate delivered supplements. No additional experiments or broad literature retrieval were performed.

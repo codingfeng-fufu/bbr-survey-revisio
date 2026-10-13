@@ -1,0 +1,370 @@
+  The Fluid Flow Approximation of the TCP
+Vegas and Reno Congestion Control Mechanism
+
+               Adam Domański2 , Joanna Domańska1 , Michele Pagano3 ,
+                           and Tadeusz Czachórski1(B)
+    1
+        Institute of Theoretical and Applied Informatics, Polish Academy of Sciences,
+                             Baltycka 5, 44–100 Gliwice, Poland
+                                       tadek@iitis.pl
+                  2
+                     Institute of Informatics, Silesian Technical University,
+                           Akademicka 16, 44–100 Gliwice, Poland
+                                       adamd@polsl.pl
+                3
+                  Department of Information Engineering, University of Pisa,
+                               Via Caruso 16, 56122 Pisa, Italy
+                                    m.pagano@iet.unipi.it
+
+
+
+          Abstract. TCP congestion control algorithms have been design to
+          improve Internet transmission performance and stability. In recent years
+          the classic Tahoe/Reno/NewReno TCP congestion control, based on
+          losses as congestion indicators, has been improved and many congestion
+          control algorithms have been proposed. In this paper the performance of
+          standard TCP NewReno algorithm is compared to the performance of
+          TCP Vegas, which tries to avoid congestion by reducing the congestion
+          window (CWND) size before packets are lost. The article uses ﬂuid ﬂow
+          approximation to investigate the inﬂuence of the two above-mentioned
+          TCP congestion control mechanisms on CWND evolution, packet loss
+          probability, queue length and its variability. Obtained results show that
+          TCP Vegas is a fair algorithm, however it has problems with the use of
+          available bandwidth.
+
+
+1       Introduction
+
+In spite of the rise of new streaming applications and P2P protocols that try
+to avoid traﬃc shaping techniques and the deﬁnition of new transport protocols
+such as DCCP, TCP still carries the vast majority of traﬃc [10] and so its
+performance highly inﬂuences the general behavior of the Internet. Hence, a lot
+of research work has been done to improve TCP and, in particular, its congestion
+control features.
+    The ﬁrst congestion control rules were proposed by Van Jacobson in the late
+1980s [8] after that the Internet had the ﬁrst of what became a series of conges-
+tion collapses (sudden factor-of-thousand drop in bandwidth). The ﬁrst practical
+implementation of TCP congestion control is known as TCP Tahoe, while fur-
+ther evolutions are TCP Reno and TCP NewReno that better handles multiple
+losses in the same congestion window (CWND). The Reno/NewReno algorithm
+
+c The Author(s) 2016
+T. Czachórski et al. (Eds.): ISCIS 2016, CCIS 659, pp. 193–200, 2016.
+DOI: 10.1007/978-3-319-47217-1 21
+194    A. Domański et al.
+
+consists of the following mechanisms: Slow Start, Congestion Avoidance, Fast
+Retransmit and Fast Recovery. The ﬁrst two, determining an exponential and
+linear grow respectively, are responsible for increasing CWND in absence of losses
+in order to make use of all the available bandwidth. Congestion is detected by
+packet losses, which can be identiﬁed through timeouts or duplicate acknowl-
+edgements (Fast Retransmit). Since the latter are associated to mild congestion,
+CWND is just halved (Fast Recovery) and not reduced to 1 packet as after
+a timeout. Hence, the core of classical TCP congestion control is the AIMD
+(Additive-Increase/Multiplicative-Decrease) paradigm. Note that this approach
+provides congestion control, but does not guarantee fairness [6].
+     The TCP Vegas was the ﬁrst attempt of a completely diﬀerent approach to
+bandwidth management and is based on congestion detection before packet losses
+[3]. In a nutshell (see Sect. 2 for more details), TCP Vegas compares the expected
+rate with the actual rate and uses the diﬀerence as an additional congestion indi-
+cator, updating CWND to keep the actual rate close to the expected rate and,
+at the same time, to be able of making use of newly available channel capacity.
+To this aim TCP Vegas introduces two thresholds (α and β), which trigger an
+Additive-Increase/Additive-Decrease paradigm in addition to standard AIMD
+TCP behavior. The article [12] shows TCP Vegas stability and congestion con-
+trol ability, but, in competition with AIMD mechanism, it cannot fully use the
+available bandwidth.
+     The goal of our paper is to compare the performance of these two variants of
+TCP through ﬂuid ﬂow models. In more detail we investigated the inﬂuence of
+these two TCP variants on CWND changes and queue length evolution, hence
+also one-way delay and its variability (jitter). Moreover, we also evaluated the
+friendliness and fairness of the diﬀerent TCP variants as well as their ability in
+using the available bandwidth in presence of both standard FIFO queues with
+tail drop and Active Queue Management (AQM) mechanisms in the routers.
+     Another important contribution of our work is that we considered also the
+presence of background traﬃc and asynchronous ﬂows. In the literature, traﬃc
+composed of TCP and UDP streams has been already considered, but in most
+works (for instance, in [5,13]) all TCP sources had the same window dynamics
+and UDP streams were permanently associated with the TCP stream. Instead,
+in this paper, extending our previous work presented in [4], the TCP and UDP
+streams are treated as separate ﬂows. Moreover, unlike [9] and [14], TCP con-
+nections start at diﬀerent times with various values of initial CWND.
+     The rest of the paper is organized as follows. The ﬂuid ﬂow approximation
+models are presented in Sect. 2, while Sect. 3 discusses the comparison results.
+Finally, Sect. 4 ends the paper with some ﬁnal remarks.
+
+
+2     Fluid Flow Model of TCP NewReno and Vegas
+      Algorithms
+
+This section presents two ﬂuid ﬂow models of a TCP connection, based on [7,11]
+(TCP NewReno) and [2] (TCP Vegas). Both models use ﬂuid ﬂow approximation
+                                    Fluid Flow Approximation of TCP Vegas      195
+
+and stochastic diﬀerential equation analysis. The models ignore the TCP timeout
+mechanisms and allow to obtain the average value of key network variables.
+    In [11] a diﬀerential equation-based ﬂuid model was presented to enable tran-
+sient analysis of TCP Reno/AQM networks (ﬂows throughput and queues length
+in bottleneck router). The authors also showed how to obtain ordinary diﬀeren-
+tial equations by taking expectations of the stochastic diﬀerential equations and
+how to solve the resultant coupled ordinary diﬀerential equations numerically to
+get the mean behavior of the system. In more detail, the dynamics of the TCP
+window for the i-th stream are approximated by the following equation [7]:
+
+                dWi (t)    1       Wi (t)Wi (t − Ri (t))
+                        =        −                       p(t − Ri (t))         (1)
+                  dt      Ri (t)    2Ri (t − Ri (t))
+
+where:
+–   Wi (t) – expected size of CWND (packets),
+–   Ri (t) = q(t)
+              C + Tpi – RTT (sec),
+–   q(t) – queue length (packets),
+–   C – link capacity (packets/sec),
+–   Tpi – propagation delay (sec),
+–   p – probability of packet drop.
+The ﬁrst term on the right hand side of the Eq. (1) represents the rate of increase
+of CWND due to incoming acknowledgments, while the second one models mul-
+tiplicative decrease due to packet losses. Note that such model ignores the slow
+start phase as well as packet losses due to timeouts (a loss just halves the con-
+gestion window size) in accordance with a pure AIMD behavior, which is a good
+approximation of the real TCP behavior in case of low loss rates.
+    In solving Eq. (1) it is also necessary to take into account that the maximum
+values of q and W depend on the buﬀer capacity and the maximum window
+size (if the scale option is not used, 64 KB due to the limitation of the Adver-
+tisedWindow ﬁeld in TCP header). The dropping probability p(t) depends on
+the discarding algorithm implemented in the routers (AQM vs. tail drop) and
+on the current queue size q(t), which can be calculated through the following
+diﬀerential equation (valid for both models also in presence of background UDP
+traﬃc):
+                                n1           n2
+                     dq(t)        Wi (t) 
+                            =             +     Ui (t) − C1q(t)>0               (2)
+                       dt      i=1
+                                   Ri (t)   i=1
+
+where Ui (t) is the rate of the i-th UDP ﬂow (with Ui (t) = 0 before the source
+starts sending packets), while n1 and n2 denote the number of TCP (NewReno or
+Vegas) and UDP streams, respectively. Note that the indicator function 1q(t)>0
+takes into account that packets are drawn at rate C only when the queue is not
+empty.
+    As already mentioned, classical TCP variants base their action on the detec-
+tion of losses. The TCP Vegas mechanism, instead, tries to estimate the available
+bandwidth on the basis of changes in RTT and, every RTT, increases or decreases
+196     A. Domański et al.
+
+CWND by 1 packet. To this aim, TCP Vegas calculates the minimum value of
+the RTT, denoted as RBase in the following, assuming that it is achieved when
+only one packet is enqueued:
+                                                  1
+                                        RBase =     + Tp                              (3)
+                                                  c
+    Hence, the expected rate, which denotes the target transmission speed, is the
+ratio between CWND and the minimum RTT, i.e.:
+
+                                                   Wi (t)
+                                    Expected =                                        (4)
+                                                   RBase
+
+while the actual rate depends on the current value R(t) of the RTT:
+
+                                           Wi (t)         Wi (t)
+                           Actual =               =   q(t)
+                                                                                      (5)
+                                           R(t)               + Tp
+                                                       c
+
+    The Vegas mechanism is based on three thresholds: α, β and γ, where α and
+β refer to the Additive-Increase/Additive-Decrease paradigm, while γ is related
+to the modiﬁed slow-start phase [3].
+                                                  γ
+    In more detail, for Expected − Actual ≤ RBase      TCP Vegas is in the slow
+start phase, while for higher values of the diﬀerence we have the pure additive
+                                         α
+behavior: for Expected − Actual ≤ RBase      the window increases by one packet
+                                                β
+for each RTT and for Expected − Actual ≥ RBase       the window decreases by the
+same amount. Finally, if Expected − Actual is between the two thresholds α and
+β, CWND is not changed. Taking into account the deﬁnition of expected and
+actual rates given by Eqs. (4) and (5) respectively, it is possible to express the
+previous inequalities in terms of Wi , R and RBase . Then, changes in the window
+are given by the formula:
+
+ dWi (t)   W (t − R(t)) ∗ W (t − R(t))                      1
+         =                             p0 (t − R(t)) +             p1 (t − R(t))
+   dt                 R(t)                             R(t − R(t))
+                        1
+           −                         p2 (t − R(t))
+             W (t − R(t))R(t − R(t))
+
+where
+                                                     
+            1   for Wi (R−R
+                         R
+                           Base )
+                                  ≤γ                      1    for γ ≤ Wi (R−R
+                                                                            R
+                                                                              Base )
+                                                                                     ≤α
+p0 =                                 ,         p1 =
+            0   otherwise                                 0    otherwise
+
+and
+                                
+                                    1    for Wi (R−R
+                                                  R
+                                                    Base )
+                                                           ≥β
+                         p2 =                                 .
+                                    0    otherwise
+                                 Fluid Flow Approximation of TCP Vegas     197
+
+3   Experimental Results
+Our main goal is to show the behavior of the two completely diﬀerent TCP
+mechanisms, taking into account various network scenarios in terms of amount
+of TCP ﬂows as well as queue management disciplines (namely, standard FIFO
+with tail drop and RED, the best-known example of AQM mechanism). For
+numerical ﬂuid ﬂow computations we used a software written in Python and
+previously presented in [4]. During the tests we assumed the following TCP
+connection parameters:
+– transmission capacity of bottleneck router: C = 0.075,
+– propagation delay for i-th ﬂow: Tpi = 2,
+– initial congestion window size for i-th ﬂow (measured in packets): Wi =
+  1, 2, 3, 4....,
+– starting time for i-th ﬂow
+– threshold values in TCP Vegas sources: γ = 1, α = 2 and β = 4 (see [1,3]),
+– RED parameters: M inth = 10, M axth = 15, buﬀer size = 20 (all measured in
+  packets), Pmax = 0.1, weight parameter w = 0.007,
+– the number of packets sent by i-th ﬂow (ﬁnite size connections).
+    Figures 1 and 2 present the CWND evolution and the buﬀer occupancy for
+diﬀerent numbers of TCP Vegas connections. In more detail, Fig. 1(a) refers
+to a single TCP stream: after the initial slow start, the congestion avoidance
+phase goes on until the optimal window size is reached and then CWND is
+maintained at such level until the end of transmission. In case of two TCP
+connections (Fig. 1(b)), the evolution of CWND is identical for both streams
+and similar to the single source case (apart from a slightly lower value of the
+maximum CWND). The comparison between the two ﬁgures highlights the main
+disadvantage of TCP Vegas: the link underutilization. Indeed, under the same
+network conditions, the optimal CWND for one ﬂow is only slightly less than
+the optimal CWND for each of the two ﬂows.
+
+
+
+
+         Fig. 1. TCP Vegas congestion window evolution — FIFO queue
+198    A. Domański et al.
+
+
+
+
+         Fig. 2. TCP Vegas congestion window evolution — RED queue
+
+
+
+
+Fig. 3. TCP NewReno congestion window evolution — FIFO queue, 4 TCP streams
+
+
+    Figure 2 refers to the case of RED queue with two and three TCP streams.
+Streams start transmission at diﬀerent time points and TCP Vegas is able to
+provide a level of fairness much greater than TCP NewReno. Indeed, in such case,
+as highlighted in Fig. 3, the ﬁrst stream (starting the transmission with empty
+links) decreases CWND much slower and uses most of the available bandwidth.
+    The last set of simulations deals with the friendliness between TCP Vegas
+and NewReno, considering two connections with the same amount of data to
+be transmitted. In case of FIFO queue (see Fig. 4(a)), TCP NewReno is more
+aggressive and sends data faster. Uneven bandwidth usage by TCP variants
+decreases in presence of the AQM mechanism, as pointed out by Fig. 4(b). Our
+results conﬁrm that the RED mechanism improves fairness in access to the link
+and keeps short the queues in routers (in our example, the maximum queue
+length decreases from 20 to 12 packets).
+                                    Fluid Flow Approximation of TCP Vegas          199
+
+
+
+
+              (a) FIFO queue                              (b) RED queue
+
+           Fig. 4. TCP Vegas and NewReno congestion window evolution
+
+
+
+4    Conclusions
+
+The article evaluates by means of a ﬂuid approximation the eﬀectiveness of the
+congestion control of TCP NewReno and TCP Vegas.
+    The two TCP variants diﬀer signiﬁcantly in managing the available band-
+width. On one hand, TCP NewReno increases CWND to reach the maximum
+available bandwidth and eventually decreases it when congestion appears. This
+greedy approach clearly favors a stream which starts transmission when the link
+is empty. On the other hand, TCP Vegas increases CWND only up to a certain
+level to avoid the possibility of overloading. The disadvantage of this solution is
+the link underutilization: with a single stream TCP Vegas is conservative and
+may not use the total available bandwidth. However, in case of several competing
+streams, TCP Vegas mechanism shows its fairness: in presence of synchronous
+ﬂows every stream uses the same share of the available bandwidth and even in
+case of streams starting transmission at diﬀerent times a quite fair share of the
+network resources is still obtained.
+    Finally, the presented analysis permits to take into account ﬁnite-size ﬂows
+and, unlike most works in this area, allows to start TCP transmission at any point
+of time with diﬀerent values of the initial CWND (modern TCP implementation
+often starts with a window bigger than 1 packet). In other words, our approach
+makes possible the observation of TCP dynamics at such time when other sources
+start or end transmission.
+
+Open Access. This chapter is distributed under the terms of the Creative Com-
+mons Attribution 4.0 International License (http://creativecommons.org/licenses/by/
+4.0/), which permits use, duplication, adaptation, distribution and reproduction in any
+medium or format, as long as you give appropriate credit to the original author(s) and
+the source, a link is provided to the Creative Commons license and any changes made
+are indicated.
+200     A. Domański et al.
+
+    The images or other third party material in this chapter are included in the work’s
+Creative Commons license, unless indicated otherwise in the credit line; if such mate-
+rial is not included in the work’s Creative Commons license and the respective action
+is not permitted by statutory regulation, users will need to obtain permission from the
+license holder to duplicate, adapt or reproduce the material.
+
+
+References
+ 1. Ahn, J.S., Danzig, P.B., Liu, Z., Yan, L.: Experience with TCP Vegas: emulation
+    and experiment. In: ACM SIGCOMM Conference-SIGCOMM (1995)
+ 2. Bonald, T.: Comparison of TCP Reno and TCP Vegas via ﬂuid approximation.
+    Institut National de Recherche en Informatique et en Automatique 1(RR 3563),
+    1–34 (1998)
+ 3. Brakmo, L.S., Peterson, L.: TCP Vegas: end to end congestion avoidance on a
+    global internet. IEEE J. Sel. Areas Commun. 13(8), 1465–1480 (1995)
+ 4. Domańska, J., Domański, A., Czachórski, T., Klamka, J.: Fluid ﬂow approximation
+    of time-limited TCP/UDP/XCP streams. Bull. Pol. Acad. Sci. Tech. Sci. 62(2),
+    217–225 (2014)
+ 5. Domański, A., Domańska, J., Czachórski, T.: Comparison of AQM control systems
+    with the use of ﬂuid ﬂow approximation. In: Kwiecień, A., Gaj, P., Stera, P. (eds.)
+    CN 2012. CCIS, vol. 291, pp. 82–90. Springer, Heidelberg (2012). doi:10.1007/
+    978-3-642-31217-5 9
+ 6. Grieco, L., Mascolo, S.: Performance evaluation and comparison of Westwood+,
+    New Reno, and Vegas TCP congestion control. ACM SIGCOMM Comput. Com-
+    mun. Rev. 34(2), 25–38 (2004)
+ 7. Hollot, C., Misra, V., Towsley, D.: A control theoretic analysis of RED. In:
+    IEEE/INFOCOM 2001, pp. 1510–1519 (2001)
+ 8. Jacobson, V.: Congestion avoidance and control. In: Proceedings of ACM SIG-
+    COMM 1988, pp. 314–329 (1988)
+ 9. Kiddle, C., Simmonds, R., Williamson, C., Unger, B.: Hybrid packet/ﬂuid ﬂow
+    network simulation. In: 17th Workshop on Parallel and Distributed Simulation,
+    pp. 143–152 (2003)
+10. Lee, D., Carpenter, B.E., Brownlee, N.: Observations of UDP to TCP ratio and port
+    numbers. In: Proceedings of the 2010 Fifth International Conference on Internet
+    Monitoring and Protection, ICIMP 2010, pp. 99–104. IEEE Computer Society,
+    Washington, DC (2010)
+11. Misra, V., Gong, W., Towsley, D.: Fluid-based analysis of a network of AQM
+    routers supporting TCP ﬂows with an application to RED. In: Proceedings of
+    ACM/SIGCOMM, pp. 151–160 (2000)
+12. Mo, J., La, R., Anantharam, V., Walrand, J.: Analysis and comparison of TCP
+    Reno and Vegas. In: Proceedings of IEEE INFOCOM, pp. 1556–1563 (1999)
+13. Wang, L., Li, Z., Chen, Y.P., Xue, K.: Fluid-based stability analysis of mixed
+    TCP and UDP traﬃc under RED. In: 10th IEEE International Conference on
+    Engineering of Complex Computer Systems, pp. 341–348 (2005)
+14. Yung, T.K., Martin, J., Takai, M., Bagrodia, R.: Integration of ﬂuid-based ana-
+    lytical model with packet-level simulation for analysis of computer networks. In:
+    Proceedings of SPIE, pp. 130–143 (2001)
+

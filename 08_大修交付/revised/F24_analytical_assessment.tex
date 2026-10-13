@@ -1,0 +1,73 @@
+\subsection{Analytical Assessment and Identifiability}
+\label{sec:analytical_assessment}
+
+The framework distinguishes a description of the path from a decision about
+performance. We formalize this distinction using a condition vector
+$z=(C,R_*,\{R_i\},Q,L,v,A,n,W)$: bottleneck capacity, reference and
+per-flow propagation RTTs, absolute queue limit, loss process, implementation,
+queue policy, flow count and observation window. The physical descriptors are
+$\mathrm{BDP}_*=CR_*$ and $q=Q/(CR_*)$, with capacity and queue expressed
+in consistent bit units. These descriptors organize cases; the following
+analysis shows why they cannot determine bandwidth allocation by themselves.
+
+\paragraph{Allocation is not identified by the in-flight identity.}
+For two flows, let their aggregate rate be $0<G\leq C$ and let $s$ be the
+second flow's share. The rates $x_1=(1-s)G$ and $x_2=sG$ satisfy the same
+aggregate-rate constraint for every $s\in[0,1]$. Their propagation-pipe
+amounts $I_i=x_iR_i$ also satisfy the per-flow rate--delay identities.
+Thus, even with $C,R_1,R_2,Q$ fixed, the identities admit different shares;
+a longer propagation RTT does not algebraically force a larger share.
+This is an identifiability result about the equations, not a claim that all
+shares are equilibria of a particular controller. Selecting the realized
+allocation requires controller and queue dynamics or direct measurements.
+
+\paragraph{Utilization and fairness are separate constraints.}
+Define normalized receiver goodput $u=G/C$ and imbalance
+$d=|2s-1|$. Substituting the two rates into Jain's standard index
+\citep{jain1984fairness} gives
+\begin{equation}
+ J=\frac{1}{2\{s^2+(1-s)^2\}}=\frac{1}{1+d^2}.
+ \label{eq:share_jain}
+\end{equation}
+Consequently, a fairness requirement $J\geq j_0$, where
+$1/2\leq j_0\leq1$, is equivalent to
+\begin{equation}
+ \frac{1-\sqrt{j_0^{-1}-1}}{2}\leq s\leq
+ \frac{1+\sqrt{j_0^{-1}-1}}{2}.
+ \label{eq:share_acceptance}
+\end{equation}
+For example, $j_0=0.95$ requires a share between 0.385 and 0.615,
+regardless of whether aggregate goodput fills the link. Jain's index and
+this algebraic transformation are established metrics, not new fairness
+measures. Our analytical contribution is to use their explicit feasible
+region to separate path descriptors, performance requirements and observable
+allocation in a BBR assessment.
+
+\paragraph{A requirement-dependent assessment procedure.}
+A workload specifies its requirements before protocol selection: a minimum
+$u_0$, a minimum $j_0$, a delay limit $D_0$, and a retransmission budget
+$H_0$. For each required metric, the assessment returns \emph{meets},
+\emph{does not meet}, or \emph{undetermined}. A missing or incompatible
+measurement window yields \emph{undetermined}, rather than an inferred pass.
+A joint assessment meets the requirements only if every required metric
+meets its own limit. An observed violation yields a failure for that
+requirement; if there is no observed violation but some required evidence is
+missing, the joint result remains undetermined. A zero-goodput run has $u=0$ and undefined Jain fairness; it cannot pass
+a positive utilization requirement. This procedure allows
+throughput and fairness evidence to be usable without claiming that they
+establish latency or retransmission suitability.
+
+For repeated runs, we report both metric means and the empirical fraction
+satisfying the joint rate/share conditions:
+\begin{equation}
+ \widehat p_{u,J}=\frac{1}{N}\sum_{r=1}^{N}
+ \mathbf{1}\{u_r\geq u_0,\ J_r\geq j_0\}.
+ \label{eq:assessment_fraction}
+\end{equation}
+The fraction is descriptive with five repetitions per condition; it is not
+a population reliability guarantee. Equation~\ref{eq:share_jain} is applied
+within each run. In general, substituting an averaged share does not recover
+the mean Jain index. Queue bins and BDP bins do not set $u_0,j_0,D_0,H_0$:
+those limits express service requirements and must be reported separately.
+Section~\ref{sec:framework_transfer} evaluates the rate/fairness component
+and its transfer limitations using the archived measurements.

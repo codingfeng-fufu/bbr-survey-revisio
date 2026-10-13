@@ -1,0 +1,75 @@
+{
+  "record_id": "openalex_Q8_0028",
+  "doi": "10.1109/ACCESS.2019.2892046",
+  "title": "TCP-Drinc: Smart Congestion Control Based on Deep Reinforcement Learning",
+  "status": "eligibility reviewed: include; scoped AI evidence",
+  "source": "fulltext_acquisition_20261012/openalex_Q8_0028.pdf",
+  "action": "Five direct congestion-window adjustment actions;10mscontrolperiod",
+  "model": "TensorFlowDCNN+LSTM/DQN;ns3training/inference interfaces",
+  "training": "20pretrainingepisodes at10Mbps/80ms,500seach;fiveindependent senderagents,100distributedepisodes,seed17",
+  "evaluation_examples": {
+    "caseI": "4users,10Mbps,propagation60–240ms",
+    "caseII": "3–9users,8Mbps,propagation80ms",
+    "caseIII": "4users,100ms,5–20Mbps",
+    "buffer_packets": 100,
+    "packet_payload_bytes": 1000,
+    "packet_header_bytes": 40
+  },
+  "reward_observations": "Alpha-utilityofgoodputminusweightedRTTutility; reward is delayedutilitydifference clipped[-1,1]. Fairness motivation, not explicitJainterm; no assumption thatabsenceofJainmeansnofairnessobjective.",
+  "fairness": "Jainwithreported95%intervals; exactTable2numbersnotyetvisuallyverified",
+  "limits": [
+    "Simulation and built-inLTEmodel are not realmobiledeployment",
+    "TrainingPC/GPU capability not onlineinference-overheadprofiling",
+    "Limited testedconditions do not establishbroadunseennetworkgeneralization",
+    "Propagationdelay wording not automaticallyRTTdefinition",
+    "No stockBBRv2/v3sourceidentity established",
+    "Independent senderagents do not shareinformation; trainingfairness mechanism must be separatelychecked",
+    "100dynamicruns/CIapplyto statedsimulation, not universaldeployment ortrainingreplicates",
+    "Authors report performance best neartrainingparameters; broad generalization not established",
+    "CERTsampleseed synchronization is part oftrainingdesign even thoughagentsoperatenoncooperatively afterward",
+    "Fivebenchmarks areCubic,Hybla,Illinois,NewReno,Vegas; Table2doesnotcompareBBR",
+    "Delay utility/proportional fairness motivation does not guaranteeequalflowrates in arbitrarynetwork"
+  ],
+  "locations": [
+    "SectionsIV.C–D",
+    "VI.A–D",
+    "Table2"
+  ],
+  "visual_table2": {
+    "PDF_page": 11,
+    "drinc_average_jain": 0.8058,
+    "reported95CI": [
+      0.7233,
+      0.8882
+    ],
+    "vegas_average_jain": 0.8214,
+    "vegas95CI": [
+      0.7115,
+      0.9313
+    ],
+    "cubic_average_jain": 0.7873,
+    "cubic95CI": [
+      0.7005,
+      0.8741
+    ],
+    "interpretation": "Intervals overlap; no statisticallyestablishedDrincsuperiority. Authors1.9%belowbest meansrelativecomparison toVegas."
+  },
+  "dynamic_evaluation": {
+    "runs": 100,
+    "duration_s": 500,
+    "users": 5,
+    "capacity_Mbps_uniform": [
+      5,
+      15
+    ],
+    "propagation_s_uniform": [
+      0.06,
+      0.16
+    ],
+    "variation_frequency_Hz": 10
+  },
+  "report_id": "RPT_XIAO_2019_TCP_DRINC",
+  "study_id": "ST_XIAO_2019_TCP_DRINC",
+  "eligibility_reason": "Primary sender-side DRL congestion-window controller with transport fairness/latency simulations, within frozen M02scope",
+  "review_scope": "Study objectives, control assumptions, action/reward/training and evaluation/results/conclusion reviewed; fairnessTable2visuallychecked. No author-code reproduction."
+}

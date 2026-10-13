@@ -1,0 +1,91 @@
+{
+  "design": "Retrospective transfer evaluation designed after archived results were available. Fits only 15 E1 equal-RTT BBRv3 calibration runs; E3 is disjoint, not an untouched preregistered test. No E3 fit or tuning.",
+  "calibration_runs": 15,
+  "evaluation_runs": 80,
+  "knots_logq_efficiency_jain": [
+    [
+      -0.6931471805599453,
+      0.9386599279274962,
+      0.989329114513644
+    ],
+    [
+      0.6931471805599453,
+      0.9387396747907633,
+      0.9889300700938044
+    ],
+    [
+      2.302585092994046,
+      0.9401048904572579,
+      0.9781304934831204
+    ]
+  ],
+  "constant_baseline_efficiency_jain": [
+    0.9391681643918391,
+    0.9854632260301895
+  ],
+  "errors_on_condition_means": {
+    "matched_input": {
+      "conditions": 4,
+      "efficiency": {
+        "mae": 0.0026386136808172755,
+        "rmse": 0.002924723280281218,
+        "max_abs_error": 0.003995675229550355,
+        "constant_mae": 0.0026386136808172755
+      },
+      "jain": {
+        "mae": 0.01009652457575655,
+        "rmse": 0.010617832583422535,
+        "max_abs_error": 0.014635727405129528,
+        "constant_mae": 0.011337567502661683
+      }
+    },
+    "corrected_extra": {
+      "conditions": 4,
+      "efficiency": {
+        "mae": 0.0030892528073154513,
+        "rmse": 0.003168869494499835,
+        "max_abs_error": 0.0036643943955132485,
+        "constant_mae": 0.0030892528073154513
+      },
+      "jain": {
+        "mae": 0.020272486295968867,
+        "rmse": 0.02080055441189516,
+        "max_abs_error": 0.02498617895042432,
+        "constant_mae": 0.014437081392905143
+      }
+    },
+    "all": {
+      "conditions": 8,
+      "efficiency": {
+        "mae": 0.0028639332440663634,
+        "rmse": 0.00304924090056776,
+        "max_abs_error": 0.003995675229550355,
+        "constant_mae": 0.0028639332440663634
+      },
+      "jain": {
+        "mae": 0.015184505435862708,
+        "rmse": 0.01651365242173579,
+        "max_abs_error": 0.02498617895042432,
+        "constant_mae": 0.012887324447783413
+      }
+    }
+  },
+  "illustrative_policy_counts": {
+    "BBR3": {
+      "passes_utilization_090": 40,
+      "passes_jain_095": 40,
+      "passes_joint": 40,
+      "runs": 40
+    },
+    "CUBIC": {
+      "passes_utilization_090": 40,
+      "passes_jain_095": 27,
+      "passes_joint": 27,
+      "runs": 40
+    }
+  },
+  "source_sha256": {
+    "formal_bbr3_20261011/run_metrics.csv": "b076a4d2dd76e837e968cb764ea6089caf8ae0a2acde5f0a1e667399b8d15d82",
+    "formal_e3_20261011/run_metrics.csv": "fd71f86d4811770f0a0ffb705731e45aeee4e1bddfe5044b85b942a322c84a87"
+  }
+}

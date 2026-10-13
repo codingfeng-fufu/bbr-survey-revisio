@@ -1,0 +1,683 @@
+                                                            (IJACSA) International Journal of Advanced Computer Science and Applications,
+                                                                                                                     Vol. 16, No. 2, 2025
+
+
+Performance Evaluation and Selection of Appropriate
+ Congestion Control Algorithms for MPT Networks
+                                                 Naseer Al-Imareen, Gábor Lencse
+                            Department of Telecommunications, Széchenyi István University, Győr, Hungary
+
+
+    Abstract—Recent academic research highlights a growing                  To address the growing demand for efficient multipath
+interest in multipath technologies, which offer promising solutions    solutions, numerous methods have been developed, including
+to networking challenges in complex environments. This interest        MPT-GRE [4] and MPTCP [5]. MPT-GRE enables the creation
+is reflected in the emergence of protocols such as Multipath TCP       of a virtual tunnel across multiple physical paths, distinguishing
+(MPTCP) and Multipath UDP-in-GRE (MPT-GRE). The                        it from alternatives like MPTCP and Huawei’s Generic Routing
+development of network protocols, particularly various iterations      Encapsulation (GRE) Tunnel Bonding Protocol. While
+of the Transmission Control Protocol (TCP), has been                   multipath approaches offer significant advantages, throughput
+distinguished by congestion detection and control algorithms, such     performance in these networks often suffers due to delays and
+as HighSpeed, CUBIC, Reno, LP, BBR, and Illinois. This paper
+                                                                       congestion [6].
+evaluates the performance and suitability of these algorithms for
+multipath MPT-GRE networks under varying conditions,                       Various TCP congestion control algorithms, such as
+including delay, jitter, and data loss at different transmission       HighSpeed, LP, Reno, Vegas, and CUBIC, have been designed
+speeds (both symmetric and asymmetric). Using StarBED                  to mitigate these challenges. These algorithms detect, control,
+resources, we applied delay, jitter, or packet loss to one of two      and preempt congestion, reducing packet loss and delays. Their
+physical paths to simulate congestion. The results demonstrate         effectiveness stems from their ability to monitor and manage
+that some algorithms, HighSpeed and BBR among them,                    packet transmission from source to destination. Some
+significantly enhance Quality of Service (QoS) metrics and
+                                                                       algorithms dynamically adjust the congestion window size
+network throughput in multipath MPT-GRE networks. These
+                                                                       based on round-trip time (RTT), while others, particularly those
+findings provide valuable insights into their performance and
+practical applications.
+                                                                       optimized for high-bandwidth networks, expand the window to
+                                                                       enhance throughput.
+    Keywords—Packet loss; congestion control; MPT-GRE; delay;             Efficient congestion management in multipath networks
+throughput; jitter                                                     improves stability, ensures proper packet reordering, and
+                       I.     INTRODUCTION                             minimizes data loss and delays. Furthermore, the fair allocation
+                                                                       of network resources among competing packets prevents
+    The rapid advancement of network applications has                  bandwidth monopolization, safeguarding throughput and overall
+increased demands on network infrastructure, posing challenges         network performance [7] [8].
+to its capacity and efficiency. Many emerging applications
+require high bandwidth and low latency to function effectively.            Multipath congestion control is an active area of research
+These requirements strain current network capabilities,                focused on maximizing resource utilization by leveraging the
+exacerbating bottlenecks and highlighting the need for robust,         available bandwidth across multiple paths while maintaining
+efficient data transmission methods [1] [2].                           fairness toward competitive single-path transfers—a constraint
+                                                                       referred to as TCP-friendliness. Congestion control techniques
+   Modern communication technology supports a variety of               are crucial in optimizing network resource use, enabling
+devices equipped with multiple interfaces, enabling networks           throughput aggregation, and reducing bandwidth waste.
+and applications to handle complex communication demands.
+However, the effectiveness of these communication sessions is              However, the rise of multipath communication has
+constrained by the TCP/IP protocol architecture, which, by             introduced new challenges. Research has identified side effects,
+default, supports only single-session handling. Leveraging             particularly the lack of TCP-friendliness in some
+multiple network interfaces during communication sessions              implementations. For example, the uncoupled congestion
+enhances flexibility and reliability, particularly in addressing       control approach in Multipath TCP (MPTCP) treats each sub
+network disruptions. By dynamically switching traffic between          flow as an independent TCP connection. This can result in
+available paths, communication systems can ensure                      imbalanced resource allocation, where individual subflows
+uninterrupted data transmission, even in the face of link failures,    dominate bandwidth, leading to unfairness and performance
+congestion, or performance degradation [3].                            degradation in multipath network environments [8][9].
+    This approach significantly improves fault tolerance, load             The MPT-GRE software is designed to enhance data
+balancing, and network stability, making it an essential feature       transmission by distributing the load across multiple paths, often
+for modern networking environments that demand high                    achieving throughput capacities close to the combined total of
+reliability and performance.                                           the physical paths [10]. The integration of congestion control
+                                                                       algorithms in multipath networks holds significant promise for
+                                                                       building robust and efficient network infrastructures. These
+
+
+
+                                                                                                                           109 | P a g e
+                                                         www.ijacsa.thesai.org
+                                                         (IJACSA) International Journal of Advanced Computer Science and Applications,
+                                                                                                                  Vol. 16, No. 2, 2025
+
+algorithms ensure fair resource allocation and improve overall          Yu Cao et al. [12] addressed the limitations of coarse-
+network performance by enhancing fault tolerance, reducing          grained load balancing in multipath congestion control, which
+congestion, and increasing throughput through effective traffic     relies heavily on packet loss as a congestion indicator. They
+management across multiple paths.                                   formulated the “Congestion Equality Principle,” showing that
+                                                                    fair and efficient traffic shifting occurs when flows equalize
+   Our contributions to this paper are as follows:                  perceived congestion across all paths. To achieve this, they
+    1) Evaluation of congestion control algorithms: We              proposed the delay-based algorithm Weighted Vegas (wVegas),
+analyze multiple congestion control algorithms within               which uses queuing delays for fine-grained load balancing.
+multipath MPT-GRE network environments.                             Simulations showed that wVegas responds faster to congestion
+                                                                    changes than loss-based algorithms, improving intra-protocol
+    2) Performance assessment under diverse network
+                                                                    fairness and reducing packet loss. The study highlights wVegas
+conditions: We assess the performance of these algorithms           as a complement to algorithms like TCP-Vegas and TCP-Reno.
+under various network conditions, including delay, jitter,
+combined delay and jitter, and packet loss. The evaluation also         Balancing fairness, responsiveness, and window oscillation
+considers both symmetric and asymmetric transmission speed          in Multipath TCP (MPTCP) congestion control is crucial for
+environments.                                                       efficient multipath communication. MPTCP distributes traffic
+                                                                    across multiple paths to enhance resource utilization and
+    3) Identification of throughput-optimizing algorithms: We
+                                                                    connection robustness. However, this distribution poses the
+identify algorithms that significantly enhance network              challenge of adjusting transmission rates across these paths
+throughput under the evaluated network conditions.                  without disrupting other network traffic. To address this,
+                                                                    researchers [13] proposed a novel fairness-based congestion
+                     II.   RELATED WORK
+                                                                    control algorithm (FCCA) designed to enhance fairness among
+    Many studies have explored congestion control approaches        subflows while maintaining key performance metrics such as
+in multipath networks, each focusing on optimizing network          responsiveness and stability of the congestion window. FCCA
+performance in various ways. These studies have examined how        dynamically adjusts the congestion window for each path based
+congestion control algorithms can effectively handle multiple       on real-time congestion feedback, optimizing bandwidth usage,
+paths, reduce packet loss, minimize latency, and ensure fair        improving network performance, and ensuring smooth traffic
+resource allocation among packet flows. Additionally,               flow even under varying congestion conditions. The
+researchers have worked on utilizing algorithms that can adapt      introduction of FCCA marks a significant step toward achieving
+dynamically to changing network conditions, such as                 more equitable and efficient traffic management in MPTCP,
+fluctuations in bandwidth, jitter, and delay, to maximize           contributing to enhanced network performance and fairness in
+throughput and minimize congestion.                                 multipath communication scenarios.
+    Szabolcs Szilágyi and Imre Bordán [11] examined the                                    III.   BACKGROUND
+impact of various TCP congestion control algorithms on
+multipath communication technologies, specifically MPTCP               This section discusses the MPT-GRE multipath network and
+and MPT-GRE. The researchers compared the performance of            congestion control algorithms in detail.
+seven congestion control algorithms (CUBIC, Reno, Illinois,         A. MPT-GRE Network Technology
+Scalable, Veno, High-Speed, and Vegas) in quad-path
+IPv4/IPv6 Fast Ethernet environments. Their findings show that          The MPT-GRE network is a multipath technology based on
+CUBIC provided the best performance for MPTCP and MPT-              the GRE-in-UDP tunnel specification (IETF RFC 8086 [2]).
+GRE, while Vegas had the lowest performance. The study used         MPT-GRE extends the traditional GRE-in-UDP architecture by
+these comparisons to emphasize CUBIC’s effectiveness as the         supporting multiple physical paths and enhancing network
+default algorithm in modern operating systems and aimed to          performance through load balancing. Using the UDP source port
+extend the evaluation to more advanced network environments         for hashing distributes traffic more efficiently across numerous
+and recent TCP algorithms.                                          equal-cost multipath (ECMP) routes. This architecture shares
+                                                                    some similarities with Multipath TCP (MPTCP) in its utilization
+    To address the energy consumption challenge in Multipath        of multiple paths. Still, it differs significantly in its underlying
+TCP (MPTCP), the authors [3] analyzed existing congestion           technology. MPT-GRE relies on UDP at the transport layer,
+control algorithms and identified the key factors influencing       building on GRE-in-UDP for a tunnel IP layer that supports TCP
+energy efficiency. They conducted real-world experiments            and UDP protocols. Huawei’s GRE Tunnel Bonding Protocol
+using the MPTCP Linux kernel and found that energy                  has a similar objective but lacks UDP encapsulation, limiting its
+consumption is closely related to throughput, path delay, and       scalability to just two physical interfaces. In contrast, MPT-
+varying network scenarios. To improve energy efficiency, they       GRE’s use of GRE-in-UDP offers greater flexibility, enabling a
+proposed a congestion control model with a window-increasing        more scalable and robust multipath solution.
+factor to direct traffic toward low-delay paths and an energy-
+aware compensatory parameter for hierarchical Internet                  The MPT-GRE software architecture, shown in Fig. 1,
+topologies. Their experiments confirmed that the enhanced           introduces a logical tunnel layer that works independently of the
+model can increase energy efficiency without compromising           physical network paths. This unique approach sets MPT apart
+transmission performance.                                           from traditional TCP/IP protocols by directing application layer
+                                                                    data to a tunnel path instead of directly to a physical path. The
+                                                                    MPT-GRE software distributes incoming packets from the
+
+
+
+                                                                                                                         110 | P a g e
+                                                      www.ijacsa.thesai.org
+                                                                  (IJACSA) International Journal of Advanced Computer Science and Applications,
+                                                                                                                           Vol. 16, No. 2, 2025
+
+logical tunnel interface across available physical paths in this             for IPv6). The GRE-in-UDP data unit is encapsulated within a
+environment. It allows for seamless multipath communication                  UDP/IP data unit with the destination port set to 4754, which is
+for applications, which only need to interact with the tunnel                the GRE-in-UDP port. The packet is then transmitted via the
+interface. This mechanism enables efficient traffic redistribution           designated physical interface. Upon arrival, the MPT-GRE
+without changing the application’s communication model.                      software verifies the packet by checking the destination port,
+Additionally, the MPT-GRE software supports the transition to                validating the connection based on the tunnel IP header, and
+IPv6, as both IP tunnel and path versions can operate                        performing checks on the GRE sequence number or GRE Key
+independently within the MPT-GRE library. Fig. 2 shows how                   value, if present. If the packet passes all checks without
+data packets are transmitted and received in MPT-GRE.                        reordering, it is forwarded to the transport and application layers
+                                                                             via the tunnel interface. If reordering is necessary, the packet is
+                                                                             temporarily stored in a buffer for reordering before being
+                                                                             transmitted [14].
+                                                                             B. Congestion Control Algorithms
+                                                                                 Congestion control in computer networks is crucial for
+                                                                             ensuring efficient data transfer and preventing issues such as
+                                                                             increased latency, packet loss, and reduced throughput [15].
+                                                                             When network demand exceeds available bandwidth or specific
+                                                                             data flows dominate resources, congestion control algorithms
+                                                                             are essential for maintaining network stability. These algorithms
+                                                                             handle transmission data by dynamically adjusting transmission
+                                                                             rates and implementing mechanisms like slow start and fast
+                                                                             retransmission, which help to alleviate congestion and reduce
+                                                                             packet loss. They are designed to respond to dynamic and
+                                                                             unpredictable network traffic, employing different strategies to
+                                                                             manage congestion by monitoring packet flows and adjusting
+                                                                             sending rates accordingly [11][16]. Widely used congestion
+                                                                             control algorithms, such as LP, Veno, H-TCP, CUBIC, Reno,
+                                                                             Hybla, Vegas, HSTCP, BBR, Westwood, BIC, and Scalable,
+                                                                             adjust the rate of transmission to adapt to varying network
+           Fig. 1. Conceptual architecture of MPT-GRE [4].                   structures and conditions. For example, CUBIC and Vegas
+                                                                             monitor estimated round-trip times (RTT) to detect congestion
+                                                                             and dynamically adjust transmission rates, while other
+                                                                             algorithms like BBR estimate bandwidth to optimize throughput
+                                                                             [17]. These algorithms are generally classified based on their
+                                                                             method of detecting and responding to congestion as the
+                                                                             following: loss-based, delay-based, hybrid (loss + delay), and
+                                                                             bandwidth estimation-based algorithms [18][19][20][21].
+                                                                                 1) Loss-based algorithms: Loss-based congestion control
+                                                                             algorithms detect network congestion by identifying packet
+                                                                             loss. Typically, this occurs when network buffers overflow due
+                                                                             to congestion. When packet loss is detected, the sender reduces
+                                                                             the congestion window, which is the amount of data allowed in
+                                                                             transit without acknowledgment. The sender then gradually
+                                                                             increases the congestion window to probe the available
+                                                                             bandwidth. These algorithms use packet loss as a congestion
+                                                                             signal, detected through duplicate acknowledgments or
+                                                                             timeouts. Upon congestion detection, the sender reduces the
+                                                                             congestion window, often by half, and slowly increases it using
+                                                                             strategies like additive increase multiplicative decrease
+      Fig. 2. Theoretical process of the MPT-GRE mechanism [4].              (AIMD). Examples of loss-based algorithms include Reno,
+                                                                             shown in Eq. (1) and (2), a traditional algorithm that reduces
+    Upon receiving a packet from the tunnel interface, the MPT-              the congestion window after detecting packet loss, and CUBIC,
+GRE software identifies the connection specification and                     shown in Eq. (3), which employs a cubic function to manage
+determines traffic distribution across multiple paths. The user              window growth but still relies on packet loss for congestion
+data packet is then encapsulated into a GRE-in-UDP data unit.
+                                                                             detection.
+This unit may include optional GRE Sequence Numbers for
+reordering. The GRE header contains 16 bits of zeros and                         Reno equations:
+identifies the protocol type (e.g., 0x0800 for IPv4 or 0x86DD
+
+
+
+                                                                                                                                 111 | P a g e
+                                                             www.ijacsa.thesai.org
+                                                                        (IJACSA) International Journal of Advanced Computer Science and Applications,
+                                                                                                                                 Vol. 16, No. 2, 2025
+
+                               1
+        𝑐𝑤𝑛𝑑 = 𝑐𝑤𝑛𝑑 +               ( 𝐴𝑑𝑑𝑖𝑡𝑖𝑣𝑒 𝐼𝑛𝑐𝑟𝑒𝑎𝑠𝑒 )                      2) Delay-based algorithms: Delay-based algorithms
+                             𝑐𝑤𝑛𝑑
+                                                                                      monitor round-trip time (RTT) changes or delays to detect
+                   𝑐𝑤𝑛𝑑
+        𝑐𝑤𝑛𝑑 =            ( 𝑀𝑢𝑙𝑡𝑖𝑝𝑙𝑖𝑐𝑎𝑡𝑖𝑣𝑒 𝐷𝑒𝑐𝑟𝑒𝑎𝑠𝑒 )                   network congestion, allowing them to adjust the sending rate
+                     2
+                                                                                      before packet loss occurs. For example, Vegas continuously
+   CUBIC equation:                                                                    monitors RTT to adjust the congestion window size based on
+            𝑐𝑤𝑛𝑑(𝑡) = 𝐶 ⋅ (𝑡 − 𝐾)3 + 𝑊𝑚𝑎𝑥                   observed delays, as shown in Equation 8. Hybla compensates
+                                                                                      for longer RTTs by scaling window growth proportionally to
+    where C is a scaling element that holds the window growth                         RTT values, improving performance in high-latency networks,
+rate, and t is the time since the last congestion event (loss),
+                                                                                      as shown in Eq. (9). On the other hand, LP (Low Priority)
+              3 𝑊𝑚𝑎𝑥 .𝛽
+whereas 𝐾 = √             is the time when the window moves                           reduces its window size when delays increase, prioritizing
+                    𝐶
+                                                                                      higher-priority traffic and ensuring smooth operation in mixed-
+𝑊𝑚𝑎𝑥 again. And 𝑊𝑚𝑎𝑥 is the congestion window size at the last
+congestion event (maximum window size before packet loss). β                          traffic environments, as shown in Eq. (10) and Eq. (11).
+represents a multiplicative decrease factor, usually set at 0.7.                         Vegas equations:
+    HighSpeed, Binary Increase Congestion Control (BIC),                                 ∆= (𝐸𝑥𝑝𝑒𝑐𝑡𝑒𝑑 𝑇ℎ𝑟𝑜𝑢𝑔ℎ𝑝𝑢𝑡 − 𝐴𝑐𝑡𝑢𝑎𝑙 𝑇ℎ𝑟𝑜𝑢𝑔ℎ𝑝𝑢𝑡 )
+Scalable, and Hamilton TCP (H-TCP) are advanced loss-based
+congestion control algorithms designed specifically for high-                                            cwnd=cwnd+α,          if Δ<γ
+speed, high-latency networks. HighSpeed aggressively                                                     cwnd=cwnd−β,         if Δ>δ
+increases the standard congestion window, enhancing                                       where α is the increase factor. β is the decrease factor. Δ is
+throughput in environments with a large bandwidth-delay                               the difference between expected and actual throughput. γ and δ
+product (BDP) shown in Eq. (4). BIC uses a binary search                              are thresholds for adjusting the window.
+method for adjusting the window size, effectively balancing
+rapid bandwidth probing with a cautious approach to packet                               Hybla equation:
+loss, as shown in Eq. (5). Scalable adopts a fixed-increment                                                            𝑅𝑇𝑇𝑟𝑒𝑓𝑒𝑟𝑒𝑛𝑐𝑒
+                                                                                                                   𝜌=                      
+growth strategy based on the current window size, allowing it to                                                          𝑅𝑇𝑇𝑐𝑢𝑟𝑟𝑒𝑛𝑡
+maintain high throughput in high-capacity networks, as shown
+                                                                                         where 𝑅𝑇𝑇𝑟𝑒𝑓𝑒𝑟𝑒𝑛𝑐𝑒 is a reference for round-trip time
+in Eq. (6). On the other hand, H-TCP dynamically adjusts its
+window growth by monitoring changes in network congestion                             (RTT), usually for a low-latency network
+and round-trip time (RTT), enabling it to respond effectively to                         LP equation:
+fluctuations in network conditions and improve performance in
+                                                                                                                     (𝑅𝑇𝑇𝑐𝑢𝑟𝑟𝑛𝑡 −𝑅𝑇𝑇𝑚𝑖𝑛 )
+high-BDP scenarios shown in Eq. (7).                                                                            ∆=                            
+                                                                                                                           𝑅𝑇𝑇𝑚𝑖𝑛
+   HighSpeed equation:
+                                                                                         If Δ > γ, LP reduces the congestion window as follows:
+                                        𝑎(𝑐𝑤𝑛𝑑)
+                𝑐𝑤𝑛𝑑 = 𝑐𝑤𝑛𝑑 +                                                 𝑐𝑤𝑛𝑑𝑛𝑒𝑤 =
+                                                                                                                              𝑐𝑤𝑛𝑑𝑐𝑢𝑟𝑟𝑒𝑛𝑡
+                                                                                                                                               
+                                         𝑐𝑤𝑛𝑑
+                                                                                                                                     2
+   where 𝑎 (𝑐𝑤𝑛𝑑) is an adaptive increase factor that scales                             where the threshold for the increase in RTT is denoted by γ.
+with the size of 𝑐𝑤𝑛𝑑. This factor becomes more significant as
+𝑐𝑤𝑛𝑑 grows.                                                                               3) Hybrid (Loss + Delay) algorithms: These algorithms
+   BIC equation:                                                                      leverage packet loss and delay to adjust the congestion window.
+                                                                                      For example, Illinois uses delay and loss metrics to adjust the
+                          (𝑐𝑤𝑛𝑑𝑚𝑎𝑥 +𝑐𝑤𝑛𝑑𝑚𝑖𝑛 )
+              𝑐𝑤𝑛𝑑 =                                  window size dynamically, enabling more adaptable congestion
+                                    2
+                                                                                      control. Veno combines Reno and Vegas’s strategies, using
+     where 𝑐𝑤𝑛𝑑max and 𝑐𝑤𝑛𝑑min represent the maximum and                              delay and packet loss signals to optimize the balance between
+minimum congestion window sizes that have been reached so                             performance and congestion avoidance. Similarly, YEAH uses
+far.                                                                                  delay as an early indicator of congestion and relies on packet
+   Scalable equation:                                                                 loss as a secondary, more conservative signal to adjust the
+                                                                                      transmission rate.
+                   𝑐𝑤𝑛𝑑 = 𝑐𝑤𝑛𝑑 + 𝑎. 𝑐𝑤𝑛𝑑 
+                                                                                         Illinois equation:
+   where α is a constant scaling factor typically set to a small
+value, such as 0.01 to 0.1.                                                                                                     𝛼(𝑑𝑒𝑙𝑎𝑦)
+                                                                                                           𝑐𝑤𝑛𝑑 = 𝑐𝑤𝑛𝑑 +                    
+                                                                                                                                    𝑐𝑤𝑛𝑑
+   H-TCP Equation:
+                                                                                         Veno equation:
+               𝑐𝑤𝑛𝑑 = 𝑐𝑤𝑛𝑑 + (2 × (𝑡 − 𝑇))                                                        1
+                                                                                      𝑐𝑤𝑛𝑑𝑛𝑒𝑤 = 𝑐𝑤𝑛𝑑𝑐𝑢𝑟𝑟𝑒𝑛𝑡 +                        (𝐴𝑑𝑑. 𝐼𝑛𝑐𝑟𝑒𝑎𝑠𝑒)
+                                                                                                                     𝑐𝑤𝑛𝑑𝑐𝑢𝑟𝑟𝑒𝑛𝑡
+   where t is the elapsed time since the last congestion event,
+and T is a constant.                                                                     YEAH Equation:
+                                                                                                                              MSS
+                                                                                                        cwndincrease =              
+                                                                                                                          RTTmin
+
+
+
+
+                                                                                                                                                  112 | P a g e
+                                                                    www.ijacsa.thesai.org
+                                                                     (IJACSA) International Journal of Advanced Computer Science and Applications,
+                                                                                                                              Vol. 16, No. 2, 2025
+
+   where, MSS stands for Maximum Segment Size, referring to                       were modified to enable the effective operation of the MPT-
+the most significant amount (in bytes) of data that a TCP                         GRE multipath system across the network infrastructure.
+segment can carry in the payload part of a packet, excluding the
+TCP and IP headers.
+    4) Bandwidth estimation-based algorithms: These
+algorithms estimate the available bandwidth in the network and
+adjust the sending rate accordingly, optimizing performance
+based on network capacity. For example, TCP Westwood
+estimates bandwidth using packet loss and throughput
+measurements. It adjusts the congestion window dynamically,
+making it particularly effective in wireless networks where
+packet loss is common. Similarly, Bottleneck Bandwidth and
+Round-trip propagation time (BBR) models available
+bandwidth and round-trip delay to efficiently manage the
+congestion window and transmission rate.
+                                                                                     Fig. 3. Experimental topology of the MPT-GRE multipath network.
+   Westwood equation:
+                             ∑ 𝐴𝐶𝐾𝑒𝑑_𝑑𝑎𝑡𝑎
+                                                                                      The first file, conf/interface.conf, contains essential
+                    BWE =                      parameters for network interfaces and tunnels. Adjustments
+                                   𝛥𝑡
+                                                                                  were made to specify the Local Command UDP Port Number
+   where BWE is the bandwidth estimate, ACKed_data is the                         for managing communication between MPT-GRE and network
+amount of acknowledged data, and Δt is the time interval                          interfaces; define the Interface Number, maximum transfer unit
+between receiving ACKs.                                                           (MTU), and permissions for remote requests; and establish the
+   BBR equation:                                                                  tunnel interface name, IPv4 address, and subnet prefix. This file
+                                                                                  also manages tunnel traffic protocols, with the same
+                             Bottleneck Bandwidth                                 configuration mirrored on the second server to maintain
+            Throughput =                              
+                                    𝑅𝑇𝑇𝑚𝑖𝑛                                        consistency in the multipath environment.
+    where Bottleneck Bandwidth is the maximum rate at which                           The second file, conf/connections/IPv4.conf, manages
+data can be transmitted along the path.                                           logical connections and defines transmission paths. Each MPT-
+                                                                                  GRE tunnel has its own connection file, specifying IP addresses
+                   IV.    TEST ENVIRONMENT
+                                                                                  for both tunnel endpoints and using IPv4 encapsulation within
+A. Hardware Environment Setting                                                   an IPv4 GRE tunnel. Previous publications [10][23] have
+   As illustrated in Fig. 3, the test setup consisted of three Dell               provided detailed information on MPT-GRE configuration
+PowerEdge R650 servers, each equipped with the following:                         settings, and the updated configuration files for this study have
+                                                                                  also been made available on GitHub [24].
+    CPU: Intel Xeon Gold 6330N 2.2G, 28C/56T, 11.2GT/s,
+     42M cache, turbo, HT (165W) DDR4-2666 x 2.                                         V.    EXPERIMENTS, RESULTS, AND PERFORMANCE
+                                                                                                         ANALYSIS
+    Memory: 32GB RDIMM, 3200MT/s, dual rank 16Gb
+     base x 16 = 512GB.                                                               The primary objective of this study is to confirm the
+                                                                                  influence of congestion control algorithms on MPT-GRE
+    Storage: SSD 480GB SSD SATA Read Intensive 6Gbps                             multipath networks and determine the optimal throughput
+     512, 2.5inch Hot Plug x 2 (RAID1).                                           aggregation value for the tunnel. A detailed evaluation of tunnel
+                                                                                  throughput is critical for enhancing our understanding of MPT-
+    Network Interface: 25GigE×4.                                                 GRE operations.
+    This experimental design was carefully structured to                              Various scenarios were designed for the experiments to
+evaluate the performance of the MPT-GRE multipath network,                        ensure precision and effectiveness. A Python script, available on
+mainly focusing on the impact of congestion control algorithms                    GitHub [25], was employed to automate and facilitate the
+on throughput and network efficiency. The experiments were                        experimental process over a period of 30 seconds. This script not
+conducted using Ubuntu 22.04.4 LTS (Jammy Jellyfish) / Linux                      only enabled frequent execution but also automated the saving
+operating system servers. These experiments were designed to                      of tunnel throughput results, thereby enhancing consistency and
+evaluate the performance of the MPT-GRE tunnel throughput                         repeatability. Additionally, a set of congestion control
+library and to monitor and prove the effectiveness of various                     algorithms was integrated into the Python code and executed
+congestion control algorithms.                                                    using iperf3 [26].
+B. MPT-GRE Configuration Setting                                                     To evaluate the impact of various Quality of Service (QoS)
+   The version of MPT used in this experiment, mpt-gre-lib64-                     metrics, we used a middle server to adjust traffic parameters
+2019.tar.gz, is available publicly from GitHub [22]. Two                          with the Linux tc command, experimenting with delay, jitter,
+primary configuration files within the MPT installation directory                 packet loss, and transmission speed limits. Each set of
+
+
+
+
+                                                                                                                                         113 | P a g e
+                                                                 www.ijacsa.thesai.org
+                                                               (IJACSA) International Journal of Advanced Computer Science and Applications,
+                                                                                                                        Vol. 16, No. 2, 2025
+
+congestion control algorithms was tested under various                      at lower delays; the Scalable algorithm reaches 531 Mbps at 20
+scenarios using the same QoS metrics.                                       ms. While CUBIC maintains competitive throughput as delay
+                                                                            increases, it is less effective than the HighSpeed algorithm. The
+    In the first scenario, the transmission speeds were configured          BIC algorithm offers balanced performance, achieving high
+with eth1 set at 1000 Mbps, while eth2 varied incrementally                 throughput at low delays (1160 Mbps at 10 ms) and proving
+from 100 Mbps to 1000 Mbps in steps of 100 Mbps. In the                     suitable in mixed delay environments. Therefore, HighSpeed
+second scenario, similar network conditions were applied; the               and Scalable are the optimal loss-based algorithms for their peak
+transmission speeds were reduced tenfold, with eth1 set to 100              performance and resilience under medium delays.
+Mbps and eth2 ranging from 10 Mbps to 100 Mbps in
+increments of 10 Mbps.                                                          In the delay-based algorithms, at lower delay values (10 ms),
+                                                                            Hybla achieves a higher throughput of 1180 Mbps compared to
+    Due to the large number of results without loss of generality,          LP’s 1080 Mbps, demonstrating better performance under
+the remaining transmission cases follow the same approach. The              minimal delay conditions. However, as the delay increases from
+following cases are discussed in detail:                                    20 ms to 50 ms, LP outperforms Hybla, maintaining higher
+    The symmetrical case: eth1 = 1000 Mbps and eth2 =                      throughput at greater delays. For example, LP achieves 239
+     1000 Mbps under the effect of all QoS metrics.                         Mbps compared to Hybla’s 178 Mbps at 40 ms. In contrast,
+                                                                            Vegas experiences a steep drop in throughput as delay increases,
+    The case of asymmetric paths: eth1 = 100 Mbps and eth2                 making it less suitable for high-delay conditions.
+     = 10, 20, 30... 100 Mbps under the effect of delay and
+     packet loss.                                                               Hence, while Hybla excels in low-delay situations, LP is the
+                                                                            better option for higher-delay scenarios.
+A. First Scenario: Analyzing QoS of Symmetrical Paths
+                                                                                Within the hybrid (loss + delay) algorithms, Illinois stands
+    1) Assessment impact of delay metric: We applied delays                 out for its high throughput, reaching up to 1150 Mbps at 10 ms
+across both server network interfaces, ensuring bidirectional               and demonstrating adaptability even at higher delays, achieving
+effects on transmitted packets. The delay parameter x was set at            215 Mbps at 40 ms. This makes it highly suitable for
+intervals of 10 ms, 20 ms, 30 ms, 40 ms, and 50 ms, using the               environments characterized by both loss and delay. Veno and
+tc command:                                                                 YEAH exhibit medium performance but show sharper
+                                                                            reductions in throughput as delay increases.
+          tc qdisc add dev eth1 root netem delay xms
+                                                                                Therefore, Illinois is the most effective hybrid algorithm,
+    For example, when symmetric paths (eth1=1000 Mbps and                   excelling in mixed loss and delay conditions while consistently
+eth2=1000 Mbps) are used, the impact of the delay metric on                 maintaining high throughput. In contrast, Veno and YEAH
+loss-based algorithms, delay-based algorithms, hybrid                       perform well in low-delay scenarios but underperform in higher-
+algorithms, and bandwidth estimation-based algorithms is as is              delay environments.
+shown in Fig. 4. Analyzing throughput values across different
+congestion control algorithms under various delay conditions                    2) Assessment impact of jitter metric: We measured the
+reveals key performance characteristics for each category.                  throughput of the MPT-GRE tunnel under jitter values of 2 ms,
+    The HighSpeed algorithm demonstrates the throughput                     4 ms, 6 ms, 8 ms, and 10 ms while keeping the delay set to zero.
+achieving 1160 Mbps at 10 ms in the loss-based algorithms                   This was done both with and without congestion control
+category. It sustains a relatively high performance of 202 Mbps             algorithms. To enable a more comprehensive assessment, we
+even under moderate delays, making it particularly effective in             also combined delay with jitter using the following command:
+environments with low to medium delays. The Scalable and
+                                                                                     tc qdisc add dev eth1 root netem delay dms jms
+CUBIC algorithms also perform well in this category, especially
+
+
+
+
+              Fig. 4. Throughput performance of the MPT-GRE tunnel under varying delay metrics (eth1 = 1000 Mbps, eth2 = 1000 Mbps)/.
+
+
+
+
+                                                                                                                                        114 | P a g e
+                                                            www.ijacsa.thesai.org
+                                                                 (IJACSA) International Journal of Advanced Computer Science and Applications,
+                                                                                                                          Vol. 16, No. 2, 2025
+
+
+
+
+               Fig. 5. Throughput performance of the MPT-GRE tunnel under varying jitter metrics (eth1 = 1000 Mbps, eth2 = 1000 Mbps).
+
+     The analysis presented in Fig. 5 illustrates the performance            manage moderate jitter, whereas Vegas is unsuitable for jitter-
+trends of various congestion control algorithms based on                     sensitive environments.
+throughput at different jitter levels. Reno exhibits a consistent
+throughput of 1860 Mbps in the loss-based algorithms under low                   Of the hybrid (loss + delay) algorithms, Illinois and Veno
+to moderate jitter conditions (ranging from 2 to 6 ms). However,             show robust throughput despite jitter. Illinois performs slightly
+its performance significantly declines to 1530 Mbps at 8 ms and              better at higher jitter levels, achieving 943 Mbps at 10 ms, while
+drops further to 876 Mbps at 10 ms, indicating that it is sensitive          Veno reaches 895 Mbps. However, YEAH is less adaptable in
+to higher jitter levels. Other algorithms like CUBIC and H-TCP               high-jitter scenarios.
+maintain relatively good throughput, showing reductions as                       Finally, in the bandwidth estimation-based algorithms, there
+jitter increases. Scalable and BIC perform well up to 8 ms, but              is a considerable difference in the performance of Westwood
+they experience a significant decline in performance at 10 ms.               and BBR under jitter conditions. For example, at 10 ms of jitter,
+In contrast, HighSpeed displays stable performance under low                 Westwood significantly outperforms BBR, achieving 949 Mbps
+jitter levels and maintains a better throughput of 1270 Mbps at 8            compared to BBR’s 51 Mbps.
+ms and 1050 Mbps at 10 ms than other algorithms under higher
+jitter conditions.                                                               Overall, some congestion control algorithms performed
+                                                                             better than the Uncontrolled case (the performance baseline
+    HighSpeed’s balanced performance makes it more suitable                  without applying any congestion control algorithm). For
+for environments with increased jitters, while Reno performs                 instance, the HighSpeed congestion control algorithm
+better in certain low-jitter situations.                                     outperformed the Uncontrolled case in all scenarios.
+    In the delay-based algorithms, throughput remains high for                   To better understand the effects and identify the optimal
+Hybla and LP, maintaining a consistent 1860 Mbps under low                   congestion control algorithm, delay and jitter were applied
+to moderate jitter conditions (2–6 ms). However, as jitters                  simultaneously, with the jitter value set to 20% of the delay. Fig.
+increase to 8 ms and 10 ms, their throughput decreases, with                 6 analyzes the performance of various congestion control
+Hybla reaching 1520 Mbps and 929 Mbps and LP achieving                       algorithms compared to the Uncontrolled case. Several
+1530 Mbps and 900 Mbps, respectively. In contrast, Vegas                     algorithms performed better than the Uncontrolled throughput,
+performs poorly across all jitter levels. Hybla and LP effectively           particularly under different delay and jitter conditions.
+
+
+
+
+          Fig. 6. Throughput performance of the MPT-GRE tunnel under combined delay and jitter metrics (eth1 = 1000 Mbps, eth2 = 1000 Mbps).
+
+
+
+
+                                                                                                                                         115 | P a g e
+                                                              www.ijacsa.thesai.org
+                                                                (IJACSA) International Journal of Advanced Computer Science and Applications,
+                                                                                                                         Vol. 16, No. 2, 2025
+
+    In comparison, Reno shows a more rapid and consistent                   of 120 Mbps even under the highest jitter and delay conditions.
+decline in throughput, starting at 530 Mbps and dropping to 82.6            This reflects its superior congestion control capabilities.
+Mbps under higher jitter and delay, indicating a less adaptive
+response to congestion than the Uncontrolled case. The                           Some of these algorithms, such as H-TCP, Hybla, and
+Uncontrolled case performs better than CUBIC and BIC under                  Illinois, achieved throughput levels close to those in the
+low delay and jitter conditions, specifically at 2 ms/10 ms and 4           Uncontrolled case. In contrast, algorithms like Vegas,
+ms/20 ms. However, as network conditions worsen, these                      Westwood, YEAH, Veno, and LP consistently performed worse
+algorithms outperform the Uncontrolled case.                                than the Uncontrolled values. Additionally, their performance
+                                                                            declined as delay and jitter increased.
+     Notably, the BIC algorithm excels under higher delay and
+jitter conditions, achieving throughput values of 200 Mbps, 154                 3) Assessment impact of packet loss metric: We tested
+Mbps, and 120 Mbps at 6 ms/30 ms, 8 ms/40 ms, and 10 ms/50                  packet loss conditions with loss rates set at 1%, 2%, 3%, 4%,
+ms, respectively. Similarly, the Scalable algorithm outperforms             and 5%. These rates were applied to network interfaces as
+the Uncontrolled case as delay and jitter increase, with                    follows:
+throughput values of 308 Mbps, 206 Mbps, 156 Mbps, and 124
+                                                                                          tc qdisc add dev eth1 root netem loss x
+Mbps under jitter from 4 ms to 10 ms and delay from 20 ms to
+50 ms. In contrast, the Uncontrolled case achieves 193 Mbps,                    Fig. 7 illustrates the impact of packet loss on the
+142 Mbps, and 112 Mbps under the same conditions, clearly                   performance of various congestion control algorithms.
+showing lower throughput than Scalable and BIC as delay and                 Analyzing these results, it is evident that packet loss leads to a
+jitter increase.                                                            decline in throughput for all algorithms as the percentage of loss
+     The HighSpeed algorithm significantly outperforms the                  increases. This decrease is expected, as packet loss commonly
+Uncontrolled case and other algorithms, achieving 644 Mbps at               results in retransmissions and delays, negatively affecting
+jitter = 2 ms, delay = 10 ms, and maintaining a higher throughput           network throughput.
+
+
+
+
+            Fig. 7. Throughput performance of the MPT-GRE tunnel under varying packet loss metrics (eth1 = 1000 Mbps, eth2 = 1000 Mbps).
+
+    Among the congestion control algorithms examined, BBR is                B. Second scenario: Analyzing QoS of Appropriate
+the most resilient to packet loss, consistently achieving                      Algorithms
+significantly higher throughput across all levels of packet loss.              In the second scenario, we analyzed:
+Even at a packet loss rate of 5%, BBR maintains a throughput of
+9.9 Mbps, far surpassing the performance of other algorithms.                     The HighSpeed congestion control algorithm compared
+BBR’s effectiveness minimizes the adverse effects of packet                        to the Uncontrolled case on symmetric and asymmetric
+loss on throughput.                                                                paths, where eth1 is set to 100 Mbps, and eth2 varies
+                                                                                   from 10 to 100 Mbps in increments of 10 Mbps under the
+    In contrast, the Uncontrolled case (i.e., without any                          delay metric.
+congestion control algorithm applied) experiences substantial
+reductions in throughput as packet loss increases, with values                    The BBR algorithm under the packet loss metric.
+dropping below 1.5 Mbps at 5% packet loss. These results
+highlight that congestion control algorithms significantly                      The results showed a significant increase in tunnel
+influence MPT-GRE tunnel throughput under varying packet                    throughput under these specified delay and packet loss
+loss conditions. While some algorithms perform better than                  conditions. An analysis of the results, as demonstrated in Fig. 8,
+others in the presence of packet loss, BBR stands out as the most           indicates that the HighSpeed algorithm achieved improved
+promising option for maintaining higher throughput in                       tunnel throughput. The MPT-GRE tunnel throughput
+challenging conditions.                                                     performance between the HighSpeed algorithm and the
+
+
+
+
+                                                                                                                                      116 | P a g e
+                                                             www.ijacsa.thesai.org
+                                                                 (IJACSA) International Journal of Advanced Computer Science and Applications,
+                                                                                                                          Vol. 16, No. 2, 2025
+
+Uncontrolled case was assessed across symmetric and                              On the other hand, Fig. 9 illustrates how varying levels of
+asymmetric transmission speeds and delay conditions. This                    packet loss affect the throughput aggregation of the MPT-GRE
+analysis highlights how the HighSpeed algorithm enhances                     tunnel. Under packet loss conditions, the BBR algorithm
+tunnel throughput in the MPT-GRE multipath network                           maintains higher throughput across all transmission speeds
+compared to the Uncontrolled case, particularly under increased              compared to the Uncontrolled case. An exception occurs when
+network delays.                                                              eth1 = 100 Mbps and eth2 = 10 Mbps at 1% packet loss, where
+                                                                             throughput for the Uncontrolled case and BBR is 24.4 Mbps and
+    In the HighSpeed algorithm case, the MPT-GRE tunnel                      23.9 Mbps, respectively—a slight difference.
+throughput shows a relatively modest decrease as delay
+increases. For example, at asymmetric transmission speeds (eth1                  For example, at transmission speeds of eth1 = 100 Mbps and
+= 100 Mbps and eth2 = 10 Mbps), the throughput drops only                    eth2 = 20 Mbps, BBR achieves a throughput of 33.5 Mbps,
+slightly, from 103 Mbps to 102 Mbps, as the delay increases                  while the Uncontrolled case drops to 14.8 Mbps, representing
+from 10 ms to 50 ms. At symmetric transmission speeds (eth1 =                nearly a 56% reduction in MPT-GRE tunnel throughput. This
+100 Mbps and eth2 = 100 Mbps), the throughput decreases from                 trend persists at all packet loss rates, with BBR consistently
+186 Mbps to 184 Mbps. This throughput stability under higher                 mitigating the negative effects of packet loss more effectively
+delays suggests that the HighSpeed congestion control algorithm              than the Uncontrolled case.
+efficiently manages congestion and minimizes throughput loss
+even as network delay increases.                                                 As packet loss increases to 5%, both scenarios experience a
+                                                                             decline in MPT-GRE tunnel throughput. However, the
+    In contrast, the Uncontrolled case exhibits a more significant           degradation is significantly more pronounced in the
+degradation in MPT-GRE tunnel throughput with increasing                     Uncontrolled case, particularly at higher transmission speeds.
+delays. At asymmetric transmission speeds (eth1 = 100 Mbps                   For instance, when eth1 and eth2 are set to 100 Mbps,
+and eth2 = 10 Mbps), throughput decreases from 102 Mbps at a                 throughput in the Uncontrolled case plummets to 1.05 Mbps at
+10 ms delay to 93.3 Mbps at a 50 ms delay, indicating greater                5% packet loss, while BBR maintains a throughput of 7.83
+sensitivity to delay. At symmetric transmission speeds (eth1 =               Mbps.
+100 Mbps and eth2 = 100 Mbps), throughput drops from 183
+Mbps at a 10 ms delay to 137 Mbps at a 50 ms delay. This                         This comparison highlights the resilience of the BBR
+reduced responsiveness to delay leads to more pronounced                     algorithm, which consistently maintains significantly higher
+degradation in MPT-GRE tunnel throughput.                                    throughput levels than the Uncontrolled case under packet loss
+                                                                             conditions.
+
+
+
+
+           Fig. 8. Impact of the HighSpeed algorithm and the Uncontrolled case on MPT-GRE tunnel throughput under varying delay conditions.
+
+
+
+
+           Fig. 9. Impact of the BBR algorithm and the Uncontrolled case on MPT-GRE tunnel throughput under varying packet loss conditions.
+
+
+
+
+                                                                                                                                        117 | P a g e
+                                                             www.ijacsa.thesai.org
+                                                           (IJACSA) International Journal of Advanced Computer Science and Applications,
+                                                                                                                    Vol. 16, No. 2, 2025
+
+C. Determine the Appropriate Algorithm                                                                REFERENCES
+    Upon analyzing the results from the two scenarios, the            [1]    B. Nawaz, K. Mahmood, J. Khan, M. Ul, A. Munir, and M. Kashif,
+HighSpeed congestion control algorithm outperforms others                    “Congestion Control Techniques in WSNs: A Review,” International
+                                                                             Journal of Advanced Computer Science and Applications, vol. 10, no. 4,
+when network conditions are affected by delay, jitter, or a                  2019, doi: 10.14569/IJACSA.2019.0100423.
+combination of both. This algorithm consistently maintains high
+                                                                      [2]    L. Yong, E. Crabbe, X. Xu, and T. Herbert, “GRE-in-UDP
+throughput despite fluctuations in delay and jitter, making it               encapsulation,” 2017.
+particularly suitable for MPT-GRE multipath environments              [3]    J. Zhao, J. Liu, H. Wang, C. Xu, and H. Zhang, “Multipath Congestion
+where these factors are common.                                              Control: Measurement, Analysis, and Optimization From the Energy
+                                                                             Perspective,” IEEE Transactions on Network Science and Engineering,
+    In contrast, the BBR algorithm excels under packet loss                  vol. 10, no. 6, pp. 1–12, 2023, doi: 10.1109/TNSE.2023.3257034.
+conditions, effectively adapting to varying levels of packet loss.    [4]    B. Almási, G. Lencse, and S. Szilágyi, “Investigating the multipath
+Therefore, HighSpeed is the most appropriate choice in                       extension of the GRE in UDP technology,” Computer Communications,
+scenarios where delay and jitter are the primary challenges,                 vol. 103, pp. 29–38, May 2017, doi: 10.1016/j.comcom.2017.02.002.
+while BBR is the preferred solution for networks where packet         [5]    A. Ford, C. Raiciu, M. Handley, O. Bonaventure, and C. Paasch, “TCP
+loss is the dominant issue.                                                  Extensions for Multipath Operation with Multiple Addresses,” Mar. 2020.
+                                                                             doi: 10.17487/RFC8684.
+    When considering delay, jitter, and packet loss across            [6]    Y. Thomas, G. Xylomenos, and G. C. Polyzos, “Multipath congestion
+various network conditions, the HighSpeed and BBR algorithms                 control with network assistance,” Computer Communications, vol. 153,
+consistently outperform other options, making them optimal                   pp. 264–278, 2020, doi: https://doi.org/10.1016/j.comcom.2020.01.071.
+choices for maximizing throughput in diverse scenarios.               [7]    Ł. Łuczak, P. Ignaciuk, and M. Morawski, “Experimental Assessment of
+                                                                             MPTCP Congestion Control Algorithms for Streaming Services in Open
+                       VI.   CONCLUSION                                      Internet,” in FedCSIS (Communication Papers), Oct. 2023, pp. 359–364,
+                                                                             doi: 10.15439/2023F9991.
+    In this study, we evaluated the impact of various congestion      [8]    H. Moradiya and K. Popat, “Evaluating TCP Performance with RED for
+control algorithms on tunnel throughput in a multipath MPT-                  Efficient Congestion Control,” in International Conference on
+GRE network under different network conditions. The analysis                 Advancements in Smart Computing and Information Security, Springer,
+focused on loss-based, delay-based, hybrid, and bandwidth                    2024, pp. 403–414.
+estimation-based algorithms, including HighSpeed, CUBIC, H-           [9]    J. Zhang, Z. Yao, Y. Tu, and Y. Chen, “A Survey of TCP Congestion
+                                                                             Control Algorithm,” in 2020 IEEE 5th International Conference on Signal
+TCP, LP, BBR, and Illinois. These algorithms were tested under               and Image Processing (ICSIP), 2020, pp. 828–832, doi:
+varying delay, jitter, and packet loss conditions at symmetric and           10.1109/ICSIP49896.2020.9339423.
+asymmetric transmission speeds.                                       [10]   N. Al-Imareen and G. Lencse, “Effect of Path QoS on Throughput
+                                                                             Aggregation Capability of the MPT Network Layer Multipath
+   The results indicated that some algorithms significantly                  Communication Library,” Infocommunications journal, vol. 15, no. 2, pp.
+improved MPT-GRE network performance, particularly when                      14–20, 2023, doi: 10.36244/ICJ.2023.2.3.
+specific congestion control mechanisms were applied.                  [11]   S. Szilágyi and I. Bordán, “The effects of different congestion control
+HighSpeed significantly improved tunnel throughput as delay                  algorithms over multipath fast ethernet IPv4/IPv6 environments,” CEUR
+and jitter increased, while BBR enhanced throughput under                    Workshop Proceedings, vol. 2650, pp. 341–349, 2020, [Online].
+packet loss conditions. BBR consistently outperformed the                    Available: https://api.semanticscholar.org/CorpusID:221662730.
+Uncontrolled case, exhibiting stable performance across various       [12]   Y. Cao, M. Xu, and X. Fu, “Delay-based congestion control for multipath
+QoS conditions.                                                              TCP,” Proceedings - International Conference on Network Protocols,
+                                                                             ICNP, pp. 1–10, 2012, doi: 10.1109/ICNP.2012.6459978.
+    Our findings emphasize the importance of selecting                [13]   R. Melki, M. M. Mansour, and A. Chehab, “A fairness-based congestion
+appropriate congestion control algorithms for MPT-GRE                        control algorithm for multipath TCP,” IEEE Wireless Communications
+                                                                             and Networking Conference, WCNC, vol. 2018-April, pp. 1–6, 2018, doi:
+networks. For example. HighSpeed performs well under delay                   10.1109/WCNC.2018.8377078.
+and jitter, while BBR excels in packet loss scenarios,
+                                                                      [14]   G. Lencse, S. Szilagyi, F. Fejes, and M. Georgescu, “MPT Network Layer
+maximizing throughput and leveraging MPT-GRE’s                               Multipath         Library,”        2021.        [Online].      Available:
+aggregation capabilities. This enables service providers to                  https://datatracker.ietf.org/doc/html/draft-lencse-tsvwg-mpt-10.
+deliver more reliable and efficient communication solutions.          [15]   M. B. M. Kamel, I. Ahmed Najm, and A. Khalaf Hamoud, “Congestion
+                                                                             Control Prediction Model for 5G Environment Based on Supervised and
+   One of our future works is to create and design a specific                Unsupervised Machine Learning Approach,” IEEE Access, vol. 12, pp.
+congestion control algorithm for the MPT library.                            91127–91139, 2024, doi: 10.1109/ACCESS.2024.3416863.
+                                                                      [16]   R. Al-Saadi, G. Armitage, J. But, and P. Branch, “A Survey of Delay-
+                      ACKNOWLEDGMENT                                         Based and Hybrid TCP Congestion Control Algorithms,” IEEE
+    The measurements were conducted remotely using the                       Communications Surveys & Tutorials, vol. 21, no. 4, pp. 3609–3638,
+                                                                             2019, doi: 10.1109/COMST.2019.2904994.
+facilities provided by the National Institute of Information and
+                                                                      [17]   H. Jamal and K. Sultan, “Performance analysis of TCP congestion control
+Communications Technology (NICT) StarBED, located at 2–12                    algorithms,” International Journal of Computers and Communications,
+Asahidai, Nomi-City, Ishikawa 923-1211, Japan.                               vol. 2, no. 1, pp. 30–38, 2008, [Online]. Available:
+                                                                             http://w.naun.org/multimedia/UPress/cc/cc-27.pdf.
+   The authors thank Bertalan Kovács for reading and
+                                                                      [18]   S. Patel, Y. Shukla, N. Kumar, T. Sharma, and K. Singh, “A Comparative
+commenting on the manuscript.                                                Performance Analysis of TCP Congestion Control Algorithms: Newreno,
+                                                                             Westwood, Veno, BIC, and Cubic,” in 2020 6th International Conference
+   The authors thank Brant von Goble from Széchenyi István                   on Signal Processing and Communication (ICSC), Mar. 2020, pp. 23–28,
+University for proofreading the English-language version of the              doi: 10.1109/ICSC48311.2020.9182733.
+manuscript.
+
+
+
+                                                                                                                                     118 | P a g e
+                                                        www.ijacsa.thesai.org
+                                                                      (IJACSA) International Journal of Advanced Computer Science and Applications,
+                                                                                                                               Vol. 16, No. 2, 2025
+
+[19] A. Roy, J. L. Pachuau, and A. K. Saha, “An overview of queuing delay        [22] F. Fejes, “MPT – multi-path tunnel,” precompiled version can be
+     and various delay based algorithms in networks,” Computing, vol. 103,            downloaded from:, 2019. http://github.com/spyff/mpt.
+     no. 10, pp. 2361–2399, Oct. 2021, doi: 10.1007/s00607-021-00973-3.          [23] N. Al-Imareen and G. Lencse, “On the Impact of Packet Reordering in
+[20] M. A. Yousuf, M. M. Islam, M. S. Hosen, and M. L. Ali, “Round-Trip               MPT-GRE Multipath Networks,” in 2023 46th International Conference
+     Time and Available Bandwidth Estimation Based Congestion Window                  on Telecommunications and Signal Processing (TSP), Jul. 2023, pp. 82–
+     Reduction Algorithm of MPTCP in Lossy Satellite Networks,” Journal of            86, doi: 10.1109/TSP59544.2023.10197737.
+     Physics: Conference Series, vol. 1624, no. 4, p. 042024, Oct. 2020, doi:    [24] N. Al-Imareen and G. Lencse, “MPT connections files,” 2023. [Online].
+     10.1088/1742-6596/1624/4/042024.                                                 Available: https://github.com/NaseerAJabbar/MPT_Connections_files.
+[21] R. Gonzalez, J. Pradilla, M. Esteve, and C. E. Palau, “Hybrid delay-based   [25] N. Al-Imareen and G. Lencse, “Implement congestion control algorithms
+     congestion control for multipath TCP,” in 2016 18th Mediterranean                using iperf3        for    MPT-GRE       multipath network,”    2024.
+     Electrotechnical Conference (MELECON), Apr. 2016, pp. 1–6, doi:                  https://github.com/NaseerAJabbar/Congestion-Control-Algorithms.
+     10.1109/MELCON.2016.7495389.
+                                                                                 [26] K. P. Jon Dugan, Seth Elliott, Bruce A. Mah, Jeff Poskanzer, “Iperf3
+                                                                                      documentation,” 2018. https://iperf.fr/iperf-doc.php.
+
+
+
+
+                                                                                                                                           119 | P a g e
+                                                                   www.ijacsa.thesai.org
+

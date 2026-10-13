@@ -1,0 +1,18 @@
+{
+  "authority": "complete_eligibility_queue_20261012.csv and summary",
+  "status": {
+    "exported_records": 2618,
+    "normalized_report_groups": 1916,
+    "requires_fulltext_groups": 1745,
+    "reviewed_title_abstract_excluded_groups": 171,
+    "automatically_excluded_groups_pending_reassessment": 0,
+    "conflicting_screening_groups": 25,
+    "unresolved_screening_conflict_groups": 0,
+    "completed_eligibility_groups": 15,
+    "included_report_groups": 8,
+    "excluded_after_eligibility_groups": 7,
+    "pending_eligibility_groups": 1730,
+    "rule": "Any include or uncertain record keeps the report in eligibility review, even if another source record excludes it. Identity normalization is not study-level deduplication."
+  },
+  "note": "Completed report eligibility counts, not complete-corpus inclusion or independent-study counts."
+}

@@ -1,0 +1,681 @@
+                                                             SPECIAL SECTION ON 5G AND BEYOND MOBILE WIRELESS COMMUNICATIONS
+                                                             ENABLING INTELLIGENT MOBILITY
+
+
+Received August 19, 2019, accepted September 19, 2019, date of publication October 4, 2019, date of current version October 17, 2019.
+Digital Object Identifier 10.1109/ACCESS.2019.2945582
+
+
+
+
+DL-TCP: Deep Learning-Based Transmission
+Control Protocol for Disaster
+5G mmWave Networks
+WOONGSOO NA                    1,   BYUNGJUN BAE1 , SUKHEE CHO1 , AND NAYEON KIM2
+1 Media Research Division, Electronics and Telecommunications Research Institute, Daejeon 34129, South Korea
+2 Department of Communications & Media, University of Science and Technology, Daejeon 34113, South Korea
+
+Corresponding author: Woongsoo Na (wsna@etri.re.kr)
+This work was supported in part by the Institute for Information and Communications Technology Promotion (IITP) grant funded by the
+Korea Government (MSIT) through the terrestrial UHD-based disaster broadcasting service for reducing disaster damage under Grant
+2018-0-01364.
+
+
+
+
+  ABSTRACT The 5G mobile communication system is attracting attention as one of the most suitable
+  communication models for broadcasting and managing disaster situations, owing to its large capacity and
+  low latency. High-quality videos taken by a drone, which is an embedded IoT device for shooting in a disaster
+  environment, play an important role in managing the disaster. However, the 5G mmWave frequency band is
+  susceptible to obstacles and has beam misalignment problems, severing the connection and greatly affecting
+  the degradation of TCP performance. This problem becomes even more serious in high-mobility drones and
+  disaster sites with many obstacles. To solve this problem, we propose a deep-learning-based TCP (DL-TCP)
+  for a disaster 5G mmWave network. DL-TCP learns the node’s mobility information and signal strength, and
+  adjusts the TCP congestion window by predicting when the network is disconnected and reconnected. As a
+  result of the experiment, DL-TCP provides better network stability and higher network throughput than the
+  existing TCP NewReno, TCP Cubic, and TCP BBR.
+
+
+  INDEX TERMS Deep-learning, mmWave, TCP, 5G, supervised-learning.
+
+
+I. INTRODUCTION                                                                                one of the solutions. The UAVs can shoot high-definition
+In recent years, a series of natural disasters, such as the                                    videos for emergency situations and deliver them quickly
+tsunami in Indonesia, the magnitude 9.0 earthquake in Japan,                                   to The broadcast station through the 5G core network [1].
+and the hurricane in USA, have been threatening the life of                                    In addition, this video can be utilized for rescue operations
+mankind. Natural disasters have been occurring increasingly                                    or broadcasts to everybody in a disaster area. For a captured
+frequently in the world along with abnormal weather phe-                                       video image to be efficiently used for lifesaving activities and
+nomena, and taking human lives with many financial losses.                                     disaster management, 1) high-quality videos should be trans-
+To minimize damage in case of a disaster, it is very important                                 mitted without loss (high throughput/reliability) and 2) with
+to quickly recognize it and accurately and promptly commu-                                     low latency. As 5G networks can provide high-throughput
+nicate useful information such as emergency situations and                                     (enhanced mobile broadband), fast, and accurate services
+action guidelines to all people in the disaster area [1].                                      (ultra reliable and low latency), delivering emergency infor-
+   However, when a disaster occurs, there is a limitation                                      mation is a good use case for 5G networks (Fig. 1).
+to delivering emergency information because the existing                                          The 5G networks use a wide frequency band, millime-
+infrastructure (e.g., LTE base station and WiFi Hotspot) is                                    ter wave (mmWave) band, to provide high throughput.1
+broken, and thus, the connectivity is cut off. To solve this                                   Although mmWave has a wide bandwidth, beamforming
+problem, employing unmanned aerial vehicles (UAVs) with                                        technology is absolutely necessary owing to its high path
+IoT devices for shooting that roam and shoot the scene of                                      loss and strong directivity. Fortunately, the 3GPP 5G stan-
+the emergency situation with a small 5G base station can be
+                                                                                                  1 In fact, in 5G, numerology is applied to cope with several operating
+                                                                                               frequencies (e.g., 3.5 and 28 GHz), but in this paper, we discuss only
+   The associate editor coordinating the review of this manuscript and                         mmWave with a high bandwidth, assuming that a high-quality video image
+approving it for publication was Wei Wang               .                                      is transmitted.
+
+                     This work is licensed under a Creative Commons Attribution 4.0 License. For more information, see http://creativecommons.org/licenses/by/4.0/
+145134                                                                                                                                                               VOLUME 7, 2019
+W. Na et al.: DL-TCP: Deep Learning-Based Transmission Control Protocol for Disaster 5G mmWave Networks
+
+
+
+
+                                                                                  • We designed a machine learning (ML) model that pre-
+                                                                                    dicts blockage duration based on mobility, location, and
+                                                                                    received SINR value of the TCP sender in the disaster 5G
+                                                                                    mmWave network. The proposed ML model can predict
+                                                                                    blockage duration with a probability of about 90% or
+                                                                                    more, and is independent of the mobility model of UE
+                                                                                    (TCP sender).
+                                                                                  • Based on blockage duration, we proposed a new
+                                                                                    loss-based TCP model suitable for the mmWave envi-
+                                                                                    ronment. The proposed TCP distinguishes between a
+FIGURE 1. System architecture of disaster 5G networks.
+                                                                                    temporary disconnection of a link and actual congestion,
+                                                                                    and carries out a CC algorithm according to the situation.
+dard groups have discussed and proposed beamforming tech-
+                                                                                  • We determined that our proposed TCP outperforms
+nologies for 5G networks [2]. Despite the advancement of
+                                                                                    other existing TCPs in not only the disaster site but also
+beamforming technology, the following problems remain in
+                                                                                    any topology (sport stadium, smart city, indoor, etc.)
+the mmWave band.
+                                                                                    with the 5G mmWave environment.
+   • Blockage problem: The phenomena that the signal can-
+                                                                                  The remainder of this paper is organized as fol-
+      not pass through the obstacle owing to the directivity and               lows. In Section II, we describe related work on the
+      the receiving SNR value is severed.                                      mmWave 5G network and existing TCPs. Furthermore,
+   • Beam misalignment: The receiver has a poor SNR
+                                                                               we describe the problem of conventional TCPs in disas-
+      value owing to nonmatching of transmitting/receiving                     ter 5G mmWave networks. In Section IV, we describe the
+      beam pairs.                                                              proposed machine learning architecture for ML-based TCP
+   In particular, the use of the transmission control proto-                   in 5G mmWave networks. We compare the performance of
+col (TCP) is essential owing to the characteristics of disaster                the proposed TCP with the existing TCPs in various network
+communication, where end-to-end communication reliability                      typologies in V. Finally, in Section VI, the conclusions and
+is very important. However, in 5G networks, especially in                      suggestions for future research directions are detailed.
+mmWave band, TCP is very vulnerable owing to beam mis-
+alignment and blockage issues. TCP in the mmWave band                          II. RELATED WORK
+has been extensively studied recently. In [3], [4], the authors                TCP research has been around for a long time and has become
+simulated the performance of several existing TCP schemes,                     one of the core protocols of the Internet. Thus, various TCP
+such as Reno, Cubic, and BBR, to verify how TCP will work                      versions have been proposed accordingly. In this section,
+in the mmWave band. Furthermore, in [3] and [4], the authors                   we present a brief overview of previous studies on 1) con-
+determined that the conventional loss-based TCP, such as                       ventional TCPs, 2) TCPs in 5G mmWave environment, and
+Ha et al. [5], is not suitable for the mmWave capacity owing                   3) TCPs with machine learning.
+to its wide bandwidth, while congestion-based TCP, such as
+BBR, is more suitable. In addition, the authors discussed how                  A. CONVENTIONAL TCP
+beam tracking, handover, and mobility affect TCP perfor-                       The conventional congestion control technique for TCP
+mance in 5G mmWave networks. However, no TCP for the                           assumes that all segmentation loss reasons are based
+5G mmWave network has been proposed yet.                                       on congestion. Therefore, the most popular TCP-Reno
+   This paper proposes a new TCP for transmitting high-                        andNew-Reno, at first, exponentially increase the congestion
+quality videos (UHD 4K level) at low latency in disaster 5G                    window in the slow start phase and go through the congestion
+mmWave networks. The proposed TCP performs learning                            avoidance phase when segmentation loss occurs, to adjust
+based on mobility, location, and reception signal-to-noise                     the transmission rate [6], [7]. However, in wireless media
+ratio (SNR) value of the terminal, and the learning agent (UE)                 with a strong randomness factor, segmentation loss is caused
+predicts the time duration for which the transmitting signal is                not only by network congestion but also by factors such as
+disconnected (blockage duration). If the blockage duration is                  interference, path loss, and mobility [8].
+less than the TCP retransmission timeout (RTO) value, the                         Recently, various new versions of TCP studies have been
+congestion window (cwnd) value is fixed and buffering is                       conducted [5], [9]–[11]. Of these, TCP Cubic [5] is the
+performed for the corresponding time to utilize the mmWave                     most popular TCP technique currently used in Linux Kernels
+capacity. By contrast, the congestion control (CC) algorithm                   2.6.19 and above. In TCP Cubic, the size of the congestion
+is performed by determining that the actual congestion has                     window grows very quickly right before the congestion event
+occurred.                                                                      occurs, and then, convexly increases the size of the congestion
+   The contributions of this study are summarized as follows:                  window to prove the network state. Although TCP Cubic is
+   • We analyzed and identified how the mmWave technical                       designed for high-bandwidth-delay product (BDP) networks,
+      challenges (blockage problem and beam misalignment)                      it is not suitable for wireless networks, which have random
+      affect TCP in the disaster 5G mmWave network.                            channel characteristics.
+
+VOLUME 7, 2019                                                                                                                         145135
+                                           W. Na et al.: DL-TCP: Deep Learning-Based Transmission Control Protocol for Disaster 5G mmWave Networks
+
+
+
+
+   One of the most popular TCPs, bottleneck bandwidth and               As Q-learning based TCP, throughput and RTT are modeled
+round-trip propagation time (BBR) [10], is used to maintain             as utility so that each action can optimize the utility. Similarly,
+an optimal congestion window based on the current net-                  in [20], the authors proposed supervised learning- based TCP
+work bandwidth and round-trip time (RTT). However, BBR                  (LP-TCP) and reinforcement learning-based TCP. LP-TCP
+is not still suitable for wireless media where packets are              predicts the probability of loss of the current packet by learn-
+still randomly dropped. To cope with the characteristics of             ing the received ACK packet, current received cwnd size,
+wireless media, other wireless TCPs have been proposed for              RTT, and exponentially weighted moving average.
+many years [12]–[15]. However, in these studies, the wireless              QTCP and LP-TCP have the advantage of being applicable
+access is considered the bottleneck area and is not suitable for        to various network environments because it conducts con-
+mmWave networks with a large bandwidth.                                 gestion control through self- learning rather than rule-based
+                                                                        learning. However, these studies predict or enhance network
+B. TCP IN 5G MMWAVE NETWORK                                             congestion control through packet-based information (con-
+With the release of 5G mobile communication standardiza-                gestion window size, RTT, time interval of ACKs, etc.).
+tion, the question of whether existing TCP works well in the            Therefore, congestion control algorithms will not work prop-
+mmWave band naturally emerges. In [3], [4], [16], the authors           erly for blockage problems caused by mobility and beam
+simulated the operation of the conventional TCP (Tahoe,                 misalignment problems (factors that are not caused by pack-
+Reno, Cubic, BBR, etc.) in 5G mmWave networks. They                     ets). This problem will become even more serious in the
+experimented end-to-end performance between a mobile ter-               5G mmWave disaster network, where mobility is frequent
+minal and a cloud server in an environment where signals                and several obstacles are placed. To cope with this problem,
+are attenuated owing to obstacles such as buildings and trees.          we propose a machine learning framework based on mobil-
+In their experiments, the authors determined that 1) the con-           ity, location, and received SNR information of the moving
+ventional TCPs take a long time to activate the wide band-              objects.
+width of mmWave, 2) the end-to-end latency increases owing
+to the high link error rate, and 3) a frequent RTO occurs.              III. TCP IN DISASTER 5G mmWave NETWORKS
+   In addition, in [16], the authors performed comprehen-               In this section, we describe our proposed 5G mmWave net-
+sive experiments on how mobility management techniques                  work model and related issues for the disaster site. As shown
+(e.g., handover) affect TCP performance in 5G mmWave                    in Fig. 1, we assume an uplink scenario model where UAVs,
+networks. They concluded that in a channel intermittent envi-           for shooting extensively at disaster sites, and firefighters with
+ronment (e.g., mmWave band), the fast adaptation of the                 an electronic news-gathering camera, for shooting details of
+servicing base station is a key technology that can improve the         the disaster sites, transmit the video to a broadcast station
+TCP performance. These studies [3], [4], [16]–[18] raised a             or control centers. They can transmit high-quality videos in
+problem with TCP performance in the mmWave band, but did                raw data form without compression2 to broadcast stations
+not present a new TCP suitable for 5G mmWave networks.                  and disaster control centers via the 5G network. However,
+   Additionally, in [17], the authors proposed advanced                 to transmit uncompressed video images without delay, a data
+5G-TCP suitable for a wide bandwidth of mmWave by adjust-               rate on the order of Gbps is required, which enables a 5G
+ing the parameters of high-speed TCP (HSTCP). However,                  mmWave network with a wide bandwidth.
+they focused on how quickly a 5G mmWave network with a                     In 5G mmWave networks, the beamforming technology is
+wide bandwidth can be maximally activated without consid-               essential for compensating for a high path loss. The formed
+ering frequent link errors.                                             beams between the 5G base station and the transmission
+                                                                        terminal (transmitting UE) provide a high antenna gain; how-
+C. TCP WITH MACHINE LEARNING                                            ever, it is vulnerable to obstacles due to the beam directivity.
+Recently, machine learning techniques have effectively                  In addition, when the directions of the formed beams between
+advanced the state-of-the-art for many research domains.                the transmitting and receiving antennas are not matched,
+In particular, machine learning can be applied to TCP appli-            the receiving gain is lowered, and therefore, the SNR value
+cations such as congestion control [19], [20], network state            decreases. In particular, in the disaster 5G mmWave network
+prediction [21], [22], traffic classification [23], traffic mon-        model, the transmitting UEs have variable mobility, which
+itoring, and security [24]. Congestion control, which is the            can lead to communication problems.
+main function of ML-based TCP, is classified into loss predic-             Fig. 2 (a) shows the blockage problem in the mmWave
+tion through supervised learning and intelligent congestion             environment. UAVs that capture disaster scenes can transmit
+window control through reinforcement learning.                          video images to a 5G basestation (gNB) within line-of-sight
+   In [19], the authors proposed a Q-learning framework                 (LOS) locations. However, if non-line-of-sight (NLOS) is
+with TCP design (QTCP), which enables senders to grad-                  formed due to obstacles such as trees/collapsed buildings,
+ually learn the optimal congestion control policy in an                 it is impossible to transmit signals in the mmWave band.
+online manner. QTCP performs congestion window control
+(increase/decrease/hold) based on the time intervals of trans-             2 In general, video encoder equipment is limited to portable video cameras
+mitted packets and received ACK packets and average RTT.                for reasons of heavy weight and battery inefficiency.
+
+145136                                                                                                                                VOLUME 7, 2019
+W. Na et al.: DL-TCP: Deep Learning-Based Transmission Control Protocol for Disaster 5G mmWave Networks
+
+
+
+
+FIGURE 2. Communication problems in mmWave band.
+
+
+
+
+FIGURE 3. Blockage problem and beam misalignment problems.
+
+
+Camera mans moving fast to cover disaster scenes and UAVs
+with fast mobility are more likely to be exposed to these
+problems. Similarly, Fig. 2 (b) shows the problem of beam
+misalignment in the mmWave environment. As shown in the                        FIGURE 4. SNR and cwnd variation in blockage scenario.
+
+figure, the UAV and gNB beams are correctly matched and
+the SNR of the signal is high, but the beams of the camera                     Fig. 4 also shows the congestion window variation in the
+man and the gNB are misaligned, and thus, the signal cannot                    TCP layer in the above scenario. As shown in the figure,
+be received.                                                                   when the SNR value falls below the receiving threshold value,
+                                                                               RTO occurs, which causes the cwnd value to be initialized
+A. BLOCKAGE PROBLEM IN TCP                                                     frequently. This leads to decreased total network throughput.
+To analyze how a conventional TCP behaves when a blockage                         One way to fundamentally solve the blockage problem is
+problem occurs in mmWave networks, we have configured                          to install a base station to widen the LOS area, or install a
+a simple scenario, as shown in Fig. 3. In the left side of                     mirror that captures the signal being transmitted and relays it
+Fig. 3, initially, the camera man and gNB are located at                       to the NLOS area. However, in disaster areas where existing
+LOS distance from each other, and thus, it can transmit the                    infrastructure has collapsed or a metropolitan-area network
+video data without any problem. The camera man moves                           topology where many obstacles are concentrated, the above
+to the NLOS area with 1.0 m/s mobility, and continues to                       solution has limitations. Therefore, the blockage problem
+transmit video data. Fig. 4 shows the SINR value received                      cannot be solved in a situation where the infrastructure is lim-
+by the camera man. For simulation parameters, we set the                       ited. However, if the blockage is intermittent, we can address
+receiving threshold to −5dB and data rate to 1 Gbps and                        part of the performance degradation by simply maintaining
+use the NewReno TCP [7]. As shown in the graph of                              the transfer rate at the TCP end rather than initializing it. With
+Fig. 4, when the camera man stays in the NLOS region, the                      this motivation, we applied the ML framework to distinguish
+SNR temporarily falls below the receiving threshold value.                     RTOs between the blockage problem and network congestion
+
+VOLUME 7, 2019                                                                                                                            145137
+                                                W. Na et al.: DL-TCP: Deep Learning-Based Transmission Control Protocol for Disaster 5G mmWave Networks
+
+
+
+
+                                                                             FIGURE 6. Architecture of the proposed Deep-learning based TCP scheme.
+
+
+                                                                                Here, we aim to control the behavior of TCP. As shown
+                                                                             in Fig. 5, the beam misalignment problem causes cwnd ini-
+                                                                             tialization by RTO, which occurs intermittently. A frequent
+                                                                             initialization of cwnd leads to the problem of not taking
+FIGURE 5. SNR and cwnd variation in beam misalignment scenario.              advantage of the wide bandwidth of mmWave. In the TCP
+                                                                             layer, the solution is the same as that for the blockage prob-
+caused by network buffers, which we will describe further in                 lem. Even if beam misalignment occurs, the sender can rec-
+the next section.                                                            ognize it and keep cwnd uninitialized. Then, the sender will
+                                                                             find the optimal beam again in the beam sweep period and
+B. BEAM MISALIGNMENT IN TCP                                                  not waste the bandwidth.
+As in the previous section, we have designed a sim-
+ple scenario to investigate the behavior of TCP in                           IV. MACHINE LEARNING ARCHITECTURE
+beam-misalignment issues in the mmWave environment.                          In this section, we describe the proposed deep-learning-based
+In our experiment, as shown on the right side of Fig. 3, we set              TCP (DL-TCP) in mmWave networks, which have blockage
+random mobility within the specified topology for relatively                 and beam misalignment problems. Fig. 6 shows the architec-
+fast UAVs. The UAV is free to fly within the topology at a rate              ture of the proposed DL-TCP scheme. The TCP sender com-
+of 25 to 30 m/s and transmits video data to the gNB. As shown                prises a learner engine for learning, a predictor, a mobility
+in Fig. 5, SNR fluctuation is very high with high mobility.                  manager for managing velocity and location information, and
+In the mmWave environment, even if the phases of the                         a TCP agent for determining TCP behavior. Each component
+transmitting and receiving antenna are slightly mismatched,                  plays the following roles:
+the receiving power drops significantly [25]. Compared to                       •   A learner learns the duration of network failure based
+the experimental results of low-speed movement (Fig. 4,                             on the information received from the mobility manager
+it can be seen that the fluctuation in SINR in Fig. 5 is more                       and Rx antennas.
+intense. Initially, when the terminal and gNB match the beam,                   •   A predictor is a module that predicts whether a TCP
+the communication is performed through the corresponding                            RTO is a temporary or a long-term disconnect, based on
+beam for a predetermined period. However, if the direction is                       the learned information.
+changed due to the mobility of the terminal during this period,                 •   Mobility manager is a module that provides the current
+the beam pairs are mismatched and SNR decreases.                                    location information and velocity vector of the TCP
+   The beam sweep technique, which finds the optimal beam                           sender.
+again after the beam is mismatched, can be performed after                      •   TCP agent controls the cwnd value based on the infor-
+about 0.1-0.3 s (100-300 ms) [2].3 However, if the UAV                              mation predicted by the predictor.
+continues to move, the SINR is still continuously dropped.
+                                                                                As shown in section III, when a mobile TCP sender per-
+In other words, even if the terminal and gNB find the best
+                                                                             forms communications in the mmWave band, blockage and
+beam pair for communication, the signal quality can signif-
+                                                                             beam misalignment cause intermittent communications to be
+icantly deteriorate. To solve these problems, there is a beam
+                                                                             disconnected and initialize cwnd. In case of the blockage
+management technology, such as beam tracking, but there is
+                                                                             problem, if the TCP sender’s mobility is relatively fast, the
+an accuracy limitation in the environment where the mobility
+                                                                             time to pass through the obstacle will be relatively short, and
+is rapidly changing. We only assume the beam sweep tech-
+                                                                             in the opposite case, the disconnect time will be long. At this
+nique for recovering the beam misalignment problem, and
+                                                                             time, the TCP agent can perform the following actions when
+the beam management technique is beyond the scope of this
+                                                                             RTO occurs owing to signal disconnection. If the network
+paper.
+                                                                             failure duration is short, the size of cwnd is maintained to
+   3 According to 3GPP, the beam sweeping technique takes about              prevent the data rate from dropping, and in the opposite case,
+100-300 ms because it measures signal strength for all beam pairs of the     the cwnd is initialized and enters the congestion avoidance
+transceiver.                                                                 phase.
+
+145138                                                                                                                                   VOLUME 7, 2019
+W. Na et al.: DL-TCP: Deep Learning-Based Transmission Control Protocol for Disaster 5G mmWave Networks
+
+
+
+
+                                                                               defined by
+                                                                                T = [t0 , t1 , t2 , . . . , tN −1 ]T ,   S = [γ0 , γ1 , γ2 , . . . , γN −1 ]T ,
+                                                                                                                                                            (1)
+                                                                               respectively, and an N × 3 matrix of the location information
+                                                                               and velocity vector is defined by
+                                                                                                                   T
+                                                                               L = l̄0 , l̄1 , l̄2 , . . . , l̄N −1 , V = [v̄0 , v̄1 , v̄2 , . . . , v̄N −1 ]T ,
+                                                                                    
+
+                                                                                                                                                     (2)
+                                                                                              h            i        h               i
+                                                                               where l̄i = lxi , lyi , lzi and v̄i = vix , viy , viz , respectively.
+FIGURE 7. An example of training data set and result set (θr = −5 dB).            Based on the collected training datasets, the TCP sender
+                                                                               can generate a result set as shown in Fig. 7. The result set (ŷ)
+                                                                               is generated as a one-hot vector based on the network failure
+   Even in the case of beam misalignment, the TCP agent                        duration between the TCP sender and the gNB.
+can maintain the size of cwnd, but as the beam sweeping                           Assuming θr to denote the receiving threshold, the discon-
+technique is performed after 100-300 ms, the network failure                   nected state at t (Dt ) is given by
+cannot exceed 100-300 ms. Therefore, even if the packet loss                                                 (
+occurs, the network state can be restored within 100-300 ms.                                                  0, if θr ≤ γt
+                                                                                                      Dt =                                           (3)
+In other words, keeping the size of cwnd for that period is a                                                 1, otherwise.
+good solution. However, the conventional TCP initializes the
+                                                                               where Dt = 1 indicates that the link state between the
+size of cwnd when it detects the packet loss event.
+                                                                               TCP sender and the gNB is disconnected. After calculating
+   By combining the above analysis, we establish the follow-
+                                                                               Dt , ∀t, ŷ can be generated as Algorithm 1. In Algorithm 1,
+ing hypothesis:
+                                                                               η denotes the long network failure duration threshold. If the
+   1) Hl : If the network failure duration is long, this may be                network failure duration is longer than η, it is considered a
+       due to network congestion or signal interruption from                   long network failure.
+       the obstacles. Thus, it is better to initialize cwnd size.                 Based on the generated result set and training dataset,
+   2) Hs : If the network failure duration is short, it is a tem-              the learner trains parameters (w̄i 4 ) of multiple fully con-
+       porary signal interruption that can be recovered soon.                  nected (FC) layers. The output of each layer is passed to the
+       Thus, it is better to maintain the size of cwnd.                        adjacent layer via the following rectified linear unit activation
+   3) Hn : It is better to increase the size of cwnd if the                    function:
+       LOS between the TCP sender and gNB is formed and                                                    (
+       communication is possible.                                                                           0, if x < 0
+                                                                                                   f (x) =                                   (4)
+Based on Hl , Hs , and Hn , our proposed DL-TCP determines                                                  x, x ≥ 0.
+whether to maintain the cwnd size by predicting the network
+                                                                               During the training, the parameters of the FC layers are
+failure duration when a packet loss event occurs.
+                                                                               trained to inform the TCP agent about whether the network
+                                                                               is disconnected temporarily or for a long period. For the
+A. TRAINING NETWORK FAILURE DURATION
+                                                                               cost function of the training, we consider the cross-entropy
+To operate the proposed DL-TCP, training is required for                       function, which is given as
+a specific topology. In the training phase, the mobile TCP                                      X
+sender moves randomly and records the SNR value received                                C =−        yi log ỹi + (1 − yi ) log(1 − ỹi ) (5)
+from the gNB. We use the NS3-based mmWave network                                                      i
+simulator to collect the training data.                                        where C and i denote the entropy loss and iteration epoch,
+   As shown in Fig. 7, the structure of the training data is as                respectively.5
+follows:
+   1) Time (t): The time taken by the TCP sender to update                     B. PREDICTION NETWORK FAILURE
+      the SNR value from the gNB.                                              DURATION AND DL-TCP
+   2) Location information (lxt , lyt , lzt ): The current TCP                 In this section, we describe a technique for predicting network
+      sender’s x, y, z coordinates at t.                                       failure duration through trained FC-layer parameters, and
+   3) Velocity vector (vtx , vty , vtz ): The current TCP sender’s             accordingly, the behavior of DL-TCP.
+      mobility vector at t.
+                                                                                  4 w̄ denotes the vector of weight parameter of hidden layer i. w̄ =
+   4) SNR (γt ): The SNR value received by the TCP sender                             i                                                                i
+                                                                                                     j−1
+      from the gNB at t.                                                       (w0i , w1i , . . . , wi ) where j denotes the number of states.
+                                                                                  5 Cross-entropy cost function is the most popular model for classification
+   Let N denote the amount of collected information in the                     problems with many datasets due to low error rate and high learning effi-
+simulation. Then, N × 1 vectors of the time and SNR are                        ciency [29], [30].
+
+VOLUME 7, 2019                                                                                                                                         145139
+                                            W. Na et al.: DL-TCP: Deep Learning-Based Transmission Control Protocol for Disaster 5G mmWave Networks
+
+
+
+
+    Algorithm 1 Network Failure Duration-Based Result Set
+    Generation Algorithm
+1    Result set (ŷ) generation function (T , S):
+     Input : Training data set T and S
+     Output: ŷ                             /* Result set */
+ 2   begin
+3       η ← TRTO ; /* TRTO : TCP timeout value;
+        */
+4       foreach i              /* i: index (0 ≤ i < N ) */
+5       do
+6            t ← ti ;
+7            if Dt == 0 then
+8                 Hil ← 0; His ← 0; Hin ← 1;
+                  ŷi ← Hil , His , Hin ;
+9            else
+10                foreach j         /* j: index (i ≤ j ≤ k);             FIGURE 8. Multi-class deep-neural networks architecture.
+                  k = argmaxk (tk ) s.t. tk ≤ t + η */
+11                do
+12                     if Dt == 0 then                                      Algorithm 2 Behavior of DL-TCP When Packet Loss
+13                         Hil ← 0; His ← 1; Hin ← 0;                       Occurs
+                           ŷi ← Hil , His , Hin ;                        1 DL-TCP congestion control function:
+14                         break;                                         2 Packet loss:
+15                     else                                               3 begin
+16                         continue;                                      4     t ← Tcur ;            /* Tcur : current time */
+17                     end                                                5     y ← predict(t, l̄t , v̄t , γt ); /* y = [Hl , Hs , Hn ] */
+18                end                                                     7     if Hl == 1 /* long time failure */ then
+19                Hil ← 1; His ← 0; Hin ← 0;                              8         Delays RTO by TRTO ;
+                  ŷi ← Hil , His , Hin ;                                 9         Keeps size of cwnd;
+20           end                                                         10     else if Hs == 1 /* short time failure */
+21      end                                                                     then
+22      return ŷ;                                                       11         Retransmits packets that have been transmitted
+23   end                                                                            for Tcur − RTT /2;
+                                                                         12         Keeps size of cwnd;
+                                                                         13     else if Hn == 1 /* network congestion */
+                                                                                then
+                                                                         14         Decreases size of cwnd;
+   As mentioned in section IV-A, if a TCP sender puts
+                                                                         15         Enters the steady state;
+t, lx , ly , lz , vx , vy , vz , and γt as input to the predictor,
+                                                                         16 end
+the current network status is classified as one of the three
+states (Hl , Hs , or Hn ). Fig. 8 shows our designed multi-
+class deep-neural-network architecture. Our DNN structure
+comprises K depths and we use the Xavier initializer [26].                  •     If the TCP agent receives Hl = 1, it delays the RTO by
+In addition, Dropout is applied to prevent over-fitting [27]                      TRTO while keeping the size of cwnd uninitialized (lines
+and the Adam optimizer [28] is used to minimize the loss                          7-9).
+function.                                                                   •     If the TCP agent receives Hs = 1, it immediately
+   Our proposed DL-TCP operation is simple. Basically,                            retransmits packets that have been transmitted for Tcur −
+DL-TCP works same as the most popular version of TCP                              RTT /2, without initializing the size of cwnd (lines
+Cubic [5]. In most TCP versions, including TCP Cubic, when                        10-12)6
+a packet loss event occurs, the size of the current cwnd is                 •     If the TCP agent receives Hn = 1, it determines network
+initialized and the TCP agent enters the congestion control                       congestion. Thus, it decreases the size of cwnd and goes
+phase. However, in the proposed DL-TCP, when a packet                             to the steady state to adjust the data rate (lines 13-15).
+loss event occurs, the predictor classifies the duration of the
+packet loss event and the TCP agent receives this informa-
+tion. As shown in Algorithm 2, the TCP agent performs the
+                                                                                 cur − RTT /2 means the time of the most recently transmitted packet.
+following actions:                                                          6T
+
+
+
+
+145140                                                                                                                                  VOLUME 7, 2019
+W. Na et al.: DL-TCP: Deep Learning-Based Transmission Control Protocol for Disaster 5G mmWave Networks
+
+
+
+
+TABLE 1. Prediction accuracy of DL-TCP (random-walk model).                     TABLE 2. Prediction accuracy of DL-TCP (Scan mobility model).
+
+
+
+
+V. PERFORMANCE EVALUATION
+In this section, we evaluate the performance of the proposed
+DL-TCP based on the mmWave NS-3 simulator [31]. First,
+we measure the prediction accuracy of the proposed DL-TCP.
+Basically, we assume a topology with 200 m2 size, small
+obstacles of 3.5 m in height and 0.5 m in width, and large
+obstacles of 20 m in height and 10 m in width. We set two
+scenario models for comparison, as follows:
+   • Scenario 1 (SC1): We place fewer obstacles in a given
+      topology. In this scenario, 10 small obstacles and 2 large
+      obstacles are randomly deployed.
+   • Scenario 2 (SC2): We place obstacles densely within a
+      given topology. In this scenario, 50 small obstacles and
+      10 large obstacles are randomly deployed.
+                                                                                FIGURE 9. Average throughput versus traffic loads.
+   The UAV is associated with the gNB in the topology
+and the gNB performs automatic beam sweeping every
+100-300 ms. For the mobility model, we considered a                             SC1 and SC2. In other words, it shows similar prediction
+random-walk model in which each UAV moves randomly and                          accuracy without being greatly influenced by the presence or
+a scan mobility model that performs a mission to search the                     absence of obstacles. This is because our proposed model is
+entire topology [32]. In addition, we assumed that the UAV                      independent of obstacles because the TCP agent learns based
+speed follows a uniform distribution between 54 and 90 km/h.                    on mobility information and SNR in each region. In addition,
+To collect training data, we collected SNR data for about                       because it has learned enough deterministic mobility, this
+1 day.7                                                                         result is analyzed as over-fitting. However, as the UAV at
+   Table 1 shows the accuracy of the results predicted from                     the disaster site has mission-oriented mobility, the path is
+the input values (t, l̄t , v̄t , γt ), by using the TCP Agent learned           programmed in advance, and thus, over-fitting is not a big
+by the collected training data in a random-walk mobility                        problem.
+scenario. We experimented with increasing the number of                            To evaluate the actual performance of TCP based on the
+FCs while fixing the learning rate to 0.01 and the number of                    proposed DL architecture, we measured the following per-
+epochs to 2000. As shown in Table 1, the maximum predic-                        formance metrics:
+tion accuracy reached 98.23% and 97.83% for SC1 and SC2,                           • Network throughput (Mbps): total data traffic in bits
+respectively. Note that when a packet loss event occurs,                              transferred successfully from TCP sender to end termi-
+it can be distinguished by about 97.8-98.23%, whether due                             nal divided by time.
+to network congestion or link error. Moreover, if the TCP                          • Round-trip-time (ms): total round-trip time from TCP
+agent recognizes the link error, it can also detect whether the                       sender to end-terminal.
+link error phenomenon has a long duration or short duration.                       • Variation in cwnd size (bytes): variation in cwnd size
+Although the prediction accuracy of SC2 with a lot of obsta-                          of TCP sender.
+cles is about 0.5% less than that of SC1, we can confirm                           For the simulation parameters, we set the data rate to
+that the proposed model has a high probability of 97% or                        1 Gbps and the operating frequency to 28 GHz (mmWave),
+more. Table 2 shows the prediction accuracy in the scan                         which is the same as the prediction accuracy measure-
+mobility scenario, where the UAV path is deterministic, and                     ment scenario. In addition, the performance of DL-TCP
+thus, has a relatively high prediction accuracy. As shown                       is compared to those of NewReno [7], BBR [10], and
+in Table 2, there is little difference in accuracy between                      Cubic [5].
+                                                                                   The above part of Fig. 9 shows the average throughput ver-
+  7 In a real environment, UAV does not have any time to collect training
+                                                                                sus the traffic loads with the scan mobility model. As shown
+data, but it learns while performing communication. In this experiment,
+we set the collecting period to check the achievable prediction accuracy when   in the above figure, the average throughput increases with
+the training data are sufficient.                                               traffic, for all schemes. The proposed DL-TCP has about
+
+VOLUME 7, 2019                                                                                                                                  145141
+                                                 W. Na et al.: DL-TCP: Deep Learning-Based Transmission Control Protocol for Disaster 5G mmWave Networks
+
+
+
+
+FIGURE 10. Average round-trip time versus traffic loads.                      FIGURE 11. Variation of congestion window size with scan mobility.
+
+
+
+36% performance improvement compared to other TCP
+techniques. In the conventional TCP, when a packet loss
+event occurs, it recognizes it as a network congestion and
+initializes a window or moves to a phase of gradually decreas-
+ing it. Meanwhile, DL-TCP distinguishes congestion from
+temporary disconnection and holds the window size when
+a temporary disconnection occurs to utilize the available
+bandwidth. In TCP-BBR and TCP-Cubic, the performance
+in SC1 with fewer obstacles is higher than that in SC2,
+and DL-TCP and TCP-NewReno show almost the same
+results regardless of the number of obstacles. This means
+that DL-TCP shows consistent performance regardless of
+the obstacles, and TCP-NewReno does not utilize the wide
+bandwidth of mmWave. The bottom part of Fig. 9 shows
+the average throughput with a random-walk mobility model.
+Unlike the scan mobility model, the random-walk mobility                      FIGURE 12. Variation of congestion window size with random-walk
+model shows a lower overall throughput for all schemes                        mobility.
+because the blockage and beam misalignment problems occur
+more frequently. In addition, the throughput of the proposed                  because the TCP agent has been sufficiently learned,
+technique differs between SC1 and SC2. In the random-walk                     while the random-walk mobility model shows the same
+model, the mobility of the node is significantly fluctuating,                 increase as other schemes for the proposed DL-TCP
+where the learning of the TCP agent is not sufficiently per-                  scheme.
+formed. Therefore, it is analyzed that the prediction accuracy                   Fig. 11 and Fig. 12 show the variation in cwnd size for
+is lowered in SC2 with many obstacles. Nevertheless, as the                   all TCP schemes in SC2 with the scan mobility model and
+environment is very tough, other TCP techniques also show                     random-walk mobility, respectively. As shown in the figure,
+poor performance and the proposed DL-TCP exhibits the best                    it shows very rapid cwnd fluctuations for all TCP schemes.
+performance.                                                                  This is because the link is unstable due to beam misalign-
+   Fig. 10 shows the average round-trip time versus the traffic               ment from the mobility and obstacles within the topology.
+loads. As shown in the figure, TCP-NewReno, TCP-Cubic,                        In particular, in the case of the random-walk mobility model,
+and DL-TCP show similar trends with a difference of about                     the graph tends to become more intense. TCP-NewReno
+2-3 ms. The proposed DL-TCP shows RTT similar to that of                      shows a tendency to maintain a low cwnd size without fill-
+the existing TCP despite high throughput. TCP BBR has a                       ing the wide bandwidth, due to frequent link errors. How-
+relatively high RTT because it tends to use full bandwidth                    ever, our proposed DL-TCP lowers cwnd only when the
+over other TCP technologies. The results for random-walk                      link is congested or when RTO occurs, and maintains the
+mobility are about 4-5 ms lower than those for the scan mobil-                cwnd size when it determines that the link disconnection is
+ity model. This is because similar to the result of throughput,               temporary. Therefore, DL-TCP has higher average through-
+the connection between nodes is frequently disconnected and                   put, as shown in Fig. 9, compared to other TCP techniques
+RTT is increased accordingly. In the SC2 of the scan mobil-                   that lower the cwnd size every time a packet loss event
+ity model, RTT does not change much with the throughput                       occurs.
+
+145142                                                                                                                                    VOLUME 7, 2019
+W. Na et al.: DL-TCP: Deep Learning-Based Transmission Control Protocol for Disaster 5G mmWave Networks
+
+
+
+
+VI. CONCLUSION                                                                      [15] S. Biaz and N. H. Vaidya, ‘‘‘De-randomizing’ congestion losses to
+The 5G mmWave network is one of the most suitable models                                 improve TCP performance over wired-wireless networks,’’ IEEE/ACM
+                                                                                         Trans. Netw., vol. 13, no. 3, pp. 596–608, Jun. 2005.
+for rapid disaster response. However, due to the character-                         [16] M. Zhang, M. Mezzavilla, R. Ford, S. Rangan, S. Panwar, E. Mel-
+istics of the mmWave band, deterioration in signal strength                              lios, D. Kong, A. Nix, and M. Zorzi, ‘‘Transport layer performance
+from the obstacles and beam misalignment can be a fac-                                   in 5G mmWave cellular,’’ in Proc. IEEE Conf. Comput. Commun. Work-
+                                                                                         shops (INFOCOM WKSHPS), Apr. 2016, pp. 730–735.
+tor in attenuating TCP performance. This paper proposes a                           [17] I. Petrov and T. Janevski, ‘‘Advanced 5G-TCP: Transport protocol for 5G
+DL-TCP suitable for the disaster 5G mmWave band. Our                                     mobile networks,’’ in Proc. 14th IEEE Annu. Consum. Commun. Netw.
+proposed deep-learning architecture learns the link discon-                              Conf. (CCNC), Jan. 2017, pp. 103–107.
+                                                                                    [18] M. Polese, M. Mezzavilla, S. Rangan, and M. Zorzi, ‘‘Mobility manage-
+nection time based on the node mobility information and                                  ment for TCP in mmWave networks,’’ in Proc. ACM Workshop Millimeter-
+signal strength, and predicts the link disconnection time when                           Wave Netw. Sens. Syst., Oct. 2017, pp. 11–16.
+a packet loss event occurs. DL-TCP was designed to oper-                            [19] W. Li, F. Zhou, K. R. Chowdhury, and W. Meleis, ‘‘QTCP: Adaptive
+                                                                                         congestion control with reinforcement learning,’’ IEEE Trans. Netw. Sci.
+ate without wastage of mmWave bandwidth by performing                                    Eng., vol. 6, no. 3, pp. 445–458, Jul./Sep. 2019.
+proper cwnd size control according to the predicted time,                           [20] Y. Kong, H. Zang, and X. Ma, ‘‘Improving TCP congestion control with
+which was confirmed through NS-3-based simulation. As the                                machine intelligence,’’ in Proc. Workshop Netw. Meets AI ML, Aug. 2018,
+                                                                                         pp. 60–66.
+proposed model is a loss-based TCP model in which a packet                          [21] B. A. A. Nunes, K. Veenstra, W. Ballenthin, S. Lukin, and K. Obraczka,
+loss event occurs, it is not a radical solution for avoiding link                        ‘‘A machine learning framework for TCP round-trip time estimation,’’
+error. However, the deep-learning architecture proposed in                               EURASIP J. Wireless Commun. Netw., vol. 2014, no. 1, p. 47, Dec. 2014.
+                                                                                    [22] D. H. Hagos, P. E. Engelstad, A. Yazidi, and Ø. Kure, ‘‘A machine learning
+this paper can be applied to the beam reflection technology                              approach to TCP state monitoring from passive measurements,’’ in Proc.
+to avoid obstacles in the mmWave band and beam man-                                      Wireless Days (WD), Apr. 2018, pp. 164–171.
+agement technology to provide a seamless communication                              [23] T. T. T. Nguyen and G. Armitage, ‘‘A survey of techniques for Internet
+                                                                                         traffic classification using machine learning,’’ IEEE Commun. Surveys
+environment. In the future, we will apply the deep-learning                              Tuts., vol. 10, no. 4, pp. 56–76, 4th Quart., 2008.
+architecture to research on minimizing errors in the mmWave                         [24] R. Sommer and V. Paxson, ‘‘Outside the closed world: On using machine
+band.                                                                                    learning for network intrusion detection,’’ in Proc. IEEE Symp. Secur.
+                                                                                         Privacy, May 2010, pp. 305–316.
+                                                                                    [25] S. Hur, H. Yu, J. Park, W. Roh, C. U. Bas, R. Wang, and A. F. Molisch,
+REFERENCES                                                                               ‘‘Feasibility of mobility for millimeter-wave systems based on channel
+                                                                                         measurements,’’ IEEE Commun. Mag., vol. 56, no. 7, pp. 56–63, Jul. 2018.
+ [1] S. A. R. Naqvi, S. A. Hassan, H. Pervaiz, and Q. Ni, ‘‘Drone-aided com-        [26] X. Glorot and Y. Bengio, ‘‘Understanding the difficulty of training deep
+     munication as a key enabler for 5G and resilient public safety networks,’’          feedforward neural networks,’’ in Proc. Artif. Intell. Statist., May 2010,
+     IEEE Commun. Mag., vol. 56, no. 1, pp. 36–42, Jan. 2018.                            pp. 249–256.
+ [2] M. Giordani, M. Polese, A. Roy, D. Castor, and M. Zorzi, ‘‘A tutorial          [27] N. Srivastava, G. Hinton, A. Krizhevsky, I. Sutskever, and
+     on beam management for 3GPP NR at mmWave frequencies,’’ IEEE                        R. Salakhutdinov, ‘‘Dropout: A simple way to prevent neural networks
+     Commun. Surveys Tuts., vol. 21, no. 1, pp. 173–196, 1st Quart., 2018.               from overfitting,’’ J. Mach. Learn. Res., vol. 15, no. 1, pp. 1929–1958,
+ [3] M. Zhang, M. Polese, M. Mezzavilla, J. Zhu, S. Rangan, S. Panwar, and               Jun. 2014.
+     M. Zorzi, ‘‘Will TCP Work in mmWave 5G cellular networks?’’ IEEE               [28] D. P. Kingma and J. Ba, ‘‘Adam: A method for stochastic optimization,’’
+     Commun. Mag., vol. 57, no. 1, pp. 65–71, Jan. 2019.                                 in Proc. ICLR, Jan. 2014, pp. 1412–6980.
+ [4] M. Polese, R. Jana, and M. Zorzi, ‘‘TCP and MP-TCP in 5G mmWave                [29] N. S. Keskar, D. Mudigere, J. Nocedal, M. Smelyanskiy, and
+     networks,’’ IEEE Internet Comput., vol. 21, no. 5, pp. 12–19, Sep. 2017.            P. T. P. Tang, ‘‘On large-batch training for deep learning: Generalization
+ [5] S. Ha, I. Rhee, and L. Xu, ‘‘CUBIC: A new TCP-friendly high-speed                   gap and sharp minima,’’ Feb. 2016, arXiv:1609.04836. [Online]. Available:
+     TCP variant,’’ ACM SIGOPS Oper. Syst. Rev., vol. 42, no. 5, pp. 64–74,              https://arxiv.org/abs/1609.04836
+     Jul. 2008.                                                                     [30] Y. Tang, ‘‘Deep learning using linear support vector machines,’’ Feb. 2013,
+ [6] V. Jacobson, ‘‘Congestion avoidance and control,’’ ACM SIGCOMM                      arXiv:1306.0239. [Online]. Available: https://arxiv.org/abs/1306.0239
+     Comput. Commun. Rev., vol. 18, no. 4, pp. 314–329, Aug. 1988.                  [31] M. Mezzavilla, M. Zhang, M. Polese, R. Ford, S. Dutta, S. Rangan,
+                                                                                         and M. Zorzi, ‘‘End-to-end simulation of 5G mmWave networks,’’ IEEE
+ [7] J. Hoe, ‘‘Improving the start-up behavior of a congestion control scheme
+                                                                                         Commun. Surveys Tuts., vol. 20, no. 3, pp. 2237–2263, 3rd Quart., 2018.
+     for TCP,’’ ACM SIGCOMM Comput. Commun. Rev., vol. 26, no. 4,
+                                                                                    [32] O. Bouachir, A. Abrassart, F. Garcia, and N. Larrieu, ‘‘A mobility model for
+     pp. 270–280, Aug. 1996.
+                                                                                         UAV ad hoc network,’’ in Proc. Int. Conf. Inmanned Aircraft Syst. (ICUAS),
+ [8] Y. Tian, K. Xu, and N. Ansari, ‘‘TCP in wireless environments: Prob-                May 2014, pp. 383–388.
+     lems and solutions,’’ IEEE Commun. Mag., vol. 43, no. 3, pp. S27–S32,
+     Mar. 2005.
+ [9] L. S. Brakmo and L. L. Peterson, ‘‘TCP Vegas: End to end congestion
+     avoidance on a global Internet,’’ IEEE J. Sel. Areas Commun., vol. 13,
+     no. 8, pp. 1465–1480, Oct. 1995.
+[10] N. Cardwell, Y. Cheng, C. S. Gunn, S. H. Yeganeh, and V. Jacobson,
+     ‘‘BBR: Congestion-based congestion control,’’ Commun. ACM, vol. 60,                                    WOONGSOO NA received the B.S., M.S., and
+     no. 2, pp. 58–66, Feb. 2017.                                                                           Ph.D. degrees in computer science and engineer-
+[11] K. Tan, J. Song, Q. Zhang, and M. Sridharan, ‘‘A compound TCP approach                                 ing from Chung-Ang University, Seoul, South
+     for high-speed and long distance networks,’’ in Proc. IEEE INFOCOM,                                    Korea, in 2010, 2012, and 2017, respectively.
+     Apr. 2006, pp. 1–12.                                                                                   He is currently a Senior Research Engineer with
+[12] C. P. Fu and S. C. Liew, ‘‘TCP Veno: TCP enhancement for transmission                                  the Media Research Division, Electronics and
+     over wireless access networks,’’ IEEE J. Sel. Areas Commun., vol. 21, no. 2,                           Telecommunications Research Institute (ETRI),
+     pp. 216–228, Feb. 2003.                                                                                Daejeon, South Korea. Prior to joining the ETRI,
+[13] K. Xu, Y. Tian, and N. Ansari, ‘‘TCP-Jersey for wireless IP communica-                                 he was an Adjunct Professor with the School
+     tions,’’ IEEE J. Sel. Areas Commun., vol. 22, no. 4, pp. 747–756, May 2004.                            of Information Technology, Sungshin University,
+[14] S. Bhandarkar, N. E. Sadry, A. L. N. Reddy, and N. H. Vaidya, ‘‘TCP-           Seoul, from 2017 to 2018. His research interests include TCP, mmWave
+     DCR: A novel protocol for tolerating wireless channel errors,’’ IEEE Trans.    systems, wireless mobile networks, 5G broadcasting systems, intelligent
+     Mobile Comput., vol. 4, no. 5, pp. 517–529, Sep. 2005.                         media, and beyond 5G.
+
+VOLUME 7, 2019                                                                                                                                              145143
+                                                     W. Na et al.: DL-TCP: Deep Learning-Based Transmission Control Protocol for Disaster 5G mmWave Networks
+
+
+
+
+                          BYUNGJUN BAE received the B.S., M.S., and                                        NAYEON KIM received the M.S. degree in com-
+                          Ph.D. degrees in electronics engineering from                                    munication and media technology from the Uni-
+                          Kyungpook National University, South Korea,                                      versity of Science and Technology, Daejeon, South
+                          in 1995, 1997, and 2006, respectively. From                                      Korea, in 2018, where she is currently pursuing
+                          1997 to 2000, he was a Researcher with LG Elec-                                  the Ph.D. degree in communication and media
+                          tronics Inc., where he was involved in digital signal                            technology. Her current research interests include
+                          processing in digital television. Since 2000, he has                             media transport and media intelligence.
+                          been with the Media Research Division, Electron-
+                          ics and Telecommunications Research Institute
+                          (ETRI), Daejeon, South Korea. He has also been
+a Professor with the Department of Communication and Media Technology,
+University of Science and Technology (UST), Daejeon. His current research
+interests include next-generation broadcasting protocols and systems, emer-
+gency information signal processing, and intelligent media processing.
+
+
+
+
+                         SUKHEE CHO received the B.S. and M.S. degrees
+                         in computer science from Pukyong National
+                         University, South Korea, in 1993 and 1995,
+                         respectively, and the Ph.D. degree in electri-
+                         cal and computer engineering from Yokohama
+                         National University, Japan, in 1999. She joined
+                         the Media Research Division, Electronics and
+                         Telecommunications Research Institute (ETRI),
+                         South Korea, in 1999, as a Senior Member Engi-
+                         neering Staff, where she is currently a Principal
+Researcher. Her current research interests include video processing, video
+coding, media application format, and metadata for media delivery services.
+
+
+
+
+145144                                                                                                                                        VOLUME 7, 2019
+

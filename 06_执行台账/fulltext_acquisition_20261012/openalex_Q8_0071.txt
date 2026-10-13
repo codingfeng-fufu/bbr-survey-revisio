@@ -1,0 +1,898 @@
+Received April 10, 2020, accepted April 23, 2020, date of publication April 30, 2020, date of current version May 14, 2020.
+Digital Object Identifier 10.1109/ACCESS.2020.2991462
+
+
+
+
+City-Wide Traffic Congestion Prediction Based on
+CNN, LSTM and Transpose CNN
+NAVIN RANJAN , SOVIT BHANDARI, HONG PING ZHAO, HOON KIM, AND PERVEZ KHAN
+IoT and Big-Data Research Center, Department of Electronics Engineering, Incheon National University, Incheon 22012, South Korea
+Corresponding author: Pervez Khan (pervaizkanju@hotmail.com)
+This work was supported by Basic Science Research Program through the National Research Foundation of Korea (NRF) funded by the
+Ministry of Education (2018R1D1A1B07050418) and the Post-Doctoral Research Program of Incheon National University 2016.
+
+
+
+  ABSTRACT Traffic congestion is a significant problem faced by large and growing cities that hurt the
+  economy, commuters, and the environment. Forecasting the congestion level of a road network timely can
+  prevent its formation and increase the efficiency and capacity of the road network. However, despite its
+  importance, traffic congestion prediction is not a hot topic among the researcher and traffic engineers. It is
+  due to the lack of high-quality city-wide traffic data and computationally efficient algorithms for traffic
+  prediction. In this paper, we propose (i) an efficient and inexpensive city-wide data acquisition scheme by
+  taking a snapshot of traffic congestion map from an open-source online web service; Seoul Transportation
+  Operation and Information Service (TOPIS), and (ii) a hybrid neural network architecture formed by
+  combing Convolutional Neural Network, Long Short-Term Memory, and Transpose Convolutional Neural
+  Network to extract the spatial and temporal information from the input image to predict the network-
+  wide congestion level. Our experiment shows that the proposed model can efficiently and effectively learn
+  both spatial and temporal relationships for traffic congestion prediction. Our model outperforms two other
+  deep neural networks (Auto-encoder and ConvLSTM) in terms of computational efficiency and prediction
+  performance.
+
+
+  INDEX TERMS Convolutional neural network, long short-term memory, partially convolutional neural
+  network, spatiotemporal feature, traffic congestion forecasting, transport network.
+
+I. INTRODUCTION                                                                                term traffic information [7]–[10] such as traffic speed, traffic
+With the increase in the economy, rapid urbanization, and                                      flow volume, and congestion level, is more informative to
+desire toward a private traveling [1], the traffic congestion                                  the commuters and traffic management agencies. Among
+level of most of the large and growing cities around the                                       them, the traffic congestion level gives the status of the road
+world has increased drastically, which directly affects the                                    network (Jam, Slow, or Free) more desirable parameter for the
+growth, development, and environment of the cities. Besides,                                   drives to make better route choices circumventing the con-
+it also increases both commuting time and the tendency of                                      gested roads, and traffic managers to operate efficiently by
+road rage, increasing the frequency of road accidents [2]–[4].                                 systematically responding to the supply and demand change
+Thus, the study of traffic management is of high importance                                    of transportation network.
+among researchers. The high congestion can be alleviated                                          The early forecasting models focused on the prediction of
+either by increasing the transportation infrastructure, which is                               traffic parameters such as speed, volume, and traffic flow on
+the expensive method, or by deploying feasible traffic strate-                                 a single road, group of roads, or small road networks mainly
+gies, such as congestion pattern analysis or short-term traffic                                due to lack of data availability. Due to its partial prediction
+information prediction that can efficiently be employed to                                     capabilities on road networks, these works were not desirable
+the existing road network in a fraction of cost. Compared to                                   to both commuters and traffic agencies. The existing work
+pattern analysis, which determines the road networks having                                    uses data from a fixed sensor (road sensor, inductive loop,
+reoccurring congestion [5], [6], predicting the accurate short-                                traffic camera, etc.) installed on every road or the network
+                                                                                               of vehicles (VANET, Floating Car) operating on each route.
+   The associate editor coordinating the review of this manuscript and                         These kinds of data are difficult to collect because instal-
+approving it for publication was Gustavo Callico            .                                  lation, operating and, maintenance are expensive as well as
+
+
+                     This work is licensed under a Creative Commons Attribution 4.0 License. For more information, see https://creativecommons.org/licenses/by/4.0/
+81606                                                                                                                                                                 VOLUME 8, 2020
+N. Ranjan et al.: City-Wide Traffic Congestion Prediction
+
+
+
+
+it is difficult to access from the third party, as it requires       •   The proposed model can be generalized to large-scale
+special permission. Recently the web service like Google                 traffic prediction problems while retaining trainability
+Traffic [11], Bing Map [12], Seoul Transportation Operation              on resource constraint devices because of the implemen-
+and Information Service (TOPIS) [13], and Baidu Map [14],                tation of convolutional, downsampling, and upsampling
+publicly started to provide the accurate city-wide real-time             layers.
+traffic information such as congestion level and the average         •   Our extensive experiments on the Seoul city transporta-
+speed of the road segment. Although these web services are               tion network demonstrate the efficiency and effective-
+public, easily accessible, and provide traffic information for           ness of the proposed approach.
+most of the cities in the world, there is only a handful number
+                                                                      In this section, we describe the background and motivation
+of studies based on them. The one reason is the curse of
+                                                                   of the study and briefly highlight the inspiration for modeling
+dimensionality, as the prediction problem is a time-series
+analysis which takes multiple inputs, so processing multiple       the proposed algorithm. The rest of the paper is structured
+traffic map image is costly.                                       as follows: Section II presents the literature related to work
+                                                                   on traffic prediction. Section III presents the methodology
+   Long Short-Term Memory (LSTM) recurrent neural net-
+                                                                   of traffic prediction, which includes problem statement, data
+work is known for its capability of mining and remember-
+                                                                   source, preprocessing and database design, and explain the
+ing temporal relationship over a long sequence of histor-
+ical data and has been very successful in varieties of the         architecture of our hybrid deep learning neural network which
+area such as recognition [15], translation and time series         learns both spatial and temporal features for traffic conges-
+prediction [16], [17]. But, LSTM can be challenging to use         tion prediction. Section IV presents the data description for
+                                                                   the model, metrics used for testing the effectiveness of the
+and is slow at the processing when input and output are
+                                                                   proposed model, detailed explanation for model construction,
+the sequences of high-resolution two-dimensional data. Sim-
+                                                                   and performance comparison of the proposed model with two
+ilarly, the Convolutional Neural Network (CNN) has gained
+its fame in spatial learning by extracting a low-resolution        state-of-art prediction models like ConvLSTM and Autoen-
+feature image from the high-resolution input image and             coder. Finally, Section V presents the conclusion of our work
+has been successful in the domain of image understand-             and provide the future direction of this study.
+ing, object detection, and segmentation [18], [19]. Unlike
+LSTM, CNN doesn’t have any difficulty in processing high-          II. RELATED WORK
+resolution multidimensional data because of its unique ability     In the past, the researchers used the data-driven approach,
+like local connectivity, weight sharing, and pooling. Image        mainly focused on the development of the statistical and
+segmentation work in [18] uses convolutional encoder and           mathematical model to analyze the time-series relation in the
+decoder architecture, where convolutional encoder encodes          traffic data, also referred to as a parametric approach. Pri-
+the input image into a low-resolution image consisting of          marily, the work was based on the assumption of linearity
+important spatial features and convolutional decoder decodes       and stationarity to capture future trends, such as the historical
+the latent representation back to its original size, in the pro-   average model [20], smoothing techniques [21], and error
+cess, the network learns to segment the image into various         component model [22]. Later, a typical parametric time-series
+groups.                                                            model autoregressive integrated moving average (ARIMA)
+   Inspired by the successful application of convolutional         model [23] was introduced to identify the pattern by decom-
+autoencoder and LSTM mentioned above, in this paper,               posing long-term trends and seasonal patterns. However,
+we present an approach, which can learn both spatial and tem-      it suffers from the tendency to concentrate on the mean value
+poral relationships between the sequences of historical image      of the time-series and unable to predict the extremes [24].
+data for traffic congestion prediction. In the proposed archi-     The family of the ARIMA-based model, such as seasonal
+tecture, we add the LSTM network between the convolutional         ARIMA models [25], and Kalman filter model [26], use a
+encoder and the convolutional decoder. The convolutional           vast historical database for model development and are also
+encoder at first converts the sequence of the input image into     very sensitive to the traffic data.
+sequences of low-resolution latent state. The LSTM network             Due to limitations in a parametric approach, the researchers
+then learns the time series representation from the sequences,     start to pay attention to nonparametric models, k-nearest
+and finally, the convolutional decoder converts the latent state   neighbor (KNN), support vector machine (SVM), bayesian
+back to its original resolution. The contribution of the paper     network (BN), and artificial neural network (ANN). Unlike
+can be summarized as follows:                                      the parametric approach, the nonparametric model relies
+   • We develop a new prediction model PredNet. The model          on the training data to determine the model structure and
+      exploits the advantage of various deep learning archi-       number of parameters. A KNN model [27] searches a close
+      tecture, including convolutional neural network, LSTM        neighbor matching to the current data from the historical
+      network, and transposed convolutional neural networks        database to predict the traffic flow. The SVM model [28]
+      to learn the spatiotemporal sequences of historical data     is based on the structural risk minimization principle, has a
+      for efficient end-to-end traffic congestion prediction on    unique advantage in the fields of small samples and high-
+      the transportation network.                                  dimensional nonlinear data. The family of SVM-based mod-
+
+VOLUME 8, 2020                                                                                                                81607
+                                                                                    N. Ranjan et al.: City-Wide Traffic Congestion Prediction
+
+
+
+
+els, such as seasonal SVM, least-square SVM [29], online-            The hybrid neural network achieves better results than
+SVM [30], and wavelet-SVM [31] were proposed for traf-            simple neural networks and traditional methods due to its
+fic prediction, and they can solve the problem of the curse       ability in mining both spatial and temporal features from the
+of dimensionality, overfitting, and local minima. The BN          traffic data. Although the hybrid model shows encouraging
+model [32], [33] takes account of the causal relationship         results in the domain of traffic prediction, there are very few
+between the random variables statistically and can address        works in the discipline of traffic congestion prediction based
+the problem of incomplete data based on the message passing       on deep neural networks, mainly due to the unavailability of
+mechanism.                                                        high-quality city-wide congestion data. Some recent works
+   All the aforementioned work requires significant prior         in the congestion prediction are, as mentioned. In [10], the
+domain knowledge and feature engineering to achieve bet-          researcher trained the Autoencoder model with unnaturally
+ter performance. ANN model in [34] have the advantage             compressed snapshots of traffic images from the open-source
+over the previous algorithms due to its capability to work        website to predict traffic congestion. The predicted images
+with multi-dimensional data without any feature engineer-         are not visually intuitive as a lot of road information is lost
+ing, and also due to its potential to perceive the non-linear     during image compression. In [38], the researchers collected
+relationship between input and output features to provide         road-based congestion information for few roads from an
+generalized solutions. However, due to its shallow depth in       online source to learn and predict the traffic congestion on
+architecture, the accuracy of the model was not satisfactory,     those roads using the LSTM network. In [39], the researchers
+so the researchers shift their research directed toward the       used bus driving time data during peak periods to train the
+deep machine learning architecture. Long short-term memory        LSTM network to predict the traffic congestion time on
+(LSTM), a special recurrent neural network (RNN), can learn       six road segments. In [45], the researcher proposed a novel
+the temporal relations from the time-series sequence because      model called PCNN, which uses vehicle passage records from
+of its build-in memory cells. It has shown remarkable results     surveillance cameras on roads, to model periodic traffic con-
+for traffic speed [35], traffic flow [36], [37] and congestion    gestion patterns to predict the short-term traffic congestion.
+prediction [38], [39]. A deep autoencoder neural network          In [46], the researchers used the congestion information from
+[10] uses the temporal relationship between the input image       GPS data from each link to learn and predict traffic conges-
+sequences to predict short-term traffic congestion. All these     tion evolution. In [47], the researchers used machine learning
+attempts only consider the temporal relationship between the      techniques (logistic regression, random forest, and neural
+image sequences.                                                  networks) on vehicle trajectories data available through con-
+   To make use of both spatial and temporal features of           nected vehicle technology to identify and predict congestion
+traffic data, the researchers started to build a hybrid model,    formation. This study has a prediction horizons of 10 and
+i.e., by combining two or more independent models as a one.       20 seconds, intended for warning drivers of upcoming traffic
+In [40], the KNN-LSTM model mines both spatial features by        conditions. All these congestion studies predict congestion
+selecting the most related neighbor and temporal variability to   on a single road or a few major roads in the city or lack
+predict the flow. In [41] Autoencoder-LSTM were combined,         in predicting traffic image in fine granularity as in [10].
+the internal relationship of the traffic flow was obtained by     So, in this paper, we used a city-wide transportation Image
+Autoencoder, and the LSTM network predicts complex linear         data from TOPIS website to predict city-wide short-long
+traffic flow. In [8], traffic data was converted into a two-      term (prediction horizons of 10, 30, and 60 minutes) traffic
+dimensional time-space matrix (spatiotemporal traffic data)       congestion with fine granularity based on a hybrid structure
+and use a convolutional neural network model to predict           containing CNN, LSTM, and Transposed CNN.
+large-scale network-wide traffic speed with high accuracy. In
+[42], the researcher proposed a novel model called the LC-        III. METHODOLOGY
+RNN to predict road traffic speed, which consists of a look-up    In this section, we first define the problem statement for
+convolutional layer and recurrent layers. Look-up operation       time-series traffic congestion prediction, then discuss on data
+selects all the adjacent road, convolutional operation extracts   acquisition from an open-source online platform, and finally,
+the spatial correlations, and recurrent layers learn the long-    describe the component of the proposed Prediction Network
+term temporal patterns. The researcher in [43] used the con-      (PredNet) architecture.
+vLSTM model, which is just like the LSTM model, where
+internal matrix multiplications are exchanged with convolu-       A. PROBLEM STATEMENT
+tional operations. Convolutional operation extracts the spatial   Based on past observation of traffic congestion data, the pro-
+information, and LSTM learns the temporal information of          posed deep neural network is designed to predict the short-
+traffic flow. Furthermore, in [44], the researcher proposed a     term congestion level. Let’s consider N ∈ {1, 2, . . . , n} be
+deep learning model called SCRN, which is a combination of        the chronological order of n image data in our database. The
+CNN and LSTM. At first, CNN extracts the spatial features         ith past observation of the time series data for the period
+of the traffic network for all the periods, and then the LSTM     of t is given by, Xi = {xi+0 , xi+1 , xi+2 . . . , xi+t } ∈ Rt+1 .
+network learns the time-series temporal relation to predict       The primary object of this study is to develop the prediction
+traffic speed of 278 road links.                                  model f , which uses previous observation Xi to predict the
+
+81608                                                                                                                        VOLUME 8, 2020
+N. Ranjan et al.: City-Wide Traffic Congestion Prediction
+
+
+
+
+congestion level at time t, for k prediction horizon, i.e., Yi =
+xi+t+k . The model f can be defined, as in (1)
+                             Yi = f (Xi , θ)                   (1)
+here, θ are the model parameter of our model. We divided our
+database N into 3 parts train, validation, and test. We gen-
+erate m set historical time-series data from the train dataset,
+Xtest = {X0 , X1 , X2 , . . . , Xm } , such that the correspond-
+ing forecast data point associating Xtest given by, Ytest =
+{xt , xt+1 , xt+2 . . . , xt+m } also lies in the training dataset.
+Hence, we can use supervised learning to train our neural
+network.
+
+B. DATABASE
+Google Traffic Map and Bing Map provided traffic informa-
+tion for almost all the cities in the world (except for few
+countries like China and South Korea for Google Traffic
+Map). Baidu Map provides information for all the cities in            FIGURE 1. Road network of Seoul city with the Jam, Slow, and Free
+China, Naver Map provides traffic information for all the             congestion level denoted in red, yellow, and green color, respectively. (a)
+cities in South Korea, TOPIS focused on traffic conditions of         A sample of raw image data capture from the TOPIS website. (b) A sample
+                                                                      of the image after masking operation where black color represents the
+Seoul, South Korea, and Sigalert serve for the bay area in Cal-       background.
+ifornia, USA. For our research, we captured the congestion
+map from TOPIS online web service, which provides the city-
+wide accurate real-time congestion level of the road network.         congestion level in [B, G, R] format.
+Figure 1(a) shows the raw image of central Seoul (South                                   t
+                                                                                            c1,1 ct1,2 . . . ct1,C
+                                                                                                                           
+Korea) on 20th September 2019 at 15:05, which consists of
+                                                                                          2,1 c2,2 . . . c2,C
+                                                                                          ct       t          t           
+road networks along with background and text. TOPIS traffic                        xt =  .          ..          .                           (3)
+                                                                                                                           
+                                                                                          ..           . . . ..
+                                                                                                                           
+image has three congestion levels, namely: Jam, Slow, and                                             .                    
+Free State. Here, color ‘Red’ represents the Jam, ‘Yellow’                                  ctR,1 ctR,2 . . . ctR,C
+represents the Slow, and ‘Green’ represents the free conges-
+tion level. The congestion level (C.L.) is categorized based on
+                                                                      C. MODEL ARCHITECTURE
+the average speed of the road, given in (2).
+                                                                     In this section, we discuss the architecture for predicting
+                Free if v > 25km/hr
+                                                                     short-term city-wide traffic congestion using the sequences
+        C.L. = Slow if 10km/hr ≤ v ≤ 25km/hr                (2)       of the historical Image dataset. A schematic of our framework
+                                                                      is shown in Figure 2. Our proposed model is the combination
+                  Jam if v < 10km/hr
+                
+                
+                                                                      of 3 networks, namely: 1) Feature Extraction Network (FEN),
+   Since the digital image is a collection of the pixels which        which perform convolutional and pooling operation and con-
+can be represented as a matrix (2D for grayscale and 3D               vert the image into a lower-dimensional feature space, 2) the
+for color image), extracting road network with congestion             Recurrent Network, which consists of stacked LSTM layers
+information can be easily performed by the mathematical               responsible for learning time-series information on data from
+operation. As congestion level in the image data has unique           the previous layer, and 3) Reconstruction Network, which
+color composition, with upper and lower boundary value as             performs convolutional and transposes convolution operation
+([0, 28, 160], [170, 117, 250]), ([0, 150, 195], [100, 220,           on data from recurrent layer to produce predicted image.
+255]), and ([20, 160, 50], [110, 240, 120]) for Red, Yellow           The architecture is designed to learn the spatial-temporal
+and Green color respectively in BGR format. The image                 relationship of traffic congestion levels among roads in the
+masking operation is performed to extract the congestion              transportation network.
+level from the image. At first, the mask is generated for                As stated in section 3.1, our primary objective is to predict
+only road network by comparing the image data with the                the congestion level of the transportation network based on
+boundary value of each congestion color, and then ‘bitwise            the historical time-series sequence of the image, which can be
+and’ operation is performed between mask image and raw                solely performed by the LSTM model. The need for the CNN
+image to generate the image with the only road network. The           model and Transpose Convolutional arises because of 2 rea-
+resulting image is shown in Figure 1(b) has red, yellow, green        sons: i) LSTM is a recurrent neural network, compute slowly
+color representing the congestion level, and black color is           for the large input parameter, and ii) LSTM only consider
+the background. Matrix form representation of the image is            temporal features. In the following sections, we discuss each
+shown in (3); each element has three values representing the          network in detail.
+
+VOLUME 8, 2020                                                                                                                            81609
+                                                                                                    N. Ranjan et al.: City-Wide Traffic Congestion Prediction
+
+
+
+
+        FIGURE 2. PredNet model architecture. (a) The model is divided into three sections, section A is Feature Extraction Network, section B is
+        Recurrent Network, and section C is Reconstruction Network, the arrow from section A to section C represent the skip connection and
+        number along the block represent the number of filters and shape of the matrix. (b) The color code represents the type of operation.
+
+
+
+
+1) FEATURE EXTRACTION NETWORK                                                  a locally connected neuron, i.e., each neuron of output layers
+Convolutional Neural Network is a special type of Deep Neu-                    only receives input from a small local group of the neuron
+ral Network (DNN) that is inspired by Hubel and Wiesel’s                       from the previous layer. It is composed of several convolution
+work in neuroscience [48]. Since it first proposed in the work                 kernels which convolute with the image or previous layer to
+of handwritten zip code recognition [49], numerous varia-                      learn different feature representation. Mathematically, the f th
+tions of CNN architectures have been proposed. However,                        feature map of l th convolutional layer ylf is can be obtained
+the unique aspects of CNN are the same, i.e., local connec-                    by first convoluting input image or previous layer output with
+tivity and weight sharing. CNN has the superior ability in                     the convolutional filter and then applying bit-wise non-linear
+feature representation of an input image as compared to other                  activation, as in (4)
+deep learning architectures like auto-encoder and multilayer                                   
+                                                                                                  fl−1
+                                                                                                                     
+                                                                                                  X
+perceptron, as it handles the spatial correlations between the                         ylf = σ         k , Wkf + bf
+                                                                                                       yl−1            , f ∈ [1, fl ]
+                                                                                                               l    l
+                                                                                                                                           (4)
+nearby pixels.                                                                                      k=1
+   CNN consists of two layers, namely convolutional and
+pooling layer. The main objective of the convolutional layer                   where yl−1
+                                                                                       k  is the k th feature map of (l − 1)th layer, Wkfl is the
+is to learn the feature representation of the input image. It is               kernel weight at position k connected to the f th feature map of
+
+81610                                                                                                                                        VOLUME 8, 2020
+N. Ranjan et al.: City-Wide Traffic Congestion Prediction
+
+
+
+
+l th layer, blf is the bias of f th filter of l th layer, fl is the number       f th filter of l + 1th layer, fl+1 is the number of filter in l th layer
+of filters in l th layer and σ represent element-wise non-linear                 and σ represent element-wise non-linear activation function.
+activation function.                                                                 The output of the feature extracted network is connected to
+    The function of the pooling layer is to achieve shift-                       the recurrent network, which is stacked LSTM layers, which
+invariance by progressively reduce the spatial size of the                       only take vector input. Hence, the output of CNN architecture
+feature map but retains essential information. Pooling layers                    is converted in vector by the flattening layer. Let L be the
+decrease the complexity in the network leading to faster                         previous layer before flattening layer, having fL number of
+convergence rate. Each pooled feature map corresponds to                         feature maps of resolution (x, y), then the output of L + 1
+the feature map from the previous layer. The common pooling                      layer, yL+1 is given, as in (7)
+operations are max-pooling [50] and subsampling [51]. These                                                       h                     i
+pooling operations doesn’t have any trainable parameter and                                      yL+1 = flatten yL1 , yL2 , . . . , yLfL              (7)
+computes one value from (m, n) rectangular region of the
+feature map, which decreases the resolution by the factor                        where yL1 , yL2 , . . . , yLfL are the feature maps of L th layers, each
+of m and n along each direction. Max-pooling selects the                         feature maps contains x ∗ y elements, Hence, (7) can be
+superior invariant features from the patch, and subsampling                      rewritten as given in (8)
+takes the average over the patch and passes through the non-
+                                                                                 yL+1
+linearity. In our experiment, we replace the traditional pooling                                                                                       f     f
+                                                                                  = y11 , y12 , . . . , y1e , y21 , y22 , . . . , y2e , y31 , . . . , y1L , y2L , . . . ,yfeL ,
+                                                                                                                                                                            
+operation by standard convolution operation with the stride
+of 2∗2. This approach is also mention in [52], the strided                                                                                              e=x∗y              (8)
+convolution increase the model expressiveness ability as it
+has a learnable parameter while reducing the feature map                         here, e is the number of elements in each feature map. Equa-
+resolution.                                                                      tion 8 shows the vector representation of L th layer. Besides, it
+    The Feature Extraction Network is shown in Figure 2,                         represents the high-level feature extraction of the input image.
+section A. This architecture is formed by stacking convo-                           The proposed architecture is for traffic congestion predic-
+lutional and pooling layer and have one flatten layer at the                     tion based on the sequence of the historical data, but FEN
+end. The convolution operation is performed by the kernel                        extracts high-level features for only one image at a time.
+of 3∗3 over the input image of 192∗448∗3 using unit stride                       Therefore, the entire FEN network has to be encapsulated
+and zero padding (to conserve the dimension of input). The                       in the time distribution layer, i.e., FEN works in the loop
+(i, j) location of f th feature map of l th convolutional layer,                 to extract the feature from all the time-series input images
+ylf (i, j) can be obtained by first convoluting previous l − 1th                 before going to the Recurrent Network. As stated in section
+layer output with the convolution filter of size (m, m) and                      3.1, t number of the past image is used for prediction, then
+then applying bit-wise non-linear activation, it is the detailed                 the output of the FEN network has t number of vector rep-
+version of Equation 4, and is given as in (5)                                    resentations of the input images. In figure 2, section A, there
+                                                                                 is a dotted block with blue and white color, blue represents
+ylf (i, j)                                                                       the vector of the first map, and white represents the feature
+                                                                                 vector of other input images in the sequence. Each input
+                                                         
+           fl−1 m−1 m−1                                 
+           X    XX
+ =σ                      Wkfl (a, b)⊗yl−1                 ,                     with the resolution of 192∗448∗3 is compressed to the vector
+                                       k (i + a, j+b)+bf
+                                                       l 
+
+          k=1 a=0 b=0                                                            of 672 elements.
+                                                            f ∈ [1, fl ]   (5)
+                                                                                 2) RECURRENT NETWORK
+where (a, b) is kernel location.                                                 Figure 2, section B, shows the recurrent network, which is a
+   The convolution layer is followed by the pooling layer,                       primary prediction module in the architecture, it is made up
+the (i, j) location of f th feature map of l + 1th pooling layer,                of four stack of LSTMs. LSTM network was first mention in
+yl+1
+ f (i, j) can be obtained by first convoluting previous lth                      [53], which solves the vanishing and exploding gradient prob-
+layer output with the convolution filter of size (2, 2) and then                 lem seen while training conventional recurrent Neural Net-
+applying bit-wise non-linear activation, and is given in (6)                     works (RNNs) [54] with the gradient-based back-propagation
+                                                                                 through time technique.
+yfl+1 (i, j)
+                                                                                  An LSTM unit contains a cell state, the memory part of
+         X fl m−1
+              X m−1
+                  X                                                            LSTM and three gates input gate, forget gate and output gate,
+ = σ               Wkfl+1 (a, b)⊗ylk (2i+a, 2j+b)+bl+1
+                                                    f
+                                                        ,                       to protect and control the cell state. LSTM unit undergoes
+         k=1 a=0 b=0                                                             multiple operations at each gate to compute the output of
+                                                       f ∈ [1, fl+1 ]      (6)   LSTM called hidden state. At time t hidden state (ht ) is
+                                                                                 computed by the following operation: At input gate, new
+where ylk is the location of k th feature map of location of l th                information is added to cell state which is completed in two-
+layer, Wkfl+1 is the kernel weight at position k connected to the                part, first, a sigmoid layer decide which input value is to be
+location of f th feature map of l + 1th layer, bl+1
+                                                 f  is the bias of               updated (it ) given, as in (9), and then tanh layer creates a
+
+VOLUME 8, 2020                                                                                                                                                         81611
+                                                                                                N. Ranjan et al.: City-Wide Traffic Congestion Prediction
+
+
+
+
+vector of new candidate values (c˜t ) given, as in (10)                       IV. EXPERIMENT AND RESULT ANALYSIS
+                                                                              A. DATA SOURCE
+                 U             V
+                                                  !
+                 X            X                                               In this research, we choose Seoul (the capital city of) South
+        it = σ      Wui xut +       Wvi ht−1
+                                         v   + bi                       (9)
+                                                                              Korea and among the largest city in the world, where the traf-
+                     u=1               v=1
+                                                                              fic congestion is very high, especially in the central region,
+                       U                   V
+                                                                   !
+                       X                   X                                  as shown in Figure 1(a). The figure is an example of a
+        c˜t = tanh           Wuc xut   +         Wvc ht−1
+                                                      v     + bc       (10)
+                                                                              raw snapshot of a road network of central Seoul from the
+                       u=1                 v=1
+                                                                              TOPIS website. Each snapshot is 192 × 448 pixels in size,
+   At forget gate, LSTM decides what information to forget                    covering about an area of 7.5km × 17km (scale 1 cm =
+from the cell state, computed, as in (11). Based on the update                1.3km). These online web services use multiple sources of
+at input gate and forget gate, the old cell state at t − 1, (ct−1 ),          data collections such as inductive loop, crowdsourcing, etc.
+is updated toct as in (12)                                                    to provide accurate real-time data for the entire city.
+                                                                                 In this paper, we are focused on traffic congestion level
+                      I            H
+                                                       !
+                    X             X                                           prediction from 07:00 to 12:00 on weekdays. We collect
+          f =σ
+           t                 t
+                        Wuf xu +             t−1
+                                      Wvf hv + bf              (11)           the snapshots of traffic data from 19th September 2019 to
+                     u=1                k=1                                   31st December 2019, a total of 104 days, at an interval of 5
+           t     t    t−1       t
+          c = f ∗c           + i ∗ c˜t                                 (12)   minutes (60 samples per day). Out of 104 days, there is
+                                                                              partial or no data collection for 26 days, so we remove all the
+  At output gate, the LSTM decide what parts of the cell state                missing day’s data to generate the database. Samples from
+go to output, it is given, as in (13)                                         19th September to 25th November are used as the training
+                                                                              set, samples from 25th November to 30th November are used
+                     U             V
+                                                  !
+                    X             X                                           for the validation set, and samples from 1st December to 31st
+        o =σ
+          t                   t
+                        Wuo xu +           t−1
+                                      Wvo hv + bo        (13)
+                                                                              December are used for the prediction of the trained model.
+                     u=1               v=1
+                                                                              Data preprocessing and database generation is explained in
+   The final output of the LSTM unit, ht is the function of cell              section III-B.
+state and the output gate, it is computed, as in (14)
+                                                                              B. PERFORMANCE COMPARISON AND METRICS
+                           ht = ot tanh(ct )                           (14)   In order to verify the effectiveness and superiority of the
+                                                                              proposed architecture, PredNet, two state-of-art deep learning
+where σ (z) and tanh(z) are sigmoid activation function and                   neural networks, namely: ConvLSTM [43], and Autoencoder
+hyperbolic tangent activation function are defined as follows:                [10] are selected for comparison. ConvLSTM is just like
+                                                                              LSTM, but internal matrix multiplication is exchanged with
+                                    1
+                           σ (z) =                                     (15)   convolution operations, which can mine both spatial and
+                                 1 + e−Z                                      temporal information from the input image sequence. The
+                                 eZ − e−Z                                     deep Autoencoder is a neural network having an encoding
+                       tanh(z) = Z                                     (16)
+                                 e + e−Z                                      layer, which aims to learn a representation (encoding) from
+                                                                              the set of data and decoding layer, which tries and learns
+   Here, x t is the input at time t. Wi , Wf , and Wo represent               to generate from the reduced encoding as close as possible
+the weight matrices of the input gate, forget gate, and output                to its original input. We performed the traffic congestion
+gate.                                                                         prediction for three-time horizons (10, 30, and 60 minutes)
+                                                                              for comparison and analysis of proposed PredNet. As the
+3) RECONSTRUCTION NETWORK                                                     model predicts the image with congestion levels information
+The output from the recurrent layer is passed through the                     represented by a color on each road, pixel-wise classification
+reconstruction layer, where the compressed representation of                  based on categorical entropy loss function is a more desirable
+spatiotemporal learned data is enlarged into the original reso-               parameter instead of evaluating the model based on mean
+lution of the input data. The reconstruction network consists                 square error or mean absolute error as in literature [10] and
+of series of convolutional and partially convolutional opera-                 [43]. In this paper, we present the performance result based
+tion, is shown in Figure 2(a), section C. During transposed                   on precision, recall, and accuracy of the model for traffic
+convolutional operations, we set stride and kernel size same                  prediction. Equation 17, 18, and 19 define precision, recall,
+to prevent artifacts such as checkboard patterns at final layer,              and accuracy, respectively, and categorical cross-entropy loss
+due to overlap in the kernels. To further support the better                  function, as in (20).
+decoding, the skip connection from FEN is connected, shown
+in Figure 2(a). Mathematically, reconstruction is performed                                               True Positive
+                                                                                      Precision =                                                  (17)
+similarly to as presented in the feature extraction layer. The                                    True Positive + False Positive
+detailed implementation of the network is explained in the                                                True Positive
+                                                                                         Recall =                                                  (18)
+next section.                                                                                     True Positive + False Negative
+
+81612                                                                                                                                    VOLUME 8, 2020
+N. Ranjan et al.: City-Wide Traffic Congestion Prediction
+
+
+
+
+                      True Positive + True Negative
+          Accuracy =                                        (19)    and validation categorical cross-entropy loss is decreased by
+                                  Total                             30% and 22% respectively. Further investigation shows the
+                         M XN 
+                        X                                        skip connection between the early and late layers (C1 to
+            L y, y0 = −          yij ∗ log y0ij
+                   
+                                                            (20)
+                                                                    E5) in C.N 5 achieves higher performance gain than skip
+                               j=0 i=0
+                                                                    connection between intermediate layers (C5 to E1) in C.N
+  Here, y is true value, y0 is predicted value, (i, j) is the row   6, which suggests the model is suffering from vanishing gra-
+and column in the image.                                            dient problem. With the addition of more skip connections,
+                                                                    the model continues to perform better, and the best result
+C. IMPLEMENTATION OF PROPOSED MODEL                                 is achieved with C.N 1, which have skip connection to all
+As mention in section III-A, the objective of the model is to       the upsampling layer in reconstruction network from feature
+take the chronological sequence of traffic image to predict         extraction network, as shown in Figure 2(a). Although the
+the congestion level of transportation network at different         training accuracy in C.N 1 is lower than C.N 2, the C.N
+prediction horizons (10, 30, and 60 minutes). To achieve the        1 has better representation capability as its validation accu-
+objective, the deep neural network, as explained in section         racy, MSE, and loss is best among all the configuration. All
+III-C, is used. As the network is very deep, i.e., a large          the other model parameters, such as the number of filters,
+number of hidden layers, this might bring the problem of            sequence of input images, and hyper-parameters, are kept
+vanishing gradient. Because with the increase in the number         same for testing all the configuration mention in Table 1.
+of hidden layers, the gradient shrinks towards zero during             Choosing the optimal number of historical images as an
+backpropagation, which results in the weight never updating         input to the model is very crucial. Selecting a large number
+its value. The solution to vanishing gradient is, skip connec-      of images than optimal will consume unwanted comput-
+tion -a connection from initial layers of the network to later      ing resources, and it will be difficult to train on resource-
+layers- which enables the gradient to flow directly through         constrained devices. Whereas, choosing a small sequence
+the skip connections backward from later layers to initial          input image will hinder the performance of the model, as there
+layers. Apart from vanishing gradient, the other parameters         wouldn’t be enough information to exploit the time-series
+to consider while implementing the model are the number             relationship among the data. Since the time interval between
+of past images for input, the number of LSTM layers in              data is 5 minutes, we experiment with 13, 12, 11, and 9 his-
+between convolutional encoding and decoding, consecutive            torical data (i.e., 65, 60, 55, and 45 minutes respectively) to
+filter number for both convolutional encoder and decoder, and       train and predict the traffic congestion.
+hyper-parameters.                                                      As seen from Table 2, C.N 2, with 11 input samples,
+   At first, we evaluate our prediction model for vanishing         achieves exceptional performance for the training dataset but
+gradient problem by monitoring change in performance under          fails to be superior on the validation data set. C.N 3 produces
+different combinations of the skip connections from the fea-        better MSE and accuracy results than other configurations
+ture extraction network (Figure 2(a) Section A) to the recon-       and similar loss as C.N 4. Hence, we choose a C.N 3 with
+struction network (Figure 2(a) Section C). We select five           12 image samples as input for implementing our prediction
+upsampling layers in the reconstruction network, namely: E1,        model as it has better generalization capability compared to
+E2, E3, E4, and E5, as shown in Figure 2(a), where skip             other configurations, and with less computing time compared
+connection could be beneficial as it carries the feature maps       to C.N 3 with 13 input samples.
+with much image details, which would help upsampling layer             Furthermore, the number of filters in the convolution
+to recover a clean version of the image. We select five layers,     neural networks plays a vital role in model performance.
+presented just before the downsampling layer in the feature         As each filter extract different feature map from the same
+extraction network, namely: C1, C2, C3, C4, and C5, as              layer, increasing the number of filters insure more learning
+shown in Figure 2(a), for skip connection to reconstruction         but increase beyond some optimal filter number does not
+network. There are 5 cases of skip connection C1 to E5,             affect the performance gain but increase the resource con-
+C2 to E4, C3 to E3, C4 to E2, and C5 to E1 and a large              sumption. Hence, we experimented on three configurations
+number of possible architecture based on a combination of           of the number of filters for the convolutional layer to find a
+skip connections. We investigate 6 model scenarios to find          proper one. The feature extraction network and reconstruc-
+the best architecture.                                              tion network mention in Figure 2(a) are symmetric in terms
+   Table 1 shows the prediction performance (for 10 min             of the number of filters. From Table 3, we can see that C.N
+horizon) for the training and validation dataset. As seen from      3 has better MSE and accuracy, and C.N 1 has a better loss in
+the table, the performance of configuration 7 (without any          the training dataset. However, for the validation dataset, C.N 1
+skip connection) is boosted significantly with the addition of      outperforms all other configurations, which suggests that C.N
+skip connections. With the addition of one skip connection,         1 has better generalization capability. Other parameters like
+Configuration No. (C.N) 5 and 6, the training and validation        skip connection, no. of the input image, and hyper-parameters
+mean square error is decreased by 40% and 23% respec-               were same for generating results for all three configurations.
+tively; the training and validation pixel to pixel accuracy is         The details of the PredNet is explained in this subsection.
+improved by 1.85% and 1.60% respectively, and the training          As shown in Figure 2(a), the proposed model has 30 layers
+
+VOLUME 8, 2020                                                                                                                81613
+                                                                                                     N. Ranjan et al.: City-Wide Traffic Congestion Prediction
+
+
+
+
+TABLE 1. Comparison of prediction metrics (10 min horizon) for training and validation dataset for different configurations of skip connections. The best
+result is marked in bold.
+
+
+
+
+TABLE 2. Comparison of prediction metrics (10 min horizon) for training and validation dataset for the different numbers of the historical image as input
+data. The best result is marked in bold.
+
+
+
+
+TABLE 3. Comparison of prediction metrics (10 min horizon) for training and validation dataset for the different numbers of filter configuration for
+convolutional layers. The best result is marked in bold.
+
+
+
+
+consisting of 12 convolutional layers; 5 downsampling layers;                   sequence of 12 images with the resolution of (192 × 448 x3).
+5 upsampling layers; 4 LSTM layers; and one of each flatten,                    For Autoencoder, we adopt the configuration [512, 384, 256,
+reshape, input and output layers. The model input has four                      and 128] with ReLU activation of each layer, except softmax
+dimensions (12, 192, 448, 3), where the first number indicates                  activation in the last layer. The input to Autoencoder is (12,
+sequences of 12 images are taken as input, second and third                     345), i.e., the congestion level of each road for 12 input sam-
+number indicates the row and column of image and fourth                         ples. Besides, the loss function for both models is changed
+number represent the channel of the image. The input layer                      from MSE to categorical cross-entropy for a fair comparison.
+is followed by the convolutional layer with 32 convolutional                       All the models mentioned were trained on a real-world
+filters of size (3 × 3), strides of (1 × 1), and padding ’same’.                traffic congestion data of Seoul city (South Korea) using
+This layer is followed by a downsampling layer, performed by                    Adaptive Moment Estimation (Adam) optimizer with the
+convolutional operation with strides of (2 × 2), and padding                    learning rate of 1e-4, learning decay rate of 0.95, variables
+‘valid’. The combination of convolutional and downsampling                      moving average decay of 0.999, and a batch size of 1. We train
+layer encode the input (12, 192, 448, 3) to (12, 6, 14, 8). The                 all the models using a categorical cross-entropy loss function.
+flatten layer further converts to (12, 672) and feed to Recur-                  Also, all the model is implemented using Keras deep learn-
+rent Network, where LSTM learn the features by unfolding                        ing library on an Ubuntu 18.04.4 machine with 4 NVIDIA
+the times series and capturing the pattern. The output of                       TITAN Xp Graphics Cards.
+LSTM (12, 672) is reshaped into (12, 6, 14, 8) by Reshape
+layers, which is followed by series of convolutional layers                     D. RESULT AND ANALYSIS
+and upsampling layers -performed by transposed convolu-                         Table 4 presents the performance metrics of our proposed
+tional operation with filter size (2 × 2) and stride (2 × 2)-,                  model PredNet along with ConvLSTM and Autoencoder in
+to regenerate the encoded representation back to original                       terms of precision, recall, and accuracy on a training dataset at
+image resolution (12, 192, 448, 4). All the layer have ReLU                     different prediction horizons (10, 30, and 60 minutes). Here,
+activation except the last layer which have softmax activation.                 instead of using the entire pixels of the image, we randomly
+All the convolutional, downsampling and upsampling layer                        choose a single pixel for each road (road-wise value) to
+have dropout of 0.1, and batch normalization, whereas LSTM                      evaluate the model. The road-wise prediction performance
+layer, has 0.2 dropouts.                                                        gives the true evaluation of the model as the performance
+   In our experiment, we implemented the ConvLSTM model                         calculation is not affected by background pixels and road
+with six layers having configuration [48, 36, 24, 24, 12, and                   length. The proposed model PredNet achieves around 2 to
+4], with the filter size of (3 × 3), strides of (1 × 1), and                    12% performance gain, for all prediction horizons compared
+‘same’ padding. Each layer except last has ReLU activation,                     to ConvLSTM and Autoencoder.
+0.1 dropouts, and a batch normalization layer, whereas the                         Table 5 shows the road-wise per hour average prediction
+last layer has softmax activation. The input to ConvLSTM is a                   accuracy for eight working days from 3rd December 2019 to
+
+81614                                                                                                                                         VOLUME 8, 2020
+N. Ranjan et al.: City-Wide Traffic Congestion Prediction
+
+
+
+
+TABLE 4. Performance comparison on training dataset for the prediction horizon of 10, 30, and 60 minutes. The best result is marked in bold.
+
+
+
+
+TABLE 5. Road-wise accuracy comparison for the prediction horizon of 10, 30, and 60 minutes. The best result is marked in bold.
+
+
+
+
+12th December 2019, in a period of 08:00 to 12:00, for all                    prediction horizons of 10 and 30 minutes, respectively. It
+three congestion prediction models. The proposed network,                     shows the prediction accuracy for every 5 minutes. Fig-
+PredNet, shows that the model accuracy performance is better                  ure 3(a) shows that the PredNet achieves the highest accuracy
+for all prediction horizons, i.e., 10, 30, and 60 minutes. For                value for 46 times out of 48 samples, the highest being
+10 minutes horizons, the average accuracy for PredNet is in                   0.9325 at 10:00. Similarly, the PredNet makes high accuracy
+the range of lowest being 0.8473 to highest being 0.8793.                     for 42 times out of 48 samples for 30 minutes prediction,
+Out of 32 hours of prediction, PredNet achieves the best                      as shown in Figure 3(b). The accuracy of ConvLSTM is
+accuracy for 28 hours, and ConvLSTM achieves best for                         slightly lower than our proposed PredNet in most of the
+4 hours. Similarly, for 30 minutes prediction horizon, PredNet                instance. However, the prediction accuracy for Autoencoder
+achieves the best accuracy for 23 hours, and ConvLSTM                         based on architecture from the literature [10] is inferior. Both
+achieves the highest value for the other 9 hours. Whereas, for                PredNet and ConvLSTM perform well for traffic congestion
+60 minutes prediction horizon, the PredNet outperforms all                    prediction as they use spatial and temporal information. In
+other models by delivering the best result for all periods. The               contrast, Autoencoder uses only temporal data for forecast-
+highest accuracy for 30 and 60 minutes prediction for PredNet                 ing; this could be one of the reasons for its poor performance.
+is 0.8566 and 0.8489, respectively.                                              From Table 5 and Figure 3, we can say the proposed Pred-
+   Figure 3 shows the detailed representation of prediction                   Net performs better than the other two state-of-art prediction
+accuracy on 3rd December 2019, from 08:00 to 12:00, for                       models in all prediction horizons. Even though the models
+
+VOLUME 8, 2020                                                                                                                                 81615
+                                                                                                N. Ranjan et al.: City-Wide Traffic Congestion Prediction
+
+
+
+
+               FIGURE 3. Road-wise accuracy for traffic congestion prediction on 3rd December 2019. (a) Prediction accuracy for
+               prediction horizon of 10 minutes. (b) Prediction accuracy for prediction horizon of 30 minutes.
+
+
+
+
+attain high performance in terms of accuracy, there is no                  higher compared to ConvLSTM and Autoencoder, respec-
+guarantee that the trained model has better representation                 tively. Furthermore, for the Free congestion level, PredNet
+capacity for predicting the different congestion levels. There             reaches an average precision of 82.9%, which is 0.6% and
+might be a case that the model predicts some congestion level              10% higher than ConvLSTM and Autoencoder, respectively.
+accurately and have a poor prediction for others. In Table 6,              Similarly, the PredNet achieves a precision value of 80.8%,
+we present Precision and Recall metrics for Jam, Slow, and                 86.9%, and 80.7% for 30 minutes prediction and 82.4%,
+Free congestion levels for all three models, for all three                 85.3%, and 80.5% for 60 minutes prediction, for Jam, Slow,
+prediction horizon of 10, 30, and 60 minutes. This metrics                 and Free congestion levels, which is higher than other two
+shows the exactness and sensitivity of models in learning and              models. As shown in Table 6, the PredNet dominates other
+representing congestion levels.                                            models in terms of average recall value for predicting all
+   Table 6 shows the comparison on 3rd December 2019 from                  three congestion levels at all prediction horizons. The highest
+09:00 to 10:00 at every 5 minutes. The proposed, PredNet,                  recall value achieved by the PredNet is 0.876, 0.919, and
+shows prediction ability with high precision for all the con-              0.926 for 10 minutes horizons, 0.874, 0.944, and 0.918 for
+gestion levels in all three prediction horizons. For 10 minutes,           30 minutes horizons, and 0.839, 0.903, and 0.904 for 60 min-
+prediction horizons, the PredNet achieves precision ranges                 utes horizons, for Jam, Slow, and Free congestion levels.
+from 77% to 94% with an average value of 86%, which is 10%                 In terms of recall, for Jam congestion level, PredNet achieves
+and 12% more than ConvLSTM and Autoencoder for Jam                         performance gain of around 4-10% compared to ConvLSTM
+congestion levels. For the Slow congestion level, the PredNet              and 10-16% compared to Autoencoder, for predicting Jam
+attains an average precision of 86.7%, which is 3% and 14%                 congestion levels, for prediction horizons of 10, 30, and
+
+81616                                                                                                                                    VOLUME 8, 2020
+N. Ranjan et al.: City-Wide Traffic Congestion Prediction
+
+
+
+
+TABLE 6. Precision and Recall metrics of all the models at different prediction horizons of 10 and 30 minutes. Best performance values are marked in
+bold.
+
+
+
+
+TABLE 7. Computing resources for training with prediction horizons               Figure 4 shows the end-to-end result of PredNet, which
+of 10, 30, and 60 minutes.
+                                                                              shows the comparison of ground truth and its corresponding
+                                                                              prediction congestion level on 3rd December 2019 with a pre-
+                                                                              diction horizon of 10 minutes. In Figure 4, Column A denotes
+                                                                              the ground truth image of every 5 minutes, and column B
+                                                                              indicates the predicted image with its precision (P), recall (R),
+                                                                              and accuracy (A). The PredNet predicts the congestion level
+                                                                              of the city at excellent granularity, which is visually intuitive
+                                                                              compared to work in [10].
+                                                                                 The computational resource requirement for any deep neu-
+                                                                              ral network solely depends on the type of connection between
+                                                                              the layers. Local connectivity and weight sharing nodes
+                                                                              use fewer resources compared to fully connected nodes,
+                                                                              between the layers. For the input dimension of (12, 192,
+60 minutes. For Slow congestion level, PredNet attains per-                   448, 3) and architecture mentioned in section IV-C Con-
+formance gain of around 1 % gain for prediction horizons                      vLSTM takes 0.307 million parameters, the proposed Pred-
+of 10 and 30 minutes whereas 10% for 60 minutes prediction                    Net takes 16.5 million parameters, and Autoencoder takes
+horizon compared to ConvLSTM and about 15-18% for all                         1,718.5 million parameters (575 Million for gray image).
+three prediction horizons compared to Autoencoder. Simi-                      It shows that the PredNet is efficient than Autoencoder in
+larly, a significant gain in the recall value is attained compared            terms of resource utilization but not compared to ConvLSTM.
+to other models for predicting the Free congestion level. Our                 Besides, the PredNet model is more computational efficiency
+proposed model shows the consistent prediction for all three                  than the other two in terms of computing time, as shown
+prediction horizons, ConvLSTM shows a reliable forecast for                   in Table 7. We can see our proposed network takes less
+10 and 30 minutes horizons but fails for 60 minutes prediction                number of epochs and training time to converge compared
+horizons.                                                                     to ConvLSTM. PredNet takes around 1.9 to 2.3 hours to
+
+VOLUME 8, 2020                                                                                                                                   81617
+                                                                                                N. Ranjan et al.: City-Wide Traffic Congestion Prediction
+
+
+
+
+            FIGURE 4. Comparison of ground truth congestion levels in column (a) vs. prediction congestion levels in column (b) on 3rd
+            December 2019 with the prediction horizons of 10 minutes.
+
+
+converge, and ConvLSTM around 15.67 to 16.95 hours to                      to the PredNet, in terms of performance, the Autoencoder
+converge. PredNet is eight times faster than ConvLSTM. For                 model is very poor. Hence, in regard to the high-performance
+original input resolution, Autoencoder is practically impos-               result, the proposed model is efficient in terms of training
+sible to model and train on same device where PredNet                      time compared to both models and efficient in terms of
+and ConvLSTM are trained. So, in this research, we have                    resource utilization compared to the Autoencoder.
+reformatted the input matrix for Autoencoder by taking one-
+pixel value per road from the image instead of every pixel.                 V. DISCUSSION AND CONCLUSION
+The input dimension for Autoencoder decrease to (12, 345),                 In this work, we present a deep learning model architecture
+i.e., 12 image samples with 345 road congestion level on each              to predict the city-wide traffic congestion prediction using an
+image. The trainable parameter decreases to 2.9 million and                image data source from the online traffic portal. We develop
+training time down to around 40 to 50 minutes. Even though                 the hybrid model by combining the Convolutional Neural
+resource utilization and training time are very low compared               Network, LSTM, and Transposed Convolutional Network,
+
+81618                                                                                                                                    VOLUME 8, 2020
+N. Ranjan et al.: City-Wide Traffic Congestion Prediction
+
+
+
+
+which can learn both spatial and temporal relation of the                           [8] X. Ma, Z. Dai, Z. He, J. Ma, Y. Wang, and Y. Wang, ‘‘Learning traffic as
+input data effectively. The model was trained for three pre-                            images: A deep convolutional neural network for large-scale transportation
+                                                                                        network speed prediction,’’ Sensors, vol. 17, no. 4, p. 818, Apr. 2017, doi:
+diction horizons 10, 30, and 60 minutes. Unlike in the previ-                           10.3390/s17040818.
+ous studies where researchers compared the predicted image                          [9] H. Chang, Y. Lee, B. Yoon, and S. Baek, ‘‘Dynamic near-term traffic
+with the ground truth in terms of MSE or MAE showing                                    flow prediction: System-oriented approach based on past experiences,’’
+                                                                                        IET Intell. Transp. Syst., vol. 6, no. 3, p. 292, 2012, doi: 10.1049/iet-
+the average error between the images rather than the road-                              its.2011.0123.
+wise prediction, in this paper, we compare our proposed                            [10] S. Zhang, Y. Yao, J. Hu, Y. Zhao, S. Li, and J. Hu, ‘‘Deep autoencoder
+                                                                                        neural networks for short-term traffic congestion prediction of trans-
+PredNet performance with two other state-of-art algorithms                              portation networks,’’ Sensors, vol. 19, no. 10, p. 2229, May 2019, doi:
+ConvLSTM and Autoencoder, in terms of precision and recall                              10.3390/s19102229.
+for predicting each congestion level, and accuracy based on                        [11] Google Maps. Accessed: May 4, 2019. [Online]. Available: https://
+                                                                                        www.google.com/maps/place/Delhi,+India/@28.6471948,76.9531797,
+road-wise prediction.                                                                   11z/data=!3m1!4b1!4m5!3m4!1s0x390cfd5b347eb62d:
+   As discussed in section IV-C, we conclude the opti-                                  0x37205b715389640!8m2!3d28.7040592!4d77.1024902
+mal architecture for the proposed prediction model consists                        [12] Bing. Bing Maps. Accessed: May 5, 2019. [Online]. Available:
+                                                                                        https://www.bing.com/maps/traffic
+of 5 skip connection from feature extraction to reconstruc-                        [13] Seoul TOPIS. Seoul Transport Opearation & Information
+tion layers to prevent vanishing gradient, and the sequence                             Service Center. Accessed May 5, 2019. [Online]. Available:
+                                                                                        https://topis.seoul.go.kr/prdc/openPrdcMap.do
+of 12 historical images provide an excellent prediction result.                    [14] Baidu. Baidu Maps. Accessed: May 10, 2019. [Online]. Available:
+From the result and analysis section IV-D, we can see our                               https://map.baidu.com/13036895.494262943,4748316.384998233,
+proposed model achieves the best average accuracy for all                               11.52z/maplayer%3Dtrafficrealtime
+                                                                                   [15] A. Graves, A.-R. Mohamed, and G. Hinton, ‘‘Speech recognition with
+three prediction horizons, and precision and recall values                              deep recurrent neural networks,’’ in Proc. IEEE Int. Conf. Acoust., Speech
+are highest for PredNet for all congestion levels, for all                              Signal Process., Vancouver, BC, Canada, May 2013, pp. 6645–6649, doi:
+prediction horizons. Besides, our proposed PredNet beats the                            10.1109/ICASSP.2013.6638947.
+                                                                                   [16] R. Fu, Z. Zhang, and L. Li, ‘‘Using LSTM and GRU neural network
+ConvLSTM by 8 folds in terms of computing time and can                                  methods for traffic flow prediction,’’ in Proc. 31st Youth Academic Annu.
+train image data with a large resolution on a smaller resource                          Conf. Chin. Assoc. Autom. (YAC), Wuhan, China, Nov. 2016, pp. 324–328,
+compared to Autoencoder, as it incorporates convolutional                               doi: 10.1109/YAC.2016.7804912.
+                                                                                   [17] W. Wei, H. Wu, and H. Ma, ‘‘An AutoEncoder and LSTM-based traffic
+and downsampling layers rather than fully connected layers                              flow prediction method,’’ Sensors, vol. 19, no. 13, p. 2946, Jul. 2019, doi:
+as in Autoencoder. However, with the encouraging prediction                             10.3390/s19132946.
+                                                                                   [18] V. Badrinarayanan, A. Kendall, and R. Cipolla, ‘‘SegNet: A deep convolu-
+performance, there is still room for improvement in the model                           tional encoder-decoder architecture for image segmentation,’’ IEEE Trans.
+in terms of computational efficiency as a lot of resources and                          Pattern Anal. Mach. Intell., vol. 39, no. 12, pp. 2481–2495, Dec. 2017, doi:
+computing time is being wasted in learning the background                               10.1109/TPAMI.2016.2644615.
+                                                                                   [19] X. Liu, Z. Deng, and Y. Yang, ‘‘Recent progress in semantic image seg-
+area.                                                                                   mentation,’’ Artif. Intell. Rev., vol. 52, no. 2, pp. 1089–1106, Aug. 2019,
+   For future work, we can include external factors like                                doi: 10.1007/s10462-018-9641-3.
+weather information (rain, snow, foggy) for each road, which                       [20] B. L. Smith and M. J. Demetsky, ‘‘Traffic flow forecasting: Comparison
+                                                                                        of modeling approaches,’’ J. Transp. Eng., vol. 123, no. 4, pp. 261–266,
+can improve the model performance. In addition, we will                                 1997, doi: 10.1061/(ASCE)0733-947X(1997)123:4(261).
+try to enhance the computing capability by removing all the                        [21] M.-C. Tan, S. C. Wong, J.-M. Xu, Z.-R. Guan, and P. Zhang, ‘‘An
+                                                                                        aggregation approach to short-term traffic flow prediction,’’ IEEE
+background during our training and also try to add more                                 Trans. Intell. Transp. Syst., vol. 10, no. 1, pp. 60–69, Mar. 2009, doi:
+information from the different data sources for more accurate                           10.1109/TITS.2008.2011693.
+predictions.                                                                       [22] E. Frejinger and M. Bierlaire, ‘‘Capturing correlation with subnetworks
+                                                                                        in route choice models,’’ Transp. Res. B, Methodol., vol. 41, no. 3,
+                                                                                        pp. 363–378, Mar. 2007, doi: 10.1016/j.trb.2006.06.003.
+REFERENCES                                                                         [23] S. V. Kumar and L. Vanajakshi, ‘‘Short-term traffic flow prediction using
+                                                                                        seasonal ARIMA model with limited input data,’’ Eur. Transp. Res. Rev.,
+ [1] C. Onyeneke, C. Eguzouwa, and C. Mutabazi, ‘‘Modeling the effects of               vol. 7, Sep. 2015, Art. no. 21, doi: 10.1007/s12544-015-0170-8.
+     traffic congestion on economic activities—Accidents, fatalities and casu-     [24] Z. Zhu, B. Peng, C. Xiong, and L. Zhang, ‘‘Short-term traffic flow predic-
+     alties,’’ Biomed. Statist. Informat., vol. 3, no. 2, pp. 7–14, Aug. 2018.          tion with linear conditional Gaussian Bayesian network,’’ J. Adv. Transp.,
+ [2] C. Wang, M. A. Quddus, and S. G. Ison, ‘‘Impact of traffic congestion              vol. 50, no. 6, pp. 1111–1123, Oct. 2016, doi: 10.1002/atr.1392.
+     on road accidents: A spatial analysis of the M25 motorway in england,’’       [25] G. Shi, J. Guo, W. Huang, and B. M. Williams, ‘‘Modeling seasonal het-
+     Accident Anal. Prevention, vol. 41, no. 4, pp. 798–808, Jul. 2009.                 eroscedasticity in vehicular traffic condition series using seasonal adjust-
+ [3] P. Hao, C. Wang, G. Wu, K. Boriboonsomsin, and M. Barth, ‘‘Eval-                   ment approach,’’ J. Transp. Eng., vol. 140, no. 5, pp. 1053–1058, 2014.
+     uating the environmental impact of traffic congestion based on sparse         [26] J. Guo, W. Huang, and B. M. Williams, ‘‘Adaptive Kalman filter approach
+     mobile crowd-sourced data,’’ in Proc. IEEE Conf. Technol. Sustainability           for stochastic short-term traffic flow rate prediction and uncertainty quan-
+     (SusTech), Phoenix, AZ, USA, Nov. 2017, pp. 1–6.                                   tification,’’ Transp. Res. C, Emerg. Technol., vol. 43, pp. 50–64, Jun. 2014.
+ [4] S. Ye, ‘‘Research on urban road traffic congestion charging based on          [27] L. Zhang, Q. Liu, W. Yang, N. Wei, and D. Dong, ‘‘An improved
+     sustainable development,’’ Phys. Procedia, vol. 24, pp. 1567–1572, 2012.           K-nearest neighbor model for short-term traffic flow prediction,’’
+ [5] F. Rempe, G. Huber, and K. Bogenberger, ‘‘Spatio-temporal congestion               Procedia-Social Behav. Sci., vol. 96, pp. 653–662, Nov. 2013, doi:
+     patterns in urban traffic networks,’’ in Proc. Int. Symp. Enhancing Highway        10.1016/j.sbspro.2013.08.076.
+     Perform. (ISEHP), Berlin, Germany, 2016, pp. 513–524.                         [28] M. Castro-Neto, Y. Jeong, M. K. Jeong, and L. D. Han, ‘‘AADT pre-
+ [6] L. Xu, Y. Yue, and Q. Li, ‘‘Identifying urban traffic congestion pattern           diction using support vector regression with data-dependent parame-
+     from historical floating car data,’’ Procedia Social Behav. Sci., vol. 96,         ters,’’ Expert Syst. Appl., vol. 36, no. 2, pp. 2979–2986, Mar. 2009, doi:
+     pp. 2084–2095, Nov. 2013.                                                          10.1016/j.eswa.2008.01.073.
+ [7] J. Park, D. Li, Y. L. Murphey, J. Kristinsson, R. McGee, M. Kuang, and        [29] H. Su, L. Zhang, and S. Yu, ‘‘Short-term traffic flow prediction
+     T. Phillips, ‘‘Real time vehicle speed prediction using a neural network           based on incremental support vector regression,’’ in Proc. 3rd Int.
+     traffic model,’’ in Proc. Int. Joint Conf. Neural Netw., San Jose, CA, USA,        Conf. Natural Comput. (ICNC), Haikou, China, 2007, pp. 640–645, doi:
+     Jul. 2011, pp. 2991–2996.                                                          10.1109/ICNC.2007.661.
+
+VOLUME 8, 2020                                                                                                                                                81619
+                                                                                                             N. Ranjan et al.: City-Wide Traffic Congestion Prediction
+
+
+
+
+[30] X. Wang, N. Zhang, Y. Zhang, and Z. Shi, ‘‘Forecasting of short-term metro       [52] S. J. Tobias, A. Dosovitskiy, T. Brox, and M. A. Riedmiler, ‘‘Striving for
+     ridership with support vector machine online model,’’ J. Adv. Transp.,                simplicity: The all convolutional net,’’ 2014, arXiv:1412.6806v3. [Online].
+     vol. 2018, pp. 1–13, Jun. 2018, doi: 10.1155/2018/3189238.                            Available: https://arxiv.org/abs/1412.6806
+[31] Y. Sun, B. Leng, and W. Guan, ‘‘A novel wavelet-SVM short-time passen-           [53] S. Hochreiter and J. Schmidhuber, ‘‘Long short-term memory,’’
+     ger flow prediction in beijing subway system,’’ Neurocomputing, vol. 166,             Neural Comput., vol. 9, no. 8, pp. 1735–1780, Nov. 1997, doi:
+     pp. 109–121, Oct. 2015, doi: 10.1016/j.neucom.2015.03.085.                            10.1162/neco.1997.9.8.1735.
+[32] S. Sun, C. Zhang, and G. Yu, ‘‘A Bayesian network approach to traffic flow       [54] Y. Bengio, P. Simard, and P. Frasconi, ‘‘Learning long-term dependencies
+     forecasting,’’ IEEE Trans. Intell. Transp. Syst., vol. 7, no. 1, pp. 124–132,         with gradient descent is difficult,’’ IEEE Trans. Neural Netw., vol. 5, no. 2,
+     Mar. 2006, doi: 10.1109/TITS.2006.869623.                                             pp. 157–166, Mar. 1994, doi: 10.1109/72.279181.
+[33] P. Kuan Hoong, O. Kok Chien, I. K. T. Tan, and C.-Y. Ting, ‘‘Road traffic
+     prediction using Bayesian networks,’’ in Proc. IET Int. Conf. Wireless
+     Commun. Appl. (ICWCA), Kuala Lumpur, Malaysia, 2012, pp. 1–5.
+[34] B. Sharma, S. Kumar, P. Tiwari, P. Yadav, and M. I. Nezhurina, ‘‘ANN                                         NAVIN RANJAN received the bachelor’s degree
+     based short-term traffic flow forecasting in undivided two lane highway,’’                                   from Kathmandu University, Nepal, in 2016. He
+     J. Big Data, vol. 5, Dec. 2018, Art. no. 48, doi: 10.1186/s40537-018-                                        is currently working as a Graduate Research
+     0157-0.                                                                                                      Assistant with Incheon National University, South
+[35] X. Ma, Z. Tao, Y. Wang, H. Yu, and Y. Wang, ‘‘Long short-term memory                                         Korea. His research interests include the Inter-
+     neural network for traffic speed prediction using remote microwave sensor                                    net of Things (IoT), image processing, computer
+     data,’’ Transp. Res. C, Emerg. Technol., vol. 54, pp. 187–197, May 2015,
+                                                                                                                  vision, scene understanding, and reinforcement
+     doi: 10.1016/j.trc.2015.03.014.
+[36] R. Fu, Z. Zhang, and L. Li, ‘‘Using LSTM and GRU neural network                                              learning.
+     methods for traffic flow prediction,’’ in Proc. 31st Youth Academic
+     Annu. Conf. Chin. Assoc. Autom. (YAC), Nov. 2016, pp. 324–328, doi:
+     10.1109/YAC.2016.7804912.
+[37] Y. Tian, K. Zhang, J. Li, X. Lin, and B. Yang, ‘‘LSTM-based traffic flow
+     prediction with missing data,’’ Neurocomputing, vol. 318, pp. 297–305,                                     SOVIT BHANDARI received the bachelor’s
+     Nov. 2018, doi: 10.1016/j.neucom.2018.08.067.                                                              degree from Kathmandu University, Nepal,
+[38] Y.-y. Chen, Y. Lv, Z. Li, and F.-Y. Wang, ‘‘Long short-term memory model                                   in 2016. He worked as a Core Network Engi-
+     for traffic congestion prediction with online open data,’’ in Proc. IEEE 19th                              neer with Huawei Technologies Nepal Company,
+     Int. Conf. Intell. Transp. Syst. (ITSC), Rio de Janerio, Brazil, Nov. 2016,                                Pvt. Ltd., from January 2018 to August 2018.
+     pp. 132–137, doi: 10.1109/ITSC.2016.7795543.                                                               He has been working as a Graduate Research
+[39] Z. Huang, J. Xia, F. Li, Z. Li, and Q. Li, ‘‘A peak traffic congestion                                     Assistant with Incheon National University, South
+     prediction method based on bus driving time,’’ Entropy, vol. 21, no. 7,                                    Korea, since September 2018. His research inter-
+     p. 709, Jul. 2019, doi: 10.3390/e21070709.                                                                 ests include radio resource management, 5G and
+[40] X. Luo, D. Li, Y. Yang, and S. Zhang, ‘‘Spatiotemporal traffic flow                                        beyond mobile communication, machine learning,
+     prediction with KNN and LSTM,’’ J. Adv. Transp., vol. 2019, pp. 1–10,            the Internet of Things, image processing, and computer vision.
+     Feb. 2019, doi: 10.1155/2019/4145353.
+[41] W. Wei, H. Wu, and H. Ma, ‘‘An AutoEncoder and LSTM-based traffic
+     flow prediction method,’’ Sensors, vol. 19, no. 13, p. 2946, Jul. 2019, doi:
+     10.3390/s19132946.                                                                                           HONG PING ZHAO received the bachelor’s
+[42] Z. Lv, J. Xu, K. Zheng, H. Yin, P. Zhao, and X. Zhou, ‘‘LC-RNN: A deep                                       degree from Jilin Jianzhu University, China,
+     learning model for traffic speed prediction,’’ in Proc. 27th Int. Joint Conf.                                in 2016. He has been working as a Graduate
+     Artif. Intell., Jul. 2018, pp. 3470–3476, doi: 10.24963/ijcai.2018/482.
+                                                                                                                  Research Assistant with Incheon National Univer-
+[43] Y. Liu, H. Zheng, X. Feng, and Z. Chen, ‘‘Short-term traffic flow predic-
+                                                                                                                  sity, South Korea, since March 2018. His research
+     tion with conv-LSTM,’’ in Proc. 9th Int. Conf. Wireless Commun. Signal
+     Process. (WCSP), Oct. 2017, pp. 1–6, doi: 10.1109/WCSP.2017.8171119.                                         interests include machine learning, big data, and
+[44] H. Yu, Z. Wu, Y. Wang, and X. MA, ‘‘Spatiotemporal recurrent convolu-                                        networking.
+     tional networks for traffic prediction in transportation networks,’’ Sensors,
+     vol. 17, no. 7, 1501, Jun. 2017, doi: 10.3390/s17071501.
+[45] M. Chen, X. Yu, and Y. Liu, ‘‘PCNN: Deep convolutional networks for
+     short-term traffic congestion prediction,’’ IEEE Trans. Intell. Transp. Syst.,
+     vol. 19, no. 11, pp. 3550–3559, Nov. 2018.
+[46] X. Ma, H. Yu, Y. Wang, and Y. Wang, ‘‘Large-scale transportation net-                                        HOON KIM has been working as an Asso-
+     work congestion evolution prediction using deep learning theory,’’ PLoS                                      ciate Professor with the Department of Elec-
+     ONE, vol. 10, no. 3, Mar. 2015, Art. no. e0119044, doi: 10.1371/jour-                                        tronics Engineering, Incheon National University,
+     nal.pone.0119044.                                                                                            South Korea, since 2008. His research interests
+[47] A. Elfar, A. Talebpour, and H. S. Mahmassani, ‘‘Machine learning                                             include radio resource management, optimization
+     approach to short-term traffic congestion prediction in a connected envi-                                    techniques, 5G mobile communication systems,
+     roment,’’ Transp. Res. Rec., J. Transp. Res. Board, vol. 2675, no. 45,                                       machine learning, and the Internet of Things.
+     pp. 185–195, Dec. 2019, doi: 10.1177/0361198118795010.                                                       Dr. Kim is a member of KICS, IEIE, and IEICE.
+[48] D. H. Hubel and T. N. Wiesel, ‘‘Receptive fields, binocular interaction and
+     functional architecture in the cat’s visual cortex,’’ J. Physiol., vol. 160,
+     no. 1, pp. 106–154, Jan. 1962.
+[49] Y. LeCun, B. Boser, J. S. Denker, D. Henderson, R. E. Howard,
+     W. Hubbard, and L. D. Jackel, ‘‘Backpropagation applied to handwrit-                                         PERVEZ KHAN has been working as an Assis-
+     ten zip code recognition,’’ Neural Comput., vol. 1, no. 4, pp. 541–551,
+                                                                                                                  tant Professor with the Department of Computer
+     Dec. 1989, doi: 10.1162/neco.1989.1.4.541.
+                                                                                                                  Science and Information Technology, University
+[50] J. Nagi, F. Ducatelle, G. A. Di Caro, D. Ciresan, U. Meier, A. Giusti,
+     F. Nagi, J. Schmidhuber, and L. M. Gambardella, ‘‘Max-pooling convolu-                                       of Malakand, Pakistan, since March 2018. His
+     tional neural networks for vision-based hand gesture recognition,’’ in Proc.                                 research interests include wireless communica-
+     IEEE Int. Conf. Signal Image Process. Appl. (ICSIPA), Kuala Lumpur,                                          tions, wireless sensor networks, wireless ad-hoc
+     Malaysia, Nov. 2011, pp. 342–347, doi: 10.1109/ICSIPA.2011.6144164.                                          networks, wireless body area networks, 5G net-
+[51] D. Scherer, A. Muller, and S. Behnke, ‘‘Evaluation of pooling operations                                     works, machine learning, fuzzy logic, and MAC
+     in convolutional architectures for object recognition,’’ in Artificial Neural                                protocol design.
+     Networks—ICANN. Berlin, Germany: Springer, 2010, p. 6354.
+
+81620                                                                                                                                                    VOLUME 8, 2020
+

@@ -1,0 +1,178 @@
+{
+  "checked_at_utc": "2026-10-12T12:08:52.569436+00:00",
+  "scope": "Fresh temporary copies on current n1 host; analysis reproduction only, no new network experiments and no Overleaf compilation.",
+  "results": [
+    {
+      "batch": "formal_e3_20261011",
+      "command": "python analyze_e3.py",
+      "returncode": 0,
+      "stdout": "runs=80 invalid=0 conditions=16 observations=16\n",
+      "stderr": "",
+      "comparisons": [
+        {
+          "file": "run_metrics.csv",
+          "byte_identical": true,
+          "committed_sha256": "fd71f86d4811770f0a0ffb705731e45aeee4e1bddfe5044b85b942a322c84a87",
+          "regenerated_sha256": "fd71f86d4811770f0a0ffb705731e45aeee4e1bddfe5044b85b942a322c84a87"
+        },
+        {
+          "file": "condition_summary.csv",
+          "byte_identical": false,
+          "committed_sha256": "193012e4cdb63cf45682a17c630a69b87182642aa28c2a6270198c2259fde100",
+          "regenerated_sha256": "376231c2f0f501b8ecabad3647d86800989db3565fdc3ed052c39babe9396d71"
+        },
+        {
+          "file": "prediction_observation.csv",
+          "byte_identical": true,
+          "committed_sha256": "d7b30fafde5e6c94c024de4c51cf725d0d22bb7b244a03e706a1ab0c1b5c1318",
+          "regenerated_sha256": "d7b30fafde5e6c94c024de4c51cf725d0d22bb7b244a03e706a1ab0c1b5c1318"
+        }
+      ],
+      "summary_row_counts": [
+        16,
+        16
+      ],
+      "summary_field_differences": [
+        {
+          "row": 3,
+          "field": "flow1_sd_mbps",
+          "committed": "0.3512110776981323",
+          "regenerated": "0.35121107769813226",
+          "absolute_difference": 5.551115123125783e-17
+        },
+        {
+          "row": 3,
+          "field": "flow2_sd_mbps",
+          "committed": "0.3024563030929413",
+          "regenerated": "0.30245630309294136",
+          "absolute_difference": 5.551115123125783e-17
+        },
+        {
+          "row": 5,
+          "field": "flow2_sd_mbps",
+          "committed": "0.17292777046276434",
+          "regenerated": "0.17292777046276436",
+          "absolute_difference": 2.7755575615628914e-17
+        },
+        {
+          "row": 5,
+          "field": "total_sd_mbps",
+          "committed": "0.02148585894048524",
+          "regenerated": "0.021485858940485242",
+          "absolute_difference": 3.469446951953614e-18
+        },
+        {
+          "row": 7,
+          "field": "flow2_sd_mbps",
+          "committed": "0.14498165639706045",
+          "regenerated": "0.14498165639706043",
+          "absolute_difference": 2.7755575615628914e-17
+        },
+        {
+          "row": 7,
+          "field": "total_sd_mbps",
+          "committed": "0.032287744362343794",
+          "regenerated": "0.0322877443623438",
+          "absolute_difference": 6.938893903907228e-18
+        },
+        {
+          "row": 8,
+          "field": "total_sd_mbps",
+          "committed": "0.0010277140220668764",
+          "regenerated": "0.0010277140220668762",
+          "absolute_difference": 2.168404344971009e-19
+        },
+        {
+          "row": 9,
+          "field": "flow2_sd_mbps",
+          "committed": "6.450263687644015",
+          "regenerated": "6.450263687644016",
+          "absolute_difference": 8.881784197001252e-16
+        },
+        {
+          "row": 11,
+          "field": "flow2_sd_mbps",
+          "committed": "2.7831995870532458",
+          "regenerated": "2.783199587053246",
+          "absolute_difference": 4.440892098500626e-16
+        },
+        {
+          "row": 11,
+          "field": "total_sd_mbps",
+          "committed": "0.14813148803810403",
+          "regenerated": "0.148131488038104",
+          "absolute_difference": 2.7755575615628914e-17
+        },
+        {
+          "row": 12,
+          "field": "flow1_sd_mbps",
+          "committed": "23.912531846641425",
+          "regenerated": "23.91253184664143",
+          "absolute_difference": 3.552713678800501e-15
+        },
+        {
+          "row": 16,
+          "field": "flow1_sd_mbps",
+          "committed": "27.8660617912486",
+          "regenerated": "27.866061791248598",
+          "absolute_difference": 3.552713678800501e-15
+        }
+      ]
+    },
+    {
+      "batch": "formal_random_loss_20261012",
+      "command": "python analyze_random_loss.py",
+      "returncode": 0,
+      "stdout": "runs=20 invalid=0 conditions=4\n",
+      "stderr": "",
+      "comparisons": [
+        {
+          "file": "run_metrics.csv",
+          "byte_identical": true,
+          "committed_sha256": "a5696a78a9ce50ec107393d1856952e9f56c026883806377ba1b86ecc97f65a0",
+          "regenerated_sha256": "a5696a78a9ce50ec107393d1856952e9f56c026883806377ba1b86ecc97f65a0"
+        },
+        {
+          "file": "condition_summary.csv",
+          "byte_identical": false,
+          "committed_sha256": "31696fda613db456e9bb687c07187d38071c3737e8b364e0c64c95398fa356ab",
+          "regenerated_sha256": "ebc83bdcc98d1228d940d1be7876465ea6f5ccae2bcbdf4102727bf67240f538"
+        }
+      ],
+      "summary_row_counts": [
+        4,
+        4
+      ],
+      "summary_field_differences": [
+        {
+          "row": 3,
+          "field": "total_goodput_sd_mbps",
+          "committed": "0.006059943122203337",
+          "regenerated": "0.006059943122203338",
+          "absolute_difference": 8.673617379884035e-19
+        }
+      ]
+    },
+    {
+      "batch": "cross_version_20261012",
+      "command": "python analyze_cross_version.py",
+      "returncode": 0,
+      "stdout": "condition_rows=48 comparison_rows=12\n",
+      "stderr": "",
+      "comparisons": [
+        {
+          "file": "cross_version_condition_summary.csv",
+          "byte_identical": true,
+          "committed_sha256": "892f6022ea8854e643c7766382824aa97e87eec17d88d2c4ca7ce558d9fad78c",
+          "regenerated_sha256": "892f6022ea8854e643c7766382824aa97e87eec17d88d2c4ca7ce558d9fad78c"
+        },
+        {
+          "file": "cross_version_comparison.csv",
+          "byte_identical": true,
+          "committed_sha256": "99f0e2750b97ccf9e2edc1abfeee706d40e119768583ea36079ad3f4f9d22ecd",
+          "regenerated_sha256": "99f0e2750b97ccf9e2edc1abfeee706d40e119768583ea36079ad3f4f9d22ecd"
+        }
+      ]
+    }
+  ]
+}

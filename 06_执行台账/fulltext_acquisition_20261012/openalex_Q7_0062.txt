@@ -1,0 +1,469 @@
+Performance Evaluation of Trafﬁc Steering
+Methods for QoS Improvement in case of
+Network Failures in Beyond 5G Networks
+
+Koki Kawaguchi, Daiki Nobayashi, Kazuya Tsukamoto, Takeshi Ikenaga
+
+
+
+
+Abstract Mobile communication networks are expanding. However, when natu-
+ral disasters happen and communication equipment is damaged, service disruptions
+can occur and many people cannot use the network. When such disasters happen,
+it is possible to use long-distance wireless networks such as Low Power Wide Area
+(LPWA) networks or satellite communication networks as alternative routes. This
+study focuses on the network between the Beyond 5G core network and the remote
+host and proposes a resilient network that uses the open RAN (O-RAN) architec-
+ture to utilize available communication networks during failures. Additionally, we
+propose a trafﬁc steering method based on the types of user devices to effectively
+use available alternative routes and alleviate QoS degradation for users. This paper
+evaluates the effectiveness of the proposed system through simulations. The sim-
+ulation results showed that the proposed methods increase the satisfaction rate of
+ﬂows’ requirements.
+
+
+
+
+Koki Kawaguchi
+Kyushu Institute of Technology, e-mail: kawaguchi.koki405@mail.kyutech.jp
+Daiki Nobayashi
+Kyushu Institute of Technology, e-mail: nova@ecs.kyutech.ac.jp
+Kazuya Tsukamoto
+Kyushu Institute of Technology, e-mail: tsukamoto@csn.kyutech.ac.jp
+Takeshi Ikenaga
+Kyushu Institute of Technology, e-mail: ike@ecs.kyutech.ac.jp
+1 Introduction
+
+As 5G networks expand, mobile networks are becoming indispensable. However,
+there are a lot of natural disasters such as earthquakes, typhoons, and heavy rains
+in Japan. These natural disasters can damage communication equipment and cause
+cable breaks, leading to communication disruptions. For example, the 2011 Great
+East Japan Earthquake caused severe damage to NTT East’s communication infras-
+tructure, resulting in widespread service outages across many regions[1]. During
+such disasters, it is possible to use long-distance wireless networks such as LPWA
+networks or satellite communication networks as alternative routes. For example, K.
+Ali et al. [2] examined the utilization of emerging communication technologies such
+as IoT, device-to-device communications, and cloud computing to maintain commu-
+nication during disasters. There is a demand for networks that remain connected or
+at least can quickly recover connections during disasters. Therefore, this study aims
+to maintain network connectivity and alleviate the degradation of Quality of Service
+(QoS) in the event of communication failures caused by natural disasters.
+    This study proposes a resilient network for Beyond 5G network that uses the open
+RAN (O-RAN) architecture [3] to leverage available communication networks dur-
+ing failures. Additionally, we propose a trafﬁc steering method to effectively use
+ﬁnite communication resources and alleviate the QoS degradation for users. This
+study evaluates the effectiveness of the proposed resilient network system and the
+ﬂow allocation method for User Equipment (UE). We compare the ﬂow allocation
+method to a round-robin allocation of ﬂows from each UE to available wireless com-
+munication networks. Using the network simulator ns-3, this study demonstrates
+that the proposed method increases the satisfaction rate of user applications that
+meet their required QoS.
+    The signiﬁcance of this research lies in its potential to enhance the resilience and
+reliability of future mobile networks. By addressing the critical issue of maintain-
+ing communication during natural disasters, this study contributes to the ongoing
+efforts to develop more robust and adaptive network infrastructures. Moreover, the
+integration of multiple communication technologies and the use of advanced trafﬁc
+steering algorithms represent a forward-thinking approach to network management
+in the Beyond 5G era.
+    The rest of this paper is organized as follows. Section 2 reviews related studies on
+trafﬁc steering in 5G networks and resilient network for natural disasters. Section
+3 explains the details of the proposed method. Section 4 describes the simulation
+environment constructed for the evaluation. Section 5 provides the evaluation results
+and discussion. Finally, Section 6 concludes the paper.
+
+
+
+2 Related Works
+
+This section introduces related research on trafﬁc steering within the O-RAN archi-
+tecture and resilient networks for natural disasters.
+    F. Kavehmadavani et al. [4] proposed a framework called JIFDR, which inte-
+grates trafﬁc prediction, ﬂow-split, dynamic user association, and radio resource
+management to address unknown dynamic trafﬁc demands within the O-RAN ar-
+chitecture. Both F. Kavehmadavani et al. and this study leverage the O-RAN ar-
+chitecture to manage dynamic trafﬁc demands. However, there are differences as
+follows. F. Kavehmadavani et al. used a long-short-term memory (LSTM) model
+for trafﬁc prediction and steering. This study focuses on trafﬁc steering based on the
+applications used in UE.
+    Next, we examine related studies on trafﬁc steering between 3GPP access net-
+works such as 4G and 5G, and non-3GPP access networks such as Wi-Fi. T. Cogalan
+et al. [5] proposed a method that measures the real-time link status and ofﬂoads data
+to non-3GPP networks to reduce the network load. Both T. Cogalan et al. and this
+study use multiple wireless networks for trafﬁc steering. However, there are differ-
+ences as follows. T. Cogalan et al. used simultaneously multiple access networks to
+send data. This study allocates ﬂows to a single route.
+    Additionally, K. Ali et al. [2] discussed the importance of IoT and 5G networks
+during natural disasters. The paper examined how to utilize emerging communi-
+cation technologies such as IoT, device-to-device communications, vehicular net-
+works, cloud and fog computing, unmanned aerial vehicles, and sensor networks for
+communication during disasters. Both K. Ali et al. and this study propose resilient
+communication networks for natural disasters. However, there are differences as fol-
+lows. K. Ali et al. focused on a broader range of technologies and mainly addresses
+the access network. In contrast, this study speciﬁcally targets the network between
+the Beyond 5G core network and the remote host, proposing a resilient network
+system using the O-RAN architecture and a trafﬁc steering method based on user
+device applications.
+
+
+
+3 Proposed Method
+
+This study proposes a resilient network system that utilizes O-RAN and network
+slicing within Beyond 5G networks. The system is designed to ﬂexibly use available
+communication routes during failures and effectively manage ﬁnite communication
+resources to alleviate QoS degradation for users. In this section, we introduce the
+details of the proposed system and the trafﬁc steering method.
+
+
+
+3.1 System of Resilient Network
+
+Fig. 1 illustrates the proposed network system. In this system, in addition to the Be-
+yond 5G network, available wireless communication networks such as Low Earth
+Orbit (LEO) satellite services, Geostationary (GEO) satellite services, and Low
+Power Wide Area Networks (LPWAN) are utilized as slices in the Beyond 5G
+   UE                                 5G Core Network
+                                      Cplane
+                   SMO
+                                      Uplane
+   SP                Non-RT RIC
+                                               UPF        Beyond 5G network                    Remote Host
+
+
+                     Near-RT RIC               UPF      low Earth orbit satellite
+   PC                                                                               Internet
+                                               UPF      geostationary satellite
+
+          O-RU    O-DU        O-CU
+                                               UPF             LPWAN
+   IoT
+
+
+
+                           Fig. 1: Proposed Architecture.
+
+
+
+framework. This system assumes the use of LoRa for LPWA. The proposed system
+allows the construction of a network that can ﬂexibly use multiple communication
+paths. Under normal conditions, the system uses the Beyond 5G network, which
+provides the largest bandwidth. The following sections describe the operation of the
+system under normal conditions.
+1. The non-real-time RAN intelligent controller (Non-RT RIC) stores the required
+   throughput and latency for the applications used by each UE.
+2. The Non-RT RIC also stores the bandwidth and latency data of wireless com-
+   munication networks such as LEO satellite services, GEO satellite services, and
+   LPWAN.
+When a natural disaster damages communication equipment and the Beyond 5G
+network becomes unavailable, the proposed system maintains UE communication
+by using other available routes. However, these alternative routes may not provide
+enough bandwidth and latency as well as the Beyond 5G network. Therefore, it is
+necessary to allocate UE ﬂows appropriately to the ﬁnite communication resources.
+The proposed system mitigates QoS degradation by allocating each ﬂow based on
+the throughput and latency requirements of the applications used by the UEs. The
+system operates in the following steps and allocates ﬂows for each UE to the alter-
+native route:
+1. The Non-RT RIC detects a communication failure.
+2. When a UE connects to the 5G network, the Non-RT RIC sends the required
+   throughput and latency for the applications used by the UE to the near-real-time
+   RIC (Near-RT RIC). Additionally, the Non-RT RIC provides the bandwidth and
+   latency of available wireless communication resources to the Near-RT RIC.
+3. The Near-RT RIC determines the routing path for the ﬂow and notiﬁes the O-
+   RAN Central Unit (O-CU) of the path.
+4. The O-CU identiﬁes the packets based on the UE’s IP address and directs them
+   to the speciﬁed route.
+                            Table 1: Link Conﬁguration
+
+Route                     Bandwidth             MTU                Latency
+LEO satellite             130 Mb/s              1500 B             50 ms
+GEO satellite             120 Mb/s              1500 B             800 ms
+LPWA                      50 kb/s               255 B              5s
+
+
+
+
+3.2 Trafﬁc Steering Method
+
+This section describes the ﬂow allocation algorithm used by the system explained
+in 3.1. The three alternative routes to the Beyond 5G network considered are LEO
+satellite services, GEO satellite services, and LPWAN. The allocation of UE ﬂows
+is based on the required throughput and latency of the applications used by the UEs.
+The algorithm shown in Fig. 2 determines the path for each ﬂow. Note that A and B
+in Fig. 2 represent either LEO satellite services or GEO satellite services.
+    When a new UE connects to the 5G network, the system calculates the total re-
+quired throughput by summing the required throughput of the ﬂows currently allo-
+cated to LPWAN and the new UE’s required throughput. If the total does not exceed
+LPWAN’s bandwidth and the required latency is longer than LPWAN’s latency, the
+ﬂow is assigned to LPWAN. For the remaining ﬂows, they are ﬁrst categorized by
+latency and then by throughput. If the sum of the required throughput values of
+the ﬂows assigned to a path exceeds the path’s bandwidth, the system checks the
+condition of the other path and makes the ﬁnal allocation accordingly.
+
+
+
+4 Performance Evaluation
+
+This section describes the simulation parameters, the metrics used for assessment,
+and the methods used for comparison. We create a topology the same as shown in
+Figure 1 in the network simulator ns-3. Alternative routes are LEO satellite services,
+GEO satellite services, and LPWAN, following the proposed method. The perfor-
+mance settings for each route are summarized in Table 1. Parameters in Table 1 are
+based on [6]-[8].
+   Additionally, each UE uses one of the ten application scenarios. Table 2 shows
+the transmission rates, required throughput, and required latency for each applica-
+tion. All applications used UDP as the transport protocol. The number of UEs using
+each application was randomly set between seven and ten. The blank ﬁelds indicate
+applications with no speciﬁc latency requirements in Table 2. However, the pro-
+posed system allocates ﬂows of Video Streaming I and Video Streaming II to the
+available alternative routes with the minimum latency.
+   We randomly set each UE’s transmission start time within the range of 0.0 to
+1.0 seconds from the beginning of the simulation. Therefore, the order of UE con-
+                                                      a ：The total throughput required by UEs allocated to LPWA
+                                                      b ：The throughput required by the newly connected application
+                                                      c ：The bandwidth of LPWA
+      New UE connect                                  d ：The latency required by the newly connected application
+                                                      e ：The latency of LPWA
+                                                      f ：The latency of the path (A) which has a longer delay
+                                                      g ：The total throughput required
+                                                         by UEs allocated to the path (B) which has a shorter delay
+                              No
+     c <= (a + b) || d <= e                           h ：The total throughput requested by UEs allocated to path A
+                                                      i ：The bandwidth of path B
+                                                      j ：The bandwidth of path A
+                 Yes               Allocate to LPWA
+
+
+
+                                        a += b
+
+                              No
+             d<f
+
+                 Yes
+
+
+
+No                                                                            No
+          i <= (g + b)                                       j <= (h + b)
+
+                 Yes                                                 Yes
+
+
+                              No                                              No
+         j <= (h + b)                                        (g + b) <= i
+
+                 Yes                                                Yes
+
+
+
+        Allocate to B                Allocate to A          Allocate to B             Allocate to A
+
+
+
+            g += b                      h += b                 g += b                    h += b
+
+
+
+
+         Allocation
+         completed
+
+
+
+                                   Fig. 2: Flow Chart of Flow Allocation.
+
+
+
+nections to the 5G network was random. Additionally, each UE transmits the data
+for 14 seconds. We evaluate the simulation results based on the satisfaction rate of
+ﬂows that met the required throughput and latency. For applications without speciﬁc
+latency requirements, we use the average latency of each application for evaluation.
+                         Table 2: Application Conﬁguration
+
+Application               Required throughput   Required latency   Sending rate
+
+Video Streaming Ⅰ [9]     6.0 Mb/s              -                  6.6 Mb/s
+Video Streaming Ⅱ [9]     4.0 Mb/s              -                  4.4 Mb/s
+Call [10]-[11]            64 kb/s               150 ms             70 kb/s
+Gaming [12]-[13]          6.0 Mb/s              100 ms             6.6 Mb/s
+File upload [14]          2.52 Mb/s             -                  2.8 Mb/s
+IoT Ⅰ [15]-[16]           0.8 kb/s              -                  0.9 kb/s
+IoT Ⅱ [15]-[16]           0.7 kb/s              -                  0.8 kb/s
+Video call Ⅰ [17]-[19]    3.8 Mb/s              150 ms             4.2 Mb/s
+Video call Ⅱ [17]-[19]    2.5 Mb/s              200 ms             2.7 Mb/s
+V2N [20]                  2.5 Mb/s              1000 ms            2.7 Mb/s
+
+
+
+
+   To evaluate the proposed ﬂow allocation method, we used the following alloca-
+tion method as a comparison method.
+1. All ﬂows of IoT devices were assigned to LPWA. Since LPWA meets the re-
+   quirements of IoT devices[8].
+2. For non-IoT device ﬂows, we used a round-robin algorithm, alternating ﬂows
+   between LEO satellite services and GEO satellite services in the order they were
+   generated.
+
+
+
+5 Simulation Results
+
+We simulated three times for both the proposed method and the comparison method.
+Figure 3 shows the simulation results for the satisfaction rate of ﬂows that met the
+required throughput and latency for each application used by the UEs. Additionally,
+Figure 4a shows the average latency for ﬂows requiring shorter latency, and Figure
+4b shows the average latency for ﬂows without speciﬁc latency requirements.
+   Compared to the comparison method, the proposed method increased the satis-
+faction rate of ﬂows meeting the required throughput by 15.1 points and the required
+latency by 30.3 points. The uneven distribution of data across the ﬂows led to an 87.4
+% satisfaction rate for the required throughput, rather than a uniform reduction in
+throughput across all ﬂows. The 85.2 % satisfaction rate for the required latency
+resulted from some ﬂows being assigned to GEO satellite paths. This occurred be-
+cause the LEO satellite paths reached their capacity, despite those ﬂows requiring
+shorter latency.
+   Additionally, the proposed method achieved a shorter average latency for ﬂows
+requiring low latency. For example, in the case of Video Streaming I, the average
+latency decreased from 420.3 ms to 382.9 ms with the proposed method. In con-
+trast, the latency increased for File uploads. The comparison method allocated the
+path to either LEO satellite communication or GEO satellite route, while the pro-
+                                                                                Proposed                    Comparison
+                                                            100
+                                                                     87.4                                   85.2
+                                                            80
+                                                                                    72.3
+
+
+
+
+                                           Proportion [%]
+                                                            60                                                             54.9
+                                                            40
+
+                                                            20
+
+                                                             0
+                                                                      Throughput                                 Latency
+
+
+                                                                  Fig. 3: Satisfaction Rate.
+
+
+
+                                Proposed                      Comparison                                                          Proposed           Comparison
+                                                                                                          6000
+                                  420.3                                     423.7
+                 400   382.9                                                                                                           5036.5 5035.6    5044.6 5045.7
+                                                                                                          5000
+                                                             309.8                                        4000
+  Latency [ms]
+
+
+
+
+                 300                                                                       Latency [ms]
+                                                                                                          3000
+                 200
+                                                                                                          2000
+                 100                                                                                               807.6
+                                                                                                          1000
+                                                                                                                           484.6
+                  0                                                                                         0
+                       Video streaming I                    Video streaming II                                     File upload               IoT I          IoT II
+
+
+                 (a) Flows Requiring Shorter Latency.                                          (b) Flows Requiring No Speciﬁc Latency.
+
+                                                                             Fig. 4: Latency.
+
+
+posed method primarily used GEO satellite paths. Regarding IoT applications, both
+methods allocated the path to LPWA, leading to minimal changes in latency.
+   Therefore, we consider it possible to maintain communication and alleviate the
+degradation of QoS by using alternative routes and appropriately allocating ﬂows
+during network failures.
+
+
+
+6 Conclusion
+
+In this paper, we proposed a resilient network system that ﬂexibly leverages avail-
+able communication networks during network failures. Additionally, we propose a
+trafﬁc steering method to efﬁciently use ﬁnite communication resources and allevi-
+ate QoS degradation for users. We simulated to verify the effectiveness of the pro-
+posed method. Simulation results showed that the proposed method increased the
+satisfaction rate of ﬂows meeting throughput and latency requirements compared to
+the round-robin algorithm by steering trafﬁc based on application needs.
+   A key future challenge is addressing scalability issues caused by different net-
+work environments and an increasing number of users. We plan to conduct further
+performance evaluations in real operational environments and tests with more di-
+verse scenarios.
+
+Acknowledgements This paper was partly supported by JSPS KAKENHI Grant Number 23K11067.
+
+
+
+
+References
+
+ 1. Nippon Telegraph and Telephone NTT East Corporation. Recovering from the Great East
+    Japan Earthquake: NTT East s Endeavors. Accessed: Jun. 16, 2024. [Online]. Avail-
+    able: https://www.ntt-east.co.jp/info/detail/pdf/shinsai_fukkyu_
+    e.pdf
+ 2. K. Ali et al., ”Review and Implementation of Resilient Public Safety Networks: 5G, IoT, and
+    Emerging Technologies,” in IEEE Network, vol. 35, no. 2, pp. 18-25, March/April 2021
+ 3. O-RAN Architecture and Resources, www.o-ran.org. https://www.o-ran.org/resources (ac-
+    cessed Jun. 25, 2024).
+ 4. F. Kavehmadavani, V. -D. Nguyen, T. X. Vu and S. Chatzinotas, ”Intelligent Trafﬁc Steering
+    in Beyond 5G Open RAN Based on LSTM Trafﬁc Prediction,” in IEEE Transactions on
+    Wireless Communications, vol. 22, no. 11, pp. 7727-7742, Nov. 2023
+ 5. T. Cogalan, M. Kheirkhah, K. Patani, D. Camps-Mur and A. Mourad, ”Enhanced Access
+    Trafﬁc Steering Splitting Switching with Utility-Based Decisioning,” 2022 IEEE Conference
+    on Standards for Communications and Networking (CSCN), Thessaloniki, Greece, 2022
+ 6. B. Hu et al., Leo Satellite vs. Cellular Networks: Exploring the potential for synergistic
+    integration, Companion of the 19th International Conference on emerging Networking EX-
+    periments and Technologies, Dec. 2023. doi:10.1145/3624354.3630588
+ 7. S. Claypool, J. Chung and M. Claypool, ”Measurements Comparing TCP Cubic and TCP
+    BBR over a Satellite Network,” 2021 IEEE 18th Annual Consumer Communications & Net-
+    working Conference (CCNC), Las Vegas, NV, USA, 2021
+ 8. U. Raza, P. Kulkarni and M. Sooriyabandara, ”Low Power Wide Area Networks: An
+    Overview,” in IEEE Communications Surveys & Tutorials, vol. 19, no. 2, pp. 855-873, Sec-
+    ondquarter 2017
+ 9.    Choose live encoder settings, bitrates, and resolutions - YouTube Help,             sup-
+    port.google.com. https://support.google.com/youtube/answer/2853702?
+    hl=en (accessed Jun. 02, 2024).
+10. M. Di Mauro and A. Liotta, ”An Experimental Evaluation and Characterization of VoIP Over
+    an LTE-A Network,” in IEEE Transactions on Network and Service Management, vol. 17,
+    no. 3, pp. 1626-1639, Sept. 2020
+11. M. Di Mauro and A. Liotta, ”An Experimental Evaluation and Characterization of VoIP Over
+    an LTE-A Network,” in IEEE Transactions on Network and Service Management, vol. 17,
+    no. 3, pp. 1626-1639, Sept. 2020
+12. D. Tzanakos, F. Allayiotis, V. Kokkinos and C. Bouras, ”A mechanism for 5G MIMO per-
+    formance optimization and evaluation,” 2021 13th IFIP Wireless and Mobile Networking
+    Conference (WMNC), Montreal, QC, Canada, 2021
+13. S. Vlahovic, M. Suznjevic and L. Skorin-Kapov, ”The Impact of Network Latency on Gaming
+    QoE for an FPS VR Game,” 2019 Eleventh International Conference on Quality of Multime-
+    dia Experience (QoMEX), Berlin, Germany, 2019
+14. G. Esposito et al., ”A network performance view of a biobanking system for diagnostic im-
+    ages,” 2020 IEEE Symposium on Computers and Communications (ISCC), Rennes, France,
+    2020, pp. 1-7
+15. A. Sivanathan et al., ”Characterizing and classifying IoT trafﬁc in smart cities and campuses,”
+    2017 IEEE Conference on Computer Communications Workshops (INFOCOM WKSHPS),
+    Atlanta, GA, USA, 2017
+16. P. Gkotsiopoulos, D. Zorbas and C. Douligeris, ”Performance Determinants in LoRa Net-
+    works: A Literature Review,” in IEEE Communications Surveys & Tutorials, vol. 23, no. 3,
+    pp. 1721-1758, thirdquarter 2021
+17.    Zoom system requirements: Windows, macOS, Linux - Zoom Support,                        sup-
+    port.zoom.com.        https://support.zoom.com/hc/en/article?id=zm_kb&
+    sysparm_article=KB0060748 (accessed Jun. 02, 2024)
+18.    What are the Minimum Bandwidth Requirements for Sending and Receiving Video in
+    Cisco Webex Meetings?, Webex Help Center. https://help.webex.com/en-us/
+    article/WBX22158/What-are-the-Minimum-Bandwidth-Requirements-
+    for-Sending-and-Receiving-Video-inCisco-Webex-Meetings?                                    (ac-
+    cessed Jun. 02, 2024).
+19.    Troubleshoot Webex Calling Media Quality in Control Hub, Webex Help Center.
+    https://help.webex.com/en-us/article/frj1efb/Troubleshoot-
+    Webex-Calling-Media-Quality-in-Control-Hub (accessed Jun. 02, 2024).
+20. A. Bazzi, A. O. Berthet, C. Campolo, B. M. Masini, A. Molinaro and A. Zanella, ”On the
+    Design of Sidelink for Cellular V2X: A Literature Review and Outlook for Future,” in IEEE
+    Access, vol. 9, pp. 97953-97980, 2021
+

@@ -1,0 +1,990 @@
+Computing manuscript No.
+(will be inserted by the editor)
+
+
+
+
+A BBR-based Congestion Control for Delay-sensitive
+Real-time Applications
+
+Sayed Najmuddin · Muhammad Asim ·
+Kashif Munir · Thar Baker · Zehua Guo ·
+Rajiv Ranjan
+
+
+
+
+Received: date / Accepted: date
+
+
+
+Abstract The current User Datagram Protocol (UDP) causes unfairness and
+bufferbloats to delay sensitive applications due to the uncontrolled con-
+gestion and monopolization of available bandwidth.This causes call drops
+and frequent communication/connection loss in delay sensitive applications
+such as VoIP. We present a Responsive Control Protocol using Bottleneck
+Bandwidth and Round trip propagation time (RCP-BBR) as an alternate so-
+lution to UDP. RCP-BBR achieves low latency, high throughput, and low call
+drops ratio by efficiently customizing Transmission Control Protocol (TCP)
+Bottleneck Bandwidth and Round-trip propagation time (TCP-BBR) con-
+gestion control. We conducted comprehensive experiments, and the results
+show that proposed protocol achieves better throughput over UDP in sta-
+ble networks. Moreover, in unstable and long-distanced networks, RCP-BBR
+achieved smaller queues in deep buffers and lower delays as compared to
+
+Sayed Najmuddin
+National University of Computer and Emerging Sciences, Islamabad, Pakistan.
+E-mail: sayed.najmuddin@gmail.com
+Muhammad Asim
+National University of Computer and Emerging Sciences, Islamabad, Pakistan.
+E-mail: muhammad.asim@nu.edu.pk
+Kashif Munir
+National University of Computer and Emerging Sciences, Islamabad, Pakistan.
+E-mail: kashif.munir@nu.edu.pk
+Thar Baker
+Liverpool John Moores University, Liverpool, UK.
+E-mail: T.baker@ljmu.ac.uk
+Zehua Guo
+University of Minnesota Twin Cities, Minneapolis, MN 55455, USA.
+E-mail: guolizihao@hotmail.com
+Rajiv Ranjan
+Newcastle University, Newcastle upon Tyne, UK.
+E-mail: raj.ranjan@ncl.ac.uk
+2                                                                    Asim et al.
+
+
+UDP, which performed poorly by keeping delays above the call drop thresh-
+old.
+Keywords Congestion control · UDP · Delay sensitive application · VoIP
+
+
+1 Introduction
+
+RCP-BBR (Responsive Control Protocol-Bottleneck Bandwidth and Round-
+trip) is a transport protocol that provides the efficiency of UDP (User Data-
+gram Protocol) along with an enhanced congestion control mechanism. The
+protocol provides a balanced solution for delay sensitive applications which
+requires efficiency of UDP but do not want a protocol that is un-responsive
+to congestion. The proposed protocol is based on TCP-BBR (Transmission
+Control Protocol- Bottleneck Bandwidth and Round-trip) congestion control
+algorithm proposed by Google [1]. TCP-BBR monitors available bandwidth
+and minimum round trip time for the estimation of congestion whereas tra-
+ditional TCP algorithms uses packet loss as a measure of congestion. RCP-
+BBR follows the same approach for the detection of congestion however it
+provides a modified mechanism to handle the reliability of packet deliv-
+ery. The modified mechanism follows a UDP like behavior to achieve better
+than TCP’s efficiency, for this it sacrifices in-order delivery and packet re-
+transmission features. The proposed protocol is well suited for applications
+that generate delay sensitive traffic such as voice service over telephone but
+avoids to use UDP due to associated issues such as bufferbloat, protocol
+unfairness, congestion collapse.
+    Recent advances in smart devices and cellular networks have introduced
+new brands of internet applications which generates real-time, delay sensi-
+tive traffic, such as games, audio/video calling and social media apps. With
+every passing year this trend is growing and it is estimated that by 2020, 50
+percent of the internet applications will be multimedia-oriented[2, 3]. For
+example VoIP is one prominent and rapidly growing delay-sensitive ap-
+plication of Internet that has been widely adopted as a new way of voice
+communication [4]. It is also observed that there is a significant increase
+in multimedia traffic over UDP [5, 6] which is causing critical issues such
+congestion collapse and protocol fairness [7, 8].
+    In this changing situation the conventional transport protocol i.e. TCP/UDP
+needs to be reconsidered to for enhanced efficiency and quality of service re-
+quirements posed by these new applications. A recent study about the per-
+formance comparison of TCP, UDP and STCP indicated that TCP is slow for
+mutlimedia applications [9] while STCP is more efficient than UDP. TCP is
+a reliable transport protocol but this reliability comes at the cost of extra de-
+lays [10, 11] and traffic [12] shows that TCP has largest delay in a simulated
+environment when compared with TCP, SCTP, DCCP and UDP, it further
+explains that this long delay is due to TCP’s congestion control mechanism.
+On the other hand UDP is very efficient however it is not only unreliable
+but also is non responsive to congestion, furthermore it has some congestion
+A BBR-based Congestion Control for Delay-sensitive Real-time Applications     3
+
+
+issues of its own . UDP has no congestion control mechanism and a sender
+can generate unbounded network traffic which can easily overload a router
+and make it unavailable for any other traffic. The objective of our proposed
+RCP-BBR protocol is to provide efficiency comparable with UDP but with-
+out causing network congestion.
+To efficiently estimate and avoid the network congestion, RCP-BBR adopts
+the idea of using recent bandwidth and round-trip time from TCP-BBR, the
+protocol handles congestion issues just like TCP-BBR. However in case of
+congestion or packet loss the proposed protocol adopts a UDP like behavior
+and maintains efficiency by not res-sending the lost packets, and hence do
+not need packet re-ordering service as well. RCP-BBR not only solves issues
+related to delay-sensitive applications, but also overcomes protocol fairness,
+bufferbloats [13], and network congestion problems. To evaluate the pro-
+posed scheme we developed many simulations on NS2 (Network Simulator
+version 2) [14]. NS2 is an open source discrete event simulation frame-
+work that supports modeling of variety of protocols including TCP, UDP
+and IP, along with provision to develop custom network simulations. The
+tool is widely used by network research community and is maintained by a
+variety of well know research organization such as DARPA, Sun Microsys-
+tem etc. The performance of RCP-BBR is compared with an efficient reliable
+transport protocol TCP-BBR and an unreliable transport protocol UDP. The
+performance is measured in terms of latency and throughput, as latency
+indicates efficient delivery of packets at destination while throughput in-
+dicates packet loss and re-transmissions. Our simulation results indicates
+that proposed RCP-BBR protocol is more efficient than TCP-BBR and offers
+better throughput as compared to UDP. The Transmission Control Protocol
+(TCP) is a connection-oriented protocol that guarantees reliable data transfer
+with congestion and flow control mechanisms. TCP offers reliable data trans-
+fer with retransmission of lost packets, in-order delivery of data, acknowl-
+edgments of received packets and congestion control mechanisms. Internet
+applications (e.g., email, and file transfer) that require reliable data stream
+services use TCP for data transportation. However, TCP requires additional
+delay when a packet is lost or corrupted within the network [10, 11]. On
+the contrary, delay-sensitive applications (e.g., VoIP, online games, and real
+time streaming) employ User Datagram Protocol (UDP), which is a connec-
+tionless and best effort delivery service protocol. It provides a basic packet
+delivery service without the guarantee of packet delivery, ordering or du-
+plicate protection [11]. UDP does not provide congestion control or packet
+recovery mechanisms. Thus, delay-sensitive applications opt for UDP due
+to its speedy transmission. Moreover, applications prefer to use UDP when
+packet loss up to a certain extent is acceptable and delays due to the retrans-
+mission of the lost packets are not desirable.
+4                                                                     Asim et al.
+
+
+1.1 Motivation
+
+Recently, Internet has seen dramatic growth in the real-time traffic generated
+by the emergence of various real-time applications (e.g., VoIP, online gam-
+ing, and real-time broadcasting), which typically use UDP protocol [7, 8]. By
+2020, it is estimated that 50% of the Internet applications will be multimedia-
+oriented [2, 3], which require fast data transmission and reliable connection.
+VoIP is one prominent and rapidly growing delay-sensitive application of
+Internet that has been widely adopted as a new way of voice communica-
+tion [4]. However, the use of UDP for VoIP can cause sever congestion in
+real-time traffic, leading to call drops and frequent reconnections. Thus, re-
+sulting in negatively affecting the users’ overall experience and satisfaction
+with the application. Therefore, there is a need to develop a new protocol
+that achieves low latency, high throughput, and low call drops ratio in delay-
+sensitive applications.
+
+
+1.2 Problem statement
+
+The increasing growth of the UDP-based real-time traffic could easily cause
+critical issues, such as congestion collapse, VoIP call drops [5, 6] and proto-
+col fairness problems [7]. It could even prevent the traffic of well-mannered
+congestion-controlled flows of TCP [15], and therefore, causes severe conges-
+tion and bufferbloat problems in deep buffer [13]. Bufferbloat problem is the
+buffering of excessive packets inside a network, causing congestion, unnec-
+essary delay and reduced throughput [16]. Protocol fairness requires that
+multiple competing flows receive equal shares of the available bandwidth
+in a network. If any protocol obtains unfair capacity, it may tend to cause
+problems such as congestion collapse [15]. This makes UDP less suitable for
+the transportation of VoIP and other delay-sensitive applications due to its
+unfairness to TCP and other protocols, even with its own competing UDP
+flows. On the contrary, TCP has a built-in congestion control mechanism, but
+it does not suit real-time applications because of its complex retransmission
+mechanism.
+
+
+1.3 Contribution
+
+In this paper, we introduce an enhanced responsive transport protocol as
+an alternate solution to UDP for delay-sensitive applications. Our protocol
+is based on the TCP-BBR (Bottleneck Bandwidth and Round-trip) conges-
+tion control mechanism proposed by Google [17]. We customize TCP-BBR
+congestion control framework to propose an enhanced Responsive Control
+Protocol (RCP-BBR) by efficiently removing reliability features to achieve
+low latency and high throughput. RCP-BBR solves not only delay-sensitive
+applications issues, but also overcomes protocol fairness, bufferbloats [16],
+A BBR-based Congestion Control for Delay-sensitive Real-time Applications   5
+
+
+and network congestion problems. Moreover, we focus on VoIP as a delay-
+sensitive application for the analyses and evaluation of our proposed work.
+
+
+1.4 Paper structure
+
+The rest of the paper is organised as follows: Section 2 presents an overview
+of the TCP-BBR protocol. Section 3 discusses our proposed approach. A
+proof of correctness for the proposed approach is presented in section 4.
+Section 5 reports the experimental results. Finally, section 6 concludes the
+paper.
+
+
+2 Principles of BBR
+
+TCP-BBR uses the recent measurements of bandwidth and round-trip Time
+(RTT) to significantly improve the bandwidth utilization with a low latency
+[16]. Different from a loss-based and delay-based congestion control mech-
+anism, TCP-BBR is practically rate-based rather than window-based [17].
+When in-flight data size is greater than the Bandwidth-Delay Product (BDP)
+of a path, a congestion occurs. BBR keeps in-flight data in range with a
+path’s BDP. BBR only considers the bottleneck’s bandwidth (the estimated
+maximum bandwidth available to a flow) and RTT (estimated from mini-
+mum RTT from a moving window). BBR tries to attain high throughput and
+low latency by estimating the above parameters. Rate balance is achieved
+when the data size related to the in-flight packets becomes equal to the BDP
+and that is the target operating point for BBR, as shown in Figure 1. The
+changes in bottleneck’s bandwidth and minimal RTT estimates are the con-
+gestion indicators for TCP-BBR. TCP-BBR limits its sending rate in response
+to a decrease in bottleneck’s bandwidth. When a loss occurs, TCP-BBR goes
+into a recovery mode, but it is less conservative than TCP-Reno [15] that
+reduces the congestion window by a half.
+
+
+3 Proposed Approach, TCP-BBR
+
+In the standard TCP protocol, various overheads produce a delay in network
+transmission. These delays mainly are: TCP buffer delay, retransmission de-
+lay, queuing delay, packet re-ordering delay, Head of the Line (HOL) block-
+ing, and delay related to packet acknowledgments [19]. TCP-BBR reduces
+latency and provides higher throughput without removing the aforemen-
+tioned delay parameters (except reducing the queuing delay) as discussed in
+Section 2. Since the delay-sensitive applications realize retransmission and
+packet reordering by themselves, we can remove the features from the TCP-
+BBR sender’s side refers to accelerate the transmission. From the receiver’s
+side, we apply TCP-QUICKACK, in which TCP passes the received packets
+to the application layer as soon as it receives them. Afterwards, it sends an
+6                                                                   Asim et al.
+
+
+
+
+Fig. 1 Best Operating Point [18]
+
+
+
+acknowledgment of the last received packet to the sender, where in-order
+delivery feature can be removed from receiver’s side to avoid head of the
+line blocking.
+
+
+3.1 Sender’s side modification
+
+We do the following modifications to TCP-BBR at the sender’s side.
+
+3.1.1 Removing Packet Retransmission
+
+In the standard TCP, when a packet is lost due to triple duplicates, Retrans-
+mission Timeout (RTO) or any other reason, TCP retransmits the lost packet.
+In the proposed approach, we remove this feature, because in delay-sensitive
+applications, we cannot afford delays caused by lost packets retransmission
+and most applications have their solutions to solve the problem. Algorithm
+1 provides the pseudo-code for removing packet re-transmission.
+
+3.1.2 Removing TCP Nagle
+
+In the TCP, TCP Nagles [20] algorithm is used at the sender’s side and makes
+TCP transmit a larger packet until its buffer is full. Since delay-sensitive
+applications avoid any delay caused by waiting for the buffer to fill, we
+can remove TCP Nagles. In the proposed mechanism, similar to UDP, we
+change the receiver’s behavior by not waiting for the lost packets, and for-
+ward the received packets to the application layer with no delay. Disabling
+TCP Nagles algorithm is also called TCP-NODELAY. Algorithm 2 provides
+the pseudo-code for disabling TCP Nagle in the proposed approach.
+A BBR-based Congestion Control for Delay-sensitive Real-time Applications          7
+
+
+  Algorithm 1: Removing Packet Re transmission
+      Input: Re-Transmission Condition is set to false
+      /* Re-Transmission part                                                */
+      Output: Modified TCP sender, will not re-transmit lost packets
+ 1    Function Main(seqno, reason):
+  2       if (seqno == curseq) && (seqno > maxseq) then
+  3            idle()
+  4       if seqno > maxseq then
+  5            idle()
+          /* If the packet has not been transmitted                          */
+  6       else
+  7            ++nrexmitpack
+  8            nrexmitbytes= nrexmitbytes+ bytes
+ 9    return true
+
+
+
+  Algorithm 2: TCP-Nodelay replacing the TCP Nagle’s Algorithm
+      Input: TCP with Nagle’s Algorith
+      Output: Modified TCP with no Nagle’s Delay
+      /* TCP Nagle’s Algorithm waits for TCP buffer to fill. This creates delay
+          in VoIP. Hence, we need to disable Nagle’s Algorithm, which by default
+          is enabled                                                          */
+      /* Nagle’s Algorithm                                                    */
+ 1    if there is no bufferd data to send then
+  2        if the window size >= MSS and available data is >= MSS then
+  3              send complete MSS segment immediately
+  4        else
+  5              if there is still unconfirmed data in the buffer then
+  6                   enqueue data in the buffer until an ACK is received
+  7              else
+  8                   send data as quick as received
+      /* To remove TCP Nagle’s Algorithm which waits for TCP buffer to fill.
+          Here we remove If statement in second else statement                */
+ 9    else
+ 10        if there is still unconfirmed data in the buffer then
+ 11              enqueue data in the buffer until an ACK is received
+ 12        else
+ 13              send data as quick as received
+
+
+
+3.1.3 Modifying probe RTT state
+
+Mostly, delay-sensitive applications (e.g., VoIP) have two states: the first one
+is ’burst’ period where the application data is sent in burst; and the second
+one is ’silent’ or ’idle’ period where the application is idle by not sending any
+data or very little data. TCP-BBR estimates bandwidth and RTT based on the
+amount of data transmitted in recent time periods. In ’burst’ period of VoIP,
+TCP-BBR gets an actual estimate of the bandwidth but in an idle period, the
+estimate of the bandwidth becomes application-limited. We maintain a vari-
+able for bandwidth estimation when the traffic suddenly switches from ’idle’
+state to ’burst’ state. We also modify the ’probe-RTT’ state of BBR which is
+10 seconds, in the ’idle’ state to not probe for RTT every 10 second when the
+8                                                                     Asim et al.
+
+
+sending rate is already low. The proposed approach keeps a record of the
+’burst’ period, and probes only for the RTT if the ’burst’ period continues
+for over 20 seconds. We use 20 seconds as the threshold because TCP-BBR
+probes for RTT after every 10 seconds. If the ’burst’ period continues for
+over 20 seconds, it creates a queue. Thus, to drain the queue and find the
+minimum RTT, we double the time of probe after 20 seconds.
+    First, we check whether the RTT value is higher than the last minimum-
+RTT. If yes, we then check whether the RTT is less than 700 ms. If it is so, we
+continue in idle state, otherwise, we go for probe-RTT state. We use 700 ms
+as a threshold, because it is a two-way propagation delay, and most delay-
+sensitive applications delay requirement is to keep the delay below 400 ms.
+Taking 700 ms as a threshold is fair enough to keep one-way propagation
+below the applications delay requirement. We take 700 ms because in UDP,
+only one-way propagation delay matters. In our approach, we take a two-
+way propagation delay into account. One-way propagation takes 350 ms if
+both sending and receiving links take the same amount of time. As sending
+can take more time because of the routing or congestion from the sender’s
+side, we reserve 100 ms for this purpose. Even if a receiver takes 300 ms, the
+sender does not exceed 400 ms in most cases.
+
+3.1.4 Adding AppLimited variable
+
+We propose maintaining the average BBR maximum bandwidth estimate (10
+RTT) to address the problem of switching state between the ’idle’ and ’burst’.
+Algorithm 3 provides the pseudo-code of all the listed modifications made
+to TCP-BBR on the sender side.
+                                recent
+                AppLimited =       ∑     Btlbw Max every10Rtt0 s/n
+                                i =bw
+
+    /* where n is the number of recent max.bandwidth records                 */
+     A BBR-based Congestion Control for Delay-sensitive Real-time Applications                    9
+
+
+       Algorithm 3: RCP-BBR
+           Output: Enabling TCP-NODELAY No Nagle Algorithm
+      1    if there is no bufferd data to send then
+       2        if the window size >= MSS and available data is >= MSS then
+       3              send complete MSS segment now
+       4        else
+       5              send data immediately
+           Output: Adding application limited variable
+           /* To use it when VoIP jumps from idle to burst mode                              */
+      6    Function App-limited(estimated.btlbw, recentMax.bw, state):
+       7        if estimated.btlbw >= 160 bytes && recentMax.bw>= 100 && state == ProbeBW then
+       8              burst-mode == true
+       9              recentmax-counter++
+      10              applimited-bandwidth += recent-Max.bw
+      11        if burst-mode then
+      12              app-limit = applimited-bandwidth / recentMax-counter
+      13        else
+      14              app-limit = 1
+      15        return Max (estimated.btlbw, app − limit);
+           Output: Checking for ProbeRTT state whether to probe or not
+      16   Function Check-ProbeRTT(estimated.rtt, recentmin.rtt, state):
+      17        if estimated.rtt >= 700ms && recentMin.rtt>= 700 && state==ProbeBW then
+      18              burst-mode == true
+      19              rttseconds++
+      20        if burst-mode then
+                      /* Entering ProbeRTT state                                             */
+      21              ProbeRTT()
+      22              rttseconds++
+      23        else
+      24              if !burst-mode && rttseconds < 20sec then
+      25                   rttseconds++
+      26                   else
+      27                        ProbeRTT()
+      28                        rttseconds = 0
+      29        return rttseconds;
+
+
+
+
+30   3.2 Receiver’s side modification
+
+     After the sender’s side modifications, now we discuss the receiver’s side
+     modifications.
+
+
+
+
+     3.2.1 Applying TCP QUICKACK
+
+     We apply the modified TCP QUICKACK at the receiver’s end where TCP
+     passes the received packets to the application layer as soon as it receives
+     them, and then sends an acknowledgment of the last received packet to the
+     sender, on which BBR depends.
+10                                                                                 Asim et al.
+
+
+3.2.2 Removing In-order delivery check
+
+In the proposed approach, we remove the in-order delivery check from the
+receiver’s side in order to remove the head of the line blocking, which creates
+seconds of lag in communication. Thus, we achieve all the functionalities of
+UDP through the modified TCP-BBR with its acknowledgment feature.
+
+
+ Algorithm 4: QUICKACK
+         Output: QUICKACK and removing In-Order delivery
+         /* QUICKACK part                                                               */
+         Output: Modifying TCP reciever, to acknowledge newly received packet without
+                  waiting for other packets
+ 1       Function output(packet, lastack):
+  2          if (seq no == cur seq )&&(seq no > max seq ) then
+     3            Duplicate();
+  4          if seq no > max seq then
+     5            sendACKtoSender()
+     6            passPacketToApplication()
+             /* If the packet the out of order                                          */
+  7
+  8          else
+                    /* Let the Application Handle it                                    */
+     9
+ 10              passPacketToApplication()
+ 11          return true;
+
+
+
+         Figure 2 presents a complete view of the proposed methodology.
+A BBR-based Congestion Control for Delay-sensitive Real-time Applications   11
+
+
+
+
+Fig. 2 A Complete Diagram of Methodology
+
+
+
+4 Proof of Correctness
+
+UDP has a less overhead for generating header information than TCP and
+it is free from maintaining the variables that are needed for congestion and
+flow control (like the variables maintained in TCP). The end-to-end path
+delays and other hop-to-hop impairments that are added to the overall delay
+are the same for both TCP and UDP. However, UDP has no control over the
+queuing delay in routers unlike TCP. This leads to problems like bufferbloat
+and severe congestion. The overall delay for sending a segment using UDP
+takes an amount of time that can be calculated by using Equation I.
+                             N
+                   dudp =   ∑ {diproc + dqueuei + ditrans + diprop }        (1)
+                            i =1
+12                                                                    Asim et al.
+
+
+
+
+ dudp = End to end delay of a UDP packet
+     N = Total number of links between sender and receiver
+ d proc = Processing delay, the time elapsed between arrival of a packet till it is assigned to outgoing queue.
+dtrans = Transmission delay, time required to transmit the packet on medium
+dqueue = Queuing delay at router
+d prop = Propagation delay or travel time in the medium
+
+
+    This delay should not exceed 400 ms threshold, otherwise, a VoIP ap-
+plication discards the late packets. Equation I clearly formalises the delay
+involved in sending a UDP segment. Standard TCP is not appropriate for
+delay-sensitive applications like online gaming and streaming. In TCP, all re-
+liability features such as retransmission, buffering, in-order delivery etc. are
+considered. These produce a delay, which makes TCP infeasible for delay-
+sensitive and streaming applications. Using Equation II, the delay overhead
+of standard TCP can be calculated.
+
+                    dtcp = d Nagle + dudp + drtx + drdr + d ack              (2)
+
+
+     dtcp = End to end delay of a single tcp packet
+ d Nagle = Delay caused by Nagle algorithm
+     dudp = As given by equation 1
+     drtx = Re-transmission delay, time required to re-transmit a lost packet
+     drdr = Time spend in re-ordering packets at receiver
+     d ack = Time elapsed at sender while it waits for acknowledgement
+
+
+    For a VoIP application, we do not need to retransmit the lost pack-
+ets and also cannot afford packet reordering at the receiver’s end, which
+creates head-of-the-line blocking. To achieve UDP-like speed, we eliminate
+those delays, which make TCP infeasible for delay-sensitive applications and
+hence, we propose modifications in TCP-BBR. The proposed mechanism also
+achieves congestion control like in BBR, which accurately estimates the avail-
+able bottleneck bandwidth. In case of UDP, sending with more data rate than
+available bandwidth causes packet loss and congestion in routers, which is
+not handled by UDP. Hence by removing retransmission, in-order delivery
+from TCP, and by keeping acknowledgment feature that BBR needs for es-
+timation, we can control packet losses, bufferbloats (severe congestion in
+deep buffers), and congestion collapses. It also provides help and more in-
+telligence for VoIP applications and application developers to choose the
+A BBR-based Congestion Control for Delay-sensitive Real-time Applications    13
+
+
+
+
+Fig. 3 Call Drops after applying above technique .
+
+
+
+right encoding scheme. By applying TCP-BBR on VoIP and other delay-
+sensitive applications, we achieve more router-friendly traffic unlike UDP
+traffic, which is by default blocked by most of the firewalls due to security
+and other issues. These changes lead us to Equation I I I:
+
+
+                                d RCP− BBR = dtcp + d ack                   (3)
+
+
+
+
+  d RCP− BBR = End to end delay of a RCP-BBR packet
+         dtcp = As given by equation 2
+         d ack = Time elapsed at sender while waiting for acknowledgement
+
+
+
+    Equation 3 makes the basis of the proposed approach. In the proposed
+approach, the data is sent as quickly as it is sent by UDP. The packet ac-
+knowledgment feature is kept on with some addition of bitwise overhead of
+TCP header and TCP variables states maintenance, which add little delay to
+the overall end-to-end sending of the packet. All above TCP overheads are
+bitwise operations which do not exceed over 5 ms. Normally, a VoIP appli-
+cation sends data every 20 ms. So, even if we increase that interval to 25 ms,
+it has no impact on the overall quality of the VoIP application. Applying this
+strategy controls the call drops by compromising a littl on quality. Figure (4)
+shows how the proposed mechanism controls the call drops by not letting
+buffers to get full and to cause severe congestion. As a result, we get enough
+data flowing which does not leave the VoIP application call drop threshold
+to be met [5] [6].
+14                                                                    Asim et al.
+
+
+
+
+Fig. 4 Network topology of NS-2 Simulations
+
+
+
+5 Performance Evaluation
+
+We evaluate the proposed scheme using the NS2 network simulator1 . We
+used a dumbbell topology with multiple senders and receiver nodes on two
+sides of a single link, each end of the link is connected to a router. This is
+consistent with the simulation setups that are used in the related literature,
+e.g., [21], for the evaluation of VoIP and Constant Bit Rate (CBR) traffics. The
+proposed scheme is compared with UDP and TCP-BBR (NODELAY) using
+average end-to-end delay, throughput, jitter, and the number of lost packets
+as the performance metrics.
+    To evaluate the proposed scheme we developed a number of simulations
+using Network Simulator 2 (NS2), the simulation parameters are taken from
+a similar study [21]. There are 4 senders, 4 receivers and two routers as
+show in the fig. The link between routers is considered as the bottleneck
+link where we can see the effect of traffic load. We used a number of link
+capacities ranging from 0.30 Mbps to 1.92 Mbps for the bottleneck link, this
+was done to study the behavior of traffic response of protocols. As queues
+at routers plays an important role in packet delays and handling congestion,
+we used a number of queue sizes in the routers ranging from 5 to 50 pack-
+ets. The queues acting as buffers are observed to detect the development of
+congestion, we studied the effect of changing the size of these buffers. For
+performance evaluation we simulated three candidate protocols TCP-BBR,
+UDP and our proposed protocol RCP-BBR, for each simulation we calcu-
+lated packet loss, jitter, delay and throughput for each protocol. Throughput
+and latency here are linked with the work which is being customized and
+are considered as standard terms used in TCP/UDP based networks. For-
+mally, the term latency here is used to represent the total time elapsed from
+sending a packet by a source till its acknowledgment is received. Similarly
+throughput is taken as number of successfully received packets.
+ 1   https://www.isi.edu/nsnam/ns/
+A BBR-based Congestion Control for Delay-sensitive Real-time Applications                   15
+
+
+Table 1 Different configurations (Some results are listed here; the remaining ones are shown in
+the figures): Q: Queue Size, D: Delay (ms), C: Capacity (Mbps), N = Number of Lost Packets, J
+= Jitter (ms).
+
+
+ Run     Link b/w Routers      Other links           BBR                UDP           RCP-BBR
+   #     Q      D       C      D       C       N           J      N           J      N            J
+   1     25     3     1.92     5       1        0     0.00001     0      0.00001     0     0.00001
+   2      5     3     1.92     5       1        0     0.00001     0      0.00001     0     0.00001
+   3     50    90     0.50     30      1      2930         28    1956         25   1885       27
+   4      5    90     0.50     30      1      3015      0.21     2046     0.019    1975     0.020
+   5     20    290    0.30     30      1      3386     0.067     2603     0.057    2524     0.062
+
+
+
+
+5.1 Simulation Setup
+
+The CBR traffic flows run between three sender and three receiver nodes,
+whereas a VBR traffic flow runs between the fourth sender and the fourth
+receiver nodes. The simulation time is 12 seconds. The configuration of the
+links and the routers is given in Table 1. We developed 5 simulation scenar-
+ios, which corresponds to five different networks. The first two simulations
+are developed to simulate network condition where there is no congestion
+and no packet is lost. We call it stable network condition, the other three
+simulation represents networks with possible congestion and we refer these
+networks as unstable networks. In simulation 3, 4 and 5 we changed the
+network conditions such that there will be more congestion and increased
+packet loss, this is done to study the performance of selected protocols in
+congested networks. We considered VoIP as network traffic , each simulation
+is executed for 12 seconds and we recorded various network parameters.
+    The five simulation scenarios/runs in Table 1 correspond to five differ-
+ent network conditions. The simulation runs 1 and 2 provide the parameter
+values for a stable network having large and small buffer sizes of the routers
+respectively. The runs 3 and 4 provide the parameter values for an unstable
+network having large and small buffer sizes of the routers respectively. The
+run 5 provides the parameter values for a highly unstable network.
+
+
+5.2 Results and Discussion
+
+Simulation run 1 and 2 are designed for a no loss situation. The no loss
+scenarios are developed to evaluate and compare protocol performances to
+determine their dependence upon network configuration and available re-
+sources. Also this is usually taken as ideal behavior and is not considered as
+overall performance for all situations. As shown in Figures 5-8, all protocols
+performed almost in a similar way in terms of throughput and latency. It is
+very encouraging that BBR performed similar to UDP despite the fact that
+16                                                                                Asim et al.
+
+
+
+
+Fig. 5 Stable network scenario with large queues of routers (Run 1): Throughput comparison.
+
+
+
+
+Fig. 6 Stable network scenario with large queues of routers (Run 1): Latency comparison.
+A BBR-based Congestion Control for Delay-sensitive Real-time Applications                17
+
+
+
+
+Fig. 7 Stable network scenario with small queues of routers (Run 2): Throughput comparison.
+
+
+
+it has a congestion control mechanism which means extra processing and
+delays where as UDP is free from such burdens. The benefit of BBR is that it
+will attempt to handle congestion while keeping up the performance close
+to UDP, whereas UDP will only worsens the situation.
+    Figures 9 and 10 show the results of an unstable network scenario with
+a large queue (run 3) and packet losses in the network. In this scenario, the
+performance of the proposed scheme (RCP-BBR) and UDP is similar. Al-
+though, as shown in Figure 9, the throughput of BBR with TCP-NODELAY
+is similar but due to significant number of packet drops, its performance is
+not satisfactory for VoIP and delay-sensitive applications. With only a few
+milliseconds difference, UDP and RCP-BBR finish the transmission within
+13 seconds. However, transmitting the same amount of data by BBR takes
+over 16 seconds, which is not suitable for VoIP traffic.
+    Figures 11 and 12 show an unstable network scenario with a small queue
+(run 4). In this scenario, the number of packet losses is more than those in
+run 3. Considering the throughput, the performance of UDP and RCP-BBR is
+similar at the start (transient state) but with the passage of time the perfor-
+mance of RCP-BBR becomes better (steady state). Considering the latency,
+the performance of UDP is better at start only (transient state), while the
+performance of RCP-BBR is better in the long run (steady state).
+    Figures 13 and 14 show the results of run 5 for which there is a highly
+unstable network having packet losses and high link delays. In this simula-
+tion, the performance of BBR is worse than that of UDP and RCP-BBR. The
+performance of UDP and RCP-BBR is similar. Considering the latency, the
+performance of UDP is better than that of RCP-BBR at the start (transient
+18                                                                                Asim et al.
+
+
+
+
+Fig. 8 Stable network scenario with small queues of routers (Run 2): Latency comparison.
+
+
+
+
+Fig. 9 Unstable Network Scenario with large queues of routers (Run 3): Throughput compari-
+son.
+A BBR-based Congestion Control for Delay-sensitive Real-time Applications                19
+
+
+
+
+Fig. 10 Unstable Network Scenario with large queues of routers (Run 3): Latency comparison.
+
+
+
+
+Fig. 11 Unstable Network Scenario with small queues of routers (Run 4): Throughput compar-
+ison.
+20                                                                              Asim et al.
+
+
+
+
+Fig. 12 Unstable Network Scenario with small queues of routers (Run 4): Latency comparison.
+
+
+
+
+Fig. 13 Highly Unstable Network Scenario (Run 5).
+A BBR-based Congestion Control for Delay-sensitive Real-time Applications   21
+
+
+
+
+Fig. 14 Highly Unstable Network Scenario (Run 5).
+
+
+
+state) but with the passage of time (steady state), when congestion occurs,
+UDP keeps network buffers full and that consequently creates more delays
+as compared to RCP-BBR. RCP-BBR handles network congestion and does
+not overload a router’s buffer. In highly unstable networks, the proposed
+approach keeps small buffers while UDP overloads the buffers and that con-
+sequently creates buffering delays. Hence, it can be said that the proposed
+approach performs better in a highly unstable network.
+    In stable networks, all the considered protocols are suitable for VoIP ap-
+plications. In unstable networks (Runs 3-5), TCP-BBR results in a significant
+packet loss, which is not suitable for VoIP traffic. The proposed approach
+(RCP-BBR) performs better than UDP in deep congested buffers (Runs 3-5)
+as the average latency of the proposed technique is less than that of UDP.
+Therefore, RCP-BBR performs better than UDP in practical scenarios.
+
+
+6 Related Work
+
+Congestion in wide area computer networks such as internet has always
+been a very active and dynamic area for researcher. As the network equip-
+ment, technology, type and amount of traffic keeps of progressing, there are
+always new problems related to congestion. Handling congestion is tricky
+as latency, throughput , and quality do not adjust with each other easily and
+there is always a compromise and a balanced needed. Each new solution
+brings up some new adjustments, in this section we are focused at viewing
+the congestion issues of real time traffic specifically VoIP. For such traffic
+22                                                                    Asim et al.
+
+
+throughput is usually a priority along with Quality of Service (QoS), UDP
+provides good throughput but is poor at QoS, also it raises many conges-
+tion issues as well. Following is a brief description of related work, a careful
+review of existing solutions revealed that a better solution is possible.
+    Although, congestion control is a network layer problem, yet it could be
+addressed from both network layer and transport layer. From network layer
+perspective, congestion could be controlled either by using queue manage-
+ment (QM) or Active Queue Management (AQM) [22, 23]. However, AQM is
+more advance and adaptive than queue management. Many QMs and AQMs
+have been introduced and deployed in recent decades. Drop Tail [22, 24]
+was introduced to work in FIFO manner and operate the network buffer
+as a FIFO queue. Later, when traffic increased on network routers, Drop
+Tail could not perform well because of its nature of filling the buffer and
+leaving no space behind, which caused persistent queues. Then, Random
+Early Discard (RED) [24], a new queue management approach, was intro-
+duced which keeps some threshold for dropping packets when congestion
+occurred. It does not access the network buffer by keeping max-min thresh-
+old. RED performs well and still used by network routers. With the passage
+of time several variants of RED were proposed [24]. Lately, another AQM
+was introduced for network routers called CoDel (control delay), which is
+an adaptive queue management mechanism. Unlike RED, it performed extra
+calculation to drop packets by calculating packet in-time and out-time differ-
+ences to drop packets randomly. It is an IETF implementation project which
+is an ongoing research [25, 26]. A hybrid of RED and CoDel is a researched
+by [27] which provides a balance of these two scheme and is efficient at han-
+dling the bufferbloat problem. A similar solution is also proposed recently
+by Jim Gettys and his team [16] they addressed the problem from network
+layer as well as transport layer perspective.
+    Congestion as transport layer problem has long been researched, initially,
+AIMD [28] (Additive Increase and Multiplicative Decrease) was introduced
+on top of TCP to provide some basic congestion control and flow control
+algorithms, such as slow start and congestion avoidance. It introduced addi-
+tive increase in normal transmission and a multiplicative decrease in trans-
+mission when congestion is signaled. For quite some period, this mechanism
+worked well, but as traffic and usage of Internet increased, many problems
+occurred which AIMD could not handle. Therefore, many different mecha-
+nisms introduced afterwards based on different congestion signals such as
+loss based and delay-based mechanisms. Basically, they are called different
+TCP variants, such as TCP-Reno, TCP-BIC, TCP-NewReno, TCP-Vagas, TCP-
+Cubic, Compound TCP (Microsoft) [19, 29, 30, 31] and later on TCP-BBR on
+which this paper is based.
+    Congestion control is not only discussed for TCP but there are some
+solutions proposed for UDP such as [32] provides a low latency and high
+throughput datagram control protocol, similarly a [33] provides a compara-
+tive study of high speed congestion control protocols. These studies indicates
+A BBR-based Congestion Control for Delay-sensitive Real-time Applications   23
+
+
+that congestion can be handled at network layer, by TCP as well as by a UDP
+protocol as well.
+    All of mentioned congestion control algorithms are either loss/delay
+based or sometimes a hybrid of both such as Microsoft Compound TCP [29].
+Recently, a new congestion control framework was introduced by Google
+called ’BBR’ [17] that stands for ”Bottleneck Bandwidth and Round-Trip
+Time” based on estimation and it precisely estimated the available band-
+width and bottleneck bandwidth plus minimum Round-Trip Time (RTT).
+It modeled the whole network path as a single bottleneck by which BBR
+claimed that it provided high throughput and low delay. Initially, these
+claims seemed to be promising. Google implemented this BBR on Google
+B4 WAN servers and YouTube edge servers [34] that improved their per-
+formance up to 20% worldwide. But in recent research [18], “Experimental
+evaluation of BBR congestion control” the writers explained full and deep
+experimental evaluation of BBR at higher speeds and different scenarios
+which varied in parameters such as number of flows, flows RTT and dif-
+ferent buffer sizes at bottleneck. Among other things, they evaluated it by
+considering the features like throughput, packet loss, fairness comparison
+between Cubic and BBR. They used Linux kernel 4.9 for their experimental
+setup and tested on a test-bed with 1 Gbps and 10 Gbps data rate at bottle-
+neck. At the end of a rigorous experimental evaluation Mario Hock and his
+team were able to conclude that BBR had a lot of retransmission on small
+buffers compared Cubic TCP. They also stated that with multiple flows BBR
+did not stay fair with Cubic TCP. As BBR is an ongoing implementation and
+research Neal and his team did some modification to their framework and
+called it BBR v2 [34] which solved the problems pointed by Mario Hock in
+[18].
+
+
+7 Conclusion
+
+In stable networks, both TCP and UDP protocols suit VoIP delay-sensitive
+applications perform, but in unstable networks TCP’s performance deems
+deficient due to delays and reliability issues such as retransmission and in-
+order delivery delays. UDP causes Quality of service QoS problem in un-
+stable networks, such as frequent call drops in VoIP and congestion and
+bufferbloat problems in networks. In order to overcome this problem, we
+introduce RCP-BBR, a new responsive control protocol that perform well
+in both stable and unstable networks. By removing retransmission, in-order
+delivery and other overheads from modifying TCP-BBR and keeping the re-
+ceiver’s acknowledgment, we achieve a higher throughput in shallow buffers
+and a lower delay in deep buffers. After evaluation of our proposed ap-
+proach, we achieve similar delay performance and up to 5% improvement
+in throughput over UDP in stable networks, while in unstable and long-
+distanced networks, we achieve smaller queues, and low delays where UDP
+performed poorly by keeping delays above VoIP call drop threshold. There-
+24                                                                    Asim et al.
+
+
+fore, our approach performs similarly both in stable and high-speed net-
+works, and in unstable networks. Our approach keeps queuing delays low
+to VoIP threshold in deep buffers while UDP keeps buffers full and delays
+high which frequently met call drop thresholds.
+
+
+
+
+References
+
+ 1. Dominik Scholz, Benedikt Jaeger, Lukas Schwaighofer, Daniel Raumer,
+    Fabien Geyer, and Georg Carle. Towards a deeper understanding of tcp
+    bbr congestion control. In 2018 IFIP Networking Conference (IFIP Network-
+    ing) and Workshops, pages 1–9. IEEE, 2018.
+ 2. Noushin Najjari, Geyong Min, Jia Hu, Zhiwei Zhao, and Yulei Wu. Per-
+    formance analysis of wlans with heterogeneous and bursty multimedia
+    traffic. In GLOBECOM 2017-2017 IEEE Global Communications Conference,
+    pages 1–6. IEEE, 2017.
+ 3. Alexandre Gerber and Robert Doverspike. Traffic types and growth
+    in backbone networks. In Optical Fiber Communication Conference, page
+    OTuR1. Optical Society of America, 2011.
+ 4. John W Mayo and Olga Ukhaneva. International telecommunications
+    demand. Information Economics and Policy, 39:26–35, 2017.
+ 5. Salman A Baset and Henning Schulzrinne. An analysis of the skype
+    peer-to-peer internet telephony protocol. arXiv preprint cs/0412017, 2004.
+ 6. Xinggong Zhang, Yang Xu, Hao Hu, Yong Liu, Zongming Guo, and Yao
+    Wang. Profiling skype video calls: Rate control and video quality. In
+    INFOCOM, 2012 Proceedings IEEE, pages 621–629. IEEE, 2012.
+ 7. Min Zhang, Maurizio Dusi, Wolfgang John, and Changjia Chen. Analy-
+    sis of udp traffic usage on internet backbone links. In Applications and the
+    Internet, 2009. SAINT’09. Ninth Annual International Symposium on, pages
+    280–281. IEEE, 2009.
+ 8. Cing-Yu Chu, Shannon Chen, Yu-Chuan Yen, Su-Ling Yeh, Hao-Hua
+    Chu, and Polly Huang. Eq: A qoe-centric rate control mechanism for
+    voip calls. ACM Trans. Model. Perform. Eval. Comput. Syst., 3(1):4:1–4:20,
+    February 2018.
+ 9. Imtiaz Ali Halepoto, Adnan Ahmed Arain, and Umair Hussain. Evalua-
+    tion of multimedia streams in internet applications. In Proceedings of the
+    8th International Conference on Information Systems and Technologies, ICIST
+    ’18, New York, NY, USA, 2018. Association for Computing Machinery.
+10. S Giannoulis, C Antonopoulos, E Topalis, A Athanasopoulos, A Prayati,
+    and S Koubias. TCP vs. UDP Performance Evaluation for CBR Traffic
+    On Wireless Multihop Networks. Simulation, 14:43, 2009.
+11. Behrouz A Forouzan and Sophia Chung Fegan. TCP/IP protocol suite.
+    McGraw-Hill Higher Education, 2002.
+12. Shahrudin [Awang Nor], Raaid Alubady, and Wisam [Abduladeem
+    Kamil]. Simulated performance of tcp, sctp, dccp and udp protocols
+A BBR-based Congestion Control for Delay-sensitive Real-time Applications    25
+
+
+      over 4g network. Procedia Computer Science, 111:2 – 7, 2017. The 8th
+      International Conference on Advances in Information Technology.
+13.   Tristan Braud, Martin Heusse, and Andrzej Duda. Tcp over large buffers:
+      When adding traffic improves latency. In Teletraffic Congress (ITC), 2014
+      26th International, pages 1–8. IEEE, 2014.
+14.   Teerawat Issariyakul and Ekram Hossain. Introduction to network sim-
+      ulator 2 (ns2). In Introduction to network simulator NS2, pages 1–18.
+      Springer, 2009.
+15.   Go Hasegawa and Masayuki Murata. Survey on fairness issues in tcp
+      congestion control mechanisms. IEICE Transactions on Communications,
+      84(6):1461–1472, 2001.
+16.   Jim Gettys and Kathleen Nichols. Bufferbloat: Dark buffers in the inter-
+      net. Queue, 9(11):40, 2011.
+17.   Neal Cardwell, Yuchung Cheng, C. Stephen Gunn, Soheil Hassas
+      Yeganeh, and Van Jacobson. BBR: Congestion-based Congestion Con-
+      trol. Commun. ACM, 60(2):58–66, January 2017.
+18.   Mario Hock, Roland Bless, and Martina Zitterbart. Experimental evalu-
+      ation of BBR congestion control. In Network Protocols (ICNP), 2017 IEEE
+      25th International Conference on, pages 1–10. IEEE, 2017.
+19.   Mark Allman, Vern Paxson, Wright Stevens, et al. Tcp congestion control,
+      1999.
+20.   Xiaotang Zhang and Henning Schulzrinne. Voice over tcp and udp.
+      Department of Computer Science, Columbia University, Tech. Rep. CUCS-033-
+      04, 2004.
+21.   Lachlan Andrew, Cesar Marcondes, Sally Floyd, Lawrence Dunn, Ro-
+      maric Guillier, Wang Gang, Lars Eggert, Sangtae Ha, and Injong Rhee.
+      Towards a common tcp evaluation suite. In Proc. PFLDnet, 2008.
+22.   B Kiruthiga and E George Dharma Prakash Raj. Survey on aqm con-
+      gestion control algorithms. International Journal of Computer Science and
+      Mobile Applications, 2(2):38–44, 2014.
+23.   Nandita Dukkipati, Yuchung Cheng, and Amin Vahdat. Research Im-
+      pacting the Practice of Congestion Control, 2016.
+24.   Vinodani Katiyar and Anamol Chand Jain. A survey on red and some it’s
+      varients incongestioncontrol mechanism. Int J Eng Manage Res, 4(4):184–
+      188, 2014.
+25.   Kathleen Nichols, Van Jacobson, Andrew McGregor, and Jana Iyengar.
+      Controlled delay active queue management. Work in Progress, 2013.
+26.   K Nichols, V Jacobson, A McGregor, and J Iyengar. Controlled delay
+      active queue management: draft-ietf-aqm-codel-03. IETF, December, 2015.
+27.   Rong Pan, Preethi Natarajan, Chiara Piglione, Mythili Suryanarayana
+      Prabhu, Vijay Subramanian, Fred Baker, and Bill VerSteeg. PIE: A
+      lightweight control scheme to address the bufferbloat problem. In High
+      Performance Switching and Routing (HPSR), 2013 IEEE 14th International
+      Conference on, pages 148–155. IEEE, 2013.
+28.   Van Jacobson. Congestion avoidance and control. In ACM SIGCOMM
+      computer communication review, volume 18, pages 314–329. ACM, 1988.
+26                                                                  Asim et al.
+
+
+29. Kun Tan Jingmin Song, Q Zhang, and M Sridharan. Compound TCP: A
+    scalable and TCP-friendly congestion control for high-speed networks.
+    Proceedings of PFLDnet 2006, 2006.
+30. Sangtae Ha, Injong Rhee, and Lisong Xu. CUBIC: a new TCP-friendly
+    high-speed TCP variant. ACM SIGOPS Operating Systems Review,
+    42(5):64–74, 2008.
+31. Lawrence S. Brakmo and Larry L. Peterson. TCP Vegas: End to end
+    congestion avoidance on a global Internet. IEEE Journal on selected Areas
+    in communications, 13(8):1465–1480, 1995.
+32. Yuchung Cheng and Neal Cardwell. Making Linux TCP Fast. In Netdev
+    Conference, 2016.
+33. Jawhar Ben Abed, Lâarif Sinda, Mohamed Ali Mani, and Rachid Mbarek.
+    Comparison of high speed congestion control protocols. International
+    Journal of Network Security & Its Applications, 4(5):15, 2012.
+34. Neal Cardwell, Yuchung Cheng, C Stephen Gunn, Soheil Hassas
+    Yeganeh, and Van Jacobson. BBR Congestion Control: An update. In
+    Presentation in ICCRG at IETF 98th meeting, 2017.
+

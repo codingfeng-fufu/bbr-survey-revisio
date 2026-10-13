@@ -1,0 +1,39 @@
+{
+  "report_id": "RPT_MINAMI_2023_BMR_ADVANCE",
+  "study_id": "ST_MINAMI_2023_BMR",
+  "doi": "10.23919/comex.2023COL0018",
+  "title": "A New BBR with Moderate Delivery Rate",
+  "authors": [
+    "Ryosuke Minami",
+    "Shotaro Ishikura",
+    "Miki Yamamoto"
+  ],
+  "decision": "include",
+  "reason": "Direct BBR delivery-rate model and modification with analytical and simulation evidence; frozen M02 scope",
+  "version": "Acquired advance-publication PDF, not finalized issue metadata; visible template placeholders retained as a source-version limitation",
+  "platform": "ns-3; exact release and implementation commit NR",
+  "configuration": {
+    "flows": 2,
+    "equal_rtt_ms": 60,
+    "capacity_mbps": 10,
+    "packet_bytes": 1500,
+    "reference_bdp_packets": 50,
+    "tested_alpha": 0.9
+  },
+  "analysis_assumptions": [
+    "Two equal-RTT flows initially share capacity equally",
+    "Initially empty bottleneck queue",
+    "One flow probes with gain1.25 while the other remains gain1"
+  ],
+  "analytical_result": "Under stated simplified assumptions estimate increases from Bw/2 to 5Bw/9, ratio10/9; not a general inequality across BBR versions",
+  "mechanism": "Scale BtlBw-derived transmission rate by alpha; footnote retains pacing gain factor",
+  "result_location": "pp.2–3 Eqs.1–4/Section3.2; p.4 Figs7–8/Section4",
+  "limitations": [
+    "Simplified two-flow model does not determine heterogeneous-RTT fairness universally",
+    "No BBRv2/v3 implementation comparison, ECN test or CUBIC benchmark extracted",
+    "Queue limit, repeat counts, uncertainty and full simulation duration NR",
+    "Figure window10.4–15s does not prove full-run stability or broad deployment optimality",
+    "Final publisher version and duplicate follow-up report linkage pending"
+  ],
+  "review": "Four-page report read; p.4 graph/footnote visually checked; author code not reproduced"
+}

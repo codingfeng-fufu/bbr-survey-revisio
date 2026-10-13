@@ -1,0 +1,30 @@
+{
+  "record_id": "openalex_Q8_0069",
+  "doi": "10.1007/3-540-45812-3_8",
+  "title": "Streaming Media Congestion Control Using Bandwidth Estimation",
+  "authors": [
+    "Nadeem Aboobaker",
+    "David Chanady",
+    "Mario Gerla",
+    "M.Y.Sanadidi"
+  ],
+  "status": "partial methods/limitations review; final eligibility pending",
+  "source": "fulltext_acquisition_20261012/openalex_Q8_0069.pdf",
+  "platform": "ns2 simulation",
+  "mechanism": "Receiver bandwidth-share estimate inspired byTCPWestwood; lossNACK carries estimate; sender sets rate based on estimate rather than slow start",
+  "inspected_settings": {
+    "side_link_capacity_mbps": 5,
+    "side_link_delay_ms": 3,
+    "bottleneck_buffer": "10*RTT*bottleneck bandwidth as reported",
+    "ack_bytes": 40
+  },
+  "limitations": [
+    "Pre-BBRstreamingcontroller, not aBBRv2/v3implementation test",
+    "Intra-SMCCfairness andSMCC/NewRenofriendliness are separate scopes",
+    "Authors explicitly retain concern thatSMCCcan takeTCPbandwidth; congestion-dominated friendliness remains futurework",
+    "Figures/constants depend on distinct bottleneck configurations; no crossfigure multiplier accepted",
+    "QoEquality adaptation is explicitly separate from rate control",
+    "No author-code rerun or curve-digitization performed"
+  ],
+  "result_acceptance": "Setup/mechanism description only; percentages and final eligibility not signed off"
+}

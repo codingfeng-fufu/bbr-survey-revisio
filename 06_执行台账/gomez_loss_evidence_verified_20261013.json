@@ -1,0 +1,33 @@
+{
+  "doi": "10.1016/j.comcom.2024.04.037",
+  "source": "literature_sources_20261012/gomez_bbrv3_author_20261013.pdf",
+  "status": "Section 5.4 and Figure 7 visually checked; whole-report eligibility pending",
+  "review_date": "2026-10-13",
+  "pages": [
+    9
+  ],
+  "conditions": {
+    "capacity_Gbps": 1,
+    "reported_propagation_ms": 20,
+    "queue": "BDP",
+    "duration_s": 120,
+    "repetitions": 10,
+    "aggregation": "mean",
+    "loss_percent_range": [
+      0.001,
+      20
+    ]
+  },
+  "source_reported_observations": {
+    "BBRv2_BBRv3": "noticeable throughput decline above 0.1% loss; around 60% maximum at 0.5%; above 20% until loss exceeds 1%",
+    "CUBIC": "around 60% maximum at 0.01%; below 20% available bandwidth at 0.1%",
+    "BBRv1": "around 1 Gbps through 20% loss, with up to 10 million retransmissions"
+  },
+  "limits": [
+    "Values are approximate source prose, not independently digitized curve estimates",
+    "No full-throughput claim at 1% for BBRv2/v3",
+    "Do not mix Section 5.5 RTT sweep at 0.025% loss with this loss sweep",
+    "20 ms propagation is retained as source wording; not reinterpreted as RTT",
+    "ECN configuration and exact kernel build remain unverified"
+  ]
+}

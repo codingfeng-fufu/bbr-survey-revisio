@@ -1,0 +1,1581 @@
+\begin{thebibliography}{166}
+\expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
+\providecommand{\url}[1]{\texttt{#1}}
+\providecommand{\href}[2]{#2}
+\providecommand{\path}[1]{#1}
+\providecommand{\DOIprefix}{doi:}
+\providecommand{\ArXivprefix}{arXiv:}
+\providecommand{\URLprefix}{URL: }
+\providecommand{\Pubmedprefix}{pmid:}
+\providecommand{\doi}[1]{\href{http://dx.doi.org/#1}{\path{#1}}}
+\providecommand{\Pubmed}[1]{\href{pmid:#1}{\path{#1}}}
+\providecommand{\bibinfo}[2]{#2}
+\ifx\xfnm\relax \def\xfnm[#1]{\unskip,\space#1}\fi
+%Type = Article
+\bibitem[{Jacobson(1988)}]{jacobson1988congestion}
+\bibinfo{author}{V.~Jacobson},
+\newblock \bibinfo{title}{Congestion avoidance and control},
+\newblock \bibinfo{journal}{ACM SIGCOMM Computer Communication Review}
+  \bibinfo{volume}{18} (\bibinfo{year}{1988}) \bibinfo{pages}{314--329}.
+  \DOIprefix\doi{10.1145/52325.52356}.
+%Type = Article
+\bibitem[{Ha et~al.(2008)Ha, Rhee, and Xu}]{ha2008cubic}
+\bibinfo{author}{S.~Ha}, \bibinfo{author}{I.~Rhee}, \bibinfo{author}{L.~Xu},
+\newblock \bibinfo{title}{{CUBIC}: A new {TCP}-friendly high-speed {TCP}
+  variant},
+\newblock \bibinfo{journal}{ACM SIGOPS Operating Systems Review}
+  \bibinfo{volume}{42} (\bibinfo{year}{2008}) \bibinfo{pages}{64--74}.
+  \DOIprefix\doi{10.1145/1400097.1400105}.
+%Type = Article
+\bibitem[{Fall and Floyd(1996)}]{fall1996simulation}
+\bibinfo{author}{K.~Fall}, \bibinfo{author}{S.~Floyd},
+\newblock \bibinfo{title}{Simulation-based comparisons of {Tahoe}, {Reno} and
+  {SACK} {TCP}},
+\newblock \bibinfo{journal}{ACM SIGCOMM Computer Communication Review}
+  \bibinfo{volume}{26} (\bibinfo{year}{1996}) \bibinfo{pages}{5--21}.
+  \DOIprefix\doi{10.1145/235160.235162}.
+%Type = Inproceedings
+\bibitem[{Kleinrock(1979)}]{kleinrock1979power}
+\bibinfo{author}{L.~Kleinrock},
+\newblock \bibinfo{title}{Power and deterministic rules of thumb for
+  probabilistic problems in computer communications},
+\newblock in: \bibinfo{booktitle}{International Conference on Communications
+  (ICC)}, \bibinfo{year}{1979}, pp. \bibinfo{pages}{43.1.1--43.1.10}.
+%Type = Article
+\bibitem[{Mathis et~al.(1997)Mathis, Semke, Mahdavi, and
+  Ott}]{mathis1997macroscopic}
+\bibinfo{author}{M.~Mathis}, \bibinfo{author}{J.~Semke},
+  \bibinfo{author}{J.~Mahdavi}, \bibinfo{author}{T.~Ott},
+\newblock \bibinfo{title}{The macroscopic behavior of the {TCP} congestion
+  avoidance algorithm},
+\newblock \bibinfo{journal}{ACM SIGCOMM Computer Communication Review}
+  \bibinfo{volume}{27} (\bibinfo{year}{1997}) \bibinfo{pages}{67--82}.
+  \DOIprefix\doi{10.1145/263932.264023}.
+%Type = Article
+\bibitem[{Cardwell et~al.(2017)Cardwell, Cheng, Gunn, Yeganeh, and
+  Jacobson}]{cardwell2017bbr}
+\bibinfo{author}{N.~Cardwell}, \bibinfo{author}{Y.~Cheng},
+  \bibinfo{author}{C.~S. Gunn}, \bibinfo{author}{S.~H. Yeganeh},
+  \bibinfo{author}{V.~Jacobson},
+\newblock \bibinfo{title}{{BBR}: Congestion-based congestion control},
+\newblock \bibinfo{journal}{Communications of the ACM} \bibinfo{volume}{60}
+  (\bibinfo{year}{2017}) \bibinfo{pages}{58--66}.
+  \DOIprefix\doi{10.1145/3009824}.
+%Type = Misc
+\bibitem[{Cardwell et~al.(2019)Cardwell, Cheng, Yeganeh
+  et~al.}]{cardwell2019bbrv2}
+\bibinfo{author}{N.~Cardwell}, \bibinfo{author}{Y.~Cheng},
+  \bibinfo{author}{S.~H. Yeganeh}, et~al., \bibinfo{title}{{BBRv2}: A
+  model-based congestion control}, \bibinfo{howpublished}{IETF 105th Meeting,
+  ICCRG Session}, \bibinfo{year}{2019}.
+  \bibinfo{note}{\url{https://datatracker.ietf.org/doc/slides-105-iccrg-bbr-v2-a-model-based-congestion-control/}}.
+%Type = Misc
+\bibitem[{Cardwell et~al.(2023)Cardwell, Cheng, Yang
+  et~al.}]{cardwell2023bbrv3}
+\bibinfo{author}{N.~Cardwell}, \bibinfo{author}{Y.~Cheng},
+  \bibinfo{author}{K.~Yang}, et~al., \bibinfo{title}{{BBRv3}: Algorithm bug
+  fixes and public internet deployment}, \bibinfo{howpublished}{IETF 117th
+  Meeting, CCWG Session}, \bibinfo{year}{2023}.
+  \bibinfo{note}{\url{https://datatracker.ietf.org/doc/slides-117-ccwg-bbrv3-algorithm-bug-fixes-and-public-internet-deployment/}}.
+%Type = Misc
+\bibitem[{Iyengar and Thomson(2021)}]{rfc9000}
+\bibinfo{author}{J.~Iyengar}, \bibinfo{author}{M.~Thomson},
+  \bibinfo{title}{{QUIC}: A {UDP}-based multiplexed and secure transport},
+  \bibinfo{howpublished}{RFC 9000, Internet Engineering Task Force},
+  \bibinfo{year}{2021}. \DOIprefix\doi{10.17487/RFC9000}.
+%Type = Misc
+\bibitem[{Iyengar and Swett(2021)}]{rfc9002}
+\bibinfo{author}{J.~Iyengar}, \bibinfo{author}{I.~Swett},
+  \bibinfo{title}{{QUIC} loss detection and congestion control},
+  \bibinfo{howpublished}{RFC 9002, Internet Engineering Task Force},
+  \bibinfo{year}{2021}. \DOIprefix\doi{10.17487/RFC9002}.
+%Type = Misc
+\bibitem[{Bishop(2022)}]{rfc9114}
+\bibinfo{author}{M.~Bishop}, \bibinfo{title}{{HTTP/3}},
+  \bibinfo{howpublished}{RFC 9114, Internet Engineering Task Force},
+  \bibinfo{year}{2022}. \DOIprefix\doi{10.17487/RFC9114}.
+%Type = Inproceedings
+\bibitem[{Deutschmann et~al.(2023)Deutschmann, Jahandar, Hielscher
+  et~al.}]{deutschmann2023starlink}
+\bibinfo{author}{J.~Deutschmann}, \bibinfo{author}{S.~Jahandar},
+  \bibinfo{author}{K.-S. Hielscher}, et~al.,
+\newblock \bibinfo{title}{Internet via satellite: {GEO} vs.\ {LEO}, {OpenVPN}
+  vs.\ {WireGuard}, and {CUBIC} vs.\ {BBR}},
+\newblock in: \bibinfo{booktitle}{Proceedings of the 1st ACM MobiCom Workshop
+  on Satellite Networking and Computing (SatCom)}, \bibinfo{year}{2023}, pp.
+  \bibinfo{pages}{19--24}. \DOIprefix\doi{10.1145/3614454.3622998}.
+%Type = Inproceedings
+\bibitem[{Kamel et~al.(2024)Kamel, Zhao, Li et~al.}]{kamel2024starquic}
+\bibinfo{author}{V.~Kamel}, \bibinfo{author}{J.~Zhao}, \bibinfo{author}{D.~Li},
+  et~al.,
+\newblock \bibinfo{title}{{StarQUIC}: Tuning congestion control algorithms for
+  {QUIC} over {LEO} satellite networks},
+\newblock in: \bibinfo{booktitle}{Proceedings of the 2nd International Workshop
+  on LEO Networking and Communication (LEO-NET)}, \bibinfo{year}{2024}.
+  \DOIprefix\doi{10.1145/3697253.3697271}.
+%Type = Misc
+\bibitem[{Ramakrishnan et~al.(2001)Ramakrishnan, Floyd, and Black}]{rfc3168}
+\bibinfo{author}{K.~K. Ramakrishnan}, \bibinfo{author}{S.~Floyd},
+  \bibinfo{author}{D.~Black}, \bibinfo{title}{The addition of explicit
+  congestion notification ({ECN}) to {IP}}, \bibinfo{howpublished}{RFC 3168,
+  Internet Engineering Task Force}, \bibinfo{year}{2001}.
+  \DOIprefix\doi{10.17487/RFC3168}.
+%Type = Misc
+\bibitem[{Briscoe et~al.(2023)Briscoe, De~Schepper, Bagnulo et~al.}]{rfc9330}
+\bibinfo{author}{B.~Briscoe}, \bibinfo{author}{K.~De~Schepper},
+  \bibinfo{author}{M.~Bagnulo}, et~al., \bibinfo{title}{Low latency, low loss,
+  and scalable throughput ({L4S}) internet service}, \bibinfo{howpublished}{RFC
+  9330, Internet Engineering Task Force}, \bibinfo{year}{2023}.
+  \DOIprefix\doi{10.17487/RFC9330}.
+%Type = Misc
+\bibitem[{De~Schepper et~al.(2023{\natexlab{a}})De~Schepper, Briscoe, and
+  Bondarenko}]{rfc9331}
+\bibinfo{author}{K.~De~Schepper}, \bibinfo{author}{B.~Briscoe},
+  \bibinfo{author}{O.~Bondarenko}, \bibinfo{title}{The explicit congestion
+  notification ({ECN}) protocol for low latency, low loss, and scalable
+  throughput ({L4S})}, \bibinfo{howpublished}{RFC 9331, Internet Engineering
+  Task Force}, \bibinfo{year}{2023}{\natexlab{a}}.
+  \DOIprefix\doi{10.17487/RFC9331}.
+%Type = Misc
+\bibitem[{De~Schepper et~al.(2023{\natexlab{b}})De~Schepper, Briscoe, and
+  White}]{rfc9332}
+\bibinfo{author}{K.~De~Schepper}, \bibinfo{author}{B.~Briscoe},
+  \bibinfo{author}{G.~White}, \bibinfo{title}{Dual-queue coupled active queue
+  management ({AQM}) for low latency, low loss, and scalable throughput
+  ({L4S})}, \bibinfo{howpublished}{RFC 9332, Internet Engineering Task Force},
+  \bibinfo{year}{2023}{\natexlab{b}}. \DOIprefix\doi{10.17487/RFC9332}.
+%Type = Article
+\bibitem[{Piotrowska(2024)}]{piotrowska2024}
+\bibinfo{author}{A.~Piotrowska},
+\newblock \bibinfo{title}{Performance evaluation of {TCP BBRv3} in networks
+  with multiple round trip times},
+\newblock \bibinfo{journal}{Applied Sciences} \bibinfo{volume}{14}
+  (\bibinfo{year}{2024}) \bibinfo{pages}{5053}.
+  \DOIprefix\doi{10.3390/app14125053}.
+%Type = Misc
+\bibitem[{Cardwell et~al.(2024)Cardwell, Cheng, Hassas~Yeganeh
+  et~al.}]{ietf_ccwg_bbr}
+\bibinfo{author}{N.~Cardwell}, \bibinfo{author}{Y.~Cheng},
+  \bibinfo{author}{S.~Hassas~Yeganeh}, et~al., \bibinfo{title}{{BBR} congestion
+  control}, \bibinfo{howpublished}{Internet-Draft draft-ietf-ccwg-bbr-05,
+  IETF}, \bibinfo{year}{2024}.
+  \bibinfo{note}{\url{https://datatracker.ietf.org/doc/draft-ietf-ccwg-bbr/}}.
+%Type = Article
+\bibitem[{Abrol et~al.(2026)Abrol, Murali~Mohan, Truong-Huu, and
+  Gurusamy}]{abrol2026bbr}
+\bibinfo{author}{A.~Abrol}, \bibinfo{author}{P.~Murali~Mohan},
+  \bibinfo{author}{T.~Truong-Huu}, \bibinfo{author}{M.~Gurusamy},
+\newblock \bibinfo{title}{{BBR} congestion control algorithms: Evolution,
+  challenges and future directions},
+\newblock \bibinfo{journal}{ACM Computing Surveys} \bibinfo{volume}{58}
+  (\bibinfo{year}{2026}) \bibinfo{pages}{Article 236}.
+  \DOIprefix\doi{10.1145/3793537}.
+%Type = Inproceedings
+\bibitem[{Zeynali et~al.(2024)Zeynali, Weyulu, Fathalli
+  et~al.}]{zeynali2024bbrv3}
+\bibinfo{author}{D.~Zeynali}, \bibinfo{author}{E.~N. Weyulu},
+  \bibinfo{author}{S.~Fathalli}, et~al.,
+\newblock \bibinfo{title}{{BBRv3} in the public {Internet}: A boon or a bane?},
+\newblock in: \bibinfo{booktitle}{Proceedings of the 2024 Applied Networking
+  Research Workshop (ANRW)}, \bibinfo{year}{2024}, pp. \bibinfo{pages}{97--99}.
+  \DOIprefix\doi{10.1145/3673422.3674889}.
+%Type = Inproceedings
+\bibitem[{Hock et~al.(2017)Hock, Bless, and Zitterbart}]{hock2017bbr}
+\bibinfo{author}{M.~Hock}, \bibinfo{author}{R.~Bless},
+  \bibinfo{author}{M.~Zitterbart},
+\newblock \bibinfo{title}{Experimental evaluation of {BBR} congestion control},
+\newblock in: \bibinfo{booktitle}{2017 IEEE 25th International Conference on
+  Network Protocols (ICNP)}, \bibinfo{year}{2017}, pp. \bibinfo{pages}{1--10}.
+  \DOIprefix\doi{10.1109/ICNP.2017.8117540}.
+%Type = Inproceedings
+\bibitem[{Cao et~al.(2019)Cao, Jain, Sharma et~al.}]{cao2019bbr}
+\bibinfo{author}{Y.~Cao}, \bibinfo{author}{A.~Jain},
+  \bibinfo{author}{K.~Sharma}, et~al.,
+\newblock \bibinfo{title}{When to use and when not to use {BBR}: An empirical
+  analysis and evaluation study},
+\newblock in: \bibinfo{booktitle}{Proceedings of ACM Internet Measurement
+  Conference (IMC)}, \bibinfo{year}{2019}, pp. \bibinfo{pages}{130--136}.
+  \DOIprefix\doi{10.1145/3355369.3355579}.
+%Type = Article
+\bibitem[{Jaeger et~al.(2019)Jaeger, Scholz, Raumer et~al.}]{jaeger2019bbr}
+\bibinfo{author}{B.~Jaeger}, \bibinfo{author}{D.~Scholz},
+  \bibinfo{author}{D.~Raumer}, et~al.,
+\newblock \bibinfo{title}{Reproducible measurements of {TCP BBR} congestion
+  control},
+\newblock \bibinfo{journal}{Computer Communications} \bibinfo{volume}{144}
+  (\bibinfo{year}{2019}) \bibinfo{pages}{31--43}.
+  \DOIprefix\doi{10.1016/j.comcom.2019.05.011}.
+%Type = Inproceedings
+\bibitem[{Scholz et~al.(2018)Scholz, Jaeger, Scheinert
+  et~al.}]{scholz2018deeper}
+\bibinfo{author}{D.~Scholz}, \bibinfo{author}{B.~Jaeger},
+  \bibinfo{author}{D.~Scheinert}, et~al.,
+\newblock \bibinfo{title}{Towards a deeper understanding of {TCP BBR}
+  congestion control},
+\newblock in: \bibinfo{booktitle}{Proceedings of the 14th International
+  Conference on Emerging Networking EXperiments and Technologies (CoNEXT)},
+  \bibinfo{year}{2018}, pp. \bibinfo{pages}{1--12}.
+  \DOIprefix\doi{10.23919/IFIPNetworking.2018.8696830}.
+%Type = Article
+\bibitem[{Gomez et~al.(2024)Gomez, Kfoury, and Crichigno}]{gomez2024bbrv3}
+\bibinfo{author}{J.~Gomez}, \bibinfo{author}{E.~F. Kfoury},
+  \bibinfo{author}{J.~Crichigno},
+\newblock \bibinfo{title}{Evaluating {TCP BBRv3} performance in wired broadband
+  networks},
+\newblock \bibinfo{journal}{Computer Communications} \bibinfo{volume}{222}
+  (\bibinfo{year}{2024}) \bibinfo{pages}{198--208}.
+  \DOIprefix\doi{10.1016/j.comcom.2024.04.037}.
+%Type = Inproceedings
+\bibitem[{Bless et~al.(2025)Bless, Lihotzki, and
+  Zitterbart}]{bless2025insights}
+\bibinfo{author}{R.~Bless}, \bibinfo{author}{L.~Lihotzki},
+  \bibinfo{author}{M.~Zitterbart},
+\newblock \bibinfo{title}{Insights into {BBRv3}'s performance and behavior by
+  experimental evaluation},
+\newblock in: \bibinfo{booktitle}{Proceedings of the 24th International IFIP
+  TC6 Networking Conference (NETWORKING)}, \bibinfo{publisher}{IEEE},
+  \bibinfo{address}{Limassol, Cyprus}, \bibinfo{year}{2025}. \URLprefix
+  \url{https://publikationen.bibliothek.kit.edu/1000182022}.
+  \DOIprefix\doi{10.5445/IR/1000182022}.
+%Type = Article
+\bibitem[{Al-Saadi et~al.(2019)Al-Saadi, Armitage, But et~al.}]{al2019survey}
+\bibinfo{author}{R.~Al-Saadi}, \bibinfo{author}{G.~Armitage},
+  \bibinfo{author}{J.~But}, et~al.,
+\newblock \bibinfo{title}{A survey of delay-based and hybrid {TCP} congestion
+  control algorithms},
+\newblock \bibinfo{journal}{IEEE Communications Surveys \& Tutorials}
+  \bibinfo{volume}{21} (\bibinfo{year}{2019}) \bibinfo{pages}{3609--3638}.
+  \DOIprefix\doi{10.1109/COMST.2019.2904994}.
+%Type = Article
+\bibitem[{Biswal and Patel(2024)}]{biswal2024bdpveno}
+\bibinfo{author}{S.~P. Biswal}, \bibinfo{author}{S.~Patel},
+\newblock \bibinfo{title}{A bandwidth delay product based modified veno for
+  high-speed networks: {BDP-Veno}},
+\newblock \bibinfo{journal}{Journal of Network and Computer Applications}
+  \bibinfo{volume}{231} (\bibinfo{year}{2024}) \bibinfo{pages}{103983}.
+  \DOIprefix\doi{10.1016/j.jnca.2024.103983}.
+%Type = Article
+\bibitem[{Biswal and Patel(2025)}]{biswal2025oveno}
+\bibinfo{author}{S.~P. Biswal}, \bibinfo{author}{S.~Patel},
+\newblock \bibinfo{title}{Optimization of veno parameter based on stochastic
+  approximation: {OVeno}},
+\newblock \bibinfo{journal}{Simulation Modelling Practice and Theory}
+  \bibinfo{volume}{142} (\bibinfo{year}{2025}) \bibinfo{pages}{103121}.
+  \DOIprefix\doi{10.1016/j.simpat.2025.103121}.
+%Type = Misc
+\bibitem[{Postel(1981)}]{postel1981tcp}
+\bibinfo{author}{J.~Postel}, \bibinfo{title}{Transmission control protocol},
+  \bibinfo{howpublished}{RFC 793, Internet Engineering Task Force},
+  \bibinfo{year}{1981}. \DOIprefix\doi{10.17487/RFC0793}.
+%Type = Misc
+\bibitem[{Allman et~al.(2009)Allman, Paxson, and Blanton}]{allman2009rfc5681}
+\bibinfo{author}{M.~Allman}, \bibinfo{author}{V.~Paxson},
+  \bibinfo{author}{E.~Blanton}, \bibinfo{title}{{TCP} congestion control},
+  \bibinfo{howpublished}{RFC 5681, Internet Engineering Task Force},
+  \bibinfo{year}{2009}. \DOIprefix\doi{10.17487/RFC5681}.
+%Type = Misc
+\bibitem[{Paxson et~al.(2011)Paxson, Allman, Chu, and
+  Sargent}]{paxson2011rfc6298}
+\bibinfo{author}{V.~Paxson}, \bibinfo{author}{M.~Allman},
+  \bibinfo{author}{J.~Chu}, \bibinfo{author}{M.~Sargent},
+  \bibinfo{title}{Computing {TCP}'s retransmission timer},
+  \bibinfo{howpublished}{RFC 6298, Internet Engineering Task Force},
+  \bibinfo{year}{2011}. \DOIprefix\doi{10.17487/RFC6298}.
+%Type = Misc
+\bibitem[{Rhee et~al.(2018)Rhee, Xu, Ha, Zimmermann, Eggert, and
+  Scheffenegger}]{rfc8312}
+\bibinfo{author}{I.~Rhee}, \bibinfo{author}{L.~Xu}, \bibinfo{author}{S.~Ha},
+  \bibinfo{author}{A.~Zimmermann}, \bibinfo{author}{L.~Eggert},
+  \bibinfo{author}{R.~Scheffenegger}, \bibinfo{title}{{CUBIC} for fast
+  long-distance networks}, \bibinfo{howpublished}{RFC 8312, Internet
+  Engineering Task Force}, \bibinfo{year}{2018}.
+  \DOIprefix\doi{10.17487/RFC8312}.
+%Type = Misc
+\bibitem[{Bensley et~al.(2017)Bensley, Thaler, Balasubramanian, Eggert, and
+  Judd}]{rfc8257}
+\bibinfo{author}{S.~Bensley}, \bibinfo{author}{D.~Thaler},
+  \bibinfo{author}{P.~Balasubramanian}, \bibinfo{author}{L.~Eggert},
+  \bibinfo{author}{G.~Judd}, \bibinfo{title}{Data center {TCP} ({DCTCP}): {TCP}
+  congestion control for data centers}, \bibinfo{howpublished}{RFC 8257,
+  Internet Engineering Task Force}, \bibinfo{year}{2017}.
+  \DOIprefix\doi{10.17487/RFC8257}.
+%Type = Inproceedings
+\bibitem[{Brakmo et~al.(1994)Brakmo, O'Malley, and Peterson}]{brakmo1994vegas}
+\bibinfo{author}{L.~S. Brakmo}, \bibinfo{author}{S.~W. O'Malley},
+  \bibinfo{author}{L.~L. Peterson},
+\newblock \bibinfo{title}{{TCP} {Vegas}: New techniques for congestion
+  detection and avoidance},
+\newblock in: \bibinfo{booktitle}{Proceedings of ACM SIGCOMM},
+  \bibinfo{year}{1994}, pp. \bibinfo{pages}{24--35}.
+  \DOIprefix\doi{10.1145/190314.190317}.
+%Type = Article
+\bibitem[{Floyd and Jacobson(1993)}]{floyd1993red}
+\bibinfo{author}{S.~Floyd}, \bibinfo{author}{V.~Jacobson},
+\newblock \bibinfo{title}{Random early detection gateways for congestion
+  avoidance},
+\newblock \bibinfo{journal}{IEEE/ACM Transactions on Networking}
+  \bibinfo{volume}{1} (\bibinfo{year}{1993}) \bibinfo{pages}{397--413}.
+  \DOIprefix\doi{10.1109/90.251892}.
+%Type = Article
+\bibitem[{Nichols and Jacobson(2012)}]{nichols2012codel}
+\bibinfo{author}{K.~Nichols}, \bibinfo{author}{V.~Jacobson},
+\newblock \bibinfo{title}{Controlling queue delay},
+\newblock \bibinfo{journal}{ACM Queue} \bibinfo{volume}{10}
+  (\bibinfo{year}{2012}) \bibinfo{pages}{20--34}.
+  \DOIprefix\doi{10.1145/2208917.2209336}.
+%Type = Inproceedings
+\bibitem[{Pan et~al.(2013)Pan, Natarajan, Piglione et~al.}]{pan2013pie}
+\bibinfo{author}{R.~Pan}, \bibinfo{author}{P.~Natarajan},
+  \bibinfo{author}{C.~Piglione}, et~al.,
+\newblock \bibinfo{title}{{PIE}: A lightweight control scheme to address the
+  bufferbloat problem},
+\newblock in: \bibinfo{booktitle}{2013 IEEE 14th International Conference on
+  High Performance Switching and Routing (HPSR)}, \bibinfo{year}{2013}, pp.
+  \bibinfo{pages}{148--155}. \DOIprefix\doi{10.1109/HPSR.2013.6602305}.
+%Type = Article
+\bibitem[{Gettys and Nichols(2011)}]{gettys2011bufferbloat}
+\bibinfo{author}{J.~Gettys}, \bibinfo{author}{K.~Nichols},
+\newblock \bibinfo{title}{Bufferbloat: Dark buffers in the {Internet}},
+\newblock \bibinfo{journal}{ACM Queue} \bibinfo{volume}{9}
+  (\bibinfo{year}{2011}) \bibinfo{pages}{40--54}.
+  \DOIprefix\doi{10.1145/2063166.2071893}.
+%Type = Article
+\bibitem[{Kelly et~al.(1998)Kelly, Maulloo, and Tan}]{kelly1998rate}
+\bibinfo{author}{F.~P. Kelly}, \bibinfo{author}{A.~K. Maulloo},
+  \bibinfo{author}{D.~K.~H. Tan},
+\newblock \bibinfo{title}{Rate control for communication networks: Shadow
+  prices, proportional fairness and stability},
+\newblock \bibinfo{journal}{Journal of the Operational Research Society}
+  \bibinfo{volume}{49} (\bibinfo{year}{1998}) \bibinfo{pages}{237--252}.
+  \DOIprefix\doi{10.1057/palgrave.jors.2600523}.
+%Type = Article
+\bibitem[{Padhye et~al.(1998)Padhye, Firoiu, Towsley, and
+  Kurose}]{padhye1998modeling}
+\bibinfo{author}{J.~Padhye}, \bibinfo{author}{V.~Firoiu},
+  \bibinfo{author}{D.~Towsley}, \bibinfo{author}{J.~Kurose},
+\newblock \bibinfo{title}{Modeling {TCP} throughput: A simple model and its
+  empirical validation},
+\newblock \bibinfo{journal}{ACM SIGCOMM Computer Communication Review}
+  \bibinfo{volume}{28} (\bibinfo{year}{1998}) \bibinfo{pages}{303--314}.
+  \DOIprefix\doi{10.1145/285237.285291}.
+%Type = Inproceedings
+\bibitem[{Appenzeller et~al.(2004)Appenzeller, Keslassy, and
+  McKeown}]{appenzeller2004sizing}
+\bibinfo{author}{G.~Appenzeller}, \bibinfo{author}{I.~Keslassy},
+  \bibinfo{author}{N.~McKeown},
+\newblock \bibinfo{title}{Sizing router buffers},
+\newblock in: \bibinfo{booktitle}{Proceedings of ACM SIGCOMM},
+  \bibinfo{year}{2004}, pp. \bibinfo{pages}{281--292}.
+  \DOIprefix\doi{10.1145/1015467.1015499}.
+%Type = Article
+\bibitem[{Dhamdhere and Dovrolis(2006)}]{dhamdhere2006buffer}
+\bibinfo{author}{A.~Dhamdhere}, \bibinfo{author}{C.~Dovrolis},
+\newblock \bibinfo{title}{Open issues in router buffer sizing},
+\newblock \bibinfo{journal}{ACM SIGCOMM Computer Communication Review}
+  \bibinfo{volume}{36} (\bibinfo{year}{2006}) \bibinfo{pages}{87--92}.
+  \DOIprefix\doi{10.1145/1111322.1111342}.
+%Type = Article
+\bibitem[{Wischik and McKeown(2005)}]{wischik2005buffers}
+\bibinfo{author}{D.~Wischik}, \bibinfo{author}{N.~McKeown},
+\newblock \bibinfo{title}{Part {I}: Buffer sizes for core routers},
+\newblock \bibinfo{journal}{ACM SIGCOMM Computer Communication Review}
+  \bibinfo{volume}{35} (\bibinfo{year}{2005}) \bibinfo{pages}{75--78}.
+  \DOIprefix\doi{10.1145/1070873.1070884}.
+%Type = Article
+\bibitem[{Blanton and Allman(2002)}]{blanton2002reorder}
+\bibinfo{author}{E.~Blanton}, \bibinfo{author}{M.~Allman},
+\newblock \bibinfo{title}{On making {TCP} more robust to packet reordering},
+\newblock \bibinfo{journal}{ACM SIGCOMM Computer Communication Review}
+  \bibinfo{volume}{32} (\bibinfo{year}{2002}) \bibinfo{pages}{20--30}.
+  \DOIprefix\doi{10.1145/510726.510728}.
+%Type = Article
+\bibitem[{Jaiswal et~al.(2007)Jaiswal, Iannaccone, Diot, Kurose, and
+  Towsley}]{jaiswal2007oos}
+\bibinfo{author}{S.~Jaiswal}, \bibinfo{author}{G.~Iannaccone},
+  \bibinfo{author}{C.~Diot}, \bibinfo{author}{J.~Kurose},
+  \bibinfo{author}{D.~Towsley},
+\newblock \bibinfo{title}{Measurement and classification of out-of-sequence
+  packets in a tier-1 {IP} backbone},
+\newblock \bibinfo{journal}{IEEE/ACM Transactions on Networking}
+  \bibinfo{volume}{15} (\bibinfo{year}{2007}) \bibinfo{pages}{54--66}.
+  \DOIprefix\doi{10.1109/TNET.2006.890117}.
+%Type = Article
+\bibitem[{Paxson(1999)}]{paxson1999dynamics}
+\bibinfo{author}{V.~Paxson},
+\newblock \bibinfo{title}{End-to-end {Internet} packet dynamics},
+\newblock \bibinfo{journal}{IEEE/ACM Transactions on Networking}
+  \bibinfo{volume}{7} (\bibinfo{year}{1999}) \bibinfo{pages}{277--292}.
+  \DOIprefix\doi{10.1109/90.779192}.
+%Type = Article
+\bibitem[{Medina et~al.(2005)Medina, Allman, and Floyd}]{medina2004transport}
+\bibinfo{author}{A.~Medina}, \bibinfo{author}{M.~Allman},
+  \bibinfo{author}{S.~Floyd},
+\newblock \bibinfo{title}{Measuring the evolution of transport protocols in the
+  {Internet}},
+\newblock \bibinfo{journal}{ACM SIGCOMM Computer Communication Review}
+  \bibinfo{volume}{35} (\bibinfo{year}{2005}) \bibinfo{pages}{37--52}.
+  \DOIprefix\doi{10.1145/1064413.1064418}.
+%Type = Article
+\bibitem[{Barakat et~al.(2000)Barakat, Altman, and Dabbous}]{barakat2000tcp}
+\bibinfo{author}{C.~Barakat}, \bibinfo{author}{E.~Altman},
+  \bibinfo{author}{W.~Dabbous},
+\newblock \bibinfo{title}{On {TCP} performance in a heterogeneous network: {A}
+  survey},
+\newblock \bibinfo{journal}{IEEE Communications Magazine} \bibinfo{volume}{38}
+  (\bibinfo{year}{2000}) \bibinfo{pages}{40--46}.
+  \DOIprefix\doi{10.1109/35.815451}.
+%Type = Inproceedings
+\bibitem[{Zhang et~al.(2001)Zhang, Duffield, Paxson, and
+  Shenker}]{zhang2001constancy}
+\bibinfo{author}{Y.~Zhang}, \bibinfo{author}{N.~Duffield},
+  \bibinfo{author}{V.~Paxson}, \bibinfo{author}{S.~Shenker},
+\newblock \bibinfo{title}{On the constancy of {Internet} path properties},
+\newblock in: \bibinfo{booktitle}{Proceedings of the 1st ACM SIGCOMM Workshop
+  on Internet Measurement (IMW)}, \bibinfo{year}{2001}, pp.
+  \bibinfo{pages}{197--211}. \DOIprefix\doi{10.1145/505202.505228}.
+%Type = Inproceedings
+\bibitem[{Jain and Dovrolis(2002)}]{jain2002bandwidth}
+\bibinfo{author}{M.~Jain}, \bibinfo{author}{C.~Dovrolis},
+\newblock \bibinfo{title}{End-to-end available bandwidth: Measurement
+  methodology, dynamics, and relation with {TCP} throughput},
+\newblock in: \bibinfo{booktitle}{Proceedings of ACM SIGCOMM},
+  \bibinfo{year}{2002}, pp. \bibinfo{pages}{295--308}.
+  \DOIprefix\doi{10.1145/964725.633054}.
+%Type = Article
+\bibitem[{Prasad et~al.(2003)Prasad, Murray, Dovrolis, and
+  Claffy}]{prasad2003bandwidth}
+\bibinfo{author}{R.~S. Prasad}, \bibinfo{author}{M.~Murray},
+  \bibinfo{author}{C.~Dovrolis}, \bibinfo{author}{K.~Claffy},
+\newblock \bibinfo{title}{Bandwidth estimation: Metrics, measurement
+  techniques, and tools},
+\newblock \bibinfo{journal}{IEEE Network} \bibinfo{volume}{17}
+  (\bibinfo{year}{2003}) \bibinfo{pages}{27--35}.
+  \DOIprefix\doi{10.1109/MNET.2003.1248658}.
+%Type = Article
+\bibitem[{Dukkipati and McKeown(2006)}]{dukkipati2006fct}
+\bibinfo{author}{N.~Dukkipati}, \bibinfo{author}{N.~McKeown},
+\newblock \bibinfo{title}{Why flow-completion time is the right metric for
+  congestion control},
+\newblock \bibinfo{journal}{ACM SIGCOMM Computer Communication Review}
+  \bibinfo{volume}{36} (\bibinfo{year}{2006}) \bibinfo{pages}{59--62}.
+  \DOIprefix\doi{10.1145/1111322.1111336}.
+%Type = Inproceedings
+\bibitem[{Tan et~al.(2006)Tan, Song, Zhang, and Srikant}]{tan2006compound}
+\bibinfo{author}{K.~Tan}, \bibinfo{author}{J.~Song},
+  \bibinfo{author}{Q.~Zhang}, \bibinfo{author}{R.~Srikant},
+\newblock \bibinfo{title}{A compound {TCP} approach for high-speed and long
+  distance networks},
+\newblock in: \bibinfo{booktitle}{Proceedings of IEEE INFOCOM},
+  \bibinfo{year}{2006}. \DOIprefix\doi{10.1109/INFOCOM.2006.188}.
+%Type = Article
+\bibitem[{Liu et~al.(2008)Liu, Ba{\c{s}}ar, and Srikant}]{liu2008illinois}
+\bibinfo{author}{S.~Liu}, \bibinfo{author}{T.~Ba{\c{s}}ar},
+  \bibinfo{author}{R.~Srikant},
+\newblock \bibinfo{title}{{TCP-Illinois}: A loss- and delay-based congestion
+  control algorithm for high-speed networks},
+\newblock \bibinfo{journal}{Performance Evaluation} \bibinfo{volume}{65}
+  (\bibinfo{year}{2008}) \bibinfo{pages}{417--440}.
+  \DOIprefix\doi{10.1016/j.peva.2007.12.007}.
+%Type = Article
+\bibitem[{Grieco and Mascolo(2004)}]{grieco2004westwood}
+\bibinfo{author}{L.~A. Grieco}, \bibinfo{author}{S.~Mascolo},
+\newblock \bibinfo{title}{Performance evaluation and comparison of {Westwood+},
+  {New Reno}, and {Vegas} {TCP} congestion control},
+\newblock \bibinfo{journal}{ACM SIGCOMM Computer Communication Review}
+  \bibinfo{volume}{34} (\bibinfo{year}{2004}) \bibinfo{pages}{25--38}.
+  \DOIprefix\doi{10.1145/997150.997155}.
+%Type = Misc
+\bibitem[{Handley et~al.(2003)Handley, Padhye, and Floyd}]{handley2003tfrc}
+\bibinfo{author}{M.~Handley}, \bibinfo{author}{J.~Padhye},
+  \bibinfo{author}{S.~Floyd}, \bibinfo{title}{{TCP} friendly rate control
+  ({TFRC}): Protocol specification}, \bibinfo{howpublished}{RFC 3448, Internet
+  Engineering Task Force}, \bibinfo{year}{2003}.
+  \DOIprefix\doi{10.17487/RFC3448}.
+%Type = Article
+\bibitem[{Kuzmanovic and Knightly(2006)}]{kuzmanovic2006tcplp}
+\bibinfo{author}{A.~Kuzmanovic}, \bibinfo{author}{E.~W. Knightly},
+\newblock \bibinfo{title}{{TCP-LP}: Low-priority service via end-point
+  congestion control},
+\newblock \bibinfo{journal}{IEEE/ACM Transactions on Networking}
+  \bibinfo{volume}{14} (\bibinfo{year}{2006}) \bibinfo{pages}{739--752}.
+  \DOIprefix\doi{10.1109/TNET.2006.879702}.
+%Type = Inproceedings
+\bibitem[{Alizadeh et~al.(2010)Alizadeh, Greenberg, Maltz
+  et~al.}]{alizadeh2010dctcp}
+\bibinfo{author}{M.~Alizadeh}, \bibinfo{author}{A.~Greenberg},
+  \bibinfo{author}{D.~A. Maltz}, et~al.,
+\newblock \bibinfo{title}{Data center {TCP} ({DCTCP})},
+\newblock in: \bibinfo{booktitle}{Proceedings of ACM SIGCOMM},
+  \bibinfo{year}{2010}, pp. \bibinfo{pages}{63--74}.
+  \DOIprefix\doi{10.1145/1851182.1851192}.
+%Type = Inproceedings
+\bibitem[{Alizadeh et~al.(2013)Alizadeh, Yang, Sharif
+  et~al.}]{alizadeh2013pfabric}
+\bibinfo{author}{M.~Alizadeh}, \bibinfo{author}{S.~Yang},
+  \bibinfo{author}{M.~Sharif}, et~al.,
+\newblock \bibinfo{title}{{pFabric}: Minimal near-optimal datacenter
+  transport},
+\newblock in: \bibinfo{booktitle}{Proceedings of ACM SIGCOMM},
+  \bibinfo{year}{2013}, pp. \bibinfo{pages}{435--446}.
+  \DOIprefix\doi{10.1145/2486001.2486031}.
+%Type = Inproceedings
+\bibitem[{Bai et~al.(2015)Bai, Chen, Chen, Han, Tian, and Wang}]{bai2015pias}
+\bibinfo{author}{W.~Bai}, \bibinfo{author}{L.~Chen}, \bibinfo{author}{K.~Chen},
+  \bibinfo{author}{D.~Han}, \bibinfo{author}{C.~Tian},
+  \bibinfo{author}{H.~Wang},
+\newblock \bibinfo{title}{Information-agnostic flow scheduling for commodity
+  data centers},
+\newblock in: \bibinfo{booktitle}{12th USENIX Symposium on Networked Systems
+  Design and Implementation (NSDI 15)}, \bibinfo{year}{2015}, pp.
+  \bibinfo{pages}{455--468}.
+%Type = Inproceedings
+\bibitem[{Mittal et~al.(2015)Mittal, Dukkipati, Blem et~al.}]{mittal2015timely}
+\bibinfo{author}{R.~Mittal}, \bibinfo{author}{N.~Dukkipati},
+  \bibinfo{author}{E.~Blem}, et~al.,
+\newblock \bibinfo{title}{{TIMELY}: {RTT}-based congestion control for the
+  datacenter},
+\newblock in: \bibinfo{booktitle}{Proceedings of ACM SIGCOMM},
+  \bibinfo{year}{2015}, pp. \bibinfo{pages}{537--550}.
+  \DOIprefix\doi{10.1145/2785956.2787510}.
+%Type = Inproceedings
+\bibitem[{Zhu et~al.(2015)Zhu, Eran, Firestone et~al.}]{zhu2015dcqcn}
+\bibinfo{author}{Y.~Zhu}, \bibinfo{author}{H.~Eran},
+  \bibinfo{author}{D.~Firestone}, et~al.,
+\newblock \bibinfo{title}{Congestion control for large-scale {RDMA}
+  deployments},
+\newblock in: \bibinfo{booktitle}{Proceedings of ACM SIGCOMM},
+  \bibinfo{year}{2015}, pp. \bibinfo{pages}{523--536}.
+  \DOIprefix\doi{10.1145/2785956.2787484}.
+%Type = Inproceedings
+\bibitem[{Handley et~al.(2017)Handley, Raiciu, Agache et~al.}]{handley2017ndp}
+\bibinfo{author}{M.~Handley}, \bibinfo{author}{C.~Raiciu},
+  \bibinfo{author}{A.~Agache}, et~al.,
+\newblock \bibinfo{title}{Re-architecting datacenter networks and stacks for
+  low latency and high performance},
+\newblock in: \bibinfo{booktitle}{Proceedings of ACM SIGCOMM},
+  \bibinfo{year}{2017}, pp. \bibinfo{pages}{29--42}.
+  \DOIprefix\doi{10.1145/3098822.3098825}.
+%Type = Inproceedings
+\bibitem[{Cho et~al.(2017)Cho, Jang, and Han}]{cho2017credit}
+\bibinfo{author}{I.~Cho}, \bibinfo{author}{K.~Jang}, \bibinfo{author}{D.~Han},
+\newblock \bibinfo{title}{Credit-scheduled delay-bounded congestion control for
+  datacenters},
+\newblock in: \bibinfo{booktitle}{Proceedings of ACM SIGCOMM},
+  \bibinfo{year}{2017}, pp. \bibinfo{pages}{239--252}.
+  \DOIprefix\doi{10.1145/3098822.3098840}.
+%Type = Inproceedings
+\bibitem[{Li et~al.(2019)Li, Miao, Kim, and Yu}]{li2019hpcc}
+\bibinfo{author}{Y.~Li}, \bibinfo{author}{R.~Miao}, \bibinfo{author}{C.~Kim},
+  \bibinfo{author}{M.~Yu},
+\newblock \bibinfo{title}{{HPCC}: High precision congestion control},
+\newblock in: \bibinfo{booktitle}{Proceedings of ACM SIGCOMM},
+  \bibinfo{year}{2019}, pp. \bibinfo{pages}{44--58}.
+  \DOIprefix\doi{10.1145/3341302.3342085}.
+%Type = Inproceedings
+\bibitem[{Kumar et~al.(2020)Kumar, Dukkipati, Jang et~al.}]{kumar2020swift}
+\bibinfo{author}{G.~Kumar}, \bibinfo{author}{N.~Dukkipati},
+  \bibinfo{author}{K.~Jang}, et~al.,
+\newblock \bibinfo{title}{Swift: Delay is simple and effective for congestion
+  control in the datacenter},
+\newblock in: \bibinfo{booktitle}{Proceedings of ACM SIGCOMM},
+  \bibinfo{year}{2020}, pp. \bibinfo{pages}{514--528}.
+  \DOIprefix\doi{10.1145/3387514.3406591}.
+%Type = Inproceedings
+\bibitem[{Liu et~al.(2021)Liu, Ghalayini, Alizadeh, Prabhakar, Rosenblum, and
+  Sivaraman}]{liu2021onramp}
+\bibinfo{author}{S.~Liu}, \bibinfo{author}{A.~Ghalayini},
+  \bibinfo{author}{M.~Alizadeh}, \bibinfo{author}{B.~Prabhakar},
+  \bibinfo{author}{M.~Rosenblum}, \bibinfo{author}{A.~Sivaraman},
+\newblock \bibinfo{title}{Breaking the transience-equilibrium nexus: A new
+  approach to datacenter packet transport},
+\newblock in: \bibinfo{booktitle}{18th USENIX Symposium on Networked Systems
+  Design and Implementation (NSDI 21)}, \bibinfo{year}{2021}, pp.
+  \bibinfo{pages}{47--63}.
+%Type = Inproceedings
+\bibitem[{Goyal et~al.(2022)Goyal, Shah, Zhao et~al.}]{goyal2022bfc}
+\bibinfo{author}{P.~Goyal}, \bibinfo{author}{P.~Shah},
+  \bibinfo{author}{K.~Zhao}, et~al.,
+\newblock \bibinfo{title}{Backpressure flow control},
+\newblock in: \bibinfo{booktitle}{19th USENIX Symposium on Networked Systems
+  Design and Implementation (NSDI 22)}, \bibinfo{year}{2022}, pp.
+  \bibinfo{pages}{779--805}.
+%Type = Inproceedings
+\bibitem[{Wang et~al.(2023)Wang, Moshref, Li, Kumar, Ng, Cardwell, and
+  Dukkipati}]{wang2023poseidon}
+\bibinfo{author}{W.~Wang}, \bibinfo{author}{M.~Moshref},
+  \bibinfo{author}{Y.~Li}, \bibinfo{author}{G.~Kumar},
+  \bibinfo{author}{T.~S.~E. Ng}, \bibinfo{author}{N.~Cardwell},
+  \bibinfo{author}{N.~Dukkipati},
+\newblock \bibinfo{title}{Poseidon: Efficient, robust, and practical datacenter
+  {CC} via deployable {INT}},
+\newblock in: \bibinfo{booktitle}{20th USENIX Symposium on Networked Systems
+  Design and Implementation (NSDI 23)}, \bibinfo{publisher}{USENIX
+  Association}, \bibinfo{year}{2023}, pp. \bibinfo{pages}{255--274}. \URLprefix
+  \url{https://www.usenix.org/conference/nsdi23/presentation/wang-weitao}.
+%Type = Inproceedings
+\bibitem[{Arslan et~al.(2023)Arslan, Li, Kumar, and Dukkipati}]{arslan2023bolt}
+\bibinfo{author}{S.~Arslan}, \bibinfo{author}{Y.~Li},
+  \bibinfo{author}{G.~Kumar}, \bibinfo{author}{N.~Dukkipati},
+\newblock \bibinfo{title}{Bolt: {Sub-RTT} congestion control for ultra-low
+  latency},
+\newblock in: \bibinfo{booktitle}{20th USENIX Symposium on Networked Systems
+  Design and Implementation (NSDI 23)}, \bibinfo{publisher}{USENIX
+  Association}, \bibinfo{year}{2023}, pp. \bibinfo{pages}{219--236}. \URLprefix
+  \url{https://www.usenix.org/conference/nsdi23/presentation/arslan}.
+%Type = Inproceedings
+\bibitem[{Dhamija et~al.(2024)Dhamija, Madhavan, Li, Meng, Khare, Rao, Brakmo,
+  Spring, Kannan, Sundaresan, and Ghorbani}]{dhamija2024dctcp}
+\bibinfo{author}{A.~Dhamija}, \bibinfo{author}{B.~Madhavan},
+  \bibinfo{author}{H.~Li}, \bibinfo{author}{J.~Meng},
+  \bibinfo{author}{S.~Khare}, \bibinfo{author}{M.~Rao},
+  \bibinfo{author}{L.~Brakmo}, \bibinfo{author}{N.~Spring},
+  \bibinfo{author}{P.~Kannan}, \bibinfo{author}{S.~Sundaresan},
+  \bibinfo{author}{S.~Ghorbani},
+\newblock \bibinfo{title}{A large-scale deployment of {DCTCP}},
+\newblock in: \bibinfo{booktitle}{21st USENIX Symposium on Networked Systems
+  Design and Implementation (NSDI 24)}, \bibinfo{publisher}{USENIX
+  Association}, \bibinfo{address}{Santa Clara, CA}, \bibinfo{year}{2024}, pp.
+  \bibinfo{pages}{239--252}. \URLprefix
+  \url{https://www.usenix.org/conference/nsdi24/presentation/dhamija}.
+%Type = Inproceedings
+\bibitem[{Zhang et~al.(2024)Zhang, Meng, Hu, and Ren}]{zhang2024lossless}
+\bibinfo{author}{Y.~Zhang}, \bibinfo{author}{Q.~Meng}, \bibinfo{author}{C.~Hu},
+  \bibinfo{author}{F.~Ren},
+\newblock \bibinfo{title}{Revisiting congestion control for lossless
+  {Ethernet}},
+\newblock in: \bibinfo{booktitle}{21st USENIX Symposium on Networked Systems
+  Design and Implementation (NSDI 24)}, \bibinfo{publisher}{USENIX
+  Association}, \bibinfo{year}{2024}, pp. \bibinfo{pages}{131--148}. \URLprefix
+  \url{https://www.usenix.org/conference/nsdi24/presentation/zhang-yiran}.
+%Type = Inproceedings
+\bibitem[{Wang et~al.(2024)Wang, Yang, Kong et~al.}]{wang2024pudica}
+\bibinfo{author}{S.~Wang}, \bibinfo{author}{S.~Yang},
+  \bibinfo{author}{X.~Kong}, et~al.,
+\newblock \bibinfo{title}{Pudica: Toward near-zero queuing delay in congestion
+  control for cloud gaming},
+\newblock in: \bibinfo{booktitle}{21st USENIX Symposium on Networked Systems
+  Design and Implementation (NSDI 24)}, \bibinfo{publisher}{USENIX
+  Association}, \bibinfo{year}{2024}, pp. \bibinfo{pages}{113--129}. \URLprefix
+  \url{https://www.usenix.org/conference/nsdi24/presentation/wang-shibo}.
+%Type = Inproceedings
+\bibitem[{Zhang et~al.(2024)Zhang, Yang, Liu et~al.}]{zhang2024tecc}
+\bibinfo{author}{J.~Zhang}, \bibinfo{author}{F.~Yang},
+  \bibinfo{author}{T.~Liu}, et~al.,
+\newblock \bibinfo{title}{{TECC}: Towards efficient {QUIC} tunneling via
+  collaborative transmission control},
+\newblock in: \bibinfo{booktitle}{21st USENIX Symposium on Networked Systems
+  Design and Implementation (NSDI 24)}, \bibinfo{publisher}{USENIX
+  Association}, \bibinfo{year}{2024}, pp. \bibinfo{pages}{253--266}. \URLprefix
+  \url{https://www.usenix.org/conference/nsdi24/presentation/zhang-jiaxing}.
+%Type = Inproceedings
+\bibitem[{Addanki et~al.(2024{\natexlab{a}})Addanki, Pacut, and
+  Schmid}]{addanki2024credence}
+\bibinfo{author}{V.~Addanki}, \bibinfo{author}{M.~Pacut},
+  \bibinfo{author}{S.~Schmid},
+\newblock \bibinfo{title}{Credence: Augmenting datacenter switch buffer sharing
+  with {ML} predictions},
+\newblock in: \bibinfo{booktitle}{21st USENIX Symposium on Networked Systems
+  Design and Implementation (NSDI 24)}, \bibinfo{publisher}{USENIX
+  Association}, \bibinfo{year}{2024}{\natexlab{a}}, pp.
+  \bibinfo{pages}{613--634}. \URLprefix
+  \url{https://www.usenix.org/conference/nsdi24/presentation/addanki-credence}.
+%Type = Inproceedings
+\bibitem[{Addanki et~al.(2024{\natexlab{b}})Addanki, Bai, Schmid, and
+  Apostolaki}]{addanki2024reverie}
+\bibinfo{author}{V.~Addanki}, \bibinfo{author}{W.~Bai},
+  \bibinfo{author}{S.~Schmid}, \bibinfo{author}{M.~Apostolaki},
+\newblock \bibinfo{title}{Reverie: Low pass filter-based switch buffer sharing
+  for datacenters with {RDMA} and {TCP} traffic},
+\newblock in: \bibinfo{booktitle}{21st USENIX Symposium on Networked Systems
+  Design and Implementation (NSDI 24)}, \bibinfo{publisher}{USENIX
+  Association}, \bibinfo{year}{2024}{\natexlab{b}}, pp.
+  \bibinfo{pages}{651--668}. \URLprefix
+  \url{https://www.usenix.org/conference/nsdi24/presentation/addanki-reverie}.
+%Type = Inproceedings
+\bibitem[{Agarwal et~al.(2024)Agarwal, Arun, Ray, Martins, and
+  Seshan}]{agarwal2024provably}
+\bibinfo{author}{A.~Agarwal}, \bibinfo{author}{V.~Arun},
+  \bibinfo{author}{D.~Ray}, \bibinfo{author}{R.~Martins},
+  \bibinfo{author}{S.~Seshan},
+\newblock \bibinfo{title}{Towards provably performant congestion control},
+\newblock in: \bibinfo{booktitle}{21st USENIX Symposium on Networked Systems
+  Design and Implementation (NSDI 24)}, \bibinfo{publisher}{USENIX
+  Association}, \bibinfo{year}{2024}, pp. \bibinfo{pages}{951--978}. \URLprefix
+  \url{https://www.usenix.org/conference/nsdi24/presentation/agarwal-anup}.
+%Type = Inproceedings
+\bibitem[{Kumar et~al.(2024)Kumar, Owens, Bj{\o}rner et~al.}]{kumar2024chisel}
+\bibinfo{author}{A.~V. Kumar}, \bibinfo{author}{B.~Owens},
+  \bibinfo{author}{N.~Bj{\o}rner}, et~al.,
+\newblock \bibinfo{title}{{CHISEL}: An optical slice of the wide-area network},
+\newblock in: \bibinfo{booktitle}{21st USENIX Symposium on Networked Systems
+  Design and Implementation (NSDI 24)}, \bibinfo{publisher}{USENIX
+  Association}, \bibinfo{year}{2024}, pp. \bibinfo{pages}{859--875}. \URLprefix
+  \url{https://www.usenix.org/conference/nsdi24/presentation/kumar}.
+%Type = Inproceedings
+\bibitem[{Wydrowski et~al.(2024)Wydrowski, Kleinberg, Rumble, and
+  Archer}]{wydrowski2024prequal}
+\bibinfo{author}{B.~Wydrowski}, \bibinfo{author}{R.~Kleinberg},
+  \bibinfo{author}{S.~M. Rumble}, \bibinfo{author}{A.~Archer},
+\newblock \bibinfo{title}{Load is not what you should balance: Introducing
+  {Prequal}},
+\newblock in: \bibinfo{booktitle}{21st USENIX Symposium on Networked Systems
+  Design and Implementation (NSDI 24)}, \bibinfo{publisher}{USENIX
+  Association}, \bibinfo{year}{2024}, pp. \bibinfo{pages}{1285--1299}.
+  \URLprefix
+  \url{https://www.usenix.org/conference/nsdi24/presentation/wydrowski}.
+%Type = Inproceedings
+\bibitem[{Agarwal et~al.(2024)Agarwal, Cai, Agarwal, Shmoys, and
+  Vahdat}]{agarwal2024harmony}
+\bibinfo{author}{S.~Agarwal}, \bibinfo{author}{Q.~Cai},
+  \bibinfo{author}{R.~Agarwal}, \bibinfo{author}{D.~Shmoys},
+  \bibinfo{author}{A.~Vahdat},
+\newblock \bibinfo{title}{Harmony: A congestion-free datacenter architecture},
+\newblock in: \bibinfo{booktitle}{21st USENIX Symposium on Networked Systems
+  Design and Implementation (NSDI 24)}, \bibinfo{publisher}{USENIX
+  Association}, \bibinfo{year}{2024}, pp. \bibinfo{pages}{329--343}. \URLprefix
+  \url{https://www.usenix.org/conference/nsdi24/presentation/agarwal-saksham}.
+%Type = Inproceedings
+\bibitem[{Wang et~al.(2024)Wang, Wang, Zhou, Ni, Qian, and Xu}]{wang2024smuff}
+\bibinfo{author}{C.~Wang}, \bibinfo{author}{H.~Wang},
+  \bibinfo{author}{Y.~Zhou}, \bibinfo{author}{Y.~Ni},
+  \bibinfo{author}{F.~Qian}, \bibinfo{author}{C.~Xu},
+\newblock \bibinfo{title}{{SMUFF}: Towards line rate {Wi-Fi} direct transport
+  with orchestrated on-device buffer management},
+\newblock in: \bibinfo{booktitle}{21st USENIX Symposium on Networked Systems
+  Design and Implementation (NSDI 24)}, \bibinfo{publisher}{USENIX
+  Association}, \bibinfo{year}{2024}, pp. \bibinfo{pages}{1369--1383}.
+  \URLprefix
+  \url{https://www.usenix.org/conference/nsdi24/presentation/wang-chengke}.
+%Type = Inproceedings
+\bibitem[{Zhou et~al.(2024)Zhou, Wang, Wang et~al.}]{zhou2024augur}
+\bibinfo{author}{Y.~Zhou}, \bibinfo{author}{T.~Wang},
+  \bibinfo{author}{L.~Wang}, et~al.,
+\newblock \bibinfo{title}{{AUGUR}: Practical mobile multipath transport service
+  for low tail latency in real-time streaming},
+\newblock in: \bibinfo{booktitle}{21st USENIX Symposium on Networked Systems
+  Design and Implementation (NSDI 24)}, \bibinfo{publisher}{USENIX
+  Association}, \bibinfo{year}{2024}, pp. \bibinfo{pages}{1901--1916}.
+  \URLprefix
+  \url{https://www.usenix.org/conference/nsdi24/presentation/zhou-yuhan}.
+%Type = Inproceedings
+\bibitem[{Zhang et~al.(2024)Zhang, Wang, Hu et~al.}]{zhang2024habitus}
+\bibinfo{author}{A.~Zhang}, \bibinfo{author}{C.~Wang}, \bibinfo{author}{Y.~Hu},
+  et~al.,
+\newblock \bibinfo{title}{Habitus: Boosting mobile immersive content delivery
+  through full-body pose tracking and multipath networking},
+\newblock in: \bibinfo{booktitle}{21st USENIX Symposium on Networked Systems
+  Design and Implementation (NSDI 24)}, \bibinfo{publisher}{USENIX
+  Association}, \bibinfo{year}{2024}, pp. \bibinfo{pages}{1677--1695}.
+  \URLprefix
+  \url{https://www.usenix.org/conference/nsdi24/presentation/zhang-anlan}.
+%Type = Inproceedings
+\bibitem[{Du et~al.(2025)Du, Li, Zhou et~al.}]{du2025pred}
+\bibinfo{author}{X.~Du}, \bibinfo{author}{T.~Li}, \bibinfo{author}{G.~Zhou},
+  et~al.,
+\newblock \bibinfo{title}{{PRED}: Performance-oriented random early detection
+  for consistently stable performance in datacenters},
+\newblock in: \bibinfo{booktitle}{22nd USENIX Symposium on Networked Systems
+  Design and Implementation (NSDI 25)}, \bibinfo{publisher}{USENIX
+  Association}, \bibinfo{year}{2025}, pp. \bibinfo{pages}{1--20}. \URLprefix
+  \url{https://www.usenix.org/conference/nsdi25/presentation/du}.
+%Type = Inproceedings
+\bibitem[{Liu et~al.(2025)Liu, Zhang, Liu et~al.}]{liu2025pyrrha}
+\bibinfo{author}{K.~Liu}, \bibinfo{author}{Z.~Zhang}, \bibinfo{author}{C.~Liu},
+  et~al.,
+\newblock \bibinfo{title}{Pyrrha: Congestion-root-based flow control to
+  eliminate head-of-line blocking in datacenter},
+\newblock in: \bibinfo{booktitle}{22nd USENIX Symposium on Networked Systems
+  Design and Implementation (NSDI 25)}, \bibinfo{publisher}{USENIX
+  Association}, \bibinfo{year}{2025}, pp. \bibinfo{pages}{379--405}. \URLprefix
+  \url{https://www.usenix.org/conference/nsdi25/presentation/liu-kexin}.
+%Type = Inproceedings
+\bibitem[{Chen et~al.(2025)Chen, Meng, Lao et~al.}]{chen2025etran}
+\bibinfo{author}{Z.~Chen}, \bibinfo{author}{Q.~Meng}, \bibinfo{author}{C.~Lao},
+  et~al.,
+\newblock \bibinfo{title}{{eTran}: Extensible kernel transport with {eBPF}},
+\newblock in: \bibinfo{booktitle}{22nd USENIX Symposium on Networked Systems
+  Design and Implementation (NSDI 25)}, \bibinfo{publisher}{USENIX
+  Association}, \bibinfo{year}{2025}, pp. \bibinfo{pages}{407--425}. \URLprefix
+  \url{https://www.usenix.org/conference/nsdi25/presentation/chen-zhongjie}.
+%Type = Inproceedings
+\bibitem[{Zhao et~al.(2025)Zhao, Min, Liu, and
+  Krishnamurthy}]{zhao2025whiteboxing}
+\bibinfo{author}{C.~Zhao}, \bibinfo{author}{J.~Min}, \bibinfo{author}{M.~Liu},
+  \bibinfo{author}{A.~Krishnamurthy},
+\newblock \bibinfo{title}{White-boxing {RDMA} with packet-granular software
+  control},
+\newblock in: \bibinfo{booktitle}{22nd USENIX Symposium on Networked Systems
+  Design and Implementation (NSDI 25)}, \bibinfo{publisher}{USENIX
+  Association}, \bibinfo{year}{2025}, pp. \bibinfo{pages}{427--449}. \URLprefix
+  \url{https://www.usenix.org/conference/nsdi25/presentation/zhao-chenxingyu}.
+%Type = Inproceedings
+\bibitem[{Prasopoulos et~al.(2025)Prasopoulos, Kosta, Bugnion, and
+  Kogias}]{prasopoulos2025sird}
+\bibinfo{author}{K.~Prasopoulos}, \bibinfo{author}{R.~Kosta},
+  \bibinfo{author}{E.~Bugnion}, \bibinfo{author}{M.~Kogias},
+\newblock \bibinfo{title}{{SIRD}: A sender-informed, receiver-driven datacenter
+  transport protocol},
+\newblock in: \bibinfo{booktitle}{22nd USENIX Symposium on Networked Systems
+  Design and Implementation (NSDI 25)}, \bibinfo{publisher}{USENIX
+  Association}, \bibinfo{year}{2025}, pp. \bibinfo{pages}{451--471}. \URLprefix
+  \url{https://www.usenix.org/conference/nsdi25/presentation/prasopoulos}.
+%Type = Inproceedings
+\bibitem[{Ji et~al.(2025)Ji, Vardekar, Vamanan, Stephens, and
+  Akella}]{ji2025mtp}
+\bibinfo{author}{T.~Ji}, \bibinfo{author}{R.~Vardekar},
+  \bibinfo{author}{B.~Vamanan}, \bibinfo{author}{B.~E. Stephens},
+  \bibinfo{author}{A.~Akella},
+\newblock \bibinfo{title}{{MTP}: Transport for in-network computing},
+\newblock in: \bibinfo{booktitle}{22nd USENIX Symposium on Networked Systems
+  Design and Implementation (NSDI 25)}, \bibinfo{publisher}{USENIX
+  Association}, \bibinfo{year}{2025}, pp. \bibinfo{pages}{959--977}. \URLprefix
+  \url{https://www.usenix.org/conference/nsdi25/presentation/ji}.
+%Type = Inproceedings
+\bibitem[{Zeng et~al.(2025)Zeng, Xu, Chen et~al.}]{zeng2025alibaba}
+\bibinfo{author}{X.~Zeng}, \bibinfo{author}{H.~Xu}, \bibinfo{author}{C.~Chen},
+  et~al.,
+\newblock \bibinfo{title}{Learning production-optimized congestion control
+  selection for alibaba cloud {CDN}},
+\newblock in: \bibinfo{booktitle}{22nd USENIX Symposium on Networked Systems
+  Design and Implementation (NSDI 25)}, \bibinfo{publisher}{USENIX
+  Association}, \bibinfo{year}{2025}, pp. \bibinfo{pages}{827--845}. \URLprefix
+  \url{https://www.usenix.org/conference/nsdi25/presentation/zeng}.
+%Type = Inproceedings
+\bibitem[{Chen et~al.(2025)Chen, Song, Zhang, Xu, and Liu}]{chen2025clubheap}
+\bibinfo{author}{Z.~Chen}, \bibinfo{author}{H.~Song},
+  \bibinfo{author}{Z.~Zhang}, \bibinfo{author}{Y.~Xu},
+  \bibinfo{author}{B.~Liu},
+\newblock \bibinfo{title}{{ClubHeap}: A high-speed and scalable priority queue
+  for programmable packet scheduling},
+\newblock in: \bibinfo{booktitle}{22nd USENIX Symposium on Networked Systems
+  Design and Implementation (NSDI 25)}, \bibinfo{publisher}{USENIX
+  Association}, \bibinfo{year}{2025}, pp. \bibinfo{pages}{1421--1436}.
+  \URLprefix
+  \url{https://www.usenix.org/conference/nsdi25/presentation/chen-zhikang}.
+%Type = Inproceedings
+\bibitem[{Sharafzadeh et~al.(2025)Sharafzadeh, Matson, Tourrilhes, Sharma, and
+  Ghorbani}]{sharafzadeh2025scrr}
+\bibinfo{author}{E.~Sharafzadeh}, \bibinfo{author}{R.~Matson},
+  \bibinfo{author}{J.~Tourrilhes}, \bibinfo{author}{P.~Sharma},
+  \bibinfo{author}{S.~Ghorbani},
+\newblock \bibinfo{title}{Self-clocked round-robin packet scheduling},
+\newblock in: \bibinfo{booktitle}{22nd USENIX Symposium on Networked Systems
+  Design and Implementation (NSDI 25)}, \bibinfo{publisher}{USENIX
+  Association}, \bibinfo{year}{2025}, pp. \bibinfo{pages}{1437--1465}.
+  \URLprefix
+  \url{https://www.usenix.org/conference/nsdi25/presentation/sharafzadeh}.
+%Type = Inproceedings
+\bibitem[{Alcoz et~al.(2025)Alcoz, Vass, Namyar, Arzani, Retvari, and
+  Vanbever}]{alcoz2025scheduling}
+\bibinfo{author}{A.~G. Alcoz}, \bibinfo{author}{B.~Vass},
+  \bibinfo{author}{P.~Namyar}, \bibinfo{author}{B.~Arzani},
+  \bibinfo{author}{G.~Retvari}, \bibinfo{author}{L.~Vanbever},
+\newblock \bibinfo{title}{Everything matters in programmable packet
+  scheduling},
+\newblock in: \bibinfo{booktitle}{22nd USENIX Symposium on Networked Systems
+  Design and Implementation (NSDI 25)}, \bibinfo{publisher}{USENIX
+  Association}, \bibinfo{year}{2025}, pp. \bibinfo{pages}{1467--1485}.
+  \URLprefix \url{https://www.usenix.org/conference/nsdi25/presentation/alcoz}.
+%Type = Inproceedings
+\bibitem[{Gao et~al.(2024)Gao, Dalleggio, Liu, Peng, Xu, and
+  Chao}]{gao2024sifter}
+\bibinfo{author}{P.~Gao}, \bibinfo{author}{A.~Dalleggio},
+  \bibinfo{author}{J.~Liu}, \bibinfo{author}{C.~Peng}, \bibinfo{author}{Y.~Xu},
+  \bibinfo{author}{H.~J. Chao},
+\newblock \bibinfo{title}{Sifter: An {Inversion-Free} and {Large-Capacity}
+  programmable packet scheduler},
+\newblock in: \bibinfo{booktitle}{21st USENIX Symposium on Networked Systems
+  Design and Implementation (NSDI 24)}, \bibinfo{publisher}{USENIX
+  Association}, \bibinfo{address}{Santa Clara, CA}, \bibinfo{year}{2024}, pp.
+  \bibinfo{pages}{75--95}. \URLprefix
+  \url{https://www.usenix.org/conference/nsdi24/presentation/gao-peixuan}.
+%Type = Article
+\bibitem[{Cardwell et~al.(2016)Cardwell, Cheng, Gunn, Yeganeh, and
+  Jacobson}]{cardwell2016bbrqueue}
+\bibinfo{author}{N.~Cardwell}, \bibinfo{author}{Y.~Cheng},
+  \bibinfo{author}{C.~S. Gunn}, \bibinfo{author}{S.~H. Yeganeh},
+  \bibinfo{author}{V.~Jacobson},
+\newblock \bibinfo{title}{{BBR}: Congestion-based congestion control},
+\newblock \bibinfo{journal}{ACM Queue} \bibinfo{volume}{14}
+  (\bibinfo{year}{2016}) \bibinfo{pages}{20--53}.
+  \DOIprefix\doi{10.1145/3012426.3022184}.
+%Type = Article
+\bibitem[{Kfoury et~al.(2020)Kfoury, Gomez, Crichigno, and
+  Bou-Harb}]{kfoury2020bbrv2alpha}
+\bibinfo{author}{E.~F. Kfoury}, \bibinfo{author}{J.~Gomez},
+  \bibinfo{author}{J.~Crichigno}, \bibinfo{author}{E.~Bou-Harb},
+\newblock \bibinfo{title}{An emulation-based evaluation of {TCP BBRv2 Alpha}
+  for wired broadband},
+\newblock \bibinfo{journal}{Computer Communications} \bibinfo{volume}{161}
+  (\bibinfo{year}{2020}) \bibinfo{pages}{212--224}.
+  \DOIprefix\doi{10.1016/j.comcom.2020.07.018}.
+%Type = Article
+\bibitem[{Song et~al.(2021)Song, Kim, Mahmud, Seo, and Cho}]{song2021bbrv2}
+\bibinfo{author}{Y.-J. Song}, \bibinfo{author}{G.-H. Kim},
+  \bibinfo{author}{I.~Mahmud}, \bibinfo{author}{W.-K. Seo},
+  \bibinfo{author}{Y.-Z. Cho},
+\newblock \bibinfo{title}{Understanding of {BBRv2}: Evaluation and comparison
+  with {BBRv1} congestion control algorithm},
+\newblock \bibinfo{journal}{IEEE Access} \bibinfo{volume}{9}
+  (\bibinfo{year}{2021}) \bibinfo{pages}{37131--37145}.
+  \DOIprefix\doi{10.1109/ACCESS.2021.3061696}.
+%Type = Inproceedings
+\bibitem[{Scherrer et~al.(2022)Scherrer, Legner, Perrig, and
+  Schmid}]{scherrer2022modelbased}
+\bibinfo{author}{S.~Scherrer}, \bibinfo{author}{M.~Legner},
+  \bibinfo{author}{A.~Perrig}, \bibinfo{author}{S.~Schmid},
+\newblock \bibinfo{title}{Model-based insights on the performance, fairness,
+  and stability of {BBR}},
+\newblock in: \bibinfo{booktitle}{Proceedings of the 22nd ACM Internet
+  Measurement Conference (IMC)}, \bibinfo{year}{2022}, pp.
+  \bibinfo{pages}{519--537}. \DOIprefix\doi{10.1145/3517745.3561420}.
+%Type = Inproceedings
+\bibitem[{Gomez et~al.(2023)Gomez, Kfoury, Crichigno, and
+  Srivastava}]{gomez2023fabric}
+\bibinfo{author}{J.~Gomez}, \bibinfo{author}{E.~F. Kfoury},
+  \bibinfo{author}{J.~Crichigno}, \bibinfo{author}{G.~Srivastava},
+\newblock \bibinfo{title}{Understanding the performance of {TCP BBRv2} using
+  {FABRIC}},
+\newblock in: \bibinfo{booktitle}{2023 IEEE International Black Sea Conference
+  on Communications and Networking (BlackSeaCom)}, \bibinfo{year}{2023}, pp.
+  \bibinfo{pages}{1--7}.
+  \DOIprefix\doi{10.1109/BlackSeaCom58138.2023.10299749}.
+%Type = Article
+\bibitem[{Pan et~al.(2021)Pan, Tan, Li, and Li}]{pan2021bbracw}
+\bibinfo{author}{W.~Pan}, \bibinfo{author}{H.~Tan}, \bibinfo{author}{X.~Li},
+  \bibinfo{author}{X.~Li},
+\newblock \bibinfo{title}{Improved {RTT} fairness of {BBR} congestion control
+  algorithm based on adaptive congestion window},
+\newblock \bibinfo{journal}{Electronics} \bibinfo{volume}{10}
+  (\bibinfo{year}{2021}) \bibinfo{pages}{615}.
+  \DOIprefix\doi{10.3390/electronics10050615}.
+%Type = Article
+\bibitem[{Zhang et~al.(2021)Zhang, Zhang, Xie et~al.}]{zhang2021gamma}
+\bibinfo{author}{Y.~Zhang}, \bibinfo{author}{Z.~Zhang},
+  \bibinfo{author}{X.~Xie}, et~al.,
+\newblock \bibinfo{title}{Improvement of {RTT} fairness problem in {BBR}
+  congestion control algorithm by gamma correction},
+\newblock \bibinfo{journal}{Sensors} \bibinfo{volume}{21}
+  (\bibinfo{year}{2021}) \bibinfo{pages}{4128}.
+  \DOIprefix\doi{10.3390/s21124128}.
+%Type = Article
+\bibitem[{Yang et~al.(2023)Yang, Tang, Pan, Wang, Rong, and
+  Zhang}]{yang2023pacinggain}
+\bibinfo{author}{S.~Yang}, \bibinfo{author}{Y.~Tang}, \bibinfo{author}{W.~Pan},
+  \bibinfo{author}{H.~Wang}, \bibinfo{author}{D.~Rong},
+  \bibinfo{author}{Z.~Zhang},
+\newblock \bibinfo{title}{Optimization of {BBR} congestion control algorithm
+  based on pacing gain model},
+\newblock \bibinfo{journal}{Sensors} \bibinfo{volume}{23}
+  (\bibinfo{year}{2023}) \bibinfo{pages}{4431}.
+  \DOIprefix\doi{10.3390/s23094431}.
+%Type = Article
+\bibitem[{Ahsan and Muhammad(2023)}]{ahsan2023bbrn}
+\bibinfo{author}{M.~Ahsan}, \bibinfo{author}{S.~S. Muhammad},
+\newblock \bibinfo{title}{{TCP BBR-n}: Increased throughput for wireless-{AC}
+  networks},
+\newblock \bibinfo{journal}{PLOS ONE} \bibinfo{volume}{18}
+  (\bibinfo{year}{2023}) \bibinfo{pages}{e0295576}.
+  \DOIprefix\doi{10.1371/journal.pone.0295576}.
+%Type = Inproceedings
+\bibitem[{Yang et~al.(2019)Yang, Yang, Wen et~al.}]{yang2019adaptivebbr}
+\bibinfo{author}{M.~Yang}, \bibinfo{author}{P.~Yang}, \bibinfo{author}{C.~Wen},
+  et~al.,
+\newblock \bibinfo{title}{Adaptive-{BBR}: Fine-grained congestion control with
+  improved fairness and low latency},
+\newblock in: \bibinfo{booktitle}{2019 IEEE Wireless Communications and
+  Networking Conference (WCNC)}, \bibinfo{year}{2019}, pp.
+  \bibinfo{pages}{1--6}. \DOIprefix\doi{10.1109/WCNC.2019.8885527}.
+%Type = Inproceedings
+\bibitem[{Sarpkaya et~al.(2025)Sarpkaya, Srivastava, Fund, and
+  Panwar}]{sarpkaya2025sharing}
+\bibinfo{author}{F.~B. Sarpkaya}, \bibinfo{author}{A.~Srivastava},
+  \bibinfo{author}{F.~Fund}, \bibinfo{author}{S.~Panwar},
+\newblock \bibinfo{title}{{BBR}'s sharing behavior with {CUBIC} and {Reno}},
+\newblock in: \bibinfo{booktitle}{Proceedings of the 24th International IFIP
+  TC6 Networking Conference (NETWORKING)}, \bibinfo{address}{Limassol, Cyprus},
+  \bibinfo{year}{2025}. \URLprefix
+  \url{https://networking.ifip.org/2025/images/Net25_papers/1571127277.pdf}.
+  \DOIprefix\doi{10.48550/arXiv.2505.07741}, \bibinfo{note}{arXiv:2505.07741}.
+%Type = Inproceedings
+\bibitem[{Langley et~al.(2017)Langley, Riddoch, Wilk et~al.}]{langley2017quic}
+\bibinfo{author}{A.~Langley}, \bibinfo{author}{A.~Riddoch},
+  \bibinfo{author}{A.~Wilk}, et~al.,
+\newblock \bibinfo{title}{The {QUIC} transport protocol: Design and
+  {Internet}-scale deployment},
+\newblock in: \bibinfo{booktitle}{Proceedings of ACM SIGCOMM},
+  \bibinfo{year}{2017}, pp. \bibinfo{pages}{183--196}.
+  \DOIprefix\doi{10.1145/3098822.3098842}.
+%Type = Inproceedings
+\bibitem[{Kakhki et~al.(2017)Kakhki, Jero, Choffnes, Nita-Rotaru, and
+  Mislove}]{kakhki2017quic}
+\bibinfo{author}{A.~M. Kakhki}, \bibinfo{author}{S.~Jero},
+  \bibinfo{author}{D.~Choffnes}, \bibinfo{author}{C.~Nita-Rotaru},
+  \bibinfo{author}{A.~Mislove},
+\newblock \bibinfo{title}{Taking a long look at {QUIC}: An approach for
+  rigorous evaluation of rapidly evolving transport protocols},
+\newblock in: \bibinfo{booktitle}{Proceedings of the 2017 ACM Internet
+  Measurement Conference (IMC)}, \bibinfo{year}{2017}, pp.
+  \bibinfo{pages}{290--303}. \DOIprefix\doi{10.1145/3131365.3131368}.
+%Type = Inproceedings
+\bibitem[{De~Coninck and Bonaventure(2017)}]{deconinck2017mpquic}
+\bibinfo{author}{Q.~De~Coninck}, \bibinfo{author}{O.~Bonaventure},
+\newblock \bibinfo{title}{Multipath {QUIC}: Design and evaluation},
+\newblock in: \bibinfo{booktitle}{Proceedings of the 13th International
+  Conference on Emerging Networking EXperiments and Technologies (CoNEXT)},
+  \bibinfo{year}{2017}, pp. \bibinfo{pages}{160--166}.
+  \DOIprefix\doi{10.1145/3143361.3143370}.
+%Type = Inproceedings
+\bibitem[{Trevisan et~al.(2021)Trevisan, Giordano, Drago, and
+  Khatouni}]{trevisan2021http3}
+\bibinfo{author}{M.~Trevisan}, \bibinfo{author}{D.~Giordano},
+  \bibinfo{author}{I.~Drago}, \bibinfo{author}{A.~S. Khatouni},
+\newblock \bibinfo{title}{Measuring {HTTP/3}: Adoption and performance},
+\newblock in: \bibinfo{booktitle}{2021 Mediterranean Communication and Computer
+  Networking Conference (MedComNet)}, \bibinfo{year}{2021}, pp.
+  \bibinfo{pages}{1--8}. \DOIprefix\doi{10.1109/MedComNet52149.2021.9501274}.
+%Type = Misc
+\bibitem[{Ford et~al.(2020)Ford, Raiciu, Handley, Bonaventure, and
+  Paasch}]{rfc8684}
+\bibinfo{author}{A.~Ford}, \bibinfo{author}{C.~Raiciu},
+  \bibinfo{author}{M.~Handley}, \bibinfo{author}{O.~Bonaventure},
+  \bibinfo{author}{C.~Paasch}, \bibinfo{title}{{TCP} extensions for multipath
+  operation with multiple addresses}, \bibinfo{howpublished}{RFC 8684, Internet
+  Engineering Task Force}, \bibinfo{year}{2020}.
+  \DOIprefix\doi{10.17487/RFC8684}.
+%Type = Inproceedings
+\bibitem[{Raiciu et~al.(2012)Raiciu, Paasch, Barre et~al.}]{raiciu2012mptcp}
+\bibinfo{author}{C.~Raiciu}, \bibinfo{author}{C.~Paasch},
+  \bibinfo{author}{S.~Barre}, et~al.,
+\newblock \bibinfo{title}{How hard can it be? designing and implementing a
+  deployable multipath {TCP}},
+\newblock in: \bibinfo{booktitle}{9th USENIX Symposium on Networked Systems
+  Design and Implementation (NSDI 12)}, \bibinfo{year}{2012}, pp.
+  \bibinfo{pages}{399--412}.
+%Type = Inproceedings
+\bibitem[{Yuan et~al.(2024)Yuan, Sotoudeh, Zhang, Welzl, Mazi{\`e}res, and
+  Winstein}]{yuan2024sidekick}
+\bibinfo{author}{G.~Yuan}, \bibinfo{author}{M.~Sotoudeh},
+  \bibinfo{author}{D.~K. Zhang}, \bibinfo{author}{M.~Welzl},
+  \bibinfo{author}{D.~Mazi{\`e}res}, \bibinfo{author}{K.~Winstein},
+\newblock \bibinfo{title}{Sidekick: {In-Network} assistance for secure
+  {End-to-End} transport protocols},
+\newblock in: \bibinfo{booktitle}{21st USENIX Symposium on Networked Systems
+  Design and Implementation (NSDI 24)}, \bibinfo{publisher}{USENIX
+  Association}, \bibinfo{address}{Santa Clara, CA}, \bibinfo{year}{2024}, pp.
+  \bibinfo{pages}{1813--1830}. \URLprefix
+  \url{https://www.usenix.org/conference/nsdi24/presentation/yuan}.
+%Type = Inproceedings
+\bibitem[{Winstein et~al.(2013)Winstein, Sivaraman, and
+  Balakrishnan}]{winstein2013sprout}
+\bibinfo{author}{K.~Winstein}, \bibinfo{author}{A.~Sivaraman},
+  \bibinfo{author}{H.~Balakrishnan},
+\newblock \bibinfo{title}{Stochastic forecasts achieve high throughput and low
+  delay over cellular networks},
+\newblock in: \bibinfo{booktitle}{10th USENIX Symposium on Networked Systems
+  Design and Implementation (NSDI 13)}, \bibinfo{year}{2013}, pp.
+  \bibinfo{pages}{459--471}.
+%Type = Inproceedings
+\bibitem[{Zaki et~al.(2015)Zaki, P{\"o}tsch, Chen, Subramanian, and
+  G{\"o}rg}]{zaki2015verus}
+\bibinfo{author}{Y.~Zaki}, \bibinfo{author}{T.~P{\"o}tsch},
+  \bibinfo{author}{J.~Chen}, \bibinfo{author}{L.~Subramanian},
+  \bibinfo{author}{C.~G{\"o}rg},
+\newblock \bibinfo{title}{Adaptive congestion control for unpredictable
+  cellular networks},
+\newblock in: \bibinfo{booktitle}{Proceedings of ACM SIGCOMM},
+  \bibinfo{year}{2015}, pp. \bibinfo{pages}{509--522}.
+  \DOIprefix\doi{10.1145/2785956.2787498}.
+%Type = Inproceedings
+\bibitem[{Xie et~al.(2020)Xie, Yi, and Jamieson}]{xie2020pbecc}
+\bibinfo{author}{Y.~Xie}, \bibinfo{author}{F.~Yi},
+  \bibinfo{author}{K.~Jamieson},
+\newblock \bibinfo{title}{{PBE-CC}: Congestion control via endpoint-centric,
+  physical-layer bandwidth measurements},
+\newblock in: \bibinfo{booktitle}{Proceedings of ACM SIGCOMM},
+  \bibinfo{year}{2020}, pp. \bibinfo{pages}{451--464}.
+  \DOIprefix\doi{10.1145/3387514.3405880}.
+%Type = Inproceedings
+\bibitem[{Michel et~al.(2022)Michel, Trevisan, Giordano, and
+  Bonaventure}]{michel2022starlink}
+\bibinfo{author}{F.~Michel}, \bibinfo{author}{M.~Trevisan},
+  \bibinfo{author}{D.~Giordano}, \bibinfo{author}{O.~Bonaventure},
+\newblock \bibinfo{title}{A first look at {Starlink} performance},
+\newblock in: \bibinfo{booktitle}{Proceedings of the 22nd ACM Internet
+  Measurement Conference (IMC)}, \bibinfo{year}{2022}, pp.
+  \bibinfo{pages}{130--136}. \DOIprefix\doi{10.1145/3517745.3561416}.
+%Type = Inproceedings
+\bibitem[{Kassem et~al.(2022)Kassem, Raman, Perino, and
+  Sastry}]{kassem2022starlink}
+\bibinfo{author}{M.~M. Kassem}, \bibinfo{author}{A.~Raman},
+  \bibinfo{author}{D.~Perino}, \bibinfo{author}{N.~Sastry},
+\newblock \bibinfo{title}{A browser-side view of {Starlink} connectivity},
+\newblock in: \bibinfo{booktitle}{Proceedings of the 22nd ACM Internet
+  Measurement Conference (IMC)}, \bibinfo{year}{2022}, pp.
+  \bibinfo{pages}{151--158}. \DOIprefix\doi{10.1145/3517745.3561457}.
+%Type = Inproceedings
+\bibitem[{Lai et~al.(2023)Lai, Li, Deng et~al.}]{lai2023starlink}
+\bibinfo{author}{Z.~Lai}, \bibinfo{author}{H.~Li}, \bibinfo{author}{Q.~Deng},
+  et~al.,
+\newblock \bibinfo{title}{Network characteristics of {LEO} satellite
+  constellations: A {Starlink}-based measurement from end users},
+\newblock in: \bibinfo{booktitle}{IEEE INFOCOM 2023 - IEEE Conference on
+  Computer Communications}, \bibinfo{year}{2023}, pp. \bibinfo{pages}{1--10}.
+  \DOIprefix\doi{10.1109/INFOCOM53939.2023.10228912}.
+%Type = Article
+\bibitem[{Khan et~al.(2023)Khan, Hervella, Diez et~al.}]{khan2023leo}
+\bibinfo{author}{F.~Khan}, \bibinfo{author}{C.~Hervella},
+  \bibinfo{author}{L.~Diez}, et~al.,
+\newblock \bibinfo{title}{Realistic assessment of transport protocols
+  performance over {LEO}-based communications},
+\newblock \bibinfo{journal}{Computer Networks} \bibinfo{volume}{236}
+  (\bibinfo{year}{2023}) \bibinfo{pages}{110008}.
+  \DOIprefix\doi{10.1016/j.comnet.2023.110008}.
+%Type = Inproceedings
+\bibitem[{Barbosa et~al.(2023)Barbosa, Theeranantachai, Zhang, and
+  Zhang}]{barbosa2023leo}
+\bibinfo{author}{G.~C.~G. Barbosa}, \bibinfo{author}{S.~Theeranantachai},
+  \bibinfo{author}{B.~Zhang}, \bibinfo{author}{L.~Zhang},
+\newblock \bibinfo{title}{A comparative evaluation of {TCP} congestion control
+  schemes over low-earth-orbit ({LEO}) satellite networks},
+\newblock in: \bibinfo{booktitle}{Proceedings of the 2nd International Workshop
+  on LEO Networking and Communication (LEO-NET)}, \bibinfo{year}{2023}, pp.
+  \bibinfo{pages}{11--16}. \DOIprefix\doi{10.1145/3630590.3630603}.
+%Type = Inproceedings
+\bibitem[{Laniewski et~al.(2024{\natexlab{a}})Laniewski, Lanfer, Meijerink, Van
+  Rijswijk-Deij, and Aschenbruck}]{laniewski2024wetlinks}
+\bibinfo{author}{D.~Laniewski}, \bibinfo{author}{E.~Lanfer},
+  \bibinfo{author}{B.~Meijerink}, \bibinfo{author}{R.~Van Rijswijk-Deij},
+  \bibinfo{author}{N.~Aschenbruck},
+\newblock \bibinfo{title}{{WetLinks}: A large-scale longitudinal {Starlink}
+  dataset with contiguous weather data},
+\newblock in: \bibinfo{booktitle}{TMA 2024 - Proceedings of the 8th Network
+  Traffic Measurement and Analysis Conference},
+  \bibinfo{year}{2024}{\natexlab{a}}.
+  \DOIprefix\doi{10.23919/TMA62044.2024.10558998}.
+%Type = Inproceedings
+\bibitem[{Laniewski et~al.(2024{\natexlab{b}})Laniewski, Lanfer, Beginn,
+  D{\"u}nker, D{\"u}ckers, and Aschenbruck}]{laniewski2024road}
+\bibinfo{author}{D.~Laniewski}, \bibinfo{author}{E.~Lanfer},
+  \bibinfo{author}{S.~Beginn}, \bibinfo{author}{J.~D{\"u}nker},
+  \bibinfo{author}{M.~D{\"u}ckers}, \bibinfo{author}{N.~Aschenbruck},
+\newblock \bibinfo{title}{{Starlink} on the road: A first look at mobile
+  {Starlink} performance in central europe},
+\newblock in: \bibinfo{booktitle}{TMA 2024 - Proceedings of the 8th Network
+  Traffic Measurement and Analysis Conference},
+  \bibinfo{year}{2024}{\natexlab{b}}.
+  \DOIprefix\doi{10.23919/TMA62044.2024.10559110}.
+%Type = Misc
+\bibitem[{Izhikevich et~al.(2023)}]{izhikevich2023leo}
+\bibinfo{author}{K.~Izhikevich}, et~al., \bibinfo{title}{Democratizing {LEO}
+  satellite network measurement}, \bibinfo{howpublished}{arXiv preprint
+  arXiv:2306.07469}, \bibinfo{year}{2023}.
+  \bibinfo{note}{\url{https://arxiv.org/abs/2306.07469}}.
+%Type = Inproceedings
+\bibitem[{Cheng et~al.(2024)Cheng, Zhang, Li, Arapin, Zhang, Zhang, Liu, Du,
+  Zhang, Yan, Mazumdar, Feamster, and Jiang}]{cheng2024grace}
+\bibinfo{author}{Y.~Cheng}, \bibinfo{author}{Z.~Zhang},
+  \bibinfo{author}{H.~Li}, \bibinfo{author}{A.~Arapin},
+  \bibinfo{author}{Y.~Zhang}, \bibinfo{author}{Q.~Zhang},
+  \bibinfo{author}{Y.~Liu}, \bibinfo{author}{K.~Du},
+  \bibinfo{author}{X.~Zhang}, \bibinfo{author}{F.~Y. Yan},
+  \bibinfo{author}{A.~Mazumdar}, \bibinfo{author}{N.~Feamster},
+  \bibinfo{author}{J.~Jiang},
+\newblock \bibinfo{title}{{GRACE}: {Loss-Resilient} {Real-Time} video through
+  neural codecs},
+\newblock in: \bibinfo{booktitle}{21st USENIX Symposium on Networked Systems
+  Design and Implementation (NSDI 24)}, \bibinfo{publisher}{USENIX
+  Association}, \bibinfo{address}{Santa Clara, CA}, \bibinfo{year}{2024}, pp.
+  \bibinfo{pages}{509--531}. \URLprefix
+  \url{https://www.usenix.org/conference/nsdi24/presentation/cheng}.
+%Type = Inproceedings
+\bibitem[{Meng et~al.(2024)Meng, Kong, Chen, Wang, Xu, Han, Liu, Arun, Hu, and
+  Wei}]{meng2024hairpin}
+\bibinfo{author}{Z.~Meng}, \bibinfo{author}{X.~Kong},
+  \bibinfo{author}{J.~Chen}, \bibinfo{author}{B.~Wang},
+  \bibinfo{author}{M.~Xu}, \bibinfo{author}{R.~Han}, \bibinfo{author}{H.~Liu},
+  \bibinfo{author}{V.~Arun}, \bibinfo{author}{H.~Hu}, \bibinfo{author}{X.~Wei},
+\newblock \bibinfo{title}{Hairpin: Rethinking packet loss recovery in
+  edge-based interactive video streaming},
+\newblock in: \bibinfo{booktitle}{21st USENIX Symposium on Networked Systems
+  Design and Implementation (NSDI 24)}, \bibinfo{publisher}{USENIX
+  Association}, \bibinfo{address}{Santa Clara, CA}, \bibinfo{year}{2024}, pp.
+  \bibinfo{pages}{907--926}. \URLprefix
+  \url{https://www.usenix.org/conference/nsdi24/presentation/meng}.
+%Type = Inproceedings
+\bibitem[{Dong et~al.(2015)Dong, Li, Zarchy, Godfrey, and
+  Schapira}]{dong2015pcc}
+\bibinfo{author}{M.~Dong}, \bibinfo{author}{Q.~Li},
+  \bibinfo{author}{D.~Zarchy}, \bibinfo{author}{P.~B. Godfrey},
+  \bibinfo{author}{M.~Schapira},
+\newblock \bibinfo{title}{{PCC}: Re-architecting congestion control for
+  consistent high performance},
+\newblock in: \bibinfo{booktitle}{12th USENIX Symposium on Networked Systems
+  Design and Implementation (NSDI 15)}, \bibinfo{publisher}{USENIX
+  Association}, \bibinfo{address}{Oakland, CA}, \bibinfo{year}{2015}, pp.
+  \bibinfo{pages}{395--408}. \URLprefix
+  \url{https://www.usenix.org/conference/nsdi15/technical-sessions/presentation/dong}.
+%Type = Inproceedings
+\bibitem[{Yan et~al.(2018)Yan, Ma, Hill, Raghavan, Wahby, Levis, and
+  Winstein}]{yan2018pantheon}
+\bibinfo{author}{F.~Y. Yan}, \bibinfo{author}{J.~Ma}, \bibinfo{author}{G.~D.
+  Hill}, \bibinfo{author}{D.~Raghavan}, \bibinfo{author}{R.~S. Wahby},
+  \bibinfo{author}{P.~Levis}, \bibinfo{author}{K.~Winstein},
+\newblock \bibinfo{title}{Pantheon: The training ground for {Internet}
+  congestion-control research},
+\newblock in: \bibinfo{booktitle}{2018 USENIX Annual Technical Conference
+  (USENIX ATC 18)}, \bibinfo{publisher}{USENIX Association},
+  \bibinfo{address}{Boston, MA}, \bibinfo{year}{2018}, pp.
+  \bibinfo{pages}{731--743}. \URLprefix
+  \url{https://www.usenix.org/conference/atc18/presentation/yan-francis}.
+%Type = Inproceedings
+\bibitem[{Arun and Balakrishnan(2018)}]{arun2018copa}
+\bibinfo{author}{V.~Arun}, \bibinfo{author}{H.~Balakrishnan},
+\newblock \bibinfo{title}{Copa: Practical delay-based congestion control for
+  the {Internet}},
+\newblock in: \bibinfo{booktitle}{15th USENIX Symposium on Networked Systems
+  Design and Implementation (NSDI 18)}, \bibinfo{publisher}{USENIX
+  Association}, \bibinfo{year}{2018}, pp. \bibinfo{pages}{329--342}. \URLprefix
+  \url{https://www.usenix.org/conference/nsdi18/presentation/arun}.
+%Type = Inproceedings
+\bibitem[{Narayan et~al.(2017)Narayan, Cangialosi, Goyal
+  et~al.}]{narayan2018ccp}
+\bibinfo{author}{A.~Narayan}, \bibinfo{author}{F.~Cangialosi},
+  \bibinfo{author}{P.~Goyal}, et~al.,
+\newblock \bibinfo{title}{The case for moving congestion control out of the
+  datapath},
+\newblock in: \bibinfo{booktitle}{Proceedings of the 16th ACM Workshop on Hot
+  Topics in Networks (HotNets)}, \bibinfo{year}{2017}, pp.
+  \bibinfo{pages}{101--107}. \DOIprefix\doi{10.1145/3152434.3152438}.
+%Type = Inproceedings
+\bibitem[{Abbasloo et~al.(2020)Abbasloo, Yen, and Chao}]{abbasloo2020orca}
+\bibinfo{author}{S.~Abbasloo}, \bibinfo{author}{C.-Y. Yen},
+  \bibinfo{author}{H.~J. Chao},
+\newblock \bibinfo{title}{Classic meets modern: A pragmatic learning-based
+  congestion control for the {Internet}},
+\newblock in: \bibinfo{booktitle}{Proceedings of ACM SIGCOMM},
+  \bibinfo{year}{2020}, pp. \bibinfo{pages}{632--647}.
+  \DOIprefix\doi{10.1145/3387514.3405892}.
+%Type = Inproceedings
+\bibitem[{Meng et~al.(2020)Meng, Schiff, Godfrey, and
+  Schapira}]{meng2020proteus}
+\bibinfo{author}{T.~Meng}, \bibinfo{author}{N.~R. Schiff},
+  \bibinfo{author}{P.~B. Godfrey}, \bibinfo{author}{M.~Schapira},
+\newblock \bibinfo{title}{{PCC Proteus}: Scavenger transport and beyond},
+\newblock in: \bibinfo{booktitle}{Proceedings of ACM SIGCOMM},
+  \bibinfo{year}{2020}, pp. \bibinfo{pages}{615--631}.
+  \DOIprefix\doi{10.1145/3387514.3405891}.
+%Type = Inproceedings
+\bibitem[{Netravali et~al.(2015)Netravali, Sivaraman, Das, Goyal, Winstein,
+  Mickens, and Balakrishnan}]{netravali2015mahimahi}
+\bibinfo{author}{R.~Netravali}, \bibinfo{author}{A.~Sivaraman},
+  \bibinfo{author}{S.~Das}, \bibinfo{author}{A.~Goyal},
+  \bibinfo{author}{K.~Winstein}, \bibinfo{author}{J.~Mickens},
+  \bibinfo{author}{H.~Balakrishnan},
+\newblock \bibinfo{title}{Mahimahi: Accurate record-and-replay for {HTTP}},
+\newblock in: \bibinfo{booktitle}{2015 USENIX Annual Technical Conference
+  (USENIX ATC 15)}, \bibinfo{publisher}{USENIX Association},
+  \bibinfo{address}{Santa Clara, CA}, \bibinfo{year}{2015}, pp.
+  \bibinfo{pages}{417--429}. \URLprefix
+  \url{https://www.usenix.org/conference/atc15/technical-session/presentation/netravali}.
+%Type = Inproceedings
+\bibitem[{Lantz et~al.(2010)Lantz, Heller, and McKeown}]{lantz2010mininet}
+\bibinfo{author}{B.~Lantz}, \bibinfo{author}{B.~Heller},
+  \bibinfo{author}{N.~McKeown},
+\newblock \bibinfo{title}{A network in a laptop: Rapid prototyping for
+  software-defined networks},
+\newblock in: \bibinfo{booktitle}{Proceedings of the 9th ACM SIGCOMM Workshop
+  on Hot Topics in Networks (HotNets)}, \bibinfo{year}{2010}, pp.
+  \bibinfo{pages}{19:1--19:6}. \DOIprefix\doi{10.1145/1868447.1868466}.
+%Type = Inproceedings
+\bibitem[{Henderson et~al.(2008)Henderson, Lacage, Riley, Dowell, and
+  Kopena}]{henderson2008ns3}
+\bibinfo{author}{T.~R. Henderson}, \bibinfo{author}{M.~Lacage},
+  \bibinfo{author}{G.~F. Riley}, \bibinfo{author}{C.~Dowell},
+  \bibinfo{author}{J.~Kopena},
+\newblock \bibinfo{title}{Network simulations with the {ns-3} simulator},
+\newblock in: \bibinfo{booktitle}{Proceedings of the ACM SIGCOMM Demonstration
+  Conference}, \bibinfo{year}{2008}.
+%Type = Article
+\bibitem[{Boutaba et~al.(2018)Boutaba, Salahuddin, Limam
+  et~al.}]{boutaba2018ml}
+\bibinfo{author}{R.~Boutaba}, \bibinfo{author}{M.~A. Salahuddin},
+  \bibinfo{author}{N.~Limam}, et~al.,
+\newblock \bibinfo{title}{A comprehensive survey on machine learning for
+  networking: Evolution, applications and research challenges},
+\newblock \bibinfo{journal}{Journal of Internet Services and Applications}
+  \bibinfo{volume}{9} (\bibinfo{year}{2018}) \bibinfo{pages}{16}.
+  \DOIprefix\doi{10.1186/s13174-018-0087-2}.
+%Type = Misc
+\bibitem[{Shrestha et~al.(2025)Shrestha, Kua, and Pokhrel}]{pokhrel2025wifi}
+\bibinfo{author}{S.~K. Shrestha}, \bibinfo{author}{J.~Kua},
+  \bibinfo{author}{S.~R. Pokhrel}, \bibinfo{title}{Understanding {BBRv3}
+  performance in {AQM}-enabled {WiFi} networks}, \bibinfo{howpublished}{arXiv
+  preprint arXiv:2509.06245}, \bibinfo{year}{2025}. \URLprefix
+  \url{https://arxiv.org/abs/2509.06245}.
+  \DOIprefix\doi{10.48550/arXiv.2509.06245}, \bibinfo{note}{arXiv:2509.06245}.
+%Type = Article
+\bibitem[{Grazia et~al.(2020)Grazia, Klapez, and Casoni}]{grazia2020bbrp}
+\bibinfo{author}{C.~A. Grazia}, \bibinfo{author}{M.~Klapez},
+  \bibinfo{author}{M.~Casoni},
+\newblock \bibinfo{title}{{BBRp}: Improving {TCP BBR} performance over {WLAN}},
+\newblock \bibinfo{journal}{IEEE Access} \bibinfo{volume}{8}
+  (\bibinfo{year}{2020}) \bibinfo{pages}{43344--43354}.
+  \DOIprefix\doi{10.1109/ACCESS.2020.2977834}.
+%Type = Inproceedings
+\bibitem[{Aggarwal et~al.(2000)Aggarwal, Savage, and
+  Anderson}]{aggarwal2000pacing}
+\bibinfo{author}{A.~Aggarwal}, \bibinfo{author}{S.~Savage},
+  \bibinfo{author}{T.~Anderson},
+\newblock \bibinfo{title}{Understanding the performance of {TCP} pacing},
+\newblock in: \bibinfo{booktitle}{Proceedings of IEEE INFOCOM},
+  volume~\bibinfo{volume}{3}, \bibinfo{year}{2000}, pp.
+  \bibinfo{pages}{1157--1165}. \DOIprefix\doi{10.1109/INFCOM.2000.832483}.
+%Type = Inproceedings
+\bibitem[{Semke et~al.(1998)Semke, Mahdavi, and Mathis}]{semke1998buffer}
+\bibinfo{author}{J.~Semke}, \bibinfo{author}{J.~Mahdavi},
+  \bibinfo{author}{M.~Mathis},
+\newblock \bibinfo{title}{Automatic {TCP} buffer tuning},
+\newblock in: \bibinfo{booktitle}{Proceedings of ACM SIGCOMM},
+  \bibinfo{year}{1998}, pp. \bibinfo{pages}{315--323}.
+  \DOIprefix\doi{10.1145/285243.285292}.
+%Type = Misc
+\bibitem[{H{\o}iland-J{\o}rgensen et~al.(2018)H{\o}iland-J{\o}rgensen,
+  McKenney, T{\"{a}}ht et~al.}]{hoeiland2018fq}
+\bibinfo{author}{T.~H{\o}iland-J{\o}rgensen}, \bibinfo{author}{P.~E. McKenney},
+  \bibinfo{author}{D.~T{\"{a}}ht}, et~al., \bibinfo{title}{The flow queue
+  {CoDel} packet scheduler and active queue management algorithm},
+  \bibinfo{howpublished}{RFC 8290, Internet Engineering Task Force},
+  \bibinfo{year}{2018}. \DOIprefix\doi{10.17487/RFC8290}.
+%Type = Techreport
+\bibitem[{Jain et~al.(1984)Jain, Chiu, and Hawe}]{jain1984fairness}
+\bibinfo{author}{R.~Jain}, \bibinfo{author}{D.-M. Chiu}, \bibinfo{author}{W.~R.
+  Hawe}, \bibinfo{title}{A quantitative measure of fairness and discrimination
+  for resource allocation in shared computer systems}, \bibinfo{type}{Technical
+  Report} \bibinfo{number}{DEC-TR-301}, Digital Equipment Corporation,
+  \bibinfo{year}{1984}.
+%Type = Article
+\bibitem[{Atxutegi et~al.(2018)Atxutegi, Liberal, Haile
+  et~al.}]{atxutegi2018cellular}
+\bibinfo{author}{E.~Atxutegi}, \bibinfo{author}{F.~Liberal},
+  \bibinfo{author}{H.~K. Haile}, et~al.,
+\newblock \bibinfo{title}{On the use of {TCP BBR} in cellular networks},
+\newblock \bibinfo{journal}{IEEE Communications Magazine} \bibinfo{volume}{56}
+  (\bibinfo{year}{2018}) \bibinfo{pages}{172--179}.
+  \DOIprefix\doi{10.1109/MCOM.2018.1700725}.
+%Type = Inproceedings
+\bibitem[{Miyazawa et~al.(2018)Miyazawa, Sasaki, and
+  Yamaguchi}]{miyazawa2018cyclic}
+\bibinfo{author}{K.~Miyazawa}, \bibinfo{author}{K.~Sasaki},
+  \bibinfo{author}{S.~Yamaguchi},
+\newblock \bibinfo{title}{Cyclic performance fluctuation of {TCP BBR}},
+\newblock in: \bibinfo{booktitle}{2018 IEEE 42nd Annual Computer Software and
+  Applications Conference (COMPSAC)}, \bibinfo{year}{2018}.
+  \DOIprefix\doi{10.1109/COMPSAC.2018.00132}.
+%Type = Inproceedings
+\bibitem[{Miyazawa et~al.(2020)Miyazawa, Yamaguchi, and
+  Kobayashi}]{miyazawa2020mechanism}
+\bibinfo{author}{K.~Miyazawa}, \bibinfo{author}{S.~Yamaguchi},
+  \bibinfo{author}{A.~Kobayashi},
+\newblock \bibinfo{title}{Mechanism of cyclic performance fluctuation of {TCP
+  BBR} and {CUBIC TCP} communications},
+\newblock in: \bibinfo{booktitle}{2020 IEEE 44th Annual Computer Software and
+  Applications Conference (COMPSAC)}, \bibinfo{year}{2020}.
+  \DOIprefix\doi{10.1109/COMPSAC48688.2020.0-103}.
+%Type = Inproceedings
+\bibitem[{Claypool et~al.(2021)Claypool, Chung, and
+  Claypool}]{claypool2021satellite}
+\bibinfo{author}{S.~Claypool}, \bibinfo{author}{J.~Chung},
+  \bibinfo{author}{M.~Claypool},
+\newblock \bibinfo{title}{Measurements comparing {TCP CUBIC} and {TCP BBR} over
+  a satellite network},
+\newblock in: \bibinfo{booktitle}{2021 IEEE 18th Annual Consumer Communications
+  \& Networking Conference (CCNC)}, \bibinfo{year}{2021}, pp.
+  \bibinfo{pages}{1--4}. \DOIprefix\doi{10.1109/CCNC49032.2021.9369602}.
+%Type = Inproceedings
+\bibitem[{Wang et~al.(2024)Wang, Zhao, Han et~al.}]{wang2024bbr_leo}
+\bibinfo{author}{Z.~Wang}, \bibinfo{author}{Y.~Zhao}, \bibinfo{author}{W.~Han},
+  et~al.,
+\newblock \bibinfo{title}{An improved {BBR} algorithm with adaptive congestion
+  control for {LEO} satellite networks},
+\newblock in: \bibinfo{booktitle}{2024 International Conference on Computing,
+  Networking and Communications (ICCNC)}, \bibinfo{year}{2024}.
+  \DOIprefix\doi{10.1109/ICCNC63989.2024.00013}.
+%Type = Inproceedings
+\bibitem[{Tao et~al.(2018)Tao, Jiang, Ma et~al.}]{tao2018rtt}
+\bibinfo{author}{Y.~Tao}, \bibinfo{author}{J.~Jiang}, \bibinfo{author}{S.~Ma},
+  et~al.,
+\newblock \bibinfo{title}{Unraveling the {RTT}-fairness problem for {BBR}: A
+  queueing model},
+\newblock in: \bibinfo{booktitle}{2018 IEEE Global Communications Conference
+  (GLOBECOM)}, \bibinfo{year}{2018}, pp. \bibinfo{pages}{1--6}.
+  \DOIprefix\doi{10.1109/GLOCOM.2018.8647260}.
+%Type = Misc
+\bibitem[{Ma et~al.(2017)Ma, Jiang, Wang, and Li}]{ma2017fairness}
+\bibinfo{author}{S.~Ma}, \bibinfo{author}{J.~Jiang}, \bibinfo{author}{W.~Wang},
+  \bibinfo{author}{B.~Li}, \bibinfo{title}{Fairness of congestion-based
+  congestion control: Experimental evaluation and analysis},
+  \bibinfo{howpublished}{arXiv preprint arXiv:1706.09115},
+  \bibinfo{year}{2017}. \bibinfo{note}{\url{https://arxiv.org/abs/1706.09115}}.
+%Type = Article
+\bibitem[{Kim and Cho(2020)}]{kim2019delay}
+\bibinfo{author}{G.-H. Kim}, \bibinfo{author}{Y.-Z. Cho},
+\newblock \bibinfo{title}{Delay-aware {BBR} congestion control algorithm for
+  {RTT} fairness improvement},
+\newblock \bibinfo{journal}{IEEE Access} \bibinfo{volume}{8}
+  (\bibinfo{year}{2020}) \bibinfo{pages}{4099--4109}.
+  \DOIprefix\doi{10.1109/ACCESS.2019.2962213}.
+%Type = Inproceedings
+\bibitem[{Abrol et~al.(2024)Abrol, Mohan, and Truong-Huu}]{abrol2024fairtt}
+\bibinfo{author}{A.~Abrol}, \bibinfo{author}{P.~M. Mohan},
+  \bibinfo{author}{T.~Truong-Huu},
+\newblock \bibinfo{title}{{FaiRTT}: An empirical approach for enhanced {RTT}
+  fairness and bottleneck throughput in {BBR}},
+\newblock in: \bibinfo{booktitle}{2024 IEEE International Conference on
+  Communications Workshops (ICC Workshops)}, \bibinfo{year}{2024}, pp.
+  \bibinfo{pages}{673--678}.
+  \DOIprefix\doi{10.1109/ICCWorkshops59551.2024.10615947}.
+%Type = Inproceedings
+\bibitem[{Zhang et~al.(2018)Zhang, Cui, and Tso}]{zhang2018modest}
+\bibinfo{author}{Y.~Zhang}, \bibinfo{author}{L.~Cui}, \bibinfo{author}{F.~P.
+  Tso},
+\newblock \bibinfo{title}{Modest {BBR}: Enabling better fairness for {BBR}
+  congestion control},
+\newblock in: \bibinfo{booktitle}{2018 IEEE Symposium on Computers and
+  Communications (ISCC)}, \bibinfo{year}{2018}, pp. \bibinfo{pages}{646--651}.
+  \DOIprefix\doi{10.1109/ISCC.2018.8538521}.
+%Type = Article
+\bibitem[{Song et~al.(2020)Song, Kim, and Cho}]{song2020bbrcws}
+\bibinfo{author}{Y.-J. Song}, \bibinfo{author}{G.-H. Kim},
+  \bibinfo{author}{Y.-Z. Cho},
+\newblock \bibinfo{title}{{BBR-CWS}: Improving the inter-protocol fairness of
+  {BBR}},
+\newblock \bibinfo{journal}{Electronics} \bibinfo{volume}{9}
+  (\bibinfo{year}{2020}) \bibinfo{pages}{862}.
+  \DOIprefix\doi{10.3390/electronics9050862}.
+%Type = Article
+\bibitem[{Xiao et~al.(2019)Xiao, Mao, and Tugnait}]{xiao2019tcpdrinc}
+\bibinfo{author}{K.~Xiao}, \bibinfo{author}{S.~Mao}, \bibinfo{author}{J.~K.
+  Tugnait},
+\newblock \bibinfo{title}{Tcp-drinc: Smart congestion control based on deep
+  reinforcement learning},
+\newblock \bibinfo{journal}{IEEE Access} \bibinfo{volume}{7}
+  (\bibinfo{year}{2019}) \bibinfo{pages}{11892--11904}.
+  \DOIprefix\doi{10.1109/ACCESS.2019.2892046}.
+%Type = Inproceedings
+\bibitem[{Winstein and Balakrishnan(2013)}]{winstein2013remy}
+\bibinfo{author}{K.~Winstein}, \bibinfo{author}{H.~Balakrishnan},
+\newblock \bibinfo{title}{{TCP} ex machina: Computer-generated congestion
+  control},
+\newblock in: \bibinfo{booktitle}{Proceedings of ACM SIGCOMM},
+  \bibinfo{year}{2013}, pp. \bibinfo{pages}{123--134}.
+  \DOIprefix\doi{10.1145/2534169.2486020}.
+%Type = Inproceedings
+\bibitem[{Dong et~al.(2018)Dong, Meng, Zarchy, Arslan, Gilad, Godfrey, and
+  Schapira}]{dong2018vivace}
+\bibinfo{author}{M.~Dong}, \bibinfo{author}{T.~Meng},
+  \bibinfo{author}{D.~Zarchy}, \bibinfo{author}{E.~Arslan},
+  \bibinfo{author}{Y.~Gilad}, \bibinfo{author}{B.~Godfrey},
+  \bibinfo{author}{M.~Schapira},
+\newblock \bibinfo{title}{{PCC} {Vivace}: Online-learning congestion control},
+\newblock in: \bibinfo{booktitle}{15th USENIX Symposium on Networked Systems
+  Design and Implementation (NSDI)}, \bibinfo{publisher}{USENIX Association},
+  \bibinfo{address}{Renton, WA}, \bibinfo{year}{2018}, pp.
+  \bibinfo{pages}{343--356}. \URLprefix
+  \url{https://www.usenix.org/conference/nsdi18/presentation/dong}.
+%Type = Inproceedings
+\bibitem[{Jay et~al.(2019)Jay, Rotman, Godfrey, Schapira, and
+  Tamar}]{jay2019aurora}
+\bibinfo{author}{N.~Jay}, \bibinfo{author}{N.~Rotman},
+  \bibinfo{author}{B.~Godfrey}, \bibinfo{author}{M.~Schapira},
+  \bibinfo{author}{A.~Tamar},
+\newblock \bibinfo{title}{A deep reinforcement learning perspective on internet
+  congestion control},
+\newblock in: \bibinfo{booktitle}{Proceedings of the 36th International
+  Conference on Machine Learning (ICML)}, volume~\bibinfo{volume}{97} of
+  \textit{\bibinfo{series}{Proceedings of Machine Learning Research}},
+  \bibinfo{publisher}{PMLR}, \bibinfo{year}{2019}, pp.
+  \bibinfo{pages}{3050--3059}. \URLprefix
+  \url{https://proceedings.mlr.press/v97/jay19a.html}.
+%Type = Inproceedings
+\bibitem[{Kim et~al.(2020)Kim, Song, and Cho}]{kim2020ml}
+\bibinfo{author}{G.-H. Kim}, \bibinfo{author}{Y.-J. Song},
+  \bibinfo{author}{Y.-Z. Cho},
+\newblock \bibinfo{title}{Improvement of inter-protocol fairness for {BBR}
+  congestion control using machine learning},
+\newblock in: \bibinfo{booktitle}{2020 International Conference on Artificial
+  Intelligence in Information and Communication (ICAIIC)},
+  \bibinfo{year}{2020}, pp. \bibinfo{pages}{501--504}.
+  \DOIprefix\doi{10.1109/ICAIIC48513.2020.9065259}.
+%Type = Inproceedings
+\bibitem[{Sharan et~al.(2022)Sharan, Zheng, Hsu, Xing, Chen, and
+  Wang}]{sharan2022symbolic}
+\bibinfo{author}{S.~P. Sharan}, \bibinfo{author}{W.~Zheng},
+  \bibinfo{author}{K.-F. Hsu}, \bibinfo{author}{J.~Xing},
+  \bibinfo{author}{A.~Chen}, \bibinfo{author}{Z.~Wang},
+\newblock \bibinfo{title}{Symbolic distillation for learned {TCP} congestion
+  control},
+\newblock in: \bibinfo{booktitle}{Advances in Neural Information Processing
+  Systems (NeurIPS)}, volume~\bibinfo{volume}{35}, \bibinfo{year}{2022}.
+  \URLprefix
+  \url{https://proceedings.neurips.cc/paper_files/paper/2022/hash/4574ac9854d4defe3bf119d07b817084-Abstract-Conference.html}.
+%Type = Inproceedings
+\bibitem[{Galliera et~al.(2023)Galliera, Morelli, Fronteddu
+  et~al.}]{galliera2023marlin}
+\bibinfo{author}{R.~Galliera}, \bibinfo{author}{A.~Morelli},
+  \bibinfo{author}{R.~Fronteddu}, et~al.,
+\newblock \bibinfo{title}{{MARLIN}: Soft actor-critic based reinforcement
+  learning for congestion control in real networks},
+\newblock in: \bibinfo{booktitle}{IEEE/IFIP Network Operations and Management
+  Symposium (NOMS)}, \bibinfo{year}{2023}.
+  \DOIprefix\doi{10.1109/NOMS56928.2023.10154210}.
+%Type = Inproceedings
+\bibitem[{Pappone et~al.(2025)Pappone, Sacco, and Esposito}]{pappone2025mutant}
+\bibinfo{author}{L.~Pappone}, \bibinfo{author}{A.~Sacco},
+  \bibinfo{author}{F.~Esposito},
+\newblock \bibinfo{title}{Mutant: Learning congestion control from existing
+  protocols via online reinforcement learning},
+\newblock in: \bibinfo{booktitle}{22nd USENIX Symposium on Networked Systems
+  Design and Implementation (NSDI 25)}, \bibinfo{publisher}{USENIX
+  Association}, \bibinfo{address}{Philadelphia, PA}, \bibinfo{year}{2025}, pp.
+  \bibinfo{pages}{1507--1522}. \URLprefix
+  \url{https://www.usenix.org/conference/nsdi25/presentation/pappone}.
+%Type = Inproceedings
+\bibitem[{Ketabi et~al.(2023)Ketabi, Chen, Dong et~al.}]{ketabi2023drl}
+\bibinfo{author}{S.~Ketabi}, \bibinfo{author}{H.~Chen},
+  \bibinfo{author}{H.~Dong}, et~al.,
+\newblock \bibinfo{title}{A deep reinforcement learning framework for
+  optimizing congestion control in data centers},
+\newblock in: \bibinfo{booktitle}{IEEE/IFIP Network Operations and Management
+  Symposium (NOMS)}, \bibinfo{year}{2023}, pp. \bibinfo{pages}{1--7}.
+  \DOIprefix\doi{10.1109/NOMS56928.2023.10154411}.
+%Type = Article
+\bibitem[{Bern{\'a}rdez et~al.(2025)Bern{\'a}rdez, Su{\'a}rez-Varela, Shi
+  et~al.}]{bernardez2025graphcc}
+\bibinfo{author}{G.~Bern{\'a}rdez}, \bibinfo{author}{J.~Su{\'a}rez-Varela},
+  \bibinfo{author}{X.~Shi}, et~al.,
+\newblock \bibinfo{title}{{GraphCC}: A practical graph learning-based approach
+  to congestion control in datacenters},
+\newblock \bibinfo{journal}{Computer Networks}  (\bibinfo{year}{2025}).
+  \DOIprefix\doi{10.1016/j.comnet.2024.110981}.
+%Type = Article
+\bibitem[{Huang et~al.(2025)Huang, Du, Zhang et~al.}]{huang2024llm}
+\bibinfo{author}{Y.~Huang}, \bibinfo{author}{H.~Du},
+  \bibinfo{author}{X.~Zhang}, et~al.,
+\newblock \bibinfo{title}{Large language models for networking: Applications,
+  enabling techniques, and challenges},
+\newblock \bibinfo{journal}{IEEE Network}  (\bibinfo{year}{2025}).
+  \DOIprefix\doi{10.1109/MNET.2024.3435752}.
+%Type = Article
+\bibitem[{Jiang et~al.(2021)Jiang, Li, Jiang, Shen, Sinnott, Tian, and
+  Xu}]{jiang2021mlcc}
+\bibinfo{author}{H.~Jiang}, \bibinfo{author}{Q.~Li},
+  \bibinfo{author}{Y.~Jiang}, \bibinfo{author}{G.~Shen}, \bibinfo{author}{R.~O.
+  Sinnott}, \bibinfo{author}{C.~Tian}, \bibinfo{author}{M.~Xu},
+\newblock \bibinfo{title}{When machine learning meets congestion control: A
+  survey and comparison},
+\newblock \bibinfo{journal}{Computer Networks} \bibinfo{volume}{192}
+  (\bibinfo{year}{2021}) \bibinfo{pages}{108033}.
+  \DOIprefix\doi{10.1016/j.comnet.2021.108033}.
+
+\end{thebibliography}
